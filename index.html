@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V2.5</title>
+<title>AM Finance V2.5.1</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -282,7 +282,8 @@ if(!confirm("Registrar pago de "+money(monto)+"?"))return;
 v.saldo=Math.round((saldo-capital)*100)/100;
 data.pagos.push({
 nombre:v.nombre,monto:monto,interes:interes,
-capital:capital,tipo:"vehiculo",fecha:today()
+capital:capital,tipo:"vehiculo",fecha:today(),
+saldoRestante:v.saldo
 });
 save();
 alert("Pago registrado.\nInterés estimado: "+money(interes)+
