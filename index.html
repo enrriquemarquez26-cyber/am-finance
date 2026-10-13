@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V2</title>
+<title>AM Finance V2.5</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -177,6 +177,37 @@ ${data.vehiculos.map((v,i)=>`
 <strong>${safe(v.nombre)}</strong>
 <div class="smallamount">${money(v.saldo)}</div>
 <div class="label">APR ${v.apr}% · Pago mensual ${money(v.pago)}</div>
+<button class="secondary" onclick="toggle('historial${i}')">
+📋 Ver historial de pagos
+</button>
+
+<div class="payment hidden" id="historial${i}">
+<h3>Historial de pagos</h3>
+
+${data.pagos
+.filter(p=>p.tipo==="vehiculo" && p.nombre===v.nombre)
+.map(p=>`
+<div class="item">
+<strong>Fecha: ${safe(p.fecha)}</strong>
+<div class="row">
+<span>Pago realizado</span>
+<strong>${money(p.monto)}</strong>
+</div>
+<div class="row">
+<span>Intereses estimados</span>
+<span>${money(p.interes)}</span>
+</div>
+<div class="row">
+<span>Capital abonado</span>
+<span class="green">${money(p.capital)}</span>
+</div>
+<div class="row">
+<span>Saldo restante</span>
+<strong>${p.saldoRestante==null?"No registrado":money(p.saldoRestante)}</strong>
+</div>
+</div>
+`).join("") || '<p class="note">Todavía no hay pagos registrados.</p>'}
+</div>
 <button class="secondary" onclick="toggle('auto${i}')">Registrar pago</button>
 <div class="payment hidden" id="auto${i}">
 <form onsubmit="pagarAuto(event,${i})">
