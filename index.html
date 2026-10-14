@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.3</title>
+<title>AM Finance V3.4</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -548,7 +548,8 @@ ${Array.from({length:31},(_,i)=>`
    id:id(),nombre:String(f.get("nombre")).trim(),
    saldo:round(f.get("saldo")),
    limite:round(f.get("limite")),
-   apr:Number(f.get("apr"))
+   apr:Number(f.get("apr")),
+vencimiento:Number(f.get("vencimiento"))
   });
   save();render();
  };
