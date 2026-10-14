@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.8.3</title>
+<title>AM Finance V3.9</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png?v=2">
 <link rel="icon" type="image/png" href="3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png">
 <style>
@@ -1063,5 +1063,102 @@ function aplicarTema(){
 aplicarTema();
 go("inicio");
 </script>
+
+<!-- Panel deslizable AM Finance -->
+<style>
+#amSheetBackdrop {
+  position:fixed;inset:0;background:rgba(0,0,0,.25);
+  z-index:9998;opacity:0;pointer-events:none;
+  transition:opacity .3s;
+}
+#amSheetBackdrop.open{opacity:1;pointer-events:auto}
+#amSheet {
+  position:fixed;bottom:0;left:0;right:0;
+  height:65dvh;max-height:90dvh;
+  background:rgba(248,249,252,.94);
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+  border-radius:30px 30px 0 0;
+  z-index:9999;padding:12px 20px 30px;
+  box-shadow:0 -8px 35px rgba(0,0,0,.15);
+  transform:translateY(105%);
+  transition:transform .35s ease;
+  overflow-y:auto;
+  color:#17212e;
+}
+#amSheet.open{transform:translateY(0)}
+.amHandle{width:46px;height:5px;background:#aaa;
+  border-radius:10px;margin:0 auto 22px}
+.amSheetHead{display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:24px}
+.amSheetHead h2{margin:0;font-size:23px}
+.amSettings{border:0;background:#e8eaf0;
+  border-radius:50%;width:44px;height:44px;font-size:22px}
+.amGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.amTile{background:rgba(255,255,255,.8);
+  border:1px solid #e4e6ed;border-radius:20px;
+  padding:18px 5px;text-align:center;font-size:13px;
+  color:#17212e}
+.amTile span{display:block;font-size:27px;margin-bottom:8px}
+#amSheetButton{position:fixed;bottom:90px;right:17px;
+  z-index:9990;width:54px;height:54px;border:0;
+  border-radius:50%;background:#14b8a6;color:white;
+  font-size:30px;box-shadow:0 5px 18px #0003}
+.tema-oscuro #amSheet{background:rgba(28,30,37,.96);color:white}
+.tema-oscuro .amTile{background:#343741;color:white;border-color:#454955}
+.tema-oscuro .amSettings{background:#454955;color:white}
+</style>
+
+<button id="amSheetButton" onclick="abrirAmSheet()">☰</button>
+<div id="amSheetBackdrop" onclick="cerrarAmSheet()"></div>
+<div id="amSheet">
+  <div class="amHandle"></div>
+  <div class="amSheetHead">
+    <h2>AM Finance</h2>
+    <button class="amSettings" onclick="irDesdePanel('ajustes')">⚙️</button>
+  </div>
+  <div class="amGrid">
+    <button class="amTile" onclick="irDesdePanel('inicio')"><span>🏠</span>Inicio</button>
+    <button class="amTile" onclick="irDesdePanel('movimientos')"><span>💸</span>Movimientos</button>
+    <button class="amTile" onclick="irDesdePanel('tarjetas')"><span>💳</span>Tarjetas</button>
+    <button class="amTile" onclick="irDesdePanel('vehiculos')"><span>🚘</span>Vehículos</button>
+    <button class="amTile" onclick="irDesdePanel('presupuestos')"><span>📊</span>Presupuestos</button>
+    <button class="amTile" onclick="alert('Próximamente: cuentas de ahorro')"><span>🐷</span>Ahorros</button>
+  </div>
+</div>
+
+<script>
+function abrirAmSheet(){
+  document.getElementById('amSheet').classList.add('open');
+  document.getElementById('amSheetBackdrop').classList.add('open');
+}
+function cerrarAmSheet(){
+  document.getElementById('amSheet').classList.remove('open');
+  document.getElementById('amSheetBackdrop').classList.remove('open');
+}
+function irDesdePanel(pagina){
+  cerrarAmSheet();
+  if(typeof go==='function')go(pagina);
+}
+let amStartY=0;
+const amPanel=document.getElementById('amSheet');
+amPanel.addEventListener('touchstart',e=>{
+  amStartY=e.touches[0].clientY;
+},{passive:true});
+amPanel.addEventListener('touchend',e=>{
+  if(e.changedTouches[0].clientY-amStartY>90)cerrarAmSheet();
+},{passive:true});
+document.addEventListener('touchstart',e=>{
+  if(e.target.closest('#amSheet,#amSheetButton'))return;
+  amStartY=e.touches[0].clientY;
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(amPanel.classList.contains('open'))return;
+  const diff=amStartY-e.changedTouches[0].clientY;
+  if(diff>100 && e.changedTouches[0].clientY>window.innerHeight*.45)
+    abrirAmSheet();
+},{passive:true});
+</script>
+
 </body>
 </html>
