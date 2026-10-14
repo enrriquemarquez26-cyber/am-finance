@@ -389,7 +389,9 @@ const tarjetasBanco = tipo => cuentasBanco
       ? Math.min(100, Math.max(0, saldo / meta * 100))
       : 0;
 
-    return '<div class="card">' +
+    return '<div class="card" onclick="abrirCuentaBanco(' +
+  JSON.stringify(c.id).replace(/"/g, '&quot;') +
+  ')" style="cursor:pointer">' +
       '<h3>' + safe(c.nombre) + '</h3>' +
       '<div class="amount">' + money(saldo) + '</div>' +
       '<div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">' +
@@ -1157,6 +1159,69 @@ function abrirNuevaCuenta() {
 
   localStorage.setItem(clave, JSON.stringify(cuentas));
   alert("Cuenta creada correctamente.");
+}
+
+
+function abrirCuentaBanco(id) {
+  const clave = "amfinance-cuentas-banco";
+  let cuentas;
+
+  try {
+    cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
+    if (!Array.isArray(cuentas)) return;
+  } catch (e) {
+    alert("No se pudieron leer las cuentas.");
+    return;
+  }
+
+  const cuenta = cuentas.find(c => String(c.id) === String(id));
+  if (!cuenta) {
+    alert("Cuenta no encontrada.");
+    return;
+  }
+
+  const opcion = prompt(
+    cuenta.nombre + "\nSaldo: " + money(cuenta.saldo) +
+    "\n\nEscribe:\n1 - Depositar\n2 - Retirar"
+  );
+
+  if (opcion === null) return;
+  if (opcion !== "1" && opcion !== "2") {
+    alert("Selecciona 1 o 2.");
+    return;
+  }
+
+  const entrada = prompt("Cantidad en dólares:");
+  if (entrada === null) return;
+  const monto = Number(entrada);
+
+  if (!entrada.trim() || !Number.isFinite(monto) || monto <= 0) {
+    alert("Introduce una cantidad válida.");
+    return;
+  }
+
+  const saldoActual = Number(cuenta.saldo) || 0;
+
+  if (opcion === "2" && monto > saldoActual) {
+    alert("Saldo insuficiente.");
+    return;
+  }
+
+  cuenta.saldo = Math.round(
+    (saldoActual + (opcion === "1" ? monto : -monto)) * 100
+  ) / 100;
+
+  if (!Array.isArray(cuenta.historial)) cuenta.historial = [];
+
+  cuenta.historial.push({
+    fecha: new Date().toISOString(),
+    tipo: opcion === "1" ? "deposito" : "retiro",
+    monto: monto
+  });
+
+  localStorage.setItem(clave, JSON.stringify(cuentas));
+  go("inicio");
+  alert("Operación realizada. Nuevo saldo: " + money(cuenta.saldo));
 }
 
 </script>
