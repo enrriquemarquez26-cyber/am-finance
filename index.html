@@ -215,7 +215,8 @@ function inicio(){
  const tarjetas=data.tarjetas.reduce((a,t)=>a+Number(t.saldo),0);
 
  el().innerHTML=`
- <h2>Resumen financiero</h2>
+ ${avisosVencimiento()}
+<h2>Resumen financiero</h2>
  <div class="card">
   <div class="label">Balance del mes</div>
   <div class="amount">${money(ingresos-gastos-pagos)}</div>
