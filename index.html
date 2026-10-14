@@ -151,7 +151,8 @@ function render(){
  if(page==="movimientos")return movimientos();
  if(page==="vehiculos")return vehiculos();
  if(page==="tarjetas")return tarjetas();
- return presupuestos();
+ if(page==="ajustes")return ajustes();
+return presupuestos();
 }
 function diasParaVencer(dia){
 const hoy=new Date();
@@ -829,6 +830,44 @@ async function restaurarCopia(event){
   } finally {
     event.target.value = "";
   }
+}
+function ajustes(){
+  el().innerHTML=`
+    <h2>⚙️ Ajustes</h2>
+
+    <div class="card">
+      <h3>🌓 Apariencia</h3>
+      <p class="note">
+        Configura cómo se verá AM Finance.
+      </p>
+      <p>Automático, claro y oscuro</p>
+    </div>
+
+    <div class="card">
+      <h3>💾 Copias de seguridad</h3>
+      <button onclick="go('presupuestos')">
+        Administrar copias
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>🔔 Recordatorios</h3>
+      <p class="note">
+        Avisos de vencimientos de vehículos
+        y tarjetas.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>ℹ️ Acerca de</h3>
+      <p>AM Finance</p>
+      <p>Versión 3.8.2</p>
+    </div>
+
+    <button class="secondary" onclick="go('inicio')">
+      ← Volver al inicio
+    </button>
+  `;
 }
 go("inicio");
 </script>
