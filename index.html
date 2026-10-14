@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.6</title>
+<title>AM Finance V3.7</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -536,6 +536,22 @@ ${Array.from({length:31},(_,i)=>`
    <div class="label">
 📅 Vencimiento: ${t.vencimiento ? "Día "+t.vencimiento+" de cada mes" : "Sin configurar"}
 </div>
+  <button class="secondary" onclick="toggle('venceTarjeta${i}')">
+📅 Configurar vencimiento
+</button>
+<div class="payment hidden" id="venceTarjeta${i}">
+<form onsubmit="guardarVencimiento(event,'tarjeta',${i})">
+<label class="label">Día de vencimiento mensual</label>
+<select name="dia" required>
+${Array.from({length:31},(_,j)=>`
+<option value="${j+1}" ${Number(t.vencimiento)===j+1?"selected":""}>
+Día ${j+1}
+</option>
+`).join("")}
+</select>
+<button class="primary">Guardar vencimiento</button>
+</form>
+</div>
   <button class="secondary" onclick="toggle('tarjeta${i}')">Registrar pago</button>
    <div class="payment hidden" id="tarjeta${i}">
     <form onsubmit="pagarTarjeta(event,${i})">
@@ -561,6 +577,31 @@ vencimiento:Number(f.get("vencimiento"))
  };
 }
 
+function guardarVencimiento(e,tipo,i){
+e.preventDefault();
+
+const dia=Number(new FormData(e.target).get("dia"));
+
+if(!Number.isInteger(dia)||dia<1||dia>31){
+alert("Selecciona un día válido.");
+return;
+}
+
+const cuenta=tipo==="tarjeta"
+?data.tarjetas[i]
+:data.vehiculos[i];
+
+if(!cuenta){
+alert("No se encontró la cuenta.");
+return;
+}
+
+cuenta.vencimiento=dia;
+save();
+render();
+
+alert("Vencimiento guardado: día "+dia+" de cada mes.");
+}
 function toggle(ident){
  const element=document.getElementById(ident);
  if(element)element.classList.toggle("hidden");
