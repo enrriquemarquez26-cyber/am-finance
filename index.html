@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.9.2</title>
+<title>AM Finance V3.9.5</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png?v=2">
 <link rel="icon" type="image/png" href="3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png">
 <style>
@@ -206,6 +206,42 @@ html.tema-claro nav button.active {
 html.tema-claro .logo span {
   color: #238b91;
 }
+
+/* Tarjetas bancarias AM Finance 3.9 */
+.banco-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 20px;
+  color: white;
+  background: linear-gradient(110deg,
+    var(--banco-color, #172b38) 0%,
+    var(--banco-color, #172b38) 48%,
+    var(--banco-suave, #8ca7b6) 100%);
+  border: none;
+  box-shadow: 0 5px 18px rgba(0,0,0,.08);
+}
+.banco-card .banco-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+.banco-card .banco-saldo {
+  font-size: 28px;
+  font-weight: 800;
+}
+.banco-card .banco-progreso {
+  height: 6px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.4);
+  overflow: hidden;
+}
+.banco-card .banco-progreso div {
+  height: 100%;
+  background: #10b981;
+  border-radius: 20px;
+}
+
 </style>
 </head>
 <body>
@@ -389,10 +425,101 @@ const tarjetasBanco = tipo => cuentasBanco
       ? Math.min(100, Math.max(0, saldo / meta * 100))
       : 0;
 
-    return '<div class="card" onclick="abrirCuentaBanco(' +
+const banco = String(c.nombre || "").toLowerCase();
+
+let color = "#172b38";
+let suave = "#8ca7b6";
+
+if (banco.includes("chase")) {
+  color = "#0055c8";
+  suave = "#58baf7";
+} else if (banco.includes("bank of america")) {
+  color = "#ed1738";
+  suave = "#ff9aa8";
+} else if (banco.includes("wells fargo")) {
+  color = "#c90018";
+  suave = "#f27d8d";
+} else if (banco.includes("citi")) {
+  color = "#0055ae";
+  suave = "#65b5ff";
+} else if (banco.includes("discover")) {
+  color = "#ff7900";
+  suave = "#ffc477";
+}
+else if (banco.includes("capital one")) {
+  color = "#004977";
+  suave = "#8ac7e8";
+} else if (banco.includes("american express") || banco.includes("amex")) {
+  color = "#006fcf";
+  suave = "#8acbff";
+} else if (banco.includes("sofi")) {
+  color = "#00a6a6";
+  suave = "#a1eeee";
+} else if (banco.includes("ally")) {
+  color = "#6e2a8a";
+  suave = "#c9a2dc";
+} else if (banco.includes("us bank") || banco.includes("u.s. bank")) {
+  color = "#0a3161";
+  suave = "#d75c69";
+} else if (banco.includes("pnc")) {
+  color = "#e57200";
+  suave = "#ffd19c";
+} else if (banco.includes("td bank")) {
+  color = "#008a00";
+  suave = "#a4e6a4";
+} else if (banco.includes("truist")) {
+  color = "#502d7f";
+  suave = "#b7a1da";
+} else if (banco.includes("navy federal")) {
+  color = "#003b70";
+  suave = "#8ab9df";
+} else if (banco.includes("usaa")) {
+  color = "#174c70";
+  suave = "#9fc4dd";
+} else if (banco.includes("santander")) {
+  color = "#ec0000";
+  suave = "#ffaaaa";
+} else if (banco.includes("citizens")) {
+  color = "#008e72";
+  suave = "#9ce2d2";
+} else if (banco.includes("huntington")) {
+  color = "#006b5b";
+  suave = "#99d6c8";
+} else if (banco.includes("fifth third")) {
+  color = "#005da8";
+  suave = "#9bc9ee";
+} else if (banco.includes("bmo")) {
+  color = "#0075be";
+  suave = "#a0d4f3";
+}
+    const logoBanco = "https://www.google.com/s2/favicons?domain=" +
+  (banco.includes("chase") ? "chase.com" :
+  banco.includes("bank of america") ? "bankofamerica.com" :
+  banco.includes("wells fargo") ? "wellsfargo.com" :
+  banco.includes("citi") ? "citi.com" :
+  banco.includes("discover") ? "discover.com" :
+  banco.includes("capital one") ? "capitalone.com" :
+  banco.includes("american express") || banco.includes("amex") ? "americanexpress.com" :
+  banco.includes("sofi") ? "sofi.com" :
+  banco.includes("ally") ? "ally.com" :
+  banco.includes("us bank") ? "usbank.com" :
+  banco.includes("pnc") ? "pnc.com" :
+  banco.includes("td bank") ? "td.com" :
+  banco.includes("truist") ? "truist.com" :
+  banco.includes("navy federal") ? "navyfederal.org" :
+  banco.includes("usaa") ? "usaa.com" :
+  banco.includes("santander") ? "santanderbank.com" :
+  banco.includes("citizens") ? "citizensbank.com" :
+  banco.includes("huntington") ? "huntington.com" :
+  banco.includes("fifth third") ? "53.com" :
+  banco.includes("bmo") ? "bmo.com" :
+  "example.com") + "&sz=128";
+    return '<div class="card banco-card" onclick="abrirCuentaBanco(' +
   JSON.stringify(c.id).replace(/"/g, '&quot;') +
-  ')" style="cursor:pointer">' +
-      '<h3>' + safe(c.nombre) + '</h3>' +
+  ')" style="cursor:pointer;--banco-color:' + color + ';--banco-suave:' + suave + '">' +
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:15px">' +
+'<img src="' + logoBanco + '" class="banco-logo" alt="" style="width:64px;height:64px;object-fit:contain;background:white;border-radius:16px;padding:7px">' +
+'<h3 style="margin:0;color:white">' + safe(c.nombre) + '</h3></div>' +
       '<div class="amount">' + money(saldo) + '</div>' +
       '<div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">' +
       '<div style="height:100%;width:' + porcentaje +
