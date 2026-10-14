@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.8</title>
+<title>AM Finance V3.8.1</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -728,12 +728,65 @@ function pagarTarjeta(e,i){
 }
 
 function presupuestos(){
- el().innerHTML=`
- <h2>Presupuestos</h2>
- <div class="card">
-  <h3>Próximamente</h3>
-  <p class="note">Aquí añadiremos límites mensuales para comida, gasolina, compras y otras categorías.</p>
- </div>`;
+  el().innerHTML=`
+    <h2>Presupuestos</h2>
+
+    <div class="card">
+      <h3>💾 Copias de seguridad</h3>
+      <p class="note">
+        Guarda tus datos en un archivo para
+        recuperarlos cuando los necesites.
+      </p>
+
+      <button onclick="exportarCopia()">
+        📥 Exportar copia de seguridad
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>Restaurar datos</h3>
+      <p class="note">
+        Recupera una copia guardada anteriormente.
+      </p>
+
+      <input
+        type="file"
+        accept=".json,application/json"
+        onchange="restaurarCopia(event)"
+      >
+    </div>
+  `;
+}
+  function exportarCopia(){
+  try {
+    const respaldo = {
+      aplicacion: "AM Finance",
+      version: 1,
+      fecha: new Date().toISOString(),
+      datos: data
+    };
+
+    const contenido = JSON.stringify(respaldo, null, 2);
+
+    const archivo = new Blob(
+      [contenido],
+      {type: "application/json"}
+    );
+
+    const url = URL.createObjectURL(archivo);
+    const enlace = document.createElement("a");
+
+    enlace.href = url;
+    enlace.download = "AM-Finance-Respaldo.json";
+
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch(error) {
+    alert("No se pudo crear la copia de seguridad.");
+  }
 }
 
 go("inicio");
