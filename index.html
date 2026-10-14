@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.9.1</title>
+<title>AM Finance V3.9.2</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png?v=2">
 <link rel="icon" type="image/png" href="3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png">
 <style>
@@ -407,6 +407,9 @@ function inicio(){
  </div>
  
 <h2>Mis cuentas bancarias</h2>
+<button class="primary" onclick="abrirNuevaCuenta()">
+  + Agregar cuenta
+</button>
 <div id="cuentasInicio">
   <div class="card">
     <div class="label">🏦 Cuentas de cheques</div>
@@ -1081,6 +1084,54 @@ function aplicarTema(){
 }
 aplicarTema();
 go("inicio");
+
+function abrirNuevaCuenta() {
+  const nombre = prompt("Nombre del banco o cuenta:");
+  if (nombre === null || !nombre.trim()) return;
+
+  const tipo = prompt("Tipo: cheques o ahorro", "ahorro");
+  if (tipo === null) return;
+  const t = tipo.trim().toLowerCase();
+  if (t !== "cheques" && t !== "ahorro") {
+    alert("Escribe cheques o ahorro.");
+    return;
+  }
+
+  const s = prompt("Saldo inicial en dólares:", "0");
+  if (s === null) return;
+  const saldo = Number(s);
+  if (!s.trim() || !Number.isFinite(saldo) || saldo < 0) {
+    alert("Saldo no válido.");
+    return;
+  }
+
+  const m = prompt("Meta en dólares:", "0");
+  if (m === null) return;
+  const meta = Number(m);
+  if (!m.trim() || !Number.isFinite(meta) || meta < 0) {
+    alert("Meta no válida.");
+    return;
+  }
+
+  const clave = "amfinance-cuentas-banco";
+  let cuentas = [];
+  try {
+    cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
+    if (!Array.isArray(cuentas)) cuentas = [];
+  } catch (e) {}
+
+  cuentas.push({
+    id: Date.now().toString(),
+    nombre: nombre.trim(),
+    tipo: t,
+    saldo: saldo,
+    meta: meta
+  });
+
+  localStorage.setItem(clave, JSON.stringify(cuentas));
+  alert("Cuenta creada correctamente.");
+}
+
 </script>
 
 <!-- Panel deslizable AM Finance -->
