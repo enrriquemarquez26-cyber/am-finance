@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.4</title>
+<title>AM Finance V3.5</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -465,7 +465,10 @@ ${Array.from({length:31},(_,i)=>`
    <strong>${safe(v.nombre)}</strong>
    <div class="smallamount">${money(v.saldo)}</div>
    <div class="label">APR ${safe(v.apr)}% · Pago mensual ${money(v.pago)}</div>
-   <button class="secondary" onclick="toggle('historial${i}')">📋 Ver historial de pagos</button>
+   <div class="label">
+📅 Vencimiento: ${v.vencimiento ? "Día "+v.vencimiento+" de cada mes" : "Sin configurar"}
+</div>
+  <button class="secondary" onclick="toggle('historial${i}')">📋 Ver historial de pagos</button>
    <div class="payment hidden" id="historial${i}">
     <h3>Historial de pagos</h3>
     ${historial.map(p=>`
