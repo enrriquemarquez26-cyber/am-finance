@@ -369,6 +369,40 @@ return `
 }).join("");
 }
 function inicio(){
+
+let cuentasBanco = [];
+try {
+  cuentasBanco = JSON.parse(
+    localStorage.getItem("amfinance-cuentas-banco") || "[]"
+  );
+  if (!Array.isArray(cuentasBanco)) cuentasBanco = [];
+} catch(e) {
+  cuentasBanco = [];
+}
+
+const tarjetasBanco = tipo => cuentasBanco
+  .filter(c => c.tipo === tipo)
+  .map(c => {
+    const saldo = Number(c.saldo) || 0;
+    const meta = Number(c.meta) || 0;
+    const porcentaje = meta > 0
+      ? Math.min(100, Math.max(0, saldo / meta * 100))
+      : 0;
+
+    return '<div class="card">' +
+      '<h3>' + safe(c.nombre) + '</h3>' +
+      '<div class="amount">' + money(saldo) + '</div>' +
+      '<div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">' +
+      '<div style="height:100%;width:' + porcentaje +
+      '%;background:#10b981;border-radius:20px"></div>' +
+      '</div>' +
+      '<p class="note">' +
+      (meta > 0
+        ? 'Meta: ' + money(meta) + ' · ' + porcentaje.toFixed(0) + '%'
+        : 'Sin meta configurada') +
+      '</p></div>';
+  }).join("");
+
  const mov=data.movimientos.filter(m=>
   String(m.fecha).slice(0,7)===month()
  );
@@ -410,22 +444,15 @@ function inicio(){
 <button class="primary" onclick="abrirNuevaCuenta()">
   + Agregar cuenta
 </button>
+
 <div id="cuentasInicio">
-  <div class="card">
-    <div class="label">🏦 Cuentas de cheques</div>
-    <div class="amount">$0.00</div>
-    <div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">
-      <div style="width:0%;height:100%;background:#10b981"></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="label">🐷 Cuentas de ahorros</div>
-    <div class="amount">$0.00</div>
-    <div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">
-      <div style="width:0%;height:100%;background:#10b981"></div>
-    </div>
-  </div>
+  <h3>🏦 Cuentas de cheques</h3>
+  ${tarjetasBanco("cheques")}
+
+  <h3>🐷 Cuentas de ahorros</h3>
+  ${tarjetasBanco("ahorro")}
 </div>
+
 
 <button class="primary" onclick="go('movimientos')">+ Registrar movimiento</button>
  <p class="note">Versión de prueba V3. Utiliza solamente datos ficticios.</p>`;
