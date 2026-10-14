@@ -150,7 +150,56 @@ function render(){
  if(page==="tarjetas")return tarjetas();
  return presupuestos();
 }
+function diasParaVencer(dia){
+const hoy=new Date();
+hoy.setHours(0,0,0,0);
 
+let fecha=new Date(
+hoy.getFullYear(),
+hoy.getMonth(),
+Math.min(dia,new Date(
+hoy.getFullYear(),hoy.getMonth()+1,0
+).getDate())
+);
+
+if(fecha<hoy){
+fecha=new Date(
+hoy.getFullYear(),
+hoy.getMonth()+1,
+Math.min(dia,new Date(
+hoy.getFullYear(),hoy.getMonth()+2,0
+).getDate())
+);
+}
+
+return Math.round((fecha-hoy)/86400000);
+}
+
+function avisosVencimiento(){
+const cuentas=[
+...data.vehiculos.map(v=>({...v,tipo:"Vehículo"})),
+...data.tarjetas.map(t=>({...t,tipo:"Tarjeta"}))
+];
+
+return cuentas.map(c=>{
+const dia=Number(c.vencimiento);
+if(!Number.isInteger(dia)||dia<1||dia>31)return "";
+
+const faltan=diasParaVencer(dia);
+
+if(![7,3,0].includes(faltan))return "";
+
+const mensaje=faltan===0
+?"¡Vence hoy!"
+:`Faltan ${faltan} días`;
+
+return `
+<div class="card">
+<strong>🔔 ${safe(c.tipo)}: ${safe(c.nombre)}</strong>
+<p>${mensaje} para tu próximo pago.</p>
+</div>`;
+}).join("");
+}=
 function inicio(){
  const mov=data.movimientos.filter(m=>
   String(m.fecha).slice(0,7)===month()
