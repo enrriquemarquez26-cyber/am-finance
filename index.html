@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V2.5.1</title>
+<title>AM Finance V3</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -27,7 +27,11 @@ h3{margin:0 0 14px}
 .red{color:#d44d56}
 .primary{background:#172b38;color:white;border:0;border-radius:13px;padding:14px 18px;font-size:15px;font-weight:650;width:100%}
 .secondary{background:#e7f2f3;color:#147e86;border:0;border-radius:12px;padding:12px;font-size:14px;font-weight:650;width:100%;margin-top:12px}
+.danger{background:#fff0f0;color:#bb343e}
+.actions{display:flex;gap:9px;margin-top:12px}
+.actions button{flex:1;margin:0}
 input,select{width:100%;padding:13px;border:1px solid #dce2e7;border-radius:12px;font-size:16px;background:white;margin:7px 0 13px}
+button{cursor:pointer}
 nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e8eaed;display:flex;justify-content:space-around;padding:11px 2px calc(12px + env(safe-area-inset-bottom))}
 nav button{background:none;border:0;color:#87919d;font-size:10px;padding:5px 2px;min-width:19%}
 nav button b{display:block;font-size:22px;margin-bottom:5px}
@@ -37,12 +41,13 @@ nav button.active{color:#147e86;font-weight:750}
 .note{font-size:12px;color:#89939f;line-height:1.5}
 .payment{background:#f5f8f9;border-radius:13px;padding:14px;margin-top:12px}
 .hidden{display:none}
+.editbox{background:#f5f8f9;border-radius:13px;padding:14px;margin-top:12px}
 </style>
 </head>
 <body>
 <header>
 <div class="logo">AM <span>Finance</span></div>
-<div class="sub">Control inteligente de tus finanzas</div>
+<div class="sub">Control inteligente de tus finanzas · V3</div>
 </header>
 <main id="content"></main>
 <nav>
@@ -55,267 +60,552 @@ nav button.active{color:#147e86;font-weight:750}
 <script>
 const KEY="amfinance-demo-v1";
 let data;
-try{data=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+try{
+ data=JSON.parse(localStorage.getItem(KEY));
+}catch(e){}
+
 if(!data||!Array.isArray(data.movimientos)){
-data={movimientos:[],vehiculos:[],tarjetas:[]};
+ data={movimientos:[],vehiculos:[],tarjetas:[],pagos:[]};
 }
 if(!Array.isArray(data.vehiculos))data.vehiculos=[];
 if(!Array.isArray(data.tarjetas))data.tarjetas=[];
 if(!Array.isArray(data.pagos))data.pagos=[];
 
 const money=n=>new Intl.NumberFormat("en-US",{
-style:"currency",currency:"USD"
+ style:"currency",currency:"USD"
 }).format(Number(n)||0);
-const save=()=>localStorage.setItem(KEY,JSON.stringify(data));
+
+const round=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
 const el=()=>document.getElementById("content");
-const safe=s=>String(s).replace(/[&<>"']/g,c=>({
-"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",
+ '"':"&quot;","'":"&#39;"
 }[c]));
-const today=()=>new Date().toLocaleDateString("en-CA");
+
+function today(){
+ const d=new Date();
+ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
 const month=()=>today().slice(0,7);
+const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,9);
+
+function save(){
+ try{
+  localStorage.setItem(KEY,JSON.stringify(data));
+  return true;
+ }catch(e){
+  alert("No se pudieron guardar los cambios en este dispositivo.");
+  return false;
+ }
+}
+
+function validAmount(n){
+ return Number.isFinite(n)&&n>0;
+}
+
+function validDate(s){
+ return /^\d{4}-\d{2}-\d{2}$/.test(s)&&
+ !Number.isNaN(new Date(s+"T12:00:00").getTime());
+}
+
+// Añade identificadores a los registros antiguos sin borrarlos.
+let changed=false;
+for(const group of ["movimientos","vehiculos","tarjetas","pagos"]){
+ for(const item of data[group]){
+  if(!item.id){item.id=id();changed=true;}
+ }
+}
+
+// Relaciona los pagos antiguos con su vehículo o tarjeta.
+for(const p of data.pagos){
+ if(!p.cuentaId){
+  const group=p.tipo==="vehiculo"?data.vehiculos:
+              p.tipo==="tarjeta"?data.tarjetas:[];
+  const matches=group.filter(x=>x.nombre===p.nombre);
+  if(matches.length===1){
+   p.cuentaId=matches[0].id;
+   changed=true;
+  }
+ }
+}
+if(changed)save();
+
 let page="inicio";
+let openEdit=null;
 
 function go(p){
-page=p;
-document.querySelectorAll("nav button").forEach(b=>
-b.classList.toggle("active",b.id==="nav-"+p));
-render();
+ page=p;
+ openEdit=null;
+ document.querySelectorAll("nav button").forEach(b=>
+  b.classList.toggle("active",b.id==="nav-"+p)
+ );
+ render();
+ window.scrollTo(0,0);
 }
+
 function render(){
-if(page==="inicio")return inicio();
-if(page==="movimientos")return movimientos();
-if(page==="vehiculos")return vehiculos();
-if(page==="tarjetas")return tarjetas();
-presupuestos();
+ if(page==="inicio")return inicio();
+ if(page==="movimientos")return movimientos();
+ if(page==="vehiculos")return vehiculos();
+ if(page==="tarjetas")return tarjetas();
+ return presupuestos();
 }
+
 function inicio(){
-let mov=data.movimientos.filter(m=>m.fecha.slice(0,7)===month());
-let ingresos=mov.filter(m=>m.tipo==="ingreso").reduce((a,m)=>a+Number(m.monto),0);
-let gastos=mov.filter(m=>m.tipo==="gasto").reduce((a,m)=>a+Number(m.monto),0);
-let pagos=data.pagos.filter(p=>p.fecha.slice(0,7)===month())
-.reduce((a,p)=>a+Number(p.monto),0);
-let autos=data.vehiculos.reduce((a,v)=>a+Number(v.saldo),0);
-let tarjetas=data.tarjetas.reduce((a,t)=>a+Number(t.saldo),0);
-el().innerHTML=`
-<h2>Resumen financiero</h2>
-<div class="card">
-<div class="label">Balance del mes</div>
-<div class="amount">${money(ingresos-gastos-pagos)}</div>
-<div class="note">Ingresos menos gastos y pagos realizados. No descuenta deudas pendientes.</div>
-</div>
-<div class="row">
-<div class="card" style="width:50%">
-<div class="label">Ingresos</div>
-<div class="smallamount green">${money(ingresos)}</div>
-</div>
-<div class="card" style="width:50%">
-<div class="label">Gastos y pagos</div>
-<div class="smallamount red">${money(gastos+pagos)}</div>
-</div>
-</div>
-<div class="card">
-<div class="label">Mis deudas pendientes</div>
-<div class="smallamount">${money(autos+tarjetas)}</div>
-<div class="note">Vehículos: ${money(autos)} · Tarjetas: ${money(tarjetas)}</div>
-</div>
-<button class="primary" onclick="go('movimientos')">+ Registrar movimiento</button>
-<p class="note">Versión de prueba. Utiliza solamente datos ficticios.</p>`;
+ const mov=data.movimientos.filter(m=>
+  String(m.fecha).slice(0,7)===month()
+ );
+ const ingresos=mov.filter(m=>m.tipo==="ingreso")
+  .reduce((a,m)=>a+Number(m.monto),0);
+ const gastos=mov.filter(m=>m.tipo==="gasto")
+  .reduce((a,m)=>a+Number(m.monto),0);
+ const pagos=data.pagos.filter(p=>
+  String(p.fecha).slice(0,7)===month()
+ ).reduce((a,p)=>a+Number(p.monto),0);
+ const autos=data.vehiculos.reduce((a,v)=>a+Number(v.saldo),0);
+ const tarjetas=data.tarjetas.reduce((a,t)=>a+Number(t.saldo),0);
+
+ el().innerHTML=`
+ <h2>Resumen financiero</h2>
+ <div class="card">
+  <div class="label">Balance del mes</div>
+  <div class="amount">${money(ingresos-gastos-pagos)}</div>
+  <div class="note">Ingresos menos gastos y pagos realizados. No descuenta las deudas pendientes.</div>
+ </div>
+ <div class="row">
+  <div class="card" style="width:50%">
+   <div class="label">Ingresos</div>
+   <div class="smallamount green">${money(ingresos)}</div>
+  </div>
+  <div class="card" style="width:50%">
+   <div class="label">Gastos y pagos</div>
+   <div class="smallamount red">${money(gastos+pagos)}</div>
+  </div>
+ </div>
+ <div class="card">
+  <div class="label">Mis deudas pendientes</div>
+  <div class="smallamount">${money(autos+tarjetas)}</div>
+  <div class="note">Vehículos: ${money(autos)} · Tarjetas: ${money(tarjetas)}</div>
+ </div>
+ <button class="primary" onclick="go('movimientos')">+ Registrar movimiento</button>
+ <p class="note">Versión de prueba V3. Utiliza solamente datos ficticios.</p>`;
 }
+
 function movimientos(){
-let items=[
-...data.movimientos.map(m=>({...m,monto:Number(m.monto)})),
-...data.pagos.map(p=>({
-nombre:"Pago: "+p.nombre,fecha:p.fecha,monto:Number(p.monto),tipo:"gasto"
-}))
-].sort((a,b)=>b.fecha.localeCompare(a.fecha));
-el().innerHTML=`
-<h2>Movimientos</h2>
-<div class="card">
-<form id="formMov">
-<label class="label">Tipo</label>
-<select name="tipo">
-<option value="ingreso">Ingreso</option>
-<option value="gasto">Gasto o compra en efectivo</option>
-</select>
-<label class="label">Descripción</label>
-<input name="nombre" placeholder="Trabajo, supermercado..." maxlength="80" required>
-<label class="label">Cantidad ($)</label>
-<input name="monto" type="number" min="0.01" step="0.01" required>
-<button class="primary">Guardar movimiento</button>
-</form></div>
-<div class="card"><h3>Historial</h3>
-${items.map(m=>`
-<div class="item row">
-<div><strong>${safe(m.nombre)}</strong>
-<div class="label">${safe(m.fecha)}</div></div>
-<strong class="${m.tipo==="ingreso"?"green":"red"}">
-${m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
-</strong></div>`).join("")||'<p class="note">Sin movimientos.</p>'}
-</div>`;
-document.getElementById("formMov").onsubmit=e=>{
-e.preventDefault();
-let f=new FormData(e.target);
-data.movimientos.push({
-tipo:f.get("tipo"),nombre:f.get("nombre"),
-monto:Number(f.get("monto")),fecha:today()
-});
-save();render();
-};
+ const items=[
+  ...data.movimientos.map(m=>({...m,origen:"movimiento"})),
+  ...data.pagos.map(p=>({
+   ...p,origen:"pago",tipo:"gasto",
+   nombre:"Pago: "+p.nombre
+  }))
+ ].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+
+ el().innerHTML=`
+ <h2>Movimientos</h2>
+ <div class="card">
+  <form id="formMov">
+   <label class="label">Tipo</label>
+   <select name="tipo">
+    <option value="ingreso">Ingreso</option>
+    <option value="gasto">Gasto o compra en efectivo</option>
+   </select>
+   <label class="label">Descripción</label>
+   <input name="nombre" placeholder="Trabajo, supermercado..." maxlength="80" required>
+   <label class="label">Cantidad ($)</label>
+   <input name="monto" type="number" min="0.01" step="0.01" required>
+   <label class="label">Fecha</label>
+   <input name="fecha" type="date" value="${today()}" required>
+   <button class="primary">Guardar movimiento</button>
+  </form>
+ </div>
+ <div class="card">
+  <h3>Historial</h3>
+  ${items.map(m=>`
+   <div class="item">
+    <div class="row">
+     <div>
+      <strong>${safe(m.nombre)}</strong>
+      <div class="label">${safe(m.fecha)}</div>
+     </div>
+     <strong class="${m.tipo==="ingreso"?"green":"red"}">
+      ${m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
+     </strong>
+    </div>
+    <div class="actions">
+     <button class="secondary" onclick="editar('${m.origen}','${m.id}')">✏️ Editar</button>
+     <button class="secondary danger" onclick="eliminar('${m.origen}','${m.id}')">🗑 Eliminar</button>
+    </div>
+    ${openEdit===m.origen+":"+m.id?editor(m):""}
+   </div>
+  `).join("")||'<p class="note">Sin movimientos.</p>'}
+ </div>`;
+
+ document.getElementById("formMov").onsubmit=e=>{
+  e.preventDefault();
+  const f=new FormData(e.target);
+  const monto=round(f.get("monto"));
+  const fecha=String(f.get("fecha"));
+  if(!validAmount(monto)||!validDate(fecha))return;
+  data.movimientos.push({
+   id:id(),tipo:f.get("tipo"),
+   nombre:String(f.get("nombre")).trim(),
+   monto,fecha
+  });
+  save();render();
+ };
 }
+
+function editor(m){
+ const pago=m.origen==="pago";
+ return `
+ <div class="editbox">
+  <h3>Editar ${pago?"pago":"movimiento"}</h3>
+  <form onsubmit="guardarEdicion(event,'${m.origen}','${m.id}')">
+   ${pago?`
+    <p class="note">Cuenta: ${safe(m.nombre)}. Se conservará la distribución original de intereses y capital, ajustando el capital por la diferencia del pago.</p>
+   `:`
+    <label class="label">Tipo</label>
+    <select name="tipo">
+     <option value="ingreso" ${m.tipo==="ingreso"?"selected":""}>Ingreso</option>
+     <option value="gasto" ${m.tipo==="gasto"?"selected":""}>Gasto</option>
+    </select>
+    <label class="label">Descripción</label>
+    <input name="nombre" maxlength="80" value="${safe(m.nombre)}" required>
+   `}
+   <label class="label">Cantidad ($)</label>
+   <input name="monto" type="number" min="0.01" step="0.01" value="${m.monto}" required>
+   <label class="label">Fecha</label>
+   <input name="fecha" type="date" value="${safe(m.fecha)}" required>
+   <button class="primary">Guardar cambios</button>
+   <button type="button" class="secondary" onclick="cancelarEdicion()">Cancelar</button>
+  </form>
+ </div>`;
+}
+
+function editar(origen,ident){
+ const key=origen+":"+ident;
+ openEdit=openEdit===key?null:key;
+ render();
+}
+
+function cancelarEdicion(){
+ openEdit=null;
+ render();
+}
+
+function findItem(origen,ident){
+ const group=origen==="pago"?data.pagos:data.movimientos;
+ return group.find(x=>x.id===ident);
+}
+
+function cuentaDePago(p){
+ const group=p.tipo==="vehiculo"?data.vehiculos:
+             p.tipo==="tarjeta"?data.tarjetas:[];
+ if(p.cuentaId){
+  return group.find(x=>x.id===p.cuentaId)||null;
+ }
+ const matches=group.filter(x=>x.nombre===p.nombre);
+ return matches.length===1?matches[0]:null;
+}
+
+// Modifica el saldo de la deuda al corregir un pago.
+// delta positivo = aumenta la deuda.
+// delta negativo = disminuye la deuda.
+function ajustarSaldo(cuenta,delta){
+ const nuevo=round(Number(cuenta.saldo)+delta);
+ if(!Number.isFinite(nuevo)||nuevo<0){
+  alert("Este cambio dejaría la deuda con saldo negativo. Revisa los pagos.");
+  return false;
+ }
+ cuenta.saldo=nuevo;
+ return true;
+}
+
+function guardarEdicion(e,origen,ident){
+ e.preventDefault();
+ const item=findItem(origen,ident);
+ if(!item)return;
+ const f=new FormData(e.target);
+ const monto=round(f.get("monto"));
+ const fecha=String(f.get("fecha"));
+
+ if(!validAmount(monto)||!validDate(fecha)){
+  alert("Introduce una cantidad y una fecha válidas.");
+  return;
+ }
+
+ if(origen==="movimiento"){
+  const nombre=String(f.get("nombre")).trim();
+  if(!nombre)return;
+  item.nombre=nombre;
+  item.tipo=f.get("tipo");
+  item.monto=monto;
+  item.fecha=fecha;
+ }else{
+  const cuenta=cuentaDePago(item);
+  if(!cuenta){
+   alert("No se encontró la cuenta de este pago. No se puede corregir la deuda automáticamente.");
+   return;
+  }
+  const anterior=Number(item.monto);
+  const diferencia=round(monto-anterior);
+
+  if(item.tipo==="vehiculo"){
+   const interes=Number(item.interes);
+   const capitalAnterior=Number(item.capital);
+   if(!Number.isFinite(interes)||!Number.isFinite(capitalAnterior)){
+    alert("Este pago antiguo no tiene suficientes datos para editarse con seguridad.");
+    return;
+   }
+   const capitalNuevo=round(capitalAnterior+diferencia);
+   if(capitalNuevo<=0){
+    alert("El pago corregido no cubre el interés registrado.");
+    return;
+   }
+   if(!ajustarSaldo(cuenta,-diferencia))return;
+   item.capital=capitalNuevo;
+  }else{
+   if(!ajustarSaldo(cuenta,-diferencia))return;
+  }
+  item.monto=monto;
+  item.fecha=fecha;
+  item.cuentaId=cuenta.id;
+  actualizarSaldosHistorial(cuenta);
+ }
+
+ openEdit=null;
+ save();
+ alert("Cambios guardados correctamente.");
+ render();
+}
+
+function eliminar(origen,ident){
+ const group=origen==="pago"?data.pagos:data.movimientos;
+ const index=group.findIndex(x=>x.id===ident);
+ if(index<0)return;
+ const item=group[index];
+
+ if(!confirm("¿Seguro que deseas eliminar este "+(origen==="pago"?"pago":"movimiento")+"?"))return;
+
+ if(origen==="pago"){
+  const cuenta=cuentaDePago(item);
+  if(!cuenta){
+   alert("No se encontró la cuenta asociada. No se eliminará el pago para evitar descuadrar la deuda.");
+   return;
+  }
+  const devolver=item.tipo==="vehiculo"?
+   Number(item.capital):Number(item.monto);
+  if(!Number.isFinite(devolver)){
+   alert("Este pago no tiene información suficiente para eliminarlo.");
+   return;
+  }
+  if(!ajustarSaldo(cuenta,devolver))return;
+  group.splice(index,1);
+  actualizarSaldosHistorial(cuenta);
+ }else{
+  group.splice(index,1);
+ }
+
+ openEdit=null;
+ save();
+ alert("Registro eliminado.");
+ render();
+}
+
+// Recalcula los saldos históricos cuando se corrigen pagos.
+// Los pagos sin datos suficientes muestran "No registrado".
+function actualizarSaldosHistorial(cuenta){
+ const group=data.pagos.filter(p=>
+  p.tipo==="vehiculo"&&cuentaDePago(p)===cuenta
+ ).sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha)));
+
+ let saldo=Number(cuenta.saldo);
+ for(const p of group){
+  if(!Number.isFinite(Number(p.capital))){
+   delete p.saldoRestante;
+   continue;
+  }
+  saldo=round(saldo+Number(p.capital));
+ }
+ for(const p of group){
+  if(!Number.isFinite(Number(p.capital))){
+   delete p.saldoRestante;
+   continue;
+  }
+  saldo=round(saldo-Number(p.capital));
+  p.saldoRestante=saldo;
+ }
+}
+
 function vehiculos(){
-el().innerHTML=`
-<h2>Préstamos de vehículos</h2>
-<div class="card"><form id="formAuto">
-<input name="nombre" placeholder="Nombre del vehículo" required>
-<input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo pendiente ($)" required>
-<input name="apr" type="number" min="0" step="0.01" placeholder="APR (%)" required>
-<input name="pago" type="number" min="0" step="0.01" placeholder="Pago mensual ($)" required>
-<button class="primary">Añadir vehículo</button>
-</form></div>
-${data.vehiculos.map((v,i)=>`
-<div class="card">
-<strong>${safe(v.nombre)}</strong>
-<div class="smallamount">${money(v.saldo)}</div>
-<div class="label">APR ${v.apr}% · Pago mensual ${money(v.pago)}</div>
-<button class="secondary" onclick="toggle('historial${i}')">
-📋 Ver historial de pagos
-</button>
+ el().innerHTML=`
+ <h2>Préstamos de vehículos</h2>
+ <div class="card">
+  <form id="formAuto">
+   <input name="nombre" placeholder="Nombre del vehículo" maxlength="80" required>
+   <input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo pendiente ($)" required>
+   <input name="apr" type="number" min="0" step="0.01" placeholder="APR (%)" required>
+   <input name="pago" type="number" min="0.01" step="0.01" placeholder="Pago mensual ($)" required>
+   <button class="primary">Añadir vehículo</button>
+  </form>
+ </div>
+ ${data.vehiculos.map((v,i)=>{
+  const historial=data.pagos.filter(p=>
+   p.tipo==="vehiculo"&&cuentaDePago(p)===v
+  ).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  return `
+  <div class="card">
+   <strong>${safe(v.nombre)}</strong>
+   <div class="smallamount">${money(v.saldo)}</div>
+   <div class="label">APR ${safe(v.apr)}% · Pago mensual ${money(v.pago)}</div>
+   <button class="secondary" onclick="toggle('historial${i}')">📋 Ver historial de pagos</button>
+   <div class="payment hidden" id="historial${i}">
+    <h3>Historial de pagos</h3>
+    ${historial.map(p=>`
+     <div class="item">
+      <strong>Fecha: ${safe(p.fecha)}</strong>
+      <div class="row"><span>Pago realizado</span><strong>${money(p.monto)}</strong></div>
+      <div class="row"><span>Intereses estimados</span><span>${money(p.interes)}</span></div>
+      <div class="row"><span>Capital abonado</span><span class="green">${money(p.capital)}</span></div>
+      <div class="row"><span>Saldo restante</span><strong>${p.saldoRestante==null?"No registrado":money(p.saldoRestante)}</strong></div>
+      <p class="note">Para editar o eliminar este pago, entra en Movimientos.</p>
+     </div>
+    `).join("")||'<p class="note">Todavía no hay pagos registrados.</p>'}
+   </div>
+   <button class="secondary" onclick="toggle('auto${i}')">Registrar pago</button>
+   <div class="payment hidden" id="auto${i}">
+    <form onsubmit="pagarAuto(event,${i})">
+     <label class="label">Cantidad pagada ($)</label>
+     <input name="monto" type="number" min="0.01" step="0.01" value="${v.pago}" required>
+     <button class="primary">Confirmar pago</button>
+    </form>
+    <p class="note">Interés estimado: saldo × APR ÷ 12. El banco puede calcularlo de otra manera.</p>
+   </div>
+  </div>`;
+ }).join("")}`;
 
-<div class="payment hidden" id="historial${i}">
-<h3>Historial de pagos</h3>
-
-${data.pagos
-.filter(p=>p.tipo==="vehiculo" && p.nombre===v.nombre)
-.map(p=>`
-<div class="item">
-<strong>Fecha: ${safe(p.fecha)}</strong>
-<div class="row">
-<span>Pago realizado</span>
-<strong>${money(p.monto)}</strong>
-</div>
-<div class="row">
-<span>Intereses estimados</span>
-<span>${money(p.interes)}</span>
-</div>
-<div class="row">
-<span>Capital abonado</span>
-<span class="green">${money(p.capital)}</span>
-</div>
-<div class="row">
-<span>Saldo restante</span>
-<strong>${p.saldoRestante==null?"No registrado":money(p.saldoRestante)}</strong>
-</div>
-</div>
-`).join("") || '<p class="note">Todavía no hay pagos registrados.</p>'}
-</div>
-<button class="secondary" onclick="toggle('auto${i}')">Registrar pago</button>
-<div class="payment hidden" id="auto${i}">
-<form onsubmit="pagarAuto(event,${i})">
-<label class="label">Cantidad pagada ($)</label>
-<input name="monto" type="number" min="0.01" step="0.01" value="${v.pago}" required>
-<button class="primary">Confirmar pago</button>
-</form>
-<p class="note">Interés estimado: saldo × APR ÷ 12. El banco puede calcularlo de otra manera.</p>
-</div></div>`).join("")}`;
-document.getElementById("formAuto").onsubmit=e=>{
-e.preventDefault();
-let f=new FormData(e.target);
-data.vehiculos.push({
-nombre:f.get("nombre"),saldo:Number(f.get("saldo")),
-apr:Number(f.get("apr")),pago:Number(f.get("pago"))
-});
-save();render();
-};
+ document.getElementById("formAuto").onsubmit=e=>{
+  e.preventDefault();
+  const f=new FormData(e.target);
+  data.vehiculos.push({
+   id:id(),nombre:String(f.get("nombre")).trim(),
+   saldo:round(f.get("saldo")),
+   apr:Number(f.get("apr")),
+   pago:round(f.get("pago"))
+  });
+  save();render();
+ };
 }
+
 function tarjetas(){
-el().innerHTML=`
-<h2>Tarjetas de crédito</h2>
-<div class="card"><form id="formTarjeta">
-<input name="nombre" placeholder="Ej. Chase Visa" required>
-<input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo ($)" required>
-<input name="limite" type="number" min="0" step="0.01" placeholder="Límite ($)" required>
-<input name="apr" type="number" min="0" step="0.01" placeholder="APR (%)" required>
-<button class="primary">Añadir tarjeta</button>
-</form></div>
-${data.tarjetas.map((t,i)=>`
-<div class="card">
-<strong>${safe(t.nombre)}</strong>
-<div class="smallamount">${money(t.saldo)}</div>
-<div class="label">Límite ${money(t.limite)} · APR ${t.apr}%</div>
-<button class="secondary" onclick="toggle('tarjeta${i}')">Registrar pago</button>
-<div class="payment hidden" id="tarjeta${i}">
-<form onsubmit="pagarTarjeta(event,${i})">
-<label class="label">Cantidad pagada ($)</label>
-<input name="monto" type="number" min="0.01" step="0.01" required>
-<button class="primary">Confirmar pago</button>
-</form></div></div>`).join("")}`;
-document.getElementById("formTarjeta").onsubmit=e=>{
-e.preventDefault();
-let f=new FormData(e.target);
-data.tarjetas.push({
-nombre:f.get("nombre"),saldo:Number(f.get("saldo")),
-limite:Number(f.get("limite")),apr:Number(f.get("apr"))
-});
-save();render();
-};
+ el().innerHTML=`
+ <h2>Tarjetas de crédito</h2>
+ <div class="card">
+  <form id="formTarjeta">
+   <input name="nombre" placeholder="Ej. Chase Visa" maxlength="80" required>
+   <input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo ($)" required>
+   <input name="limite" type="number" min="0" step="0.01" placeholder="Límite ($)" required>
+   <input name="apr" type="number" min="0" step="0.01" placeholder="APR (%)" required>
+   <button class="primary">Añadir tarjeta</button>
+  </form>
+ </div>
+ ${data.tarjetas.map((t,i)=>`
+  <div class="card">
+   <strong>${safe(t.nombre)}</strong>
+   <div class="smallamount">${money(t.saldo)}</div>
+   <div class="label">Límite ${money(t.limite)} · APR ${safe(t.apr)}%</div>
+   <button class="secondary" onclick="toggle('tarjeta${i}')">Registrar pago</button>
+   <div class="payment hidden" id="tarjeta${i}">
+    <form onsubmit="pagarTarjeta(event,${i})">
+     <label class="label">Cantidad pagada ($)</label>
+     <input name="monto" type="number" min="0.01" step="0.01" required>
+     <button class="primary">Confirmar pago</button>
+    </form>
+   </div>
+  </div>
+ `).join("")}`;
+
+ document.getElementById("formTarjeta").onsubmit=e=>{
+  e.preventDefault();
+  const f=new FormData(e.target);
+  data.tarjetas.push({
+   id:id(),nombre:String(f.get("nombre")).trim(),
+   saldo:round(f.get("saldo")),
+   limite:round(f.get("limite")),
+   apr:Number(f.get("apr"))
+  });
+  save();render();
+ };
 }
-function toggle(id){
-document.getElementById(id).classList.toggle("hidden");
+
+function toggle(ident){
+ const element=document.getElementById(ident);
+ if(element)element.classList.toggle("hidden");
 }
+
 function pagarAuto(e,i){
-e.preventDefault();
-let v=data.vehiculos[i];
-let monto=Number(new FormData(e.target).get("monto"));
-let saldo=Number(v.saldo);
-let interes=Math.round(saldo*Number(v.apr)/1200*100)/100;
-let capital=Math.round((monto-interes)*100)/100;
-if(!Number.isFinite(monto)||monto<=0)return;
-if(capital<=0){
-alert("El pago no cubre el interés mensual estimado.");
-return;
+ e.preventDefault();
+ const v=data.vehiculos[i];
+ const monto=round(new FormData(e.target).get("monto"));
+ const saldo=Number(v.saldo);
+ const interes=round(saldo*Number(v.apr)/1200);
+ const capital=round(monto-interes);
+
+ if(!validAmount(monto))return;
+ if(capital<=0){
+  alert("El pago no cubre el interés mensual estimado.");
+  return;
+ }
+ if(capital>saldo){
+  alert("El pago supera el saldo más el interés estimado.");
+  return;
+ }
+ if(!confirm("¿Registrar pago de "+money(monto)+"?"))return;
+
+ v.saldo=round(saldo-capital);
+ data.pagos.push({
+  id:id(),cuentaId:v.id,nombre:v.nombre,
+  monto,interes,capital,tipo:"vehiculo",
+  fecha:today(),saldoRestante:v.saldo
+ });
+ save();
+ alert("Pago registrado.\nInterés estimado: "+money(interes)+
+ "\nCapital: "+money(capital)+
+ "\nNuevo saldo: "+money(v.saldo));
+ render();
 }
-if(capital>saldo){
-alert("El pago supera el saldo más el interés estimado.");
-return;
-}
-if(!confirm("Registrar pago de "+money(monto)+"?"))return;
-v.saldo=Math.round((saldo-capital)*100)/100;
-data.pagos.push({
-nombre:v.nombre,monto:monto,interes:interes,
-capital:capital,tipo:"vehiculo",fecha:today(),
-saldoRestante:v.saldo
-});
-save();
-alert("Pago registrado.\nInterés estimado: "+money(interes)+
-"\nCapital: "+money(capital)+"\nNuevo saldo: "+money(v.saldo));
-render();
-}
+
 function pagarTarjeta(e,i){
-e.preventDefault();
-let t=data.tarjetas[i];
-let monto=Number(new FormData(e.target).get("monto"));
-if(!Number.isFinite(monto)||monto<=0)return;
-if(monto>Number(t.saldo)){
-alert("El pago supera el saldo de la tarjeta.");
-return;
+ e.preventDefault();
+ const t=data.tarjetas[i];
+ const monto=round(new FormData(e.target).get("monto"));
+
+ if(!validAmount(monto))return;
+ if(monto>Number(t.saldo)){
+  alert("El pago supera el saldo de la tarjeta.");
+  return;
+ }
+ if(!confirm("¿Registrar pago de "+money(monto)+"?"))return;
+
+ t.saldo=round(Number(t.saldo)-monto);
+ data.pagos.push({
+  id:id(),cuentaId:t.id,nombre:t.nombre,
+  monto,tipo:"tarjeta",fecha:today()
+ });
+ save();
+ alert("Pago registrado. Nuevo saldo: "+money(t.saldo));
+ render();
 }
-if(!confirm("Registrar pago de "+money(monto)+"?"))return;
-t.saldo=Math.round((Number(t.saldo)-monto)*100)/100;
-data.pagos.push({
-nombre:t.nombre,monto:monto,tipo:"tarjeta",fecha:today()
-});
-save();
-alert("Pago registrado. Nuevo saldo: "+money(t.saldo));
-render();
-}
+
 function presupuestos(){
-el().innerHTML=`
-<h2>Presupuestos</h2>
-<div class="card">
-<h3>Próximamente</h3>
-<p class="note">Aquí añadiremos límites mensuales para comida, gasolina, compras y otras categorías.</p>
-</div>`;
+ el().innerHTML=`
+ <h2>Presupuestos</h2>
+ <div class="card">
+  <h3>Próximamente</h3>
+  <p class="note">Aquí añadiremos límites mensuales para comida, gasolina, compras y otras categorías.</p>
+ </div>`;
 }
+
 go("inicio");
 </script>
 </body>
