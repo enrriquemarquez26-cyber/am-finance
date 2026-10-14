@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.2</title>
+<title>AM Finance V3.3</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -515,7 +515,14 @@ function tarjetas(){
    <input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo ($)" required>
    <input name="limite" type="number" min="0" step="0.01" placeholder="Límite ($)" required>
    <input name="apr" type="number" min="0" step="0.01" placeholder="APR (%)" required>
-   <button class="primary">Añadir tarjeta</button>
+   <label class="label">Día de vencimiento mensual</label>
+<select name="vencimiento" required>
+<option value="">Seleccionar día de pago</option>
+${Array.from({length:31},(_,i)=>`
+<option value="${i+1}">Día ${i+1}</option>
+`).join("")}
+</select>
+  <button class="primary">Añadir tarjeta</button>
   </form>
  </div>
  ${data.tarjetas.map((t,i)=>`
