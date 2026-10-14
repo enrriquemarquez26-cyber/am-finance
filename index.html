@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.8.1</title>
+<title>AM Finance V3.8.2</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -788,7 +788,45 @@ function presupuestos(){
     alert("No se pudo crear la copia de seguridad.");
   }
 }
+async function restaurarCopia(event){
+  const archivo = event.target.files[0];
+  if(!archivo) return;
 
+  try {
+    const texto = await archivo.text();
+    const respaldo = JSON.parse(texto);
+
+    if(
+      respaldo.aplicacion !== "AM Finance" ||
+      respaldo.version !== 1 ||
+      !respaldo.datos ||
+      !Array.isArray(respaldo.datos.movimientos) ||
+      !Array.isArray(respaldo.datos.pagos) ||
+      !Array.isArray(respaldo.datos.vehiculos) ||
+      !Array.isArray(respaldo.datos.tarjetas)
+    ){
+      alert("Este archivo no es una copia válida de AM Finance.");
+      return;
+    }
+
+    if(!confirm(
+      "¿Restaurar esta copia? Se reemplazarán los datos actuales de AM Finance."
+    )) return;
+
+    localStorage.setItem(
+      "amfinance-demo-v1",
+      JSON.stringify(respaldo.datos)
+    );
+
+    alert("Copia restaurada correctamente.");
+    location.reload();
+
+  } catch(error) {
+    alert("No se pudo restaurar la copia de seguridad.");
+  } finally {
+    event.target.value = "";
+  }
+}
 go("inicio");
 </script>
 </body>
