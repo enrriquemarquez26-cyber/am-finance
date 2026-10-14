@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.5</title>
+<title>AM Finance V3.6</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -533,7 +533,10 @@ ${Array.from({length:31},(_,i)=>`
    <strong>${safe(t.nombre)}</strong>
    <div class="smallamount">${money(t.saldo)}</div>
    <div class="label">Límite ${money(t.limite)} · APR ${safe(t.apr)}%</div>
-   <button class="secondary" onclick="toggle('tarjeta${i}')">Registrar pago</button>
+   <div class="label">
+📅 Vencimiento: ${t.vencimiento ? "Día "+t.vencimiento+" de cada mes" : "Sin configurar"}
+</div>
+  <button class="secondary" onclick="toggle('tarjeta${i}')">Registrar pago</button>
    <div class="payment hidden" id="tarjeta${i}">
     <form onsubmit="pagarTarjeta(event,${i})">
      <label class="label">Cantidad pagada ($)</label>
