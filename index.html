@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.9</title>
+<title>AM Finance V3.9.1</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png?v=2">
 <link rel="icon" type="image/png" href="3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png">
 <style>
@@ -405,7 +405,26 @@ function inicio(){
   <div class="smallamount">${money(autos+tarjetas)}</div>
   <div class="note">Vehículos: ${money(autos)} · Tarjetas: ${money(tarjetas)}</div>
  </div>
- <button class="primary" onclick="go('movimientos')">+ Registrar movimiento</button>
+ 
+<h2>Mis cuentas bancarias</h2>
+<div id="cuentasInicio">
+  <div class="card">
+    <div class="label">🏦 Cuentas de cheques</div>
+    <div class="amount">$0.00</div>
+    <div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">
+      <div style="width:0%;height:100%;background:#10b981"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="label">🐷 Cuentas de ahorros</div>
+    <div class="amount">$0.00</div>
+    <div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">
+      <div style="width:0%;height:100%;background:#10b981"></div>
+    </div>
+  </div>
+</div>
+
+<button class="primary" onclick="go('movimientos')">+ Registrar movimiento</button>
  <p class="note">Versión de prueba V3. Utiliza solamente datos ficticios.</p>`;
 }
 
