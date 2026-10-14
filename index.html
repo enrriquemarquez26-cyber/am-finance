@@ -94,6 +94,116 @@ nav button.active{color:#147e86;font-weight:750}
     color: #4dd5d0;
   }
 }
+/* Modo oscuro seleccionado manualmente */
+html.tema-oscuro body {
+  background: #101216;
+  color: #f5f6f8;
+}
+
+html.tema-oscuro header,
+html.tema-oscuro nav {
+  background: #191c22;
+  border-color: #343943;
+}
+
+html.tema-oscuro .card {
+  background: #20242b;
+  border-color: #343943;
+}
+
+html.tema-oscuro .sub,
+html.tema-oscuro .label,
+html.tema-oscuro .note {
+  color: #aab3c2;
+}
+
+html.tema-oscuro .item {
+  border-color: #343943;
+}
+
+html.tema-oscuro .payment,
+html.tema-oscuro .editbox,
+html.tema-oscuro input,
+html.tema-oscuro select,
+html.tema-oscuro textarea {
+  background: #2a3039;
+  color: #ffffff;
+  border-color: #49515e;
+}
+
+html.tema-oscuro .secondary {
+  background: #343b46;
+  color: #ffffff;
+}
+
+html.tema-oscuro nav button {
+  color: #aab3c2;
+}
+
+html.tema-oscuro nav button.active,
+html.tema-oscuro .logo span {
+  color: #4dd5d0;
+}
+
+/* Modo claro seleccionado manualmente */
+html.tema-claro body {
+  background: #f6f7f9;
+  color: #17212e;
+}
+
+html.tema-claro header,
+html.tema-claro nav {
+  background: #ffffff;
+  border-color: #edf0f3;
+}
+
+html.tema-claro .card {
+  background: #ffffff;
+  border-color: #edf0f3;
+}
+
+html.tema-claro .sub,
+html.tema-claro .label {
+  color: #84909d;
+}
+
+html.tema-claro .note {
+  color: #89939f;
+}
+
+html.tema-claro .item {
+  border-color: #f0f1f3;
+}
+
+html.tema-claro .payment,
+html.tema-claro .editbox {
+  background: #f5f8f9;
+}
+
+html.tema-claro input,
+html.tema-claro select,
+html.tema-claro textarea {
+  background: #ffffff;
+  color: #17212e;
+  border-color: #d9e0e6;
+}
+
+html.tema-claro .secondary {
+  background: #e7f2f3;
+  color: #147e86;
+}
+
+html.tema-claro nav button {
+  color: #87919d;
+}
+
+html.tema-claro nav button.active {
+  color: #147e86;
+}
+
+html.tema-claro .logo span {
+  color: #238b91;
+}
 </style>
 </head>
 <body>
@@ -892,7 +1002,12 @@ function ajustes(){
       <p class="note">
         Configura cómo se verá AM Finance.
       </p>
-      <p>Automático, claro y oscuro</p>
+<label for="temaApp">Tema de la aplicación</label>
+<select id="temaApp" onchange="cambiarTema(this.value)">
+  <option value="auto">📱 Automático (iPhone)</option>
+  <option value="claro">☀️ Claro</option>
+  <option value="oscuro">🌙 Oscuro</option>
+</select>
     </div>
 
     <div class="card">
@@ -920,7 +1035,30 @@ function ajustes(){
       ← Volver al inicio
     </button>
   `;
+aplicarTema();
 }
+function cambiarTema(tema){
+  if(!["auto","claro","oscuro"].includes(tema)) return;
+
+  localStorage.setItem("amfinance-tema", tema);
+  aplicarTema();
+}
+
+function aplicarTema(){
+  const tema = localStorage.getItem("amfinance-tema") || "auto";
+
+  document.documentElement.classList.toggle(
+    "tema-claro", tema === "claro"
+  );
+
+  document.documentElement.classList.toggle(
+    "tema-oscuro", tema === "oscuro"
+  );
+
+  const selector = document.getElementById("temaApp");
+  if(selector) selector.value = tema;
+}
+aplicarTema();
 go("inicio");
 </script>
 </body>
