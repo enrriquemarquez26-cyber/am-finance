@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V3.9.5</title>
+<title>AM Finance V4.0</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png?v=2">
 <link rel="icon" type="image/png" href="3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png">
 <style>
@@ -245,6 +245,97 @@ html.tema-claro .logo span {
   border-radius: 20px;
 }
 
+/* Menú flotante AM Finance */
+#amMenuFondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  opacity: 0;
+  visibility: hidden;
+  transition: .3s;
+  z-index: 9998;
+}
+
+#amMenu {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  padding: 16px 18px 28px;
+  border-radius: 30px;
+  background: rgba(245,247,250,.82);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,.65);
+  box-shadow: 0 12px 40px rgba(0,0,0,.15);
+  transform: translateY(120%);
+  visibility: hidden;
+  transition: transform .35s ease, visibility .35s;
+  z-index: 9999;
+}
+
+#amMenuTirador {
+  width: 42px;
+  height: 5px;
+  border-radius: 20px;
+  background: #9ca3af;
+  margin: 0 auto 20px;
+}
+
+#amMenu h3 {
+  color: #17212e;
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+#amMenu button {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  margin: 6px 0;
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255,255,255,.55);
+  color: #17212e;
+  font-size: 16px;
+  text-align: left;
+}
+
+#amMenu.abierto {
+  transform: translateY(0);
+  visibility: visible;
+}
+
+#amMenuFondo.abierto {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (prefers-color-scheme: dark) {
+  #amMenu {
+    background: rgba(30,32,39,.85);
+    border-color: rgba(255,255,255,.12);
+  }
+  #amMenu h3, #amMenu button {
+    color: white;
+  }
+  #amMenu button {
+    background: rgba(255,255,255,.08);
+  }
+}
+
+#amMenu.abierto {
+  transform: translateY(0);
+  visibility: visible;
+}
+
+#amMenuFondo.abierto {
+  opacity: 1;
+  visibility: visible;
+}
+
 </style>
 </head>
 <body>
@@ -263,6 +354,39 @@ html.tema-claro .logo span {
 <button onclick="go('tarjetas')" id="nav-tarjetas"><b>▤</b>Tarjetas</button>
 <button onclick="go('presupuestos')" id="nav-presupuestos"><b>◉</b>Presupuestos</button>
 </nav>
+
+<!-- Menú deslizable AM Finance -->
+<div id="amMenuFondo" onclick="cerrarAmMenu()"></div>
+
+<div id="amMenu">
+  <div id="amMenuTirador"></div>
+  <h3>Accesos rápidos</h3>
+
+  <button onclick="cerrarAmMenu();go('movimientos')">
+    ↗ Registrar movimiento
+  </button>
+
+  <button onclick="cerrarAmMenu();go('inicio')">
+    ⇄ Mis cuentas
+  </button>
+
+  <button onclick="cerrarAmMenu();go('tarjetas')">
+    ▣ Tarjetas de crédito
+  </button>
+
+  <button onclick="cerrarAmMenu();go('vehiculos')">
+    🚘 Vehículos
+  </button>
+
+  <button onclick="cerrarAmMenu();go('presupuestos')">
+    ◉ Presupuestos
+  </button>
+
+  <button onclick="cerrarAmMenu();go('ajustes')">
+    ⚙ Ajustes
+  </button>
+</div>
+
 <script>
 const KEY="amfinance-demo-v1";
 let data;
@@ -1352,6 +1476,45 @@ function abrirCuentaBanco(id) {
   localStorage.setItem(clave, JSON.stringify(cuentas));
   go("inicio");
   alert("Operación realizada. Nuevo saldo: " + money(cuenta.saldo));
+}
+
+function abrirAmMenu() {
+  document.getElementById("amMenu").classList.add("abierto");
+  document.getElementById("amMenuFondo").classList.add("abierto");
+}
+
+function cerrarAmMenu() {
+  document.getElementById("amMenu").classList.remove("abierto");
+  document.getElementById("amMenuFondo").classList.remove("abierto");
+}
+
+let inicioDeslizamientoY = 0;
+
+const barraAM = document.querySelector("nav");
+const menuAM = document.getElementById("amMenu");
+
+if (barraAM && menuAM) {
+  barraAM.addEventListener("touchstart", e => {
+    inicioDeslizamientoY = e.touches[0].clientY;
+  }, { passive: true });
+
+  barraAM.addEventListener("touchend", e => {
+    const distancia = inicioDeslizamientoY -
+      e.changedTouches[0].clientY;
+
+    if (distancia > 45) abrirAmMenu();
+  }, { passive: true });
+
+  menuAM.addEventListener("touchstart", e => {
+    inicioDeslizamientoY = e.touches[0].clientY;
+  }, { passive: true });
+
+  menuAM.addEventListener("touchend", e => {
+    const distancia = e.changedTouches[0].clientY -
+      inicioDeslizamientoY;
+
+    if (distancia > 60) cerrarAmMenu();
+  }, { passive: true });
 }
 
 </script>
