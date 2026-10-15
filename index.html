@@ -356,7 +356,7 @@ html.tema-claro .logo span {
   bottom: 12px;
   padding: 22px 18px 32px;
   border-radius: 30px;
-  background: rgba(245,247,250,.82);
+  background: rgba(235,235,238,.94);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
   border: 1px solid rgba(255,255,255,.65);
@@ -365,6 +365,18 @@ html.tema-claro .logo span {
   visibility: hidden;
   transition: transform .35s ease, visibility .35s;
   z-index: 9999;
+}
+@media (prefers-color-scheme: dark) {
+  #amMenu {
+    background: rgba(28, 30, 35, .96);
+    border-color: rgba(255, 255, 255, .15);
+    color: #ffffff;
+  }
+
+  #amMenu button {
+    background: #343741;
+    color: #ffffff;
+  }
 }
 
 #amMenuTirador {
@@ -376,7 +388,7 @@ html.tema-claro .logo span {
 }
 
 #amMenu h3 {
-  color: #17212e;
+  color: inherit;
   margin: 0 0 16px;
   font-size: 20px;
 }
@@ -442,7 +454,7 @@ html.tema-claro .logo span {
     color: white;
   }
   #amMenu button {
-    background: rgba(255,255,255,.08);
+    background: #343741;
   }
 }
 
