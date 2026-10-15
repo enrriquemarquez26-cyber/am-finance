@@ -71,6 +71,38 @@ nav button.active {
   background: #101012;
   color: #fff;
 }
+/* Barra adaptable a modo claro y oscuro */
+@media (prefers-color-scheme: light) {
+  nav {
+    background: rgba(235,235,238,.94);
+    border-color: rgba(0,0,0,.08);
+  }
+
+  nav button {
+    color: #252525;
+  }
+
+  nav button.active {
+    background: #ffffff;
+    color: #111111;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  nav {
+    background: rgba(35,35,37,.94);
+    border-color: rgba(255,255,255,.12);
+  }
+
+  nav button {
+    color: #ffffff;
+  }
+
+  nav button.active {
+    background: #ffffff;
+    color: #111111;
+  }
+}
 /* Iconos pequeños de la barra inferior */
 nav button b {
   font-size: 20px;
