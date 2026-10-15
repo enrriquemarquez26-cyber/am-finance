@@ -263,7 +263,7 @@ html.tema-claro .logo span {
   left: 12px;
   right: 12px;
   bottom: 12px;
-  padding: 16px 18px 28px;
+  padding: 22px 18px 32px;
   border-radius: 30px;
   background: rgba(245,247,250,.82);
   backdrop-filter: blur(30px);
@@ -302,7 +302,36 @@ html.tema-claro .logo span {
   font-size: 16px;
   text-align: left;
 }
+#amMenu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 12px;
+  row-gap: 10px;
+}
 
+#amMenuTirador,
+#amMenu h3 {
+  grid-column: 1 / -1;
+}
+
+#amMenu button {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 18px 10px;
+  min-height: 95px;
+  border-radius: 22px;
+  text-align: center;
+  font-size: 14px;
+  white-space: normal;
+}
+#amMenu button {
+  background: rgba(255,255,255,0.42);
+  border: 1px solid rgba(255,255,255,0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
 #amMenu.abierto {
   transform: translateY(0);
   visibility: visible;
