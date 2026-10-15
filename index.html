@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V4.0.1</title>
+<title>AM Finance V4.0.2</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png?v=2">
 <link rel="icon" type="image/png" href="3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png">
 <style>
@@ -1376,29 +1376,9 @@ function presupuestos(){
     <h2>Presupuestos</h2>
 
     <div class="card">
-      <h3>💾 Copias de seguridad</h3>
-      <p class="note">
-        Guarda tus datos en un archivo para
-        recuperarlos cuando los necesites.
-      </p>
-
-      <button onclick="exportarCopia()">
-        📥 Exportar copia de seguridad
-      </button>
-    </div>
-
-    <div class="card">
-      <h3>Restaurar datos</h3>
-      <p class="note">
-        Recupera una copia guardada anteriormente.
-      </p>
-
-      <input
-        type="file"
-        accept=".json,application/json"
-        onchange="restaurarCopia(event)"
-      >
-    </div>
+  <h3>Mis presupuestos</h3>
+  <p class="note">Aquí podrás organizar tus presupuestos mensuales.</p>
+</div>
   `;
 }
   function exportarCopia(){
