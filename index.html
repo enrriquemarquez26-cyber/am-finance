@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V4.0</title>
+<title>AM Finance V4.0.1</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png?v=2">
 <link rel="icon" type="image/png" href="3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png">
 <style>
@@ -38,6 +38,49 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid
 nav button{background:none;border:0;color:#87919d;font-size:10px;padding:5px 2px;min-width:19%}
 nav button b{display:block;font-size:22px;margin-bottom:5px}
 nav button.active{color:#147e86;font-weight:750}
+/* Barra flotante AM Finance */
+nav {
+  position: fixed;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  left: 14px;
+  right: 14px;
+  width: auto;
+  padding: 7px;
+  border-radius: 40px;
+  background: rgba(30,30,32,.94);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 8px 30px rgba(0,0,0,.25);
+  display: flex;
+  gap: 3px;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+nav button {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 32px;
+  background: transparent;
+  color: #fff;
+  padding: 12px 2px;
+}
+
+nav button.active {
+  background: #101012;
+  color: #fff;
+}
+/* Iconos pequeños de la barra inferior */
+nav button b {
+  font-size: 20px;
+  line-height: 1;
+}
+
+nav button svg {
+  width: 20px;
+  height: 20px;
+}
 .item{border-bottom:1px solid #f0f1f3;padding:13px 0}
 .item:last-child{border:0}
 .note{font-size:12px;color:#89939f;line-height:1.5}
@@ -377,11 +420,32 @@ html.tema-claro .logo span {
 </header>
 <main id="content"></main>
 <nav>
-<button onclick="go('inicio')" id="nav-inicio"><b>⌂</b>Inicio</button>
-<button onclick="go('movimientos')" id="nav-movimientos"><b>⇄</b>Movimientos</button>
-<button onclick="go('vehiculos')" id="nav-vehiculos"><b>🚘</b>Vehículos</button>
-<button onclick="go('tarjetas')" id="nav-tarjetas"><b>▤</b>Tarjetas</button>
-<button onclick="go('presupuestos')" id="nav-presupuestos"><b>◉</b>Presupuestos</button>
+<button onclick="go('inicio')" id="nav-inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="m3 10 9-7 9 7"/>
+<path d="M5 9v12h14V9"/>
+<path d="M9 21v-7h6v7"/>
+</svg>Inicio</button>
+<button onclick="go('movimientos')" id="nav-movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M4 7h16m-4-4 4 4-4 4"/>
+  <path d="M20 17H4m4-4-4 4 4 4"/>
+</svg>Movimientos</button>
+<button onclick="go('vehiculos')" id="nav-vehiculos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M5 11 7 5h10l2 6"/>
+  <rect x="3" y="10" width="18" height="9" rx="2"/>
+  <path d="M5 19v2M19 19v2"/>
+  <path d="M3 14h18"/>
+  <circle cx="7" cy="16" r="1"/>
+  <circle cx="17" cy="16" r="1"/>
+</svg>Vehículos</button>
+<button onclick="go('tarjetas')" id="nav-tarjetas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="2" y="5" width="20" height="14" rx="3"/>
+  <path d="M2 10h20"/>
+  <path d="M6 15h4"/>
+</svg>Tarjetas</button>
+<button onclick="go('presupuestos')" id="nav-presupuestos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M21 12a9 9 0 1 1-9-9v9z"/>
+  <path d="M12 3a9 9 0 0 1 9 9h-9z"/>
+</svg>Presupuestos</button>
 </nav>
 
 <!-- Menú deslizable AM Finance -->
