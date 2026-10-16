@@ -86,7 +86,7 @@ nav button {
   }
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) and (max-width: 0px) {
   nav {
     background: rgba(35,35,37,.94);
     border-color: rgba(255,255,255,.12);
@@ -127,7 +127,7 @@ nav button svg {
 .hidden{display:none}
 .editbox{background:#f5f8f9;border-radius:13px;padding:14px;margin-top:12px}
 /* Modo oscuro automático del iPhone */
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) and (max-width: 0px) {
   body {
     background: #101216;
     color: #f5f6f8;
