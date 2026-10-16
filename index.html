@@ -385,6 +385,26 @@ html.tema-claro .logo span {
   align-content: start;
   box-sizing: border-box;
 }
+#amPaginas {
+  height: 310px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+#amPaginas::-webkit-scrollbar {
+  display: none;
+}
+
+#amPaginas .amPagina {
+  height: 310px;
+  min-height: 310px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
 
 #amMenuTirador,
 #amMenu h3 {
@@ -504,6 +524,7 @@ html.tema-claro .logo span {
 <div id="amMenu">
   <div id="amMenuTirador"></div>
   <h3>Herramientas</h3>
+<div id="amPaginas">
 <div class="amPagina">
 <button onclick="cerrarAmMenu();go('suscripciones')">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
@@ -556,6 +577,38 @@ html.tema-claro .logo span {
 </svg>
 <span>Reportes</span>
   </button>
+</div>
+<div class="amPagina">
+  <button onclick="cerrarAmMenu();go('calculadora')">
+    <span>▦</span>
+    <span>Calculadora</span>
+  </button>
+
+  <button onclick="cerrarAmMenu();go('transferencias')">
+    <span>⇄</span>
+    <span>Transferencias</span>
+  </button>
+
+  <button onclick="cerrarAmMenu();go('documentos')">
+    <span>▤</span>
+    <span>Documentos</span>
+  </button>
+
+  <button onclick="cerrarAmMenu();go('deudas')">
+    <span>◉</span>
+    <span>Control de deudas</span>
+  </button>
+
+  <button onclick="cerrarAmMenu();go('patrimonio')">
+    <span>▥</span>
+    <span>Patrimonio</span>
+  </button>
+
+  <button onclick="cerrarAmMenu();go('impuestos')">
+    <span>▧</span>
+    <span>Impuestos</span>
+  </button>
+</div>
 </div>
 </div>
 
