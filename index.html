@@ -817,6 +817,19 @@ body:has(#content .amCalc) > header {
   box-sizing: border-box;
   padding-left: 34px;
 }
+.balance-principal {
+  border-radius: 36px;
+  overflow: hidden;
+  padding: 26px;
+}
+.balance-principal .amount {
+  font-size: 42px;
+  font-weight: 800;
+}
+.resumen-ovalado {
+  border-radius: 32px;
+  padding: 22px 18px;
+}
 
 </style>
 </head>
@@ -1290,14 +1303,13 @@ else if (banco.includes("capital one")) {
 
  el().innerHTML=`
  ${avisosVencimiento()}
-<h2>Resumen financiero</h2>
- <div class="card">
+ <div class="card balance-principal">
   <div class="label">Balance del mes</div>
   <div class="amount">${money(ingresos-gastos-pagos)}</div>
   <div class="note">Ingresos menos gastos y pagos realizados. No descuenta las deudas pendientes.</div>
  </div>
  <div class="row">
-  <div class="card" style="width:50%">
+  <div class="card resumen-ovalado" style="width:50%">
    <div class="label">Ingresos</div>
    <div class="smallamount green">${money(ingresos)}</div>
   </div>
