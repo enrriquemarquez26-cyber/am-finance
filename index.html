@@ -764,21 +764,25 @@ html.tema-claro .logo span {
   position: relative;
 }
 
-.amCalcCampos label::after {
-  position: absolute;
-  right: -28px;
-  top: 0;
-  font-weight: 600;
-  color: #7b8494;
+/* Tamaños refinados de la calculadora */
+.amCalcTabs button {
+  min-height: 68px;
+  border-radius: 999px;
+  padding: 9px 4px;
+  gap: 5px;
+  font-size: 12px;
 }
 
-.amCalcCampos label:nth-of-type(1)::after,
-.amCalcCampos label:nth-of-type(4)::after {
-  content: "$";
+.amCalcTabs button svg {
+  width: 19px;
+  height: 19px;
 }
 
-.amCalcCampos label:nth-of-type(2)::after {
-  content: "%";
+.amCalcCampos input[type="number"] {
+  width: 44%;
+  padding: 9px 12px;
+  font-size: 15px;
+  border-radius: 18px;
 }
 
 </style>
