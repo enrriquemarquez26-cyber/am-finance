@@ -379,18 +379,66 @@ html.tema-claro .logo span {
   box-sizing: border-box;
   overflow: hidden;
 }
+#amIndicadores {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+#amIndicadores span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a1a1aa;
+  opacity: 0.4;
+  transition: all 0.25s ease;
+}
+
+#amIndicadores span.activo {
+  width: 16px;
+  border-radius: 999px;
+  background: #17212e;
+  opacity: 1;
+}
 
 #amMenu .amPagina {
   height: 310px;
   align-content: start;
   box-sizing: border-box;
 }
+#amIndicadores {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+#amIndicadores span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a1a1aa;
+  opacity: 0.4;
+  transition: all 0.25s ease;
+}
+
+#amIndicadores span.activo {
+  width: 16px;
+  border-radius: 999px;
+  background: #17212e;
+  opacity: 1;
+}
 #amPaginas {
+  display: flex;
+  width: 100%;
   height: 310px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scroll-snap-type: y mandatory;
-  overscroll-behavior-y: contain;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -400,8 +448,9 @@ html.tema-claro .logo span {
 }
 
 #amPaginas .amPagina {
+  flex: 0 0 100%;
+  width: 100%;
   height: 310px;
-  min-height: 310px;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
@@ -610,6 +659,9 @@ html.tema-claro .logo span {
   </button>
 </div>
 </div>
+<div id="amIndicadores">
+  <span class="activo"></span>
+  <span></span>
 </div>
 
 <script>
@@ -1800,7 +1852,20 @@ if (barraAM && menuAM) {
     if (distancia > 60) cerrarAmMenu();
   }, { passive: true });
 }
+const paginasAM = document.getElementById("amPaginas");
+const indicadoresAM = document.querySelectorAll("#amIndicadores span");
 
+if (paginasAM && indicadoresAM.length) {
+  paginasAM.addEventListener("scroll", () => {
+    const pagina = Math.round(
+      paginasAM.scrollLeft / paginasAM.clientWidth
+    );
+
+    indicadoresAM.forEach((punto, i) => {
+      punto.classList.toggle("activo", i === pagina);
+    });
+  }, { passive: true });
+}
 </script>
 
 
