@@ -368,11 +368,22 @@ html.tema-claro .logo span {
   color: #17212e;
   font-size: 14px;
 }
-#amMenu {
+#amMenu .amPagina {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 12px;
   row-gap: 10px;
+}
+#amMenu {
+  height: 430px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+#amMenu .amPagina {
+  height: 310px;
+  align-content: start;
+  box-sizing: border-box;
 }
 
 #amMenuTirador,
@@ -493,7 +504,7 @@ html.tema-claro .logo span {
 <div id="amMenu">
   <div id="amMenuTirador"></div>
   <h3>Herramientas</h3>
-
+<div class="amPagina">
 <button onclick="cerrarAmMenu();go('suscripciones')">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
 <rect x="3" y="5" width="18" height="16" rx="2"/>
@@ -545,6 +556,7 @@ html.tema-claro .logo span {
 </svg>
 <span>Reportes</span>
   </button>
+</div>
 </div>
 
 <script>
