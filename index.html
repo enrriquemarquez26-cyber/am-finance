@@ -729,6 +729,27 @@ html.tema-claro .logo span {
   min-height: 64px;
 }
 
+.amCalcTabs button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 82px;
+  padding: 12px 4px;
+  border-radius: 28px;
+}
+
+.amCalcTabs button svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 </style>
 </head>
 <body>
@@ -1860,10 +1881,43 @@ function calculadora() {
       <p class="note">Calcula pagos, intereses y el costo total</p>
 
       <div class="amCalcTabs">
-        <button class="activo" onclick="cambiarTipoCalc('prestamo')">🚘 Préstamo</button>
-        <button onclick="cambiarTipoCalc('hipoteca')">⌂ Hipoteca</button>
-        <button onclick="cambiarTipoCalc('tarjeta')">▣ Tarjeta</button>
-        <button onclick="cambiarTipoCalc('ahorro')">% Ahorro</button>
+        
+<button class="activo" onclick="cambiarTipoCalc('prestamo')">
+  <svg viewBox="0 0 24 24">
+    <path d="M5 11l1.5-5h11L19 11"/>
+    <rect x="3" y="11" width="18" height="8" rx="2"/>
+    <circle cx="7" cy="19" r="1"/>
+    <circle cx="17" cy="19" r="1"/>
+  </svg>
+  <span>Préstamo</span>
+</button>
+
+<button onclick="cambiarTipoCalc('hipoteca')">
+  <svg viewBox="0 0 24 24">
+    <path d="M3 11L12 3l9 8"/>
+    <path d="M5 10v11h14V10"/>
+    <path d="M10 21v-7h4v7"/>
+  </svg>
+  <span>Hipoteca</span>
+</button>
+
+<button onclick="cambiarTipoCalc('tarjeta')">
+  <svg viewBox="0 0 24 24">
+    <rect x="2" y="5" width="20" height="14" rx="3"/>
+    <path d="M2 10h20M6 15h4"/>
+  </svg>
+  <span>Tarjeta</span>
+</button>
+
+<button onclick="cambiarTipoCalc('ahorro')">
+  <svg viewBox="0 0 24 24">
+    <path d="M19 5L5 19"/>
+    <circle cx="7" cy="7" r="3"/>
+    <circle cx="17" cy="17" r="3"/>
+  </svg>
+  <span>Ahorro</span>
+</button>
+
       </div>
 
       <div class="card amCalcCampos">
