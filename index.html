@@ -820,11 +820,12 @@ body:has(#content .amCalc) > header {
 .balance-principal {
   border-radius: 36px;
   overflow: hidden;
-  padding: 26px;
+  padding: 22px;
 }
 .balance-principal .amount {
   font-size: 42px;
   font-weight: 800;
+  margin-top: 8px;
 }
 .resumen-ovalado {
   border-radius: 40px;
@@ -1316,7 +1317,6 @@ else if (banco.includes("capital one")) {
  <div class="card balance-principal">
   <div class="label">Balance del mes</div>
   <div class="amount">${money(ingresos-gastos-pagos)}</div>
-  <div class="note">Ingresos menos gastos y pagos realizados. No descuenta las deudas pendientes.</div>
  </div>
  <div class="row">
   <div class="card resumen-ovalado" style="width:50%">
