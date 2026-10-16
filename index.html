@@ -827,8 +827,10 @@ body:has(#content .amCalc) > header {
   font-weight: 800;
 }
 .resumen-ovalado {
-  border-radius: 32px;
+  border-radius: 40px;
   padding: 22px 18px;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .logo {
   font-weight: 300;
@@ -1321,7 +1323,7 @@ else if (banco.includes("capital one")) {
    <div class="label">Ingresos</div>
    <div class="smallamount green">${money(ingresos)}</div>
   </div>
-  <div class="card" style="width:50%">
+  <div class="card resumen-ovalado" style="width:50%">
    <div class="label">Gastos y pagos</div>
    <div class="smallamount red">${money(gastos+pagos)}</div>
   </div>
