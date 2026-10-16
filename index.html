@@ -478,10 +478,13 @@ html.tema-claro .logo span {
   <path d="M2 10h20"/>
   <path d="M6 15h4"/>
 </svg></button>
-<button onclick="go('presupuestos')" id="nav-presupuestos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M21 12a9 9 0 1 1-9-9v9z"/>
-  <path d="M12 3a9 9 0 0 1 9 9h-9z"/>
-</svg></button>
+<button onclick="go('perfil')" id="nav-perfil">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/>
+    <circle cx="12" cy="9" r="3"/>
+    <path d="M6.5 19c.7-3 2.5-4.5 5.5-4.5s4.8 1.5 5.5 4.5"/>
+  </svg>
+</button>
 </nav>
 
 <!-- Menú deslizable AM Finance -->
@@ -641,6 +644,7 @@ function render(){
  if(page==="vehiculos")return vehiculos();
  if(page==="tarjetas")return tarjetas();
  if(page==="ajustes")return ajustes();
+ if(page==="perfil")return perfil();
 return presupuestos();
 }
 function diasParaVencer(dia){
@@ -857,7 +861,16 @@ else if (banco.includes("capital one")) {
   <div class="smallamount">${money(autos+tarjetas)}</div>
   <div class="note">Vehículos: ${money(autos)} · Tarjetas: ${money(tarjetas)}</div>
  </div>
- 
+ <div class="card" onclick="go('presupuestos')"
+     style="cursor:pointer;border-radius:22px;padding:16px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div class="label">Mis presupuestos</div>
+      <div class="note">Controla tus gastos mensuales</div>
+    </div>
+    <span style="font-size:20px">›</span>
+  </div>
+</div>
 <h2>Mis cuentas bancarias</h2>
 <button class="primary" onclick="abrirNuevaCuenta()">
   + Agregar cuenta
@@ -1488,6 +1501,23 @@ async function restaurarCopia(event){
   } finally {
     event.target.value = "";
   }
+}
+function perfil(){
+  el().innerHTML=`
+    <h2>Mi perfil</h2>
+
+    <div class="card" style="text-align:center">
+      <div style="font-size:42px">👤</div>
+      <h3>Mi cuenta</h3>
+      <p class="note">Inicia sesión para conectar tu perfil.</p>
+    </div>
+
+    <div class="card">
+      <button onclick="go('ajustes')">
+        Ajustes
+      </button>
+    </div>
+  `;
 }
 function ajustes(){
   el().innerHTML=`
