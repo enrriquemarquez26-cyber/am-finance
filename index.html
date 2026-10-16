@@ -629,32 +629,55 @@ html.tema-claro .logo span {
 </div>
 <div class="amPagina">
   <button onclick="cerrarAmMenu();go('calculadora')">
-    <span>▦</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="5" y="2" width="14" height="20" rx="3"/>
+  <path d="M8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"/>
+</svg>
     <span>Calculadora</span>
   </button>
 
   <button onclick="cerrarAmMenu();go('transferencias')">
-    <span>⇄</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M4 7h16m-4-4 4 4-4 4"/>
+  <path d="M20 17H4m4-4-4 4 4 4"/>
+</svg>
     <span>Transferencias</span>
   </button>
 
   <button onclick="cerrarAmMenu();go('documentos')">
-    <span>▤</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+  <path d="M14 2v6h6"/>
+  <path d="M8 13h8M8 17h8"/>
+</svg>
     <span>Documentos</span>
   </button>
 
   <button onclick="cerrarAmMenu();go('deudas')">
-    <span>◉</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="3" y="5" width="18" height="15" rx="3"/>
+  <path d="M3 10h18"/>
+  <path d="M7 15h4"/>
+  <path d="M17 14v4m-2-2h4"/>
+</svg>
     <span>Control de deudas</span>
   </button>
 
   <button onclick="cerrarAmMenu();go('patrimonio')">
-    <span>▥</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M3 17l6-6 4 4 8-9"/>
+  <path d="M15 6h6v6"/>
+  <path d="M3 21h18"/>
+</svg>
     <span>Patrimonio</span>
   </button>
 
   <button onclick="cerrarAmMenu();go('impuestos')">
-    <span>▧</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M3 10h18"/>
+  <path d="M5 10V20M10 10V20M14 10V20M19 10V20"/>
+  <path d="M2 20h20M12 3 2 8v2h20V8L12 3z"/>
+</svg>
     <span>Impuestos</span>
   </button>
 </div>
@@ -762,6 +785,12 @@ function render(){
  if(page==="tarjetas")return tarjetas();
  if(page==="ajustes")return ajustes();
  if(page==="perfil")return perfil();
+ if(page==="calculadora")return calculadora();
+if(page==="transferencias")return transferencias();
+if(page==="documentos")return documentos();
+if(page==="deudas")return deudas();
+if(page==="patrimonio")return patrimonio();
+if(page==="impuestos")return impuestos();
 return presupuestos();
 }
 function diasParaVencer(dia){
@@ -1618,6 +1647,35 @@ async function restaurarCopia(event){
   } finally {
     event.target.value = "";
   }
+}
+function calculadora(){
+  el().innerHTML = `<h2>Calculadora financiera</h2>
+    <div class="card"><p>Calcula préstamos, intereses y cuotas.</p></div>`;
+}
+
+function transferencias(){
+  el().innerHTML = `<h2>Transferencias</h2>
+    <div class="card"><p>Administra tus transferencias entre cuentas.</p></div>`;
+}
+
+function documentos(){
+  el().innerHTML = `<h2>Documentos</h2>
+    <div class="card"><p>Organiza tus documentos financieros.</p></div>`;
+}
+
+function deudas(){
+  el().innerHTML = `<h2>Control de deudas</h2>
+    <div class="card"><p>Consulta y organiza tus deudas.</p></div>`;
+}
+
+function patrimonio(){
+  el().innerHTML = `<h2>Patrimonio</h2>
+    <div class="card"><p>Consulta tus activos y deudas.</p></div>`;
+}
+
+function impuestos(){
+  el().innerHTML = `<h2>Impuestos</h2>
+    <div class="card"><p>Organiza tus ingresos y gastos para impuestos.</p></div>`;
 }
 function perfil(){
   el().innerHTML=`
