@@ -750,6 +750,37 @@ html.tema-claro .logo span {
   stroke-linejoin: round;
 }
 
+/* Símbolos dentro de los campos de la calculadora */
+.amCalcCampos {
+  position: relative;
+}
+
+.amCalcCampos input[type="number"] {
+  padding-left: 32px;
+  padding-right: 25px;
+}
+
+.amCalcCampos label {
+  position: relative;
+}
+
+.amCalcCampos label::after {
+  position: absolute;
+  right: -28px;
+  top: 0;
+  font-weight: 600;
+  color: #7b8494;
+}
+
+.amCalcCampos label:nth-of-type(1)::after,
+.amCalcCampos label:nth-of-type(4)::after {
+  content: "$";
+}
+
+.amCalcCampos label:nth-of-type(2)::after {
+  content: "%";
+}
+
 </style>
 </head>
 <body>
