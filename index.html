@@ -537,6 +537,128 @@ html.tema-claro .logo span {
   color: white;
   border-color: #454955;
 }
+
+/* Calculadora moderna AM Finance */
+.amCalc {
+  padding: 8px 0 30px;
+}
+
+.amCalc h2 {
+  text-align: center;
+  font-size: 23px;
+  margin-bottom: 6px;
+}
+
+.amCalc > .note {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.amCalcTabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin-bottom: 22px;
+}
+
+.amCalcTabs button {
+  min-width: 0;
+  padding: 15px 3px;
+  border-radius: 22px;
+  font-size: 12px;
+  background: #292d36;
+  color: white;
+  border: 1px solid #454b57;
+}
+
+.amCalcTabs button.activo {
+  background: #78869d;
+  font-weight: 700;
+}
+
+.amCalcCampos,
+.amCalcResultado {
+  border-radius: 28px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.amCalcCampos label {
+  display: block;
+  font-weight: 600;
+  margin: 14px 0 10px;
+}
+
+.amCalcCampos input[type="number"] {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 18px;
+  padding: 14px;
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.amCalcCampos input[type="range"] {
+  display: block;
+  width: 100%;
+  height: 12px;
+  margin: 8px 0 28px;
+  accent-color: #8798b7;
+  cursor: pointer;
+}
+
+.amCalcCampos input[type="range"]::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+}
+
+.amCalcResultado h1 {
+  font-size: clamp(36px, 9vw, 54px);
+  margin: 8px 0 22px;
+  letter-spacing: -1px;
+}
+
+.amCalcTotales {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  border-top: 1px solid #7775;
+  padding-top: 18px;
+}
+
+.amCalcTotales div {
+  font-size: 12px;
+  min-width: 0;
+}
+
+.amCalcTotales strong {
+  display: block;
+  font-size: 15px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.amCalc > button.primary {
+  width: 100%;
+  border-radius: 999px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.amCalcAcciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.amCalcAcciones button {
+  padding: 17px 8px;
+  border-radius: 999px;
+  background: #292d36;
+  color: white;
+  border: 1px solid #454b57;
+}
+
 </style>
 </head>
 <body>
@@ -1660,9 +1782,112 @@ async function restaurarCopia(event){
     event.target.value = "";
   }
 }
-function calculadora(){
-  el().innerHTML = `<h2>Calculadora financiera</h2>
-    <div class="card"><p>Calcula préstamos, intereses y cuotas.</p></div>`;
+
+function calculadora() {
+  el().innerHTML = `
+    <div class="amCalc">
+      <h2>Calculadora financiera</h2>
+      <p class="note">Calcula pagos, intereses y el costo total</p>
+
+      <div class="amCalcTabs">
+        <button class="activo" onclick="cambiarTipoCalc('prestamo')">🚘 Préstamo</button>
+        <button onclick="cambiarTipoCalc('hipoteca')">⌂ Hipoteca</button>
+        <button onclick="cambiarTipoCalc('tarjeta')">▣ Tarjeta</button>
+        <button onclick="cambiarTipoCalc('ahorro')">% Ahorro</button>
+      </div>
+
+      <div class="card amCalcCampos">
+        <label>Monto del préstamo</label>
+        <input id="calcMonto" type="number" value="28000" min="0" oninput="actualizarCalc()">
+        <input id="calcMontoBarra" type="range" min="1000" max="200000" step="500" value="28000" oninput="sincronizarCalc('Monto')">
+
+        <label>Tasa de interés (APR)</label>
+        <input id="calcTasa" type="number" value="6.5" min="0" step="0.1" oninput="actualizarCalc()">
+        <input id="calcTasaBarra" type="range" min="0" max="30" step="0.1" value="6.5" oninput="sincronizarCalc('Tasa')">
+
+        <label>Plazo del préstamo (meses)</label>
+        <input id="calcPlazo" type="number" value="36" min="1" oninput="actualizarCalc()">
+        <input id="calcPlazoBarra" type="range" min="12" max="84" step="1" value="36" oninput="sincronizarCalc('Plazo')">
+
+        <label>Pago inicial (opcional)</label>
+        <input id="calcInicial" type="number" value="2000" min="0" oninput="actualizarCalc()">
+        <input id="calcInicialBarra" type="range" min="0" max="100000" step="500" value="2000" oninput="sincronizarCalc('Inicial')">
+      </div>
+
+      <div class="card amCalcResultado">
+        <p>Pago mensual estimado</p>
+        <h1 id="calcMensual">$0.00</h1>
+        <div class="amCalcTotales">
+          <div>Monto financiado<strong id="calcFinanciado">$0.00</strong></div>
+          <div>Intereses totales<strong id="calcIntereses">$0.00</strong></div>
+          <div>Costo total<strong id="calcTotal">$0.00</strong></div>
+        </div>
+      </div>
+
+      <button class="primary" onclick="verAmortizacionCalc()">Ver tabla de amortización →</button>
+      <div class="amCalcAcciones">
+        <button onclick="verGraficoCalc()">◴ Gráfico</button>
+        <button onclick="guardarCalc()">▢ Guardar</button>
+      </div>
+      <div id="calcDetalle"></div>
+    </div>
+  `;
+  actualizarCalc();
+}
+
+function sincronizarCalc(campo) {
+  document.getElementById("calc" + campo).value =
+    document.getElementById("calc" + campo + "Barra").value;
+  actualizarCalc();
+}
+
+function actualizarCalc() {
+  const valor = id => Number(document.getElementById(id).value) || 0;
+  const monto = Math.max(0, valor("calcMonto"));
+  const inicial = Math.min(monto, Math.max(0, valor("calcInicial")));
+  const tasa = Math.max(0, valor("calcTasa")) / 1200;
+  const meses = Math.max(1, Math.round(valor("calcPlazo")));
+  const capital = monto - inicial;
+  const mensual = tasa === 0
+    ? capital / meses
+    : capital * tasa / (1 - Math.pow(1 + tasa, -meses));
+  const total = mensual * meses;
+  const formato = n => n.toLocaleString("en-US", {
+    style: "currency", currency: "USD"
+  });
+
+  ["Monto", "Tasa", "Plazo", "Inicial"].forEach(campo => {
+    const barra = document.getElementById("calc" + campo + "Barra");
+    const numero = document.getElementById("calc" + campo);
+    barra.value = numero.value;
+  });
+
+  document.getElementById("calcMensual").textContent = formato(mensual);
+  document.getElementById("calcFinanciado").textContent = formato(capital);
+  document.getElementById("calcIntereses").textContent = formato(total - capital);
+  document.getElementById("calcTotal").textContent = formato(total);
+}
+
+function cambiarTipoCalc(tipo) {
+  if (tipo !== "prestamo") {
+    alert("Próximamente: " + tipo);
+    return;
+  }
+  calculadora();
+}
+
+function verAmortizacionCalc() {
+  document.getElementById("calcDetalle").innerHTML =
+    '<div class="card">La tabla de amortización se agregará próximamente.</div>';
+}
+
+function verGraficoCalc() {
+  document.getElementById("calcDetalle").innerHTML =
+    '<div class="card">El gráfico se agregará próximamente.</div>';
+}
+
+function guardarCalc() {
+  alert("La función Guardar se agregará próximamente.");
 }
 
 function transferencias(){
