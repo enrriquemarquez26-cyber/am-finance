@@ -789,6 +789,29 @@ body:has(#content .amCalc) > header {
   display: none;
 }
 
+/* Símbolos dentro de los campos */
+.amCalcInput {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.amCalcInput span {
+  position: absolute;
+  left: 14px;
+  color: #7b8494;
+  font-size: 15px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.amCalcInput input[type="number"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 34px;
+}
+
 </style>
 </head>
 <body>
@@ -1961,11 +1984,17 @@ function calculadora() {
 
       <div class="card amCalcCampos">
         <label>Monto del préstamo</label>
+        <div class="amCalcInput">
+        <span>$</span>
         <input id="calcMonto" type="number" value="28000" min="0" oninput="actualizarCalc()">
+        </div>
         <input id="calcMontoBarra" type="range" min="1000" max="200000" step="500" value="28000" oninput="sincronizarCalc('Monto')">
 
         <label>Tasa de interés (APR)</label>
+        <div class="amCalcInput">
+        <span>%</span>
         <input id="calcTasa" type="number" value="6.5" min="0" step="0.1" oninput="actualizarCalc()">
+        </div>
         <input id="calcTasaBarra" type="range" min="0" max="30" step="0.1" value="6.5" oninput="sincronizarCalc('Tasa')">
 
         <label>Plazo del préstamo (meses)</label>
@@ -1973,7 +2002,10 @@ function calculadora() {
         <input id="calcPlazoBarra" type="range" min="12" max="84" step="1" value="36" oninput="sincronizarCalc('Plazo')">
 
         <label>Pago inicial (opcional)</label>
+        <div class="amCalcInput">
+        <span>$</span>
         <input id="calcInicial" type="number" value="2000" min="0" oninput="actualizarCalc()">
+        </div>
         <input id="calcInicialBarra" type="range" min="0" max="100000" step="500" value="2000" oninput="sincronizarCalc('Inicial')">
       </div>
 
