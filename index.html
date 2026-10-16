@@ -1060,11 +1060,10 @@ window.addEventListener("scroll", function() {
   const barra = document.querySelector("nav");
   if (!barra) return;
 
-  if (window.scrollY > 120) {
-    barra.classList.add("navVisible");
-  } else {
-    barra.classList.remove("navVisible");
-  }
+if (window.scrollY > 120) {
+  barra.classList.add("navVisible");
+}
+
 }, { passive: true });
 
 function go(p){
