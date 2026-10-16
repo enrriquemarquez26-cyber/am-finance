@@ -34,7 +34,7 @@ h3{margin:0 0 14px}
 .actions button{flex:1;margin:0}
 input,select{width:100%;padding:13px;border:1px solid #dce2e7;border-radius:12px;font-size:16px;background:white;margin:7px 0 13px}
 button{cursor:pointer}
-/* Barra flotante AM Finance */
+/* Barra flotante Balance One */
 nav {
   position: fixed;
   bottom: calc(18px + env(safe-area-inset-bottom));
@@ -285,7 +285,7 @@ html.tema-claro .logo span {
   color: #238b91;
 }
 
-/* Tarjetas bancarias AM Finance 3.9 */
+/* Tarjetas bancarias Balance One V0.0.1 */
 .banco-card {
   position: relative;
   overflow: hidden;
@@ -324,7 +324,7 @@ html.tema-claro .logo span {
   border-radius: 20px;
 }
 
-/* Menú flotante AM Finance */
+/* Menú flotante Balance One */
 #amMenuFondo {
   position: fixed;
   inset: 0;
@@ -544,7 +544,7 @@ html.tema-claro .logo span {
   border-color: #454955;
 }
 
-/* Calculadora moderna AM Finance */
+/* Calculadora moderna Balance One */
 .amCalc {
   padding: 8px 0 30px;
 }
@@ -860,7 +860,7 @@ body:has(#content .amCalc) > header {
 </button>
 </nav>
 
-<!-- Menú deslizable AM Finance -->
+<!-- Menú deslizable Balance One -->
 <div id="amMenuFondo" onclick="cerrarAmMenu()"></div>
 
 <div id="amMenu">
@@ -1886,7 +1886,7 @@ function pagosPendientes(){
      function exportarCopia(){
   try {
     const respaldo = {
-      aplicacion: "AM Finance",
+      aplicacion: "Balance One",
       version: 1,
       fecha: new Date().toISOString(),
       datos: data
@@ -1923,7 +1923,7 @@ async function restaurarCopia(event){
     const respaldo = JSON.parse(texto);
 
     if(
-      respaldo.aplicacion !== "AM Finance" ||
+      respaldo.aplicacion !== "Balance One" ||
       respaldo.version !== 1 ||
       !respaldo.datos ||
       !Array.isArray(respaldo.datos.movimientos) ||
@@ -1931,12 +1931,12 @@ async function restaurarCopia(event){
       !Array.isArray(respaldo.datos.vehiculos) ||
       !Array.isArray(respaldo.datos.tarjetas)
     ){
-      alert("Este archivo no es una copia válida de AM Finance.");
+      alert("Este archivo no es una copia válida de Balance One.");
       return;
     }
 
     if(!confirm(
-      "¿Restaurar esta copia? Se reemplazarán los datos actuales de AM Finance."
+      "¿Restaurar esta copia? Se reemplazarán los datos actuales de Balance One."
     )) return;
 
     localStorage.setItem(
@@ -2151,7 +2151,7 @@ function ajustes(){
     <div class="card">
       <h3>🌓 Apariencia</h3>
       <p class="note">
-        Configura cómo se verá AM Finance.
+        Configura cómo se verá Balance One.
       </p>
 <label for="temaApp">Tema de la aplicación</label>
 <select id="temaApp" onchange="cambiarTema(this.value)">
@@ -2178,7 +2178,7 @@ function ajustes(){
 
     <div class="card">
       <h3>ℹ️ Acerca de</h3>
-      <p>AM Finance</p>
+      <p>Balance One</p>
       <p>Versión 3.9</p>
     </div>
 
