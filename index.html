@@ -509,7 +509,7 @@ html.tema-claro .logo span {
 <span>Pagos pendientes</span>
   </button>
 
-  <button onclick="cerrarAmMenu();go('tarjetas')">
+  <button onclick="cerrarAmMenu();go('metasAhorro')">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
 <circle cx="12" cy="12" r="9"/>
 <circle cx="12" cy="12" r="5"/>
@@ -518,7 +518,7 @@ html.tema-claro .logo span {
 <span>Metas de ahorro</span>
   </button>
 
-  <button onclick="cerrarAmMenu();go('vehiculos')">
+  <button onclick="cerrarAmMenu();go('recordatorios')">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
 <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
 <path d="M10 21h4"/>
@@ -534,7 +534,7 @@ html.tema-claro .logo span {
 <span>Presupuestos</span>
   </button>
 
-  <button onclick="cerrarAmMenu();go('ajustes')">
+  <button onclick="cerrarAmMenu();go('reportes')">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
 <rect x="4" y="12" width="4" height="9" rx="1"/>
 <rect x="10" y="7" width="4" height="14" rx="1"/>
@@ -633,6 +633,9 @@ function go(p){
 function render(){
  if(page==="inicio")return inicio();
  if(page==="suscripciones")return suscripciones();
+ if(page==="metasAhorro")return metasAhorro();
+ if(page==="recordatorios")return recordatorios();
+ if(page==="reportes")return reportes();
  if(page==="pagosPendientes")return pagosPendientes();
  if(page==="movimientos")return movimientos();
  if(page==="vehiculos")return vehiculos();
@@ -1375,6 +1378,35 @@ function presupuestos(){
     <div class="card">
       <h3>Mis suscripciones</h3>
       <p class="note">Aquí podrás administrar tus pagos recurrentes.</p>
+    </div>
+  `;
+}
+function metasAhorro(){
+  el().innerHTML = `
+    <h2>Metas de ahorro</h2>
+    <div class="card">
+      <h3>Mis metas de ahorro</h3>
+      <p class="note">Aquí podrás organizar tus objetivos de ahorro.</p>
+    </div>
+  `;
+}
+
+function recordatorios(){
+  el().innerHTML = `
+    <h2>Recordatorios</h2>
+    <div class="card">
+      <h3>Mis recordatorios</h3>
+      <p class="note">Aquí podrás consultar tus próximos recordatorios.</p>
+    </div>
+  `;
+}
+
+function reportes(){
+  el().innerHTML = `
+    <h2>Reportes</h2>
+    <div class="card">
+      <h3>Mis reportes</h3>
+      <p class="note">Aquí podrás consultar los reportes de tus finanzas.</p>
     </div>
   `;
 }
