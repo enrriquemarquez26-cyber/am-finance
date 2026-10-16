@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AM Finance">
-<title>AM Finance V4.0.4</title>
+<title>AM Finance V4.0.5</title>
 <link rel="apple-touch-icon" href="./3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png">
 <link rel="icon" type="image/png" href="3593DF2D-4EC8-43DE-B3E8-153FEE0A1E7C.png">
 <style>
@@ -500,7 +500,7 @@ html.tema-claro .logo span {
 <span>Suscripciones</span>
   </button>
 
-  <button onclick="cerrarAmMenu();go('inicio')">
+  <button onclick="cerrarAmMenu();go('pagosPendientes')">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
 <path d="M5 3h14v18l-3-2-4 2-4-2-3 2V3z"/>
 <path d="M9 8h6"/>
@@ -633,6 +633,7 @@ function go(p){
 function render(){
  if(page==="inicio")return inicio();
  if(page==="suscripciones")return suscripciones();
+ if(page==="pagosPendientes")return pagosPendientes();
  if(page==="movimientos")return movimientos();
  if(page==="vehiculos")return vehiculos();
  if(page==="tarjetas")return tarjetas();
@@ -1377,7 +1378,16 @@ function presupuestos(){
     </div>
   `;
 }
-   function exportarCopia(){
+function pagosPendientes(){
+  el().innerHTML = `
+    <h2>Pagos pendientes</h2>
+    <div class="card">
+      <h3>Mis pagos pendientes</h3>
+      <p class="note">Aquí podrás consultar y organizar tus próximos pagos.</p>
+    </div>
+  `;
+}
+     function exportarCopia(){
   try {
     const respaldo = {
       aplicacion: "AM Finance",
