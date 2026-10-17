@@ -292,7 +292,7 @@ html.tema-claro .logo span {
   position: relative;
   overflow: hidden;
   border-radius: 50px;
-  padding: 0 8px;
+  padding: 4px 8px;
   margin-bottom: 0;
   color: #17212e;
   background: transparent;
@@ -1349,15 +1349,15 @@ else if (banco.includes("capital one")) {
   + Agregar cuenta
 </button>
 
-<div id="cuentasInicio" style="background:#ffffff;border-radius:32px;overflow:hidden;padding:12px">
-<div style="font-size:18px;font-weight:700;color:#17212e;padding:12px 14px">Cuentas</div>
-<div style="font-size:22px;font-weight:700;color:#17212e;padding:0 14px 6px;text-align:right">${money(totalCuentasBanco)}</div>
-<div style="height:1px;background:#e5e7eb;margin:8px 0"></div>
+<div id="cuentasInicio" style="background:#ffffff;border-radius:32px;overflow:hidden;padding:8px">
+<div style="font-size:18px;font-weight:700;color:#17212e;padding:8px 14px">Cuentas</div>
+<div style="font-size:22px;font-weight:700;color:#17212e;padding:0 14px 2px;text-align:right">${money(totalCuentasBanco)}</div>
+<div style="height:1px;background:#e5e7eb;margin:4px 0"></div>
         <h3 style="display:none">🏦 Cuentas de cheques</h3>
   <div class="bancos-deslizables">
   ${tarjetasBanco("cheques")}
 </div>
-<div style="height:1px;background:#e5e7eb;margin:0 14px"></div>
+<div style="height:1px;background:#e5e7eb;margin:0 8px"></div>
 
   <h3 style="display:none">🐷 Cuentas de ahorros</h3>
   ${tarjetasBanco("ahorro")}
