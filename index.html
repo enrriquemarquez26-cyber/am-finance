@@ -1183,6 +1183,7 @@ try {
   cuentasBanco = [];
 }
 
+const totalCuentasBanco = cuentasBanco.reduce((total, c) => total + Number(c.saldo || 0), 0);
 const tarjetasBanco = tipo => cuentasBanco
   .filter(c => c.tipo === tipo)
   .map(c => {
@@ -1350,6 +1351,7 @@ else if (banco.includes("capital one")) {
 
 <div id="cuentasInicio" style="background:#ffffff;border-radius:32px;overflow:hidden;padding:12px">
 <div style="font-size:18px;font-weight:700;color:#17212e;padding:12px 14px">Cuentas</div>
+<div style="font-size:22px;font-weight:700;color:#17212e;padding:0 14px 12px">${money(totalCuentasBanco)}</div>
 <div style="height:1px;background:#e5e7eb;margin:8px 0"></div>
         <h3 style="display:none">🏦 Cuentas de cheques</h3>
   <div class="bancos-deslizables">
