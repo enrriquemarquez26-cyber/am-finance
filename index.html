@@ -1294,7 +1294,7 @@ else if (banco.includes("capital one")) {
       '<div style="height:100%;width:' + porcentaje +
       '%;background:#10b981;border-radius:20px"></div>' +
       '</div>' +
-      '<p class="note">' +
+      (tipo === "ahorro" ? '<p class="note">' : '<p class="note" style="display:none">') +
       (meta > 0
         ? 'Meta: ' + money(meta) + ' · ' + porcentaje.toFixed(0) + '%'
         : 'Sin meta configurada') +
@@ -1352,7 +1352,9 @@ else if (banco.includes("capital one")) {
 
 <div id="cuentasInicio">
   <h3>🏦 Cuentas de cheques</h3>
+  <div class="bancos-deslizables">
   ${tarjetasBanco("cheques")}
+</div>
 
   <h3>🐷 Cuentas de ahorros</h3>
   ${tarjetasBanco("ahorro")}
