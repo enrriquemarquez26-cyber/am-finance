@@ -1289,7 +1289,7 @@ else if (banco.includes("capital one")) {
   JSON.stringify(c.id).replace(/"/g, '&quot;') +
   ')" style="cursor:pointer;--banco-color:' + color + ';--banco-suave:' + suave + '">' +
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:0px">' +
-'<img src="' + logoBanco + '" class="banco-logo" alt="" style="width:40px;border-radius:50%;background:#e2e5ea;padding:6px;height:40px;object-fit:contain;background:white;border-radius:16px;padding:7px">' +
+'<img src="' + logoBanco + '" class="banco-logo" alt="" style="width:40px;border-radius:50%;background:#e2e5ea;border:1px solid #d1d5db;padding:6px;height:40px;object-fit:contain;background:white;border-radius:16px;padding:7px">' +
 '<h3 style="margin:0;color:#17212e">' + safe(c.nombre) + '</h3><div style="font-size:13px;color:#8b95a5;margin-top:4px">' + (tipo === "ahorro" ? "Ahorros" : "Cheques") + '</div>' +
       '<div class="amount" style="margin-left:auto;font-size:18px">' + money(saldo) + '</div></div>' +
   (tipo === "ahorro" ? '' : '<div style="display:none">') + '<div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">' +
