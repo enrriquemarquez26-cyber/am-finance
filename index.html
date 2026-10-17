@@ -294,9 +294,9 @@ html.tema-claro .logo span {
   border-radius: 50px;
   padding: 8px 14px;
   color: #17212e;
-  background: #ffffff;
+  background: transparent;
   border: none;
-  box-shadow: 0 10px 28px rgba(0,0,0,.10);
+  box-shadow: none;
 }
 .banco-card .banco-logo {
   width: 64px;
@@ -1347,13 +1347,13 @@ else if (banco.includes("capital one")) {
   + Agregar cuenta
 </button>
 
-<div id="cuentasInicio">
-  <h3>🏦 Cuentas de cheques</h3>
+<div id="cuentasInicio" style="background:#ffffff;border-radius:32px;overflow:hidden;padding:12px">
+  <h3 style="display:none">🏦 Cuentas de cheques</h3>
   <div class="bancos-deslizables">
   ${tarjetasBanco("cheques")}
 </div>
 
-  <h3>🐷 Cuentas de ahorros</h3>
+  <h3 style="display:none">🐷 Cuentas de ahorros</h3>
   ${tarjetasBanco("ahorro")}
 </div>
 
