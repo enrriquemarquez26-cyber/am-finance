@@ -1290,7 +1290,7 @@ else if (banco.includes("capital one")) {
 '<img src="' + logoBanco + '" class="banco-logo" alt="" style="width:64px;height:64px;object-fit:contain;background:white;border-radius:16px;padding:7px">' +
 '<h3 style="margin:0;color:white">' + safe(c.nombre) + '</h3></div>' +
       '<div class="amount">' + money(saldo) + '</div>' +
-      '<div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">' +
+  (tipo === "ahorro" ? '' : '<div style="display:none">') + '<div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">' +
       '<div style="height:100%;width:' + porcentaje +
       '%;background:#10b981;border-radius:20px"></div>' +
       '</div>' +
