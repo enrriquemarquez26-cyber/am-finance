@@ -292,7 +292,7 @@ html.tema-claro .logo span {
   position: relative;
   overflow: hidden;
   border-radius: 50px;
-  padding: 0 14px;
+  padding: 0 8px;
   margin-bottom: 0;
   color: #17212e;
   background: transparent;
@@ -1287,7 +1287,7 @@ else if (banco.includes("capital one")) {
   ')" style="cursor:pointer;--banco-color:' + color + ';--banco-suave:' + suave + '">' +
       '<div style="display:flex;align-items:center;gap:14px;margin-bottom:15px">' +
 '<img src="' + logoBanco + '" class="banco-logo" alt="" style="width:40px;height:40px;object-fit:contain;background:white;border-radius:16px;padding:7px">' +
-'<h3 style="margin:0;color:#17212e">' + safe(c.nombre) + '</h3>' +
+'<h3 style="margin:0;color:#17212e">' + safe(c.nombre) + '</h3><div style="font-size:13px;color:#8b95a5;margin-top:4px">' + (tipo === "ahorro" ? "Ahorros" : "Cheques") + '</div>' +
       '<div class="amount" style="margin-left:auto;font-size:22px">' + money(saldo) + '</div></div>' +
   (tipo === "ahorro" ? '' : '<div style="display:none">') + '<div style="height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden">' +
       '<div style="height:100%;width:' + porcentaje +
@@ -1344,14 +1344,14 @@ else if (banco.includes("capital one")) {
     <span style="font-size:20px">›</span>
   </div>
 </div>
-<h2>Mis cuentas bancarias</h2>
+<h2 style="display:none">Mis cuentas bancarias</h2>
 <button class="primary" onclick="abrirNuevaCuenta()">
   + Agregar cuenta
 </button>
 
 <div id="cuentasInicio" style="background:#ffffff;border-radius:32px;overflow:hidden;padding:12px">
 <div style="font-size:18px;font-weight:700;color:#17212e;padding:12px 14px">Cuentas</div>
-<div style="font-size:22px;font-weight:700;color:#17212e;padding:0 14px 6px">${money(totalCuentasBanco)}</div>
+<div style="font-size:22px;font-weight:700;color:#17212e;padding:0 14px 6px;text-align:right">${money(totalCuentasBanco)}</div>
 <div style="height:1px;background:#e5e7eb;margin:8px 0"></div>
         <h3 style="display:none">🏦 Cuentas de cheques</h3>
   <div class="bancos-deslizables">
