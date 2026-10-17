@@ -1281,7 +1281,7 @@ else if (banco.includes("capital one")) {
   banco.includes("fifth third") ? "53.com" :
   banco.includes("bmo") ? "bmo.com" :
   "example.com") + "&sz=128";
-    return '<div class="card banco-card" onclick="abrirCuentaBanco(' +
+    return '<div class="banco-card" onclick="abrirCuentaBanco(' +
   JSON.stringify(c.id).replace(/"/g, '&quot;') +
   ')" style="cursor:pointer;--banco-color:' + color + ';--banco-suave:' + suave + '">' +
       '<div style="display:flex;align-items:center;gap:14px;margin-bottom:15px">' +
