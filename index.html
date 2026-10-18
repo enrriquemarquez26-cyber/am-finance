@@ -3172,6 +3172,46 @@ vencimiento:Number(f.get("vencimiento"))
   save();render();
  };
 }
+function guardarDatosTarjeta(event, indice) {
+  event.preventDefault();
+
+  const tarjeta = data.tarjetas[indice];
+  if (!tarjeta) return;
+
+  const campos = new FormData(event.target);
+  const modelo = String(campos.get("modelo") || "").trim();
+  const ultimos4 = String(campos.get("ultimos4") || "").trim();
+  const entrada = String(campos.get("pagoMinimo") || "").trim();
+  const pagoMinimo = entrada === "" ? null : Number(entrada);
+
+  if (ultimos4 && !/^\d{4}$/.test(ultimos4)) {
+    alert("Introduce únicamente los últimos cuatro dígitos.");
+    return;
+  }
+
+  if (
+    pagoMinimo !== null &&
+    (!Number.isFinite(pagoMinimo) || pagoMinimo < 0)
+  ) {
+    alert("Introduce un pago mínimo válido.");
+    return;
+  }
+
+  data.tarjetas[indice] = {
+    ...tarjeta,
+    modelo,
+    ultimos4,
+    pagoMinimo: pagoMinimo === null ? null : round(pagoMinimo)
+  };
+
+  if (!save()) {
+    data.tarjetas[indice] = tarjeta;
+    return;
+  }
+
+  render();
+  alert("Datos de la tarjeta guardados.");
+}
 
 function guardarVencimiento(e,tipo,i){
 e.preventDefault();
