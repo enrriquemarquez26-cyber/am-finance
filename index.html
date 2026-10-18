@@ -3089,6 +3089,26 @@ function tarjetas(){
   <form class="tarjeta-formulario"
     style="padding:0;background:transparent;margin:0"
     onsubmit="guardarDatosTarjeta(event,${i})">
+<label for="bancoCredito${i}">Banco</label>
+<select id="bancoCredito${i}" name="banco">
+  <option value="">Seleccionar banco</option>
+
+  ${[
+    "American Express",
+    "Chase",
+    "Capital One",
+    "Citi",
+    "Discover",
+    "Bank of America",
+    "Wells Fargo",
+    "Otro"
+  ].map(banco => `
+    <option value="${banco}"
+      ${t.banco === banco ? "selected" : ""}>
+      ${banco}
+    </option>
+  `).join("")}
+</select>
 
     <label for="modeloCredito${i}">Modelo de tarjeta</label>
     <input id="modeloCredito${i}" name="modelo"
