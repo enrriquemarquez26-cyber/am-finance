@@ -2284,17 +2284,19 @@ function cambiarTamanoTexto(tamano) {
 function aplicarTema(){
   const tema = localStorage.getItem("amfinance-tema") || "auto";
 
-  document.documentElement.classList.toggle(
-    "tema-claro", tema === "claro"
-  );
+  const oscuro = tema === "oscuro" ||
+    (tema === "auto" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
 
-  document.documentElement.classList.toggle(
-    "tema-oscuro", tema === "oscuro"
-  );
+  document.documentElement.classList.toggle("tema-claro", !oscuro);
+  document.documentElement.classList.toggle("tema-oscuro", oscuro);
 
   const selector = document.getElementById("temaApp");
   if(selector) selector.value = tema;
 }
+
+window.matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", aplicarTema);
 aplicarTema();
 document.body.style.fontSize = {
   pequeno: "14px",
