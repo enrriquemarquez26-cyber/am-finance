@@ -1507,6 +1507,110 @@ else if (banco.includes("capital one")) {
  <p class="note">Balance One · 0.0.1 Beta</p>`;
 }
 
+function guardarMovimientoBanco(anterior, nuevo) {
+  const claveBanco = "amfinance-cuentas-banco";
+  const datosPrevios = localStorage.getItem(KEY);
+  const bancosPrevios = localStorage.getItem(claveBanco);
+
+  try {
+    const cuentas = JSON.parse(bancosPrevios || "[]");
+
+    if (!Array.isArray(cuentas)) {
+      throw new Error("Cuentas no válidas");
+    }
+
+    const cambios = new Map();
+
+    function acumular(movimiento, signo) {
+      if (!movimiento || !movimiento.cuentaId) return;
+
+      const cantidad = Number(movimiento.monto);
+
+      if (
+        !validAmount(cantidad) ||
+        !["ingreso", "gasto"].includes(movimiento.tipo)
+      ) {
+        throw new Error("Movimiento no válido");
+      }
+
+      const cuentaId = String(movimiento.cuentaId);
+      const efecto = movimiento.tipo === "ingreso"
+        ? cantidad
+        : -cantidad;
+
+      cambios.set(
+        cuentaId,
+        round((cambios.get(cuentaId) || 0) + efecto * signo)
+      );
+    }
+
+    acumular(anterior, -1);
+    acumular(nuevo, 1);
+
+    for (const [cuentaId, diferencia] of cambios) {
+      const cuenta = cuentas.find(
+        c => String(c.id) === cuentaId
+      );
+
+      if (!cuenta) {
+        alert("No se encontró la cuenta del movimiento.");
+        return false;
+      }
+
+      const saldo = round(Number(cuenta.saldo) + diferencia);
+
+      if (!Number.isFinite(saldo) || saldo < 0) {
+        alert("La operación dejaría la cuenta sin saldo suficiente.");
+        return false;
+      }
+
+      cuenta.saldo = saldo;
+    }
+
+    const movimientosNuevos = anterior
+      ? data.movimientos.filter(m => m.id !== anterior.id)
+      : [...data.movimientos];
+
+    if (nuevo) movimientosNuevos.push(nuevo);
+
+    const datosNuevos = {
+      ...data,
+      movimientos: movimientosNuevos
+    };
+
+    try {
+      localStorage.setItem(
+        claveBanco,
+        JSON.stringify(cuentas)
+      );
+
+      localStorage.setItem(
+        KEY,
+        JSON.stringify(datosNuevos)
+      );
+    } catch (error) {
+      if (bancosPrevios === null) {
+        localStorage.removeItem(claveBanco);
+      } else {
+        localStorage.setItem(claveBanco, bancosPrevios);
+      }
+
+      if (datosPrevios === null) {
+        localStorage.removeItem(KEY);
+      } else {
+        localStorage.setItem(KEY, datosPrevios);
+      }
+
+      throw error;
+    }
+
+    data.movimientos = movimientosNuevos;
+    return true;
+  } catch (error) {
+    alert("No se pudieron guardar los cambios del movimiento.");
+    return false;
+  }
+}
 function movimientos(){
  const items=[
   ...data.movimientos.map(m=>({...m,origen:"movimiento"})),
@@ -2587,7 +2691,7 @@ function abrirNuevaCuenta() {
     return;
   }
 
-  const s = prompt("Saldo inicial en dólares:", "0");
+  const s = prompt("Saldo inicial en dólares:");
   if (s === null) return;
   const saldo = Number(s);
   if (!s.trim() || !Number.isFinite(saldo) || saldo < 0) {
