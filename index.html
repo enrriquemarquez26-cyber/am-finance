@@ -2190,7 +2190,13 @@ function ajustes(){
   <option value="claro">☀️ Claro</option>
   <option value="oscuro">🌙 Oscuro</option>
 </select>
-    </div>
+ <label for="tamanoTexto">Tamaño del texto</label>
+<select id="tamanoTexto" onchange="cambiarTamanoTexto(this.value)">
+  <option value="pequeno">Pequeña</option>
+  <option value="normal" selected>Normal</option>
+  <option value="grande">Grande</option>
+</select>
+       </div>
 
     <div class="card">
       <h3>💾 Copias de seguridad</h3>
@@ -2225,7 +2231,18 @@ function cambiarTema(tema){
   localStorage.setItem("amfinance-tema", tema);
   aplicarTema();
 }
+function cambiarTamanoTexto(tamano) {
+  const tamanos = {
+    pequeno: "14px",
+    normal: "16px",
+    grande: "18px"
+  };
 
+  if (!tamanos[tamano]) return;
+
+  localStorage.setItem("balanceone-tamano-texto", tamano);
+  document.documentElement.style.fontSize = tamanos[tamano];
+}
 function aplicarTema(){
   const tema = localStorage.getItem("amfinance-tema") || "auto";
 
@@ -2241,6 +2258,11 @@ function aplicarTema(){
   if(selector) selector.value = tema;
 }
 aplicarTema();
+document.documentElement.style.fontSize = {
+  pequeno: "14px",
+  normal: "16px",
+  grande: "18px"
+}[localStorage.getItem("balanceone-tamano-texto")] || "16px";
 go("inicio");
 
 function abrirNuevaCuenta() {
