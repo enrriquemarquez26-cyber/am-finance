@@ -3131,7 +3131,7 @@ function tarjetas(){
       <p>Aún no tienes tarjetas registradas.</p>
     </div>
   ` : ""}
-</div>`;
+  
 ${data.tarjetas.length > 0 ? `
   <div class="credito-resumen">
     <div>
@@ -3157,7 +3157,8 @@ ${data.tarjetas.length > 0 ? `
     </div>
   </div>
 ` : ""}
-
+  </div>`;
+  
  document.getElementById("formTarjeta").onsubmit=e=>{
   e.preventDefault();
   const f=new FormData(e.target);
