@@ -993,6 +993,173 @@ html.tema-oscuro .mov-tipos button.activo {
 html.tema-oscuro #movCuenta {
   color-scheme: dark;
 }
+/* Nuevo historial */
+.hist-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.hist-cabecera h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.hist-buscar,
+.hist-menu {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 0;
+  color: #7c8795;
+  background: transparent;
+}
+
+.hist-buscar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f5f5f9;
+}
+
+.hist-filtros {
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: #ededf3;
+  margin-bottom: 10px;
+}
+
+.hist-filtros button {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 3px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: #7c8795;
+  font: inherit;
+  font-size: .75rem;
+  text-align: center;
+}
+
+.hist-filtros button.activo {
+  background: #fff0e4;
+  border-color: #ffd5b5;
+  color: #ed710e;
+  font-weight: 650;
+}
+
+.hist-fila {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 10px;
+  margin-top: 7px;
+  border-radius: 26px;
+  background: #f8f8fb;
+}
+
+.hist-icono {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #ededf3;
+  color: #7c8795;
+  overflow: hidden;
+}
+
+.hist-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.hist-info strong {
+  display: block;
+  font-size: .8rem;
+  overflow-wrap: anywhere;
+}
+
+.hist-fecha {
+  margin-top: 3px;
+  color: #84909d;
+  font-size: .68rem;
+}
+
+.hist-tipo {
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: .65rem;
+  white-space: nowrap;
+}
+
+.hist-tipo.gasto {
+  background: #ffe5e7;
+  color: #c43f49;
+}
+
+.hist-tipo.ingreso {
+  background: #def4e8;
+  color: #13865b;
+}
+
+.hist-importe {
+  font-size: .8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hist-menu {
+  width: 28px;
+  height: 32px;
+  padding: 0;
+  font-size: 20px;
+}
+
+.hist-acciones {
+  display: flex;
+  gap: 8px;
+  padding: 8px 4px;
+}
+
+.hist-acciones button {
+  flex: 1;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px;
+  font: inherit;
+  font-size: .75rem;
+  background: #ededf3;
+  color: inherit;
+}
+
+html.tema-oscuro .hist-fila,
+html.tema-oscuro .hist-buscar,
+html.tema-oscuro .hist-filtros,
+html.tema-oscuro .hist-icono,
+html.tema-oscuro .hist-acciones button {
+  background: #2a3039;
+}
+
+html.tema-oscuro .hist-filtros button.activo {
+  background: #493222;
+  border-color: #80502d;
+  color: #ff9a45;
+}
+
+html.tema-oscuro .hist-tipo.gasto {
+  background: #49292e;
+  color: #ff9aa4;
+}
+
+html.tema-oscuro .hist-tipo.ingreso {
+  background: #203e31;
+  color: #72d8a4;
+}
 
 </style>
 </head>
