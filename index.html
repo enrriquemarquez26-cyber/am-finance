@@ -1962,6 +1962,106 @@ function movimientos(){
   </p>
 </div>
 </div>`;
+const botonBusqueda = document.getElementById("histBuscarBoton");
+const cajaBusqueda = document.getElementById("histBusqueda");
+const textoBusqueda = document.getElementById("histBuscarTexto");
+const botonesFiltro = document.querySelectorAll("[data-filtro-hist]");
+const registrosHistorial = document.querySelectorAll(".hist-registro");
+const avisoHistorial = document.getElementById("histSinResultados");
+
+let filtroHistorial = "todos";
+
+const normalizarBusqueda = texto => String(texto)
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .trim();
+
+function filtrarHistorial() {
+  const busqueda = normalizarBusqueda(textoBusqueda.value);
+  let visibles = 0;
+
+  registrosHistorial.forEach(registro => {
+    const coincideTipo = filtroHistorial === "todos" ||
+      registro.dataset.histTipo === filtroHistorial;
+
+    const coincideTexto = normalizarBusqueda(
+      registro.dataset.histNombre
+    ).includes(busqueda);
+
+    registro.hidden = !(coincideTipo && coincideTexto);
+
+    if (!registro.hidden) visibles++;
+  });
+
+  avisoHistorial.hidden = visibles > 0;
+  avisoHistorial.textContent = items.length
+    ? "No hay movimientos que coincidan."
+    : "Sin movimientos";
+}
+
+botonBusqueda.onclick = () => {
+  const abrir = cajaBusqueda.classList.contains("hidden");
+
+  cajaBusqueda.classList.toggle("hidden", !abrir);
+  botonBusqueda.setAttribute("aria-expanded", String(abrir));
+
+  if (abrir) {
+    textoBusqueda.focus();
+  } else {
+    textoBusqueda.value = "";
+    filtrarHistorial();
+  }
+};
+
+textoBusqueda.oninput = filtrarHistorial;
+
+botonesFiltro.forEach(boton => {
+  boton.onclick = () => {
+    filtroHistorial = boton.dataset.filtroHist;
+
+    botonesFiltro.forEach(b => {
+      b.classList.toggle("activo", b === boton);
+    });
+
+    filtrarHistorial();
+  };
+});
+
+document.querySelectorAll("[data-hist-menu]").forEach(boton => {
+  boton.onclick = () => {
+    const opciones = document.getElementById(
+      "histOpciones" + boton.dataset.histMenu
+    );
+
+    const abrir = opciones.classList.contains("hidden");
+
+    opciones.classList.toggle("hidden", !abrir);
+    boton.setAttribute("aria-expanded", String(abrir));
+  };
+});
+
+document.querySelectorAll("[data-hist-editar]").forEach(boton => {
+  boton.onclick = () => {
+    const movimiento = items[Number(boton.dataset.histEditar)];
+
+    if (movimiento) {
+      editar(movimiento.origen, movimiento.id);
+    }
+  };
+});
+
+document.querySelectorAll("[data-hist-eliminar]").forEach(boton => {
+  boton.onclick = () => {
+    const movimiento = items[Number(boton.dataset.histEliminar)];
+
+    if (movimiento) {
+      eliminar(movimiento.origen, movimiento.id);
+    }
+  };
+});
+
+filtrarHistorial();
 
 const formulario = document.getElementById("formMov");
 const selectorCuenta = document.getElementById("movCuenta");
