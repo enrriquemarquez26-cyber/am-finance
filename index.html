@@ -1794,20 +1794,44 @@ selectorCuenta.onchange = actualizarVistaMovimiento;
 campoMonto.oninput = actualizarVistaMovimiento;
 actualizarVistaMovimiento();
 
-formulario.querySelector('[type="submit"]').disabled = true;
- document.getElementById("formMov").onsubmit=e=>{
+formulario.onsubmit = e => {
   e.preventDefault();
-  const f=new FormData(e.target);
-  const monto=round(f.get("monto"));
-  const fecha=String(f.get("fecha"));
-  if(!validAmount(monto)||!validDate(fecha))return;
-  data.movimientos.push({
-   id:id(),tipo:f.get("tipo"),
-   nombre:String(f.get("nombre")).trim(),
-   monto,fecha
-  });
-  save();render();
- };
+
+  const f = new FormData(formulario);
+  const cuentaId = String(f.get("cuentaId") || "");
+  const nombre = String(f.get("nombre") || "").trim();
+  const tipo = String(f.get("tipo"));
+  const monto = round(f.get("monto"));
+  const fecha = String(f.get("fecha"));
+
+  if (
+    !nombre ||
+    !validAmount(monto) ||
+    !validDate(fecha) ||
+    !["ingreso", "gasto"].includes(tipo)
+  ) {
+    alert("Revisa la descripción, cantidad y fecha.");
+    return;
+  }
+
+  if (!cuentasMov.some(c => String(c.id) === cuentaId)) {
+    alert("Selecciona una cuenta válida.");
+    return;
+  }
+
+  const movimiento = {
+    id: id(),
+    cuentaId,
+    nombre,
+    tipo,
+    monto,
+    fecha
+  };
+
+  if (!guardarMovimientoBanco(null, movimiento)) return;
+
+  render();
+};
 }
 
 function editor(m){
