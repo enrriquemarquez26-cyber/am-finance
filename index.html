@@ -2993,29 +2993,98 @@ function tarjetas(){
     </form>
   </div>
 
-  <h3 class="tarjetas-subtitulo">Mis tarjetas</h3>
+ ${data.tarjetas.map((t,i)=>`
+  <button type="button" class="credito-fila"
+    style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
+    onclick="toggle('detalleCredito${i}')"
+    aria-label="Abrir opciones de ${safe(t.nombre)}">
 
-  ${data.tarjetas.map((t,i)=>`
-    <div class="tarjeta-detalle">
-      <strong>${safe(t.nombre)}</strong>
-      <div class="smallamount">${money(t.saldo)}</div>
+    <div class="credito-visual" style="background:${
+      /american express|amex/i.test(t.nombre)
+        ? "linear-gradient(145deg,#e4bf60,#aa7c25)"
+        : /capital one/i.test(t.nombre)
+        ? "linear-gradient(145deg,#626773,#292d36)"
+        : /chase/i.test(t.nombre)
+        ? "linear-gradient(145deg,#0068d9,#071c45)"
+        : /citi/i.test(t.nombre)
+        ? "linear-gradient(145deg,#405466,#172633)"
+        : "linear-gradient(145deg,#374a65,#101a29)"
+    };color:${
+      /american express|amex/i.test(t.nombre)
+        ? "#241d0f" : "#ffffff"
+    }">
+      <span class="credito-marca">${safe(t.nombre)}</span>
+      <span class="credito-modelo">
+        ${safe(t.modelo || "Tarjeta de crédito")}
+      </span>
+      <span class="credito-final">${
+        /^\d{4}$/.test(String(t.ultimos4 || ""))
+          ? "•••• " + safe(t.ultimos4)
+          : ""
+      }</span>
+    </div>
 
-      <p class="tarjetas-ayuda">
-        Límite: ${money(t.limite)} · APR: ${safe(t.apr)}%
-      </p>
+    <div class="credito-datos">
+      <div class="credito-etiqueta">Deuda actual</div>
+      <div class="credito-deuda">${money(t.saldo)}</div>
 
-      <p class="tarjetas-ayuda">
-        Vencimiento: ${
-          t.vencimiento
-            ? "Día "+safe(t.vencimiento)+" de cada mes"
+      <div class="credito-uso">
+        <div class="credito-barra">
+          <span style="width:${
+            Number(t.limite) > 0
+              ? Math.min(100, Math.max(
+                  0, Number(t.saldo) / Number(t.limite) * 100
+                ))
+              : 0
+          }%"></span>
+        </div>
+
+        <span class="credito-porcentaje">${
+          Number(t.limite) > 0
+            ? Math.round(
+                Number(t.saldo) / Number(t.limite) * 100
+              ) + "%"
+            : "—"
+        }</span>
+      </div>
+
+      <div class="credito-texto">
+        Límite: ${money(t.limite)}
+      </div>
+
+      <div class="credito-texto">
+        Pago mínimo: ${
+          t.pagoMinimo !== undefined &&
+          t.pagoMinimo !== null &&
+          t.pagoMinimo !== ""
+            ? money(t.pagoMinimo)
             : "Sin configurar"
         }
-      </p>
+      </div>
 
-      <button type="button" class="secondary"
-        onclick="toggle('venceTarjeta${i}')">
-        Configurar vencimiento
-      </button>
+      <div class="credito-texto">
+        Vence: ${
+          t.vencimiento
+            ? "día " + safe(t.vencimiento)
+            : "Sin configurar"
+        }
+      </div>
+
+      <div class="credito-texto"
+        style="text-align:right;color:#F28C28">
+        Ver opciones ›
+      </div>
+    </div>
+  </button>
+
+  <div class="tarjeta-detalle hidden" id="detalleCredito${i}">
+    <strong>${safe(t.nombre)}</strong>
+    <p class="tarjetas-ayuda">APR: ${safe(t.apr)}%</p>
+
+    <button type="button" class="secondary"
+      onclick="toggle('venceTarjeta${i}')">
+      Configurar vencimiento
+    </button>
 
       <div class="payment hidden" id="venceTarjeta${i}">
         <form onsubmit="guardarVencimiento(event,'tarjeta',${i})">
