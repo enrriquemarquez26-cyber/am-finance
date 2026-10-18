@@ -2199,11 +2199,21 @@ function ajustes(){
        </div>
 
     <div class="card">
-      <h3>💾 Copias de seguridad</h3>
-      <button onclick="go('presupuestos')">
-        Administrar copias
-      </button>
-    </div>
+  <h3>💾 Copias de seguridad</h3>
+
+  <button class="primary" onclick="exportarCopia()">
+    Guardar copia
+  </button>
+
+  <label for="archivoCopia" class="label"
+         style="display:block;margin-top:16px">
+    Restaurar una copia
+  </label>
+
+  <input id="archivoCopia" type="file"
+         accept=".json,application/json"
+         onchange="restaurarCopia(event)">
+</div>
 
     <div class="card">
       <h3>🔔 Recordatorios</h3>
