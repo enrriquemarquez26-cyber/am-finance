@@ -901,6 +901,20 @@ body:has(.mov-pantalla) > header {
   font-size: 1rem;
   min-width: 0;
 }
+.mov-formulario input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.mov-formulario input[type="date"]::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
+}
 
 .mov-tipos {
   display: flex;
