@@ -1979,10 +1979,25 @@ async function restaurarCopia(event){
       "¿Restaurar esta copia? Se reemplazarán los datos actuales de Balance One."
     )) return;
 
-    localStorage.setItem(
-      "amfinance-demo-v1",
-      JSON.stringify(respaldo.datos)
-    );
+    if (
+  respaldo.cuentasBanco !== undefined &&
+  !Array.isArray(respaldo.cuentasBanco)
+) {
+  alert("Las cuentas bancarias del respaldo no son válidas.");
+  return;
+}
+
+localStorage.setItem(
+  "amfinance-demo-v1",
+  JSON.stringify(respaldo.datos)
+);
+
+if (Array.isArray(respaldo.cuentasBanco)) {
+  localStorage.setItem(
+    "amfinance-cuentas-banco",
+    JSON.stringify(respaldo.cuentasBanco)
+  );
+}
 
     alert("Copia restaurada correctamente.");
     location.reload();
