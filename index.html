@@ -875,35 +875,53 @@ body:has(#content .amCalc) > header {
 </header>
 <main id="content" style="padding-bottom: 130px;"></main>
 <nav>
-<button onclick="go('inicio')" id="nav-inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-<path d="m3 10 9-7 9 7"/>
-<path d="M5 9v12h14V9"/>
-<path d="M9 21v-7h6v7"/>
-</svg></button>
-<button onclick="go('movimientos')" id="nav-movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M4 7h16m-4-4 4 4-4 4"/>
-  <path d="M20 17H4m4-4-4 4 4 4"/>
-</svg></button>
-<button onclick="go('vehiculos')" id="nav-vehiculos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M5 11 7 5h10l2 6"/>
-  <rect x="3" y="10" width="18" height="9" rx="2"/>
-  <path d="M5 19v2M19 19v2"/>
-  <path d="M3 14h18"/>
-  <circle cx="7" cy="16" r="1"/>
-  <circle cx="17" cy="16" r="1"/>
-</svg></button>
-<button onclick="go('tarjetas')" id="nav-tarjetas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="2" y="5" width="20" height="14" rx="3"/>
-  <path d="M2 10h20"/>
-  <path d="M6 15h4"/>
-</svg></button>
-<button onclick="go('perfil')" id="nav-perfil">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="9"/>
-    <circle cx="12" cy="9" r="3"/>
-    <path d="M6.5 19c.7-3 2.5-4.5 5.5-4.5s4.8 1.5 5.5 4.5"/>
-  </svg>
-</button>
+  <button onclick="go('inicio')" id="nav-inicio">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
+    </svg>
+    <span>Inicio</span>
+  </button>
+
+  <button onclick="go('movimientos')" id="nav-movimientos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 10V8a3 3 0 0 1 3-3h13m-4-4 4 4-4 4"/>
+      <path d="M20 14v2a3 3 0 0 1-3 3H4m4-4-4 4 4 4"/>
+    </svg>
+    <span>Movimientos</span>
+  </button>
+
+  <button onclick="go('vehiculos')" id="nav-vehiculos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 10 2-6h10l2 6"/>
+      <rect x="3" y="10" width="18" height="10" rx="3"/>
+      <path d="M5 20v2m14-2v2M3 10H2m19 0h1"/>
+      <path d="M7 15h.01M17 15h.01M8 18h8"/>
+    </svg>
+    <span>Vehículos</span>
+  </button>
+
+  <button onclick="go('tarjetas')" id="nav-tarjetas">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="3"/>
+      <path d="M2 10h20"/>
+      <rect x="6" y="13" width="4" height="3" rx=".5"/>
+    </svg>
+    <span>Tarjetas</span>
+  </button>
+
+  <button onclick="go('perfil')" id="nav-perfil">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <circle cx="12" cy="9" r="3"/>
+      <path d="M5.8 18.5a6.5 6.5 0 0 1 12.4 0"/>
+    </svg>
+    <span>Perfil</span>
+  </button>
 </nav>
 
 <!-- Menú deslizable Balance One -->
