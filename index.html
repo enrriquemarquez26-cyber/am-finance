@@ -3099,15 +3099,25 @@ aria-label="Abrir opciones de ${safe(t.nombre)}">
   <div class="credito-visual"
     style="padding:0;background:transparent;justify-content:center">
 
-    <img src="${safe(imagenCredito(t))}"
-      alt="${safe(t.banco || t.nombre)} ${safe(t.modelo || "")}"
-      style="display:block;width:100%;height:auto;border-radius:18px"
-      onerror="this.style.display='none';this.nextElementSibling.hidden=false">
+    <div style="${
+  imagenCredito(t).includes("apple.com/")
+    ? "width:100%;aspect-ratio:397/250;overflow:hidden;border-radius:18px"
+    : "width:100%"
+}">
+  <img src="${safe(imagenCredito(t))}"
+    alt="${safe(t.banco || t.nombre)} ${safe(t.modelo || "")}"
+    style="${
+      imagenCredito(t).includes("apple.com/")
+        ? "display:block;width:100%;height:100%;object-fit:cover;object-position:top"
+        : "display:block;width:100%;height:auto;border-radius:18px"
+    }"
+    onerror="this.style.display='none';this.nextElementSibling.hidden=false">
 
-    <span hidden
-      style="padding:16px;color:#84909d;font-size:.75rem">
-      No se pudo cargar la imagen de la tarjeta.
-    </span>
+  <span hidden
+    style="padding:16px;color:#84909d;font-size:.75rem">
+    No se pudo cargar la imagen de la tarjeta.
+  </span>
+</div>
   </div>
 ` : `
   <div class="credito-visual">
