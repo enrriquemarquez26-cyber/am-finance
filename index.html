@@ -2245,7 +2245,7 @@ function cambiarTamanoTexto(tamano) {
   if (!tamanos[tamano]) return;
 
   localStorage.setItem("balanceone-tamano-texto", tamano);
-  document.documentElement.style.fontSize = tamanos[tamano];
+  document.body.style.fontSize = tamanos[tamano];
 }
 function aplicarTema(){
   const tema = localStorage.getItem("amfinance-tema") || "auto";
