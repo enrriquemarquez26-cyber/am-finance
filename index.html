@@ -1916,12 +1916,21 @@ function pagosPendientes(){
 }
      function exportarCopia(){
   try {
-    const respaldo = {
-      aplicacion: "Balance One",
-      version: 1,
-      fecha: new Date().toISOString(),
-      datos: data
-    };
+    const cuentasBanco = JSON.parse(
+  localStorage.getItem("amfinance-cuentas-banco") || "[]"
+);
+
+if (!Array.isArray(cuentasBanco)) {
+  throw new Error("Las cuentas bancarias no son válidas.");
+}
+
+const respaldo = {
+  aplicacion: "Balance One",
+  version: 1,
+  fecha: new Date().toISOString(),
+  datos: data,
+  cuentasBanco: cuentasBanco
+};
 
     const contenido = JSON.stringify(respaldo, null, 2);
 
@@ -1934,7 +1943,7 @@ function pagosPendientes(){
     const enlace = document.createElement("a");
 
     enlace.href = url;
-    enlace.download = "AM-Finance-Respaldo.json";
+    enlace.download = "Balance-One-Respaldo.json";
 
     document.body.appendChild(enlace);
     enlace.click();
