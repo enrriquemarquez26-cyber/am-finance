@@ -2997,7 +2997,8 @@ function modelosCredito(banco) {
       "Savor",
       "Venture Rewards",
       "Venture X"
-    ]
+        ],
+    "Apple": ["Apple Card"]
   };
 
   return catalogo[banco] || [];
@@ -3197,6 +3198,7 @@ aria-label="Abrir opciones de ${safe(t.nombre)}">
     "Discover",
     "Bank of America",
     "Wells Fargo",
+    "Apple",
     "Otro"
   ].map(banco => `
     <option value="${banco}"
