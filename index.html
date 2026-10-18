@@ -1661,11 +1661,15 @@ else if (banco.includes("capital one")) {
    <div class="smallamount red">${money(gastos+pagos)}</div>
   </div>
  </div>
- <div class="card">
-  <div class="label">Mis deudas pendientes</div>
-  <div class="smallamount">${money(autos+tarjetas)}</div>
-  <div class="note">Vehículos: ${money(autos)} · Tarjetas: ${money(tarjetas)}</div>
- </div>
+ ${autos + tarjetas > 0 ? `
+  <div class="card">
+    <div class="label">Mis deudas pendientes</div>
+    <div class="smallamount">${money(autos+tarjetas)}</div>
+    <div class="note">
+      Vehículos: ${money(autos)} · Tarjetas: ${money(tarjetas)}
+    </div>
+  </div>
+` : ""}
 
 <h2 style="display:none">Mis cuentas bancarias</h2>
 <button class="primary" onclick="abrirNuevaCuenta()">
