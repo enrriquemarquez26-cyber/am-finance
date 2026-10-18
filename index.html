@@ -1517,44 +1517,98 @@ function movimientos(){
  ].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
 
  el().innerHTML=`
- <h2>Movimientos</h2>
- <div class="card">
-  <form id="formMov">
-   <label class="label">Tipo</label>
-   <select name="tipo">
-    <option value="ingreso">Ingreso</option>
-    <option value="gasto">Gasto o compra en efectivo</option>
-   </select>
-   <label class="label">Descripción</label>
-   <input name="nombre" placeholder="Trabajo, supermercado..." maxlength="80" required>
-   <label class="label">Cantidad ($)</label>
-   <input name="monto" type="number" min="0.01" step="0.01" required>
-   <label class="label">Fecha</label>
-   <input name="fecha" type="date" value="${today()}" required>
-   <button class="primary">Guardar movimiento</button>
-  </form>
- </div>
- <div class="card">
-  <h3>Historial</h3>
-  ${items.map(m=>`
-   <div class="item">
-    <div class="row">
-     <div>
-      <strong>${safe(m.nombre)}</strong>
-      <div class="label">${safe(m.fecha)}</div>
-     </div>
-     <strong class="${m.tipo==="ingreso"?"green":"red"}">
-      ${m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
-     </strong>
-    </div>
-    <div class="actions">
-     <button class="secondary" onclick="editar('${m.origen}','${m.id}')">✏️ Editar</button>
-     <button class="secondary danger" onclick="eliminar('${m.origen}','${m.id}')">🗑 Eliminar</button>
-    </div>
-    ${openEdit===m.origen+":"+m.id?editor(m):""}
-   </div>
-  `).join("")||'<p class="note">Sin movimientos.</p>'}
- </div>`;
+<div class="mov-pantalla">
+  <h2>Movimientos</h2>
+
+  <div class="mov-formulario">
+    <form id="formMov">
+      <label for="movCuenta">Cuenta</label>
+      <select id="movCuenta" name="cuentaId" required>
+        <option value="">Selecciona una cuenta</option>
+      </select>
+      <p class="mov-ayuda" id="movSaldo">
+        Selecciona la cuenta que deseas utilizar.
+      </p>
+
+      <label>Tipo</label>
+      <input type="hidden" name="tipo" value="gasto">
+      <div class="mov-tipos">
+        <button type="button" data-tipo="ingreso">
+          Ingreso
+        </button>
+        <button type="button" data-tipo="gasto" class="activo">
+          Gasto
+        </button>
+      </div>
+
+      <label for="movNombre">Descripción</label>
+      <input id="movNombre" name="nombre"
+        placeholder="Supermercado"
+        maxlength="80" required>
+
+      <label for="movMonto">Cantidad ($)</label>
+      <input id="movMonto" name="monto"
+        type="number" min="0.01"
+        step="0.01" placeholder="0.00" required>
+
+      <label for="movFecha">Fecha</label>
+      <input id="movFecha" name="fecha"
+        type="date" value="${today()}" required>
+
+      <p class="mov-ayuda" id="movSaldoDespues"></p>
+
+      <button class="mov-guardar" type="submit">
+        Guardar movimiento
+      </button>
+
+      <p class="mov-ayuda">
+        El movimiento actualizará únicamente esta cuenta.
+      </p>
+    </form>
+  </div>
+
+  <h3 class="mov-titulo-historial">Historial</h3>
+
+  <div class="mov-historial">
+    ${items.map(m=>`
+      <div class="item">
+        <div class="row">
+          <div>
+            <strong>${safe(m.nombre)}</strong>
+            <div class="label">${safe(m.fecha)}</div>
+          </div>
+          <strong class="${m.tipo==="ingreso"?"green":"red"}">
+            ${m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
+          </strong>
+        </div>
+
+        <div class="actions">
+          <button class="secondary"
+            onclick="editar('${m.origen}','${m.id}')">
+            Editar
+          </button>
+          <button class="secondary danger"
+            onclick="eliminar('${m.origen}','${m.id}')">
+            Eliminar
+          </button>
+        </div>
+
+        ${openEdit===m.origen+":"+m.id?editor(m):""}
+      </div>
+    `).join("")||`
+      <div class="mov-vacio">
+        <svg width="25" height="30" viewBox="0 0 24 28"
+          fill="none" stroke="currentColor"
+          stroke-width="1.6" stroke-linecap="round"
+          stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 2h9l6 6v17H5z"/>
+          <path d="M14 2v7h6M9 14h7M9 18h7M9 22h5"/>
+        </svg>
+        <p>Sin movimientos</p>
+      </div>
+    `}
+  </div>
+</div>`;
 
  document.getElementById("formMov").onsubmit=e=>{
   e.preventDefault();
