@@ -3302,7 +3302,7 @@ function guardarDatosTarjeta(event, indice) {
   data.tarjetas[indice] = {
     ...tarjeta,
     banco: String(campos.get("banco") || "").trim(),
-    modelo,,
+    modelo,
     ultimos4,
     pagoMinimo: pagoMinimo === null ? null : round(pagoMinimo)
   };
