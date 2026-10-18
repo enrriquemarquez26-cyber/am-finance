@@ -1968,7 +1968,12 @@ function eliminar(origen,ident){
   group.splice(index,1);
   actualizarSaldosHistorial(cuenta);
  }else{
-  group.splice(index,1);
+  if (!guardarMovimientoBanco(item, null)) return;
+
+openEdit = null;
+alert("Registro eliminado.");
+render();
+return;
  }
 
  openEdit=null;
