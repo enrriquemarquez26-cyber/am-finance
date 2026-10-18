@@ -2935,6 +2935,27 @@ vencimiento:Number(f.get("vencimiento"))
   save();render();
  };
 }
+function imagenCredito(tarjeta) {
+  const normalizar = texto => String(texto || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+  const banco = normalizar(tarjeta.banco || tarjeta.nombre);
+  const modelo = normalizar(tarjeta.modelo);
+
+  const imagenes = {
+    americanexpress: {
+      bluecashpreferred:
+        "https://icm.aexp-static.com/acquisition/card-art/NUS000000264_480x304_straight_withname.png"
+    }
+  };
+
+  const claveBanco = banco === "amex"
+    ? "americanexpress"
+    : banco;
+
+  return imagenes[claveBanco]?.[modelo] || "";
+}
 function modelosCredito(banco) {
   const catalogo = {
     "American Express": [
