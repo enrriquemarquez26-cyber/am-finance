@@ -2939,9 +2939,20 @@ vencimiento:Number(f.get("vencimiento"))
 function tarjetas(){
  el().innerHTML=`
 <div class="tarjetas-pantalla">
-  <h2>Tarjetas de crédito</h2>
+  <div class="credito-cabecera">
+  <div>
+    <h2>Tarjetas de crédito</h2>
+    <p class="tarjetas-ayuda">Gestiona tus tarjetas y pagos</p>
+  </div>
 
-  <div class="tarjeta-formulario">
+  <button type="button" class="credito-agregar"
+    onclick="toggle('formularioNuevaTarjeta')">
+    + Agregar
+  </button>
+</div>
+
+<div class="tarjeta-formulario hidden"
+  id="formularioNuevaTarjeta">
     <form id="formTarjeta">
       <label for="tarjetaNombre">Nombre de la tarjeta</label>
       <input id="tarjetaNombre" name="nombre"
