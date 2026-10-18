@@ -1610,6 +1610,87 @@ function movimientos(){
   </div>
 </div>`;
 
+const formulario = document.getElementById("formMov");
+const selectorCuenta = document.getElementById("movCuenta");
+const campoTipo = formulario.elements.tipo;
+const campoMonto = document.getElementById("movMonto");
+const botonesTipo = formulario.querySelectorAll("[data-tipo]");
+
+let cuentasMov = [];
+
+try {
+  const guardadas = JSON.parse(
+    localStorage.getItem("amfinance-cuentas-banco") || "[]"
+  );
+
+  if (Array.isArray(guardadas)) {
+    cuentasMov = guardadas;
+  }
+} catch (error) {
+  alert("No se pudieron leer las cuentas bancarias.");
+}
+
+cuentasMov.forEach(cuenta => {
+  const opcion = document.createElement("option");
+  opcion.value = cuenta.id;
+  opcion.textContent = cuenta.nombre + " · " +
+    (cuenta.tipo === "ahorro" ? "Ahorros" : "Cheques");
+  selectorCuenta.appendChild(opcion);
+});
+
+function actualizarVistaMovimiento() {
+  const cuenta = cuentasMov.find(
+    c => String(c.id) === selectorCuenta.value
+  );
+
+  const saldoTexto = document.getElementById("movSaldo");
+  const despuesTexto = document.getElementById("movSaldoDespues");
+
+  if (!cuenta) {
+    saldoTexto.textContent = cuentasMov.length
+      ? "Selecciona la cuenta que deseas utilizar."
+      : "Primero agrega una cuenta desde Inicio.";
+    despuesTexto.textContent = "";
+    return;
+  }
+
+  const saldo = Number(cuenta.saldo) || 0;
+  const monto = round(campoMonto.value);
+
+  saldoTexto.textContent = "Saldo disponible: " + money(saldo);
+
+  if (!validAmount(monto)) {
+    despuesTexto.textContent = "";
+    return;
+  }
+
+  const gasto = campoTipo.value === "gasto";
+  const nuevoSaldo = round(saldo + (gasto ? -monto : monto));
+
+  despuesTexto.textContent =
+    "Saldo después del " + (gasto ? "gasto: " : "ingreso: ") +
+    money(nuevoSaldo);
+
+  despuesTexto.style.color = nuevoSaldo < 0 ? "#d44d56" : "";
+}
+
+botonesTipo.forEach(boton => {
+  boton.onclick = () => {
+    campoTipo.value = boton.dataset.tipo;
+
+    botonesTipo.forEach(b => {
+      b.classList.toggle("activo", b === boton);
+    });
+
+    actualizarVistaMovimiento();
+  };
+});
+
+selectorCuenta.onchange = actualizarVistaMovimiento;
+campoMonto.oninput = actualizarVistaMovimiento;
+actualizarVistaMovimiento();
+
+formulario.querySelector('[type="submit"]').disabled = true;
  document.getElementById("formMov").onsubmit=e=>{
   e.preventDefault();
   const f=new FormData(e.target);
