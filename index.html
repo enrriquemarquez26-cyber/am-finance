@@ -2795,57 +2795,120 @@ vencimiento:Number(f.get("vencimiento"))
 
 function tarjetas(){
  el().innerHTML=`
- <h2>Tarjetas de crédito</h2>
- <div class="card">
-  <form id="formTarjeta">
-   <input name="nombre" placeholder="Ej. Chase Visa" maxlength="80" required>
-   <input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo ($)" required>
-   <input name="limite" type="number" min="0" step="0.01" placeholder="Límite ($)" required>
-   <input name="apr" type="number" min="0" step="0.01" placeholder="APR (%)" required>
-   <label class="label">Día de vencimiento mensual</label>
-<select name="vencimiento" required>
-<option value="">Seleccionar día de pago</option>
-${Array.from({length:31},(_,i)=>`
-<option value="${i+1}">Día ${i+1}</option>
-`).join("")}
-</select>
-  <button class="primary">Añadir tarjeta</button>
-  </form>
- </div>
- ${data.tarjetas.map((t,i)=>`
-  <div class="card">
-   <strong>${safe(t.nombre)}</strong>
-   <div class="smallamount">${money(t.saldo)}</div>
-   <div class="label">Límite ${money(t.limite)} · APR ${safe(t.apr)}%</div>
-   <div class="label">
-📅 Vencimiento: ${t.vencimiento ? "Día "+t.vencimiento+" de cada mes" : "Sin configurar"}
-</div>
-  <button class="secondary" onclick="toggle('venceTarjeta${i}')">
-📅 Configurar vencimiento
-</button>
-<div class="payment hidden" id="venceTarjeta${i}">
-<form onsubmit="guardarVencimiento(event,'tarjeta',${i})">
-<label class="label">Día de vencimiento mensual</label>
-<select name="dia" required>
-${Array.from({length:31},(_,j)=>`
-<option value="${j+1}" ${Number(t.vencimiento)===j+1?"selected":""}>
-Día ${j+1}
-</option>
-`).join("")}
-</select>
-<button class="primary">Guardar vencimiento</button>
-</form>
-</div>
-  <button class="secondary" onclick="toggle('tarjeta${i}')">Registrar pago</button>
-   <div class="payment hidden" id="tarjeta${i}">
-    <form onsubmit="pagarTarjeta(event,${i})">
-     <label class="label">Cantidad pagada ($)</label>
-     <input name="monto" type="number" min="0.01" step="0.01" required>
-     <button class="primary">Confirmar pago</button>
+<div class="tarjetas-pantalla">
+  <h2>Tarjetas de crédito</h2>
+
+  <div class="tarjeta-formulario">
+    <form id="formTarjeta">
+      <label for="tarjetaNombre">Nombre de la tarjeta</label>
+      <input id="tarjetaNombre" name="nombre"
+        placeholder="Ej. American Express"
+        maxlength="80" required>
+
+      <label for="tarjetaSaldo">Deuda actual ($)</label>
+      <input id="tarjetaSaldo" name="saldo"
+        type="number" min="0" step="0.01"
+        placeholder="0.00" required>
+
+      <label for="tarjetaLimite">Límite de crédito ($)</label>
+      <input id="tarjetaLimite" name="limite"
+        type="number" min="0" step="0.01"
+        placeholder="0.00" required>
+
+      <label for="tarjetaApr">APR (%)</label>
+      <input id="tarjetaApr" name="apr"
+        type="number" min="0" step="0.01"
+        placeholder="Ej. 24.99" required>
+
+      <label for="tarjetaVencimiento">Día de vencimiento</label>
+      <select id="tarjetaVencimiento"
+        name="vencimiento" required>
+        <option value="">Seleccionar día</option>
+        ${Array.from({length:31},(_,i)=>`
+          <option value="${i+1}">Día ${i+1}</option>
+        `).join("")}
+      </select>
+
+      <button class="primary" type="submit">
+        Añadir tarjeta
+      </button>
+
+      <p class="tarjetas-ayuda">
+        La deuda se mantiene separada de tus cuentas bancarias.
+      </p>
     </form>
-   </div>
   </div>
- `).join("")}`;
+
+  <h3 class="tarjetas-subtitulo">Mis tarjetas</h3>
+
+  ${data.tarjetas.map((t,i)=>`
+    <div class="tarjeta-detalle">
+      <strong>${safe(t.nombre)}</strong>
+      <div class="smallamount">${money(t.saldo)}</div>
+
+      <p class="tarjetas-ayuda">
+        Límite: ${money(t.limite)} · APR: ${safe(t.apr)}%
+      </p>
+
+      <p class="tarjetas-ayuda">
+        Vencimiento: ${
+          t.vencimiento
+            ? "Día "+safe(t.vencimiento)+" de cada mes"
+            : "Sin configurar"
+        }
+      </p>
+
+      <button type="button" class="secondary"
+        onclick="toggle('venceTarjeta${i}')">
+        Configurar vencimiento
+      </button>
+
+      <div class="payment hidden" id="venceTarjeta${i}">
+        <form onsubmit="guardarVencimiento(event,'tarjeta',${i})">
+          <label class="label">Día de vencimiento mensual</label>
+
+          <select name="dia" required>
+            ${Array.from({length:31},(_,j)=>`
+              <option value="${j+1}"
+                ${Number(t.vencimiento)===j+1?"selected":""}>
+                Día ${j+1}
+              </option>
+            `).join("")}
+          </select>
+
+          <button class="primary">Guardar vencimiento</button>
+        </form>
+      </div>
+
+      <button type="button" class="secondary"
+        onclick="toggle('tarjeta${i}')">
+        Registrar pago
+      </button>
+
+      <div class="payment hidden" id="tarjeta${i}">
+        <form onsubmit="pagarTarjeta(event,${i})">
+          <label class="label">Cantidad pagada ($)</label>
+          <input name="monto" type="number"
+            min="0.01" step="0.01"
+            placeholder="0.00" required>
+          <button class="primary">Confirmar pago</button>
+        </form>
+      </div>
+    </div>
+  `).join("")}
+
+  ${data.tarjetas.length === 0 ? `
+    <div class="tarjetas-vacio">
+      <svg width="30" height="30" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor"
+        stroke-width="1.6" aria-hidden="true">
+        <rect x="2" y="5" width="20" height="14" rx="3"/>
+        <path d="M2 10h20M6 15h4"/>
+      </svg>
+      <p>Aún no tienes tarjetas registradas.</p>
+    </div>
+  ` : ""}
+</div>`;
 
  document.getElementById("formTarjeta").onsubmit=e=>{
   e.preventDefault();
