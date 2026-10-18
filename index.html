@@ -1892,10 +1892,20 @@ function guardarEdicion(e,origen,ident){
  if(origen==="movimiento"){
   const nombre=String(f.get("nombre")).trim();
   if(!nombre)return;
-  item.nombre=nombre;
-  item.tipo=f.get("tipo");
-  item.monto=monto;
-  item.fecha=fecha;
+const corregido = {
+  ...item,
+  nombre,
+  tipo: f.get("tipo"),
+  monto,
+  fecha
+};
+
+if (!guardarMovimientoBanco(item, corregido)) return;
+
+openEdit = null;
+alert("Cambios guardados correctamente.");
+render();
+return;
  }else{
   const cuenta=cuentaDePago(item);
   if(!cuenta){
