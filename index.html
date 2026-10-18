@@ -3138,7 +3138,8 @@ function tarjetas(){
     style="padding:0;background:transparent;margin:0"
     onsubmit="guardarDatosTarjeta(event,${i})">
 <label for="bancoCredito${i}">Banco</label>
-<select id="bancoCredito${i}" name="banco">
+<select id="bancoCredito${i}" name="banco"
+  onchange="actualizarModelosCredito(${i})">
   <option value="">Seleccionar banco</option>
 
   ${[
@@ -3158,10 +3159,17 @@ function tarjetas(){
   `).join("")}
 </select>
 
-    <label for="modeloCredito${i}">Modelo de tarjeta</label>
     <input id="modeloCredito${i}" name="modelo"
-      placeholder="Ej. Blue Cash Preferred"
-      maxlength="60"
+  list="modelosCredito${i}"
+  placeholder="Selecciona o escribe el modelo"
+  maxlength="60"
+  value="${safe(t.modelo || "")}">
+
+<datalist id="modelosCredito${i}">
+  ${modelosCredito(t.banco).map(modelo => `
+    <option value="${safe(modelo)}"></option>
+  `).join("")}
+</datalist>
       value="${safe(t.modelo || "")}">
 
     <label for="digitosCredito${i}">Últimos cuatro dígitos</label>
