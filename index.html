@@ -2193,7 +2193,7 @@ function ajustes(){
  <label for="tamanoTexto">Tamaño del texto</label>
 <select id="tamanoTexto" onchange="cambiarTamanoTexto(this.value)">
   <option value="pequeno">Pequeña</option>
-  <option value="normal" selected>Normal</option>
+  <option value="normal">Normal</option>
   <option value="grande">Grande</option>
 </select>
        </div>
@@ -2224,6 +2224,10 @@ function ajustes(){
     </button>
   `;
 aplicarTema();
+const selectorTamano = document.getElementById("tamanoTexto");
+if (selectorTamano) {
+  selectorTamano.value = localStorage.getItem("balanceone-tamano-texto") || "normal";
+}=
 }
 function cambiarTema(tema){
   if(!["auto","claro","oscuro"].includes(tema)) return;
