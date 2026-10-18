@@ -2306,11 +2306,9 @@ function aplicarTema(){
 window.matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", aplicarTema);
 aplicarTema();
-document.body.style.fontSize = {
-  pequeno: "14px",
-  normal: "16px",
-  grande: "18px"
-}[localStorage.getItem("balanceone-tamano-texto")] || "16px";
+cambiarTamanoTexto(
+  localStorage.getItem("balanceone-tamano-texto") || "normal"
+);
 go("inicio");
 
 function abrirNuevaCuenta() {
