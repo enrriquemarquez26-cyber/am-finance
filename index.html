@@ -1348,6 +1348,149 @@ html.tema-oscuro .tarjetas-pantalla select {
   border-color: #49515e;
   color-scheme: dark;
 }
+/* Lista visual de tarjetas */
+.credito-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.credito-cabecera h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.credito-agregar {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: #fff0e4;
+  color: #ed710e;
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 650;
+}
+
+.credito-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: stretch;
+  background: #fff;
+  border-radius: 26px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.credito-visual {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 140px;
+  padding: 15px 12px;
+  border-radius: 24px;
+  color: white;
+  background: linear-gradient(145deg, #24364d, #101a29);
+}
+
+.credito-marca {
+  font-size: .85rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.credito-modelo {
+  font-size: .7rem;
+  opacity: .9;
+  overflow-wrap: anywhere;
+}
+
+.credito-final {
+  font-size: .7rem;
+  letter-spacing: 1px;
+}
+
+.credito-datos {
+  min-width: 0;
+  padding: 12px 10px;
+}
+
+.credito-etiqueta {
+  color: #84909d;
+  font-size: .68rem;
+}
+
+.credito-deuda {
+  margin: 3px 0 8px;
+  font-size: 1rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.credito-uso {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.credito-barra {
+  flex: 1;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.credito-barra span {
+  display: block;
+  height: 100%;
+  background: #ff9800;
+  border-radius: inherit;
+}
+
+.credito-porcentaje,
+.credito-texto {
+  font-size: .65rem;
+}
+
+.credito-texto {
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.credito-resumen {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  background: #fff;
+  border-radius: 26px;
+  padding: 16px;
+}
+
+.credito-resumen strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+html.tema-oscuro .credito-fila,
+html.tema-oscuro .credito-resumen {
+  background: #20242b;
+}
+
+html.tema-oscuro .credito-barra {
+  background: #3a404a;
+}
+
+html.tema-oscuro .credito-agregar {
+  background: #493222;
+  color: #ff9a45;
+}
 
 </style>
 </head>
