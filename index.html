@@ -2944,11 +2944,33 @@ function imagenCredito(tarjeta) {
   const modelo = normalizar(tarjeta.modelo);
 
   const imagenes = {
-    americanexpress: {
-      bluecashpreferred:
-        "https://icm.aexp-static.com/acquisition/card-art/NUS000000264_480x304_straight_withname.png"
-    }
-  };
+  americanexpress: {
+    bluecashpreferred:
+      "https://icm.aexp-static.com/acquisition/card-art/NUS000000264_480x304_straight_withname.png"
+  },
+
+  chase: {
+    sapphirepreferred:
+      "https://creditcards.chase.com/content/dam/jpmc-marketplace/card-art/sapphire-preferredcard2026.png",
+
+    freedomunlimited:
+      "https://creditcards.chase.com/content/dam/jpmc-marketplace/card-art/freedom_unlimited_card_alt.png"
+  },
+
+  capitalone: {
+    quicksilver:
+      "https://ecm.capitalone.com/WCM/card/products/quicksilver_cardart.png",
+
+    savor:
+      "https://ecm.capitalone.com/WCM/card/products/new-savor-card-art/mobile.png",
+
+    venturerewards:
+      "https://ecm.capitalone.com/WCM/card/products/venture_cardart_prim_323x203-1/mobile.png",
+
+    venturex:
+      "https://ecm.capitalone.com/WCM/card/products/venture-x-card-art/mobile.png"
+  }
+};
 
   const claveBanco = banco === "amex"
     ? "americanexpress"
