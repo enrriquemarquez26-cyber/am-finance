@@ -1796,6 +1796,94 @@ else if (banco.includes("capital one")) {
     </p>
   ` : ""}
 </div>
+<div class="card"
+  style="padding:0;border:0;border-radius:30px;overflow:hidden;margin-top:16px">
+
+  <div class="cuentas-cabecera">
+    <h2>Tarjetas de crédito</h2>
+
+    <button type="button" class="cuentas-agregar"
+      onclick="go('tarjetas')">
+      Ver todas ›
+    </button>
+  </div>
+
+  ${data.tarjetas.map(t => {
+    const saldo = Number(t.saldo) || 0;
+    const limite = Number(t.limite) || 0;
+    const uso = limite > 0 ? saldo / limite * 100 : 0;
+    const ancho = Math.min(100, Math.max(0, uso));
+    const color = uso >= 70 ? "#e56b73"
+      : uso >= 30 ? "#e5aa43" : "#42b883";
+
+    const nombre = String(t.nombre || "").toLowerCase();
+    const bancos = [
+      ["chase", "chase.com"],
+      ["amex", "americanexpress.com"],
+      ["american express", "americanexpress.com"],
+      ["capital one", "capitalone.com"],
+      ["citi", "citi.com"],
+      ["discover", "discover.com"],
+      ["bank of america", "bankofamerica.com"],
+      ["wells fargo", "wellsfargo.com"],
+      ["apple", "apple.com"]
+    ];
+
+    const banco = bancos.find(
+      ([marca]) => nombre.includes(marca)
+    );
+
+    return `
+      <button type="button" class="banco-card"
+        onclick="go('tarjetas')">
+
+        <div class="banco-fila">
+          ${banco ? `
+            <img class="banco-logo" alt=""
+              src="https://www.google.com/s2/favicons?domain=${banco[1]}&sz=128"
+              onerror="this.style.visibility='hidden'">
+          ` : `
+            <span class="banco-logo"
+              style="display:grid;place-items:center;color:#84909d">
+              <svg width="22" height="22" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor"
+                stroke-width="1.7">
+                <rect x="2" y="5" width="20" height="14" rx="3"/>
+                <path d="M2 10h20M6 15h4"/>
+              </svg>
+            </span>
+          `}
+
+          <div class="banco-info">
+            <span class="banco-nombre">${safe(t.nombre)}</span>
+            <span class="banco-tipo">Tarjeta de crédito</span>
+          </div>
+
+          <span class="banco-saldo">${money(saldo)}</span>
+        </div>
+
+        <div class="banco-meta">
+          <div class="banco-progreso">
+            <div style="width:${ancho}%;background:${color}"></div>
+          </div>
+
+          <div class="banco-meta-texto">
+            <span>Límite: ${money(limite)}</span>
+            <span>${limite > 0
+              ? uso.toFixed(0) + "% utilizado"
+              : "Sin límite configurado"}</span>
+          </div>
+        </div>
+      </button>
+    `;
+  }).join("")}
+
+  ${data.tarjetas.length === 0 ? `
+    <p class="note" style="padding:0 16px 16px;margin:0">
+      Agrega tu primera tarjeta desde Ver todas.
+    </p>
+  ` : ""}
+</div>
 
 `;
 }
