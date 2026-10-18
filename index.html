@@ -3066,32 +3066,35 @@ function tarjetas(){
   <button type="button" class="credito-fila"
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
     onclick="toggle('detalleCredito${i}')"
-    aria-label="Abrir opciones de ${safe(t.nombre)}">
+    ${imagenCredito(t) ? `
+  <div class="credito-visual"
+    style="padding:0;background:transparent;justify-content:center">
 
-    <div class="credito-visual" style="background:${
-      /american express|amex/i.test(t.nombre)
-        ? "linear-gradient(145deg,#e4bf60,#aa7c25)"
-        : /capital one/i.test(t.nombre)
-        ? "linear-gradient(145deg,#626773,#292d36)"
-        : /chase/i.test(t.nombre)
-        ? "linear-gradient(145deg,#0068d9,#071c45)"
-        : /citi/i.test(t.nombre)
-        ? "linear-gradient(145deg,#405466,#172633)"
-        : "linear-gradient(145deg,#374a65,#101a29)"
-    };color:${
-      /american express|amex/i.test(t.nombre)
-        ? "#241d0f" : "#ffffff"
-    }">
-      <span class="credito-marca">${safe(t.nombre)}</span>
-      <span class="credito-modelo">
-        ${safe(t.modelo || "Tarjeta de crédito")}
-      </span>
-      <span class="credito-final">${
-        /^\d{4}$/.test(String(t.ultimos4 || ""))
-          ? "•••• " + safe(t.ultimos4)
-          : ""
-      }</span>
-    </div>
+    <img src="${safe(imagenCredito(t))}"
+      alt="${safe(t.banco || t.nombre)} ${safe(t.modelo || "")}"
+      style="display:block;width:100%;height:auto;border-radius:18px"
+      onerror="this.style.display='none';this.nextElementSibling.hidden=false">
+
+    <span hidden
+      style="padding:16px;color:#84909d;font-size:.75rem">
+      No se pudo cargar la imagen de la tarjeta.
+    </span>
+  </div>
+` : `
+  <div class="credito-visual">
+    <span class="credito-marca">${safe(t.nombre)}</span>
+
+    <span class="credito-modelo">
+      ${safe(t.modelo || "Tarjeta de crédito")}
+    </span>
+
+    <span class="credito-final">${
+      /^\d{4}$/.test(String(t.ultimos4 || ""))
+        ? "•••• " + safe(t.ultimos4)
+        : ""
+    }</span>
+  </div>
+`}
 
     <div class="credito-datos">
       <div class="credito-etiqueta">Deuda actual</div>
