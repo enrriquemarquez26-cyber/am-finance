@@ -3132,6 +3132,31 @@ function tarjetas(){
     </div>
   ` : ""}
 </div>`;
+${data.tarjetas.length > 0 ? `
+  <div class="credito-resumen">
+    <div>
+      <span class="credito-etiqueta">Deuda total</span>
+      <strong>${
+        money(data.tarjetas.reduce(
+          (total, tarjeta) =>
+            total + (Number(tarjeta.saldo) || 0),
+          0
+        ))
+      }</strong>
+    </div>
+
+    <div style="border-left:1px solid #84909d33;padding-left:12px">
+      <span class="credito-etiqueta">Límite total</span>
+      <strong>${
+        money(data.tarjetas.reduce(
+          (total, tarjeta) =>
+            total + (Number(tarjeta.limite) || 0),
+          0
+        ))
+      }</strong>
+    </div>
+  </div>
+` : ""}
 
  document.getElementById("formTarjeta").onsubmit=e=>{
   e.preventDefault();
