@@ -51,12 +51,8 @@ nav {
   z-index: 100;
   backdrop-filter: blur(40px);
 -webkit-backdrop-filter: blur(40px);
-  transform: translateY(150%);
-  transition: transform 0.3s ease;
-}
-
-nav.navVisible {
   transform: translateY(0);
+  transition: transform 0.3s ease;
 }
 
 nav button {
@@ -1120,16 +1116,6 @@ if(changed)save();
 let page="inicio";
 let openEdit=null;
 
-window.addEventListener("scroll", function() {
-  const barra = document.querySelector("nav");
-  if (!barra) return;
-
-if (window.scrollY > 120) {
-  barra.classList.add("navVisible");
-}
-
-}, { passive: true });
-
 function go(p){
  page=p;
  openEdit=null;
@@ -1138,7 +1124,6 @@ function go(p){
  );
  render();
  window.scrollTo(0,0);
- document.querySelector("nav").classList.remove("navVisible");
 }
 
 function render(){
