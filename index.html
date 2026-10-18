@@ -3080,6 +3080,40 @@ function tarjetas(){
   <div class="tarjeta-detalle hidden" id="detalleCredito${i}">
     <strong>${safe(t.nombre)}</strong>
     <p class="tarjetas-ayuda">APR: ${safe(t.apr)}%</p>
+<button type="button" class="secondary"
+  onclick="toggle('datosCredito${i}')">
+  Configurar datos de la tarjeta
+</button>
+
+<div class="payment hidden" id="datosCredito${i}">
+  <form class="tarjeta-formulario"
+    style="padding:0;background:transparent;margin:0"
+    onsubmit="guardarDatosTarjeta(event,${i})">
+
+    <label for="modeloCredito${i}">Modelo de tarjeta</label>
+    <input id="modeloCredito${i}" name="modelo"
+      placeholder="Ej. Blue Cash Preferred"
+      maxlength="60"
+      value="${safe(t.modelo || "")}">
+
+    <label for="digitosCredito${i}">Últimos cuatro dígitos</label>
+    <input id="digitosCredito${i}" name="ultimos4"
+      type="text" inputmode="numeric"
+      pattern="[0-9]{4}" maxlength="4"
+      placeholder="Ej. 1234"
+      value="${safe(t.ultimos4 || "")}">
+
+    <label for="minimoCredito${i}">Pago mínimo ($)</label>
+    <input id="minimoCredito${i}" name="pagoMinimo"
+      type="number" min="0" step="0.01"
+      placeholder="0.00"
+      value="${safe(t.pagoMinimo ?? "")}">
+
+    <button class="primary" type="submit">
+      Guardar datos
+    </button>
+  </form>
+</div>
 
     <button type="button" class="secondary"
       onclick="toggle('venceTarjeta${i}')">
