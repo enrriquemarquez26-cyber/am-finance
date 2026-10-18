@@ -2935,6 +2935,54 @@ vencimiento:Number(f.get("vencimiento"))
   save();render();
  };
 }
+function modelosCredito(banco) {
+  const catalogo = {
+    "American Express": [
+      "Blue Cash Preferred",
+      "Blue Cash Everyday",
+      "Gold",
+      "Platinum"
+    ],
+    "Chase": [
+      "Sapphire Preferred",
+      "Sapphire Reserve",
+      "Freedom Unlimited",
+      "Freedom Flex"
+    ],
+    "Capital One": [
+      "Quicksilver",
+      "Savor",
+      "Venture Rewards",
+      "Venture X"
+    ]
+  };
+
+  return catalogo[banco] || [];
+}
+
+function actualizarModelosCredito(indice) {
+  const banco = document.getElementById(
+    "bancoCredito" + indice
+  );
+  const modelo = document.getElementById(
+    "modeloCredito" + indice
+  );
+  const lista = document.getElementById(
+    "modelosCredito" + indice
+  );
+
+  if (!banco || !modelo || !lista) return;
+
+  lista.replaceChildren();
+
+  modelosCredito(banco.value).forEach(nombre => {
+    const opcion = document.createElement("option");
+    opcion.value = nombre;
+    lista.appendChild(opcion);
+  });
+
+  modelo.value = "";
+}
 
 function tarjetas(){
  el().innerHTML=`
