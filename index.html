@@ -3563,26 +3563,49 @@ function guardarPagoTarjetaBanco(anterior, nuevo) {
   }
 }
 
-function pagarTarjeta(e,i){
- e.preventDefault();
- const t=data.tarjetas[i];
- const monto=round(new FormData(e.target).get("monto"));
+function pagarTarjeta(e, i) {
+  e.preventDefault();
 
- if(!validAmount(monto))return;
- if(monto>Number(t.saldo)){
-  alert("El pago supera el saldo de la tarjeta.");
-  return;
- }
- if(!confirm("¿Registrar pago de "+money(monto)+"?"))return;
+  const tarjeta = data.tarjetas[i];
+  if (!tarjeta) return;
 
- t.saldo=round(Number(t.saldo)-monto);
- data.pagos.push({
-  id:id(),cuentaId:t.id,nombre:t.nombre,
-  monto,tipo:"tarjeta",fecha:today()
- });
- save();
- alert("Pago registrado. Nuevo saldo: "+money(t.saldo));
- render();
+  const campos = new FormData(e.target);
+  const monto = round(campos.get("monto"));
+  const bancoId = String(campos.get("bancoId") || "");
+
+  if (!validAmount(monto)) {
+    alert("Introduce una cantidad válida.");
+    return;
+  }
+
+  if (!bancoId) {
+    alert("Selecciona la cuenta de origen.");
+    return;
+  }
+
+  if (monto > Number(tarjeta.saldo)) {
+    alert("El pago supera la deuda de la tarjeta.");
+    return;
+  }
+
+  if (!confirm("¿Registrar pago de " + money(monto) + "?")) {
+    return;
+  }
+
+  const pago = {
+    id: id(),
+    cuentaId: tarjeta.id,
+    bancoId,
+    nombre: tarjeta.nombre,
+    monto,
+    tipo: "tarjeta",
+    fecha: today()
+  };
+
+  if (!guardarPagoTarjetaBanco(null, pago)) return;
+
+  render();
+  alert("Pago registrado y descontado de la cuenta elegida.");
 }
 
 function presupuestos(){
