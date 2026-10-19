@@ -2658,6 +2658,7 @@ function vehiculos(){
 </div>
 
 <div class="card vehiculo-panel">
+  <div class="card hidden vehiculo-panel" id="agregarVehiculo">
   <form id="formAuto">
    <input name="nombre" placeholder="Nombre del vehículo" maxlength="80" required>
    <input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo pendiente ($)" required>
@@ -2678,6 +2679,7 @@ ${Array.from({length:31},(_,i)=>`
    p.tipo==="vehiculo"&&cuentaDePago(p)===v
   ).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
   return `
+  <div class="card vehiculo-panel">
   <div class="card">
   <h3 style="font-size:1.1rem;margin:0 0 16px">
   ${safe(v.nombre)}
