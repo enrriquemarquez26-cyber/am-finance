@@ -2679,7 +2679,55 @@ ${Array.from({length:31},(_,i)=>`
   ).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
   return `
   <div class="card vehiculo-panel">
+  ${v.foto ? `
+  <img src="${safe(v.foto)}"
+       alt="${safe(v.nombre)}"
+       style="display:block;width:100%;height:170px;object-fit:contain;border-radius:24px;margin-bottom:14px">
+` : ""}
   <h3 style="font-size:1.1rem;margin:0 0 16px">
+  <div class="label">
+  ${safe(v.modelo || "")}
+  ${v.anio ? " · " + safe(v.anio) : ""}
+</div>
+
+${v.banco ? `
+  <p class="label">Préstamo: ${safe(v.banco)}</p>
+` : ""}
+
+<button class="secondary"
+        onclick="toggle('datosAuto${i}')">
+  Datos del vehículo
+</button>
+
+<div class="payment hidden" id="datosAuto${i}">
+  <form onsubmit="guardarDatosAuto(event,${i})">
+    <label class="label">Nombre del vehículo</label>
+    <input name="nombre" maxlength="80"
+           value="${safe(v.nombre)}" required>
+
+    <label class="label">Modelo y versión</label>
+    <input name="modelo" maxlength="80"
+           placeholder="Ej. Q8 Prestige Sport"
+           value="${safe(v.modelo || "")}">
+
+    <label class="label">Año</label>
+    <input name="anio" type="number" min="1900" max="2100"
+           placeholder="Ej. 2019"
+           value="${safe(v.anio || "")}">
+
+    <label class="label">Banco del préstamo</label>
+    <input name="banco" maxlength="80"
+           placeholder="Ej. Ally Auto"
+           value="${safe(v.banco || "")}">
+
+    <label class="label">Enlace de la foto (opcional)</label>
+    <input name="foto" type="url"
+           placeholder="https://..."
+           value="${safe(v.foto || "")}">
+
+    <button class="primary">Guardar datos</button>
+  </form>
+</div>
   ${safe(v.nombre)}
 </h3>
 
