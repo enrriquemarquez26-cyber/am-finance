@@ -2704,52 +2704,7 @@ ${v.banco ? `
   <p class="label">Préstamo: ${safe(v.banco)}</p>
 ` : ""}
 
-<button class="secondary"
-        onclick="toggle('datosAuto${i}')">
-  Datos del vehículo
-</button>
 
-<div class="payment hidden" id="datosAuto${i}">
-  <form onsubmit="guardarDatosAuto(event,${i})">
-    <label class="label">Nombre del vehículo</label>
-    <input name="nombre" maxlength="80"
-           value="${safe(v.nombre)}" required>
-
-    <label class="label">Modelo y versión</label>
-    <input name="modelo" maxlength="80"
-           placeholder="Ej. Q8 Prestige Sport"
-           value="${safe(v.modelo || "")}">
-
-    <label class="label">Año</label>
-    <input name="anio" type="number" min="1900" max="2100"
-           placeholder="Ej. 2019"
-           value="${safe(v.anio || "")}">
-<label class="label">Monto inicial del préstamo ($)</label>
-<input name="montoInicial" type="number"
-       min="0.01" step="0.01"
-       placeholder="Ej. 45000"
-       value="${safe(v.montoInicial || "")}">
-
-    <label class="label">Banco del préstamo</label>
-    <input name="banco" maxlength="80"
-           placeholder="Ej. Ally Auto"
-           value="${safe(v.banco || "")}">
-
-    <label class="label">Enlace de la foto (opcional)</label>
-    <input name="foto" type="url"
-           placeholder="https://..."
-           value="${safe(v.foto || "")}">
-
-<label class="label">Foto de la galería (opcional)</label>
-<input name="fotoArchivo" type="file" accept="image/*">
-
-<p class="note">
-  Si eliges una foto, se usará en lugar del enlace.
-</p>
-
-    <button class="primary">Guardar datos</button>
-  </form>
-</div>
 <div style="padding:16px;border-radius:26px;background:rgba(130,140,155,.08);margin-bottom:12px">
   <div class="label">Saldo pendiente</div>
   <div class="smallamount">${money(v.saldo)}</div>
@@ -2825,6 +2780,52 @@ Día ${j+1}
      <button class="primary">Confirmar pago</button>
     </form>
     <p class="note">Interés estimado: saldo × APR ÷ 12. El banco puede calcularlo de otra manera.</p>
+  <button style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:16px 4px;margin-top:14px;border:0;border-top:1px solid rgba(130,140,155,.2);border-radius:0;background:transparent;color:inherit;font:inherit;font-size:.85rem;text-align:left"
+        onclick="toggle('datosAuto${i}')">
+  <span>Datos del vehículo</span><span>›</span>
+</button>
+
+<div class="payment hidden" id="datosAuto${i}">
+  <form onsubmit="guardarDatosAuto(event,${i})">
+    <label class="label">Nombre del vehículo</label>
+    <input name="nombre" maxlength="80"
+           value="${safe(v.nombre)}" required>
+
+    <label class="label">Modelo y versión</label>
+    <input name="modelo" maxlength="80"
+           placeholder="Ej. Q8 Prestige Sport"
+           value="${safe(v.modelo || "")}">
+
+    <label class="label">Año</label>
+    <input name="anio" type="number" min="1900" max="2100"
+           placeholder="Ej. 2019"
+           value="${safe(v.anio || "")}">
+<label class="label">Monto inicial del préstamo ($)</label>
+<input name="montoInicial" type="number"
+       min="0.01" step="0.01"
+       placeholder="Ej. 45000"
+       value="${safe(v.montoInicial || "")}">
+
+    <label class="label">Banco del préstamo</label>
+    <input name="banco" maxlength="80"
+           placeholder="Ej. Ally Auto"
+           value="${safe(v.banco || "")}">
+
+    <label class="label">Enlace de la foto (opcional)</label>
+    <input name="foto" type="url"
+           placeholder="https://..."
+           value="${safe(v.foto || "")}">
+
+<label class="label">Foto de la galería (opcional)</label>
+<input name="fotoArchivo" type="file" accept="image/*">
+
+<p class="note">
+  Si eliges una foto, se usará en lugar del enlace.
+</p>
+
+    <button class="primary">Guardar datos</button>
+  </form>
+</div>
    </div>
   </div>`;
  }).join("")}`;
