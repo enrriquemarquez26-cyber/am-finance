@@ -573,10 +573,16 @@ html.tema-oscuro .banco-progreso {
 }
 
 .amCalcTabs button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
-  padding: 15px 3px;
-  border-radius: 22px;
-  font-size: 0.75rem;
+  min-height: 68px;
+  padding: 9px 4px;
+  gap: 5px;
+  border-radius: 999px;
+  font-size: 12px;
   background: #292d36;
   color: white;
   border: 1px solid #454b57;
@@ -691,13 +697,6 @@ html.tema-oscuro .banco-progreso {
 /* Símbolos dentro de los campos de la calculadora */
 
 /* Tamaños refinados de la calculadora */
-.amCalcTabs button {
-  min-height: 68px;
-  border-radius: 999px;
-  padding: 9px 4px;
-  gap: 5px;
-  font-size: 12px;
-}
 
 .amCalcTabs button svg {
   width: 19px;
