@@ -406,16 +406,30 @@ html.tema-oscuro .banco-progreso {
 }
 
 #amMenu button {
-  border: 0;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 18px 10px;
+  min-height: 95px;
+  border-radius: 999px;
+  text-align: center;
+  white-space: normal;
   color: #17212e;
   font-size: 14px;
+  background: rgba(255,255,255,.42);
+  border: 1px solid rgba(255,255,255,.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 4px 16px rgba(0,0,0,.04);
 }
+
 #amMenu .amPagina {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 12px;
   row-gap: 10px;
 }
+
 #amMenu {
   height: 430px;
   box-sizing: border-box;
@@ -427,6 +441,7 @@ html.tema-oscuro .banco-progreso {
   align-content: start;
   box-sizing: border-box;
 }
+
 #amIndicadores {
   display: flex;
   justify-content: center;
@@ -491,23 +506,6 @@ html.tema-oscuro .banco-progreso {
   grid-column: 1 / -1;
 }
 
-#amMenu button {
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-  padding: 18px 10px;
-  min-height: 95px;
-  border-radius: 999px;
-  text-align: center;
-  white-space: normal;
-}
-#amMenu button {
-  background: rgba(255,255,255,0.42);
-  border: 1px solid rgba(255,255,255,0.55);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-}
 #amMenu.abierto {
   transform: translateY(0);
   visibility: visible;
