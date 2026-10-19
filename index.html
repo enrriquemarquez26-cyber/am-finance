@@ -2617,8 +2617,20 @@ function actualizarSaldosHistorial(cuenta){
 
 function vehiculos(){
  el().innerHTML=`
- <h2>Préstamos de vehículos</h2>
- <div class="card">
+<div class="row" style="margin-bottom:20px">
+  <div>
+    <h2 style="margin:0 0 6px">Vehículos</h2>
+    <div class="label">Tu auto y sus pagos</div>
+  </div>
+
+  <button class="cuentas-agregar"
+          style="background:#fff0e4;border-radius:999px;padding:12px 16px"
+          onclick="toggle('agregarVehiculo')">
+    + Agregar
+  </button>
+</div>
+
+<div class="card hidden" id="agregarVehiculo">
   <form id="formAuto">
    <input name="nombre" placeholder="Nombre del vehículo" maxlength="80" required>
    <input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo pendiente ($)" required>
@@ -2640,9 +2652,30 @@ ${Array.from({length:31},(_,i)=>`
   ).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
   return `
   <div class="card">
-   <strong>${safe(v.nombre)}</strong>
-   <div class="smallamount">${money(v.saldo)}</div>
-   <div class="label">APR ${safe(v.apr)}% · Pago mensual ${money(v.pago)}</div>
+  <h3 style="font-size:1.1rem;margin:0 0 16px">
+  ${safe(v.nombre)}
+</h3>
+
+<div style="padding:16px;border-radius:26px;background:rgba(130,140,155,.08);margin-bottom:12px">
+  <div class="label">Saldo pendiente</div>
+  <div class="smallamount">${money(v.saldo)}</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+  <div style="padding:16px;border-radius:26px;background:rgba(130,140,155,.08)">
+    <div class="label">Pago mensual</div>
+    <strong style="display:block;margin-top:7px;font-size:1.1rem">
+      ${money(v.pago)}
+    </strong>
+  </div>
+
+  <div style="padding:16px;border-radius:26px;background:rgba(130,140,155,.08)">
+    <div class="label">Tasa APR</div>
+    <strong style="display:block;margin-top:7px;font-size:1.1rem">
+      ${safe(v.apr)}%
+    </strong>
+  </div>
+</div>
    <div class="label">
 📅 Vencimiento: ${v.vencimiento ? "Día "+v.vencimiento+" de cada mes" : "Sin configurar"}
 </div>
