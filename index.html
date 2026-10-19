@@ -2819,15 +2819,18 @@ vencimiento:Number(f.get("vencimiento"))
   save();render();
  };
 }
-function guardarDatosAuto(event, i) {
+async function guardarDatosAuto(event, i) {
   event.preventDefault();
 
   const auto = data.vehiculos[i];
   if (!auto) return;
 
-  const campos = new FormData(event.target);
+  const formulario = event.target;
+  const boton = formulario.querySelector('button[type="submit"], button.primary');
+  const campos = new FormData(formulario);
   const nombre = String(campos.get("nombre") || "").trim();
   const foto = String(campos.get("foto") || "").trim();
+  const archivo = campos.get("fotoArchivo");
 
   if (!nombre) {
     alert("Escribe el nombre del vehículo.");
@@ -2836,23 +2839,79 @@ function guardarDatosAuto(event, i) {
 
   if (foto) {
     try {
-      if (new URL(foto).protocol !== "https:") {
-        throw new Error();
-      }
+      if (new URL(foto).protocol !== "https:") throw new Error();
     } catch {
-      alert("La foto debe tener un enlace que empiece con https://");
+      alert("El enlace debe empezar con https://");
       return;
     }
   }
 
-  auto.nombre = nombre;
-  auto.modelo = String(campos.get("modelo") || "").trim();
-  auto.anio = String(campos.get("anio") || "").trim();
-  auto.banco = String(campos.get("banco") || "").trim();
-  auto.foto = foto;
+  if (boton) boton.disabled = true;
 
-  save();
-  render();
+  try {
+    let fotoGaleria = auto.fotoGaleria || "";
+
+    if (archivo && archivo.size > 0) {
+      const url = URL.createObjectURL(archivo);
+
+      try {
+        const imagen = new Image();
+
+        await new Promise((resolve, reject) => {
+          imagen.onload = resolve;
+          imagen.onerror = () => reject(
+            new Error("No se pudo abrir la foto. Prueba con JPG o PNG.")
+          );
+          imagen.src = url;
+        });
+
+        const escala = Math.min(
+          1, 900 / Math.max(imagen.naturalWidth, imagen.naturalHeight)
+        );
+
+        const lienzo = document.createElement("canvas");
+        lienzo.width = Math.max(1, Math.round(imagen.naturalWidth * escala));
+        lienzo.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
+
+        const contexto = lienzo.getContext("2d");
+        if (!contexto) throw new Error("No se pudo preparar la foto.");
+
+        contexto.fillStyle = "#ffffff";
+        contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+        contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+        fotoGaleria = lienzo.toDataURL("image/jpeg", 0.8);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    const actualizado = {
+      ...auto,
+      nombre,
+      modelo: String(campos.get("modelo") || "").trim(),
+      anio: String(campos.get("anio") || "").trim(),
+      banco: String(campos.get("banco") || "").trim(),
+      foto,
+      fotoGaleria
+    };
+
+    const nuevosDatos = {
+      ...data,
+      vehiculos: data.vehiculos.map(v => v === auto ? actualizado : v)
+    };
+
+    localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+    data = nuevosDatos;
+    render();
+  } catch (error) {
+    alert(
+      error.name === "QuotaExceededError"
+        ? "No hay espacio suficiente para guardar la foto."
+        : error.message || "No se pudieron guardar los datos."
+    );
+  } finally {
+    if (boton) boton.disabled = false;
+  }
 }
 function imagenCredito(tarjeta) {
   const normalizar = texto => String(texto || "")
