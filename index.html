@@ -2810,7 +2810,18 @@ function eliminar(origen,ident){
  const item=group[index];
 
  if(!confirm("¿Seguro que deseas eliminar este "+(origen==="pago"?"pago":"movimiento")+"?"))return;
+ if (
+  origen === "pago" &&
+  item.tipo === "tarjeta" &&
+  item.bancoId
+) {
+  if (!guardarPagoTarjetaBanco(item, null)) return;
 
+  openEdit = null;
+  render();
+  alert("Pago eliminado y saldos restaurados.");
+  return;
+}
  if(origen==="pago"){
   const cuenta=cuentaDePago(item);
   if(!cuenta){
