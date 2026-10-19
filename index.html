@@ -1294,6 +1294,33 @@ html.tema-oscuro #amMenu button {
 html.tema-oscuro #amIndicadores span.activo {
   background: #c4c9d2;
 }
+/* Paneles de vehículos */
+.vehiculo-panel {
+  border-radius: 30px;
+  padding: 18px 16px;
+}
+
+.vehiculo-panel input,
+.vehiculo-panel select,
+.vehiculo-panel button {
+  border-radius: 999px;
+}
+
+.vehiculo-panel .payment {
+  border-radius: 24px;
+}
+
+.vehiculo-panel > .label {
+  display: block;
+  margin: 8px 0 14px;
+  line-height: 1.5;
+}
+
+#formAuto .primary,
+.vehiculo-panel .payment .primary {
+  background: #ff7900;
+  color: #fff;
+}
 
 </style>
 </head>
@@ -2630,7 +2657,7 @@ function vehiculos(){
   </button>
 </div>
 
-<div class="card hidden" id="agregarVehiculo">
+<div class="card vehiculo-panel">
   <form id="formAuto">
    <input name="nombre" placeholder="Nombre del vehículo" maxlength="80" required>
    <input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo pendiente ($)" required>
