@@ -2750,6 +2750,19 @@ ${v.banco ? `
     <button class="primary">Guardar datos</button>
   </form>
 </div>
+${Number(v.montoInicial) > 0 ? `
+  <div style="height:6px;background:rgba(130,140,155,.22);border-radius:999px;overflow:hidden;margin-top:14px">
+    <div style="height:100%;background:#ff7900;border-radius:inherit;width:${Math.min(100, Math.max(0, (1 - Number(v.saldo) / Number(v.montoInicial)) * 100))}%"></div>
+  </div>
+
+  <div class="label" style="margin-top:7px;text-align:right">
+    Pagado ${Math.round(Math.min(100, Math.max(0, (1 - Number(v.saldo) / Number(v.montoInicial)) * 100)))}%
+  </div>
+` : `
+  <p class="note">
+    Añade el monto inicial en Datos del vehículo para ver el progreso.
+  </p>
+`}
 
 <div style="padding:16px;border-radius:26px;background:rgba(130,140,155,.08);margin-bottom:12px">
   <div class="label">Saldo pendiente</div>
@@ -2896,9 +2909,28 @@ async function guardarDatosAuto(event, i) {
       }
     }
 
+        const entradaInicial = String(
+      campos.get("montoInicial") || ""
+    ).trim();
+
+    const montoInicial = entradaInicial
+      ? Number(entradaInicial)
+      : null;
+
+    if (
+      montoInicial !== null &&
+      (!Number.isFinite(montoInicial) ||
+       montoInicial <= 0 ||
+       montoInicial < Number(auto.saldo))
+    ) {
+      alert("El monto inicial debe ser mayor que cero y no menor al saldo pendiente.");
+      return;
+    }
+
     const actualizado = {
       ...auto,
       nombre,
+      montoInicial,
       modelo: String(campos.get("modelo") || "").trim(),
       anio: String(campos.get("anio") || "").trim(),
       banco: String(campos.get("banco") || "").trim(),
