@@ -3478,6 +3478,90 @@ function opcionesCuentasPago() {
     return '<option value="">No se pudieron leer las cuentas</option>';
   }
 }
+function guardarPagoTarjetaBanco(anterior, nuevo) {
+  const pago = nuevo || anterior;
+  const claveBanco = "amfinance-cuentas-banco";
+
+  try {
+    const bancosPrevios = localStorage.getItem(claveBanco);
+    const datosPrevios = localStorage.getItem(KEY);
+    const cuentas = JSON.parse(bancosPrevios || "[]");
+
+    if (!Array.isArray(cuentas) || !pago) {
+      throw new Error("Datos no válidos");
+    }
+
+    const cuenta = cuentas.find(
+      c => String(c.id) === String(pago.bancoId)
+    );
+
+    const tarjeta = data.tarjetas.find(
+      t => t.id === pago.cuentaId
+    );
+
+    if (!cuenta || !tarjeta) {
+      alert("No se encontró la cuenta bancaria o la tarjeta.");
+      return false;
+    }
+
+    const diferencia = round(
+      (nuevo ? Number(nuevo.monto) : 0) -
+      (anterior ? Number(anterior.monto) : 0)
+    );
+
+    const saldoBanco = round(Number(cuenta.saldo) - diferencia);
+    const deudaTarjeta = round(Number(tarjeta.saldo) - diferencia);
+
+    if (
+      !Number.isFinite(saldoBanco) ||
+      !Number.isFinite(deudaTarjeta) ||
+      saldoBanco < 0 ||
+      deudaTarjeta < 0
+    ) {
+      alert("Revisa el saldo de la cuenta y la deuda de la tarjeta.");
+      return false;
+    }
+
+    cuenta.saldo = saldoBanco;
+
+    const pagos = anterior
+      ? data.pagos.filter(p => p.id !== anterior.id)
+      : [...data.pagos];
+
+    if (nuevo) pagos.push(nuevo);
+
+    const tarjetas = data.tarjetas.map(t =>
+      t.id === tarjeta.id ? {...t, saldo: deudaTarjeta} : t
+    );
+
+    const datosNuevos = {...data, tarjetas, pagos};
+
+    try {
+      localStorage.setItem(claveBanco, JSON.stringify(cuentas));
+      localStorage.setItem(KEY, JSON.stringify(datosNuevos));
+    } catch (error) {
+      if (bancosPrevios === null) {
+        localStorage.removeItem(claveBanco);
+      } else {
+        localStorage.setItem(claveBanco, bancosPrevios);
+      }
+
+      if (datosPrevios === null) {
+        localStorage.removeItem(KEY);
+      } else {
+        localStorage.setItem(KEY, datosPrevios);
+      }
+
+      throw error;
+    }
+
+    data = datosNuevos;
+    return true;
+  } catch (error) {
+    alert("No se pudieron guardar los cambios del pago.");
+    return false;
+  }
+}
 
 function pagarTarjeta(e,i){
  e.preventDefault();
