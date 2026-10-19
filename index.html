@@ -3449,6 +3449,28 @@ function pagarAuto(e,i){
  "\nNuevo saldo: "+money(v.saldo));
  render();
 }
+function opcionesCuentasPago() {
+  try {
+    const cuentas = JSON.parse(
+      localStorage.getItem("amfinance-cuentas-banco") || "[]"
+    );
+
+    if (!Array.isArray(cuentas)) {
+      return '<option value="">No se pudieron leer las cuentas</option>';
+    }
+
+    return '<option value="">Seleccionar cuenta</option>' +
+      cuentas.map(cuenta => `
+        <option value="${safe(cuenta.id)}">
+          ${safe(cuenta.nombre)} ·
+          ${cuenta.tipo === "ahorro" ? "Ahorros" : "Cheques"}
+          · ${money(cuenta.saldo)}
+        </option>
+      `).join("");
+  } catch (error) {
+    return '<option value="">No se pudieron leer las cuentas</option>';
+  }
+}
 
 function pagarTarjeta(e,i){
  e.preventDefault();
