@@ -2729,6 +2729,24 @@ function guardarEdicion(e,origen,ident){
   alert("Introduce una cantidad y una fecha válidas.");
   return;
  }
+if (
+  origen === "pago" &&
+  item.tipo === "tarjeta" &&
+  item.bancoId
+) {
+  const corregido = {
+    ...item,
+    monto,
+    fecha
+  };
+
+  if (!guardarPagoTarjetaBanco(item, corregido)) return;
+
+  openEdit = null;
+  render();
+  alert("Pago corregido y saldos actualizados.");
+  return;
+}
 
  if(origen==="movimiento"){
   const nombre=String(f.get("nombre")).trim();
