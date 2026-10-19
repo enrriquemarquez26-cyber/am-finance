@@ -3284,7 +3284,14 @@ aria-label="Abrir opciones de ${safe(t.nombre)}">
 
       <div class="payment hidden" id="tarjeta${i}">
         <form onsubmit="pagarTarjeta(event,${i})">
-          <label class="label">Cantidad pagada ($)</label>
+         <label for="cuentaPagoTarjeta${i}" class="label">
+  Cuenta de origen
+</label>
+
+<select id="cuentaPagoTarjeta${i}" name="bancoId" required>
+  ${opcionesCuentasPago()}
+</select>
+           <label class="label">Cantidad pagada ($)</label>
           <input name="monto" type="number"
             min="0.01" step="0.01"
             placeholder="0.00" required>
