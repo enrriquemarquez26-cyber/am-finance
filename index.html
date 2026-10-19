@@ -2810,6 +2810,41 @@ vencimiento:Number(f.get("vencimiento"))
   save();render();
  };
 }
+function guardarDatosAuto(event, i) {
+  event.preventDefault();
+
+  const auto = data.vehiculos[i];
+  if (!auto) return;
+
+  const campos = new FormData(event.target);
+  const nombre = String(campos.get("nombre") || "").trim();
+  const foto = String(campos.get("foto") || "").trim();
+
+  if (!nombre) {
+    alert("Escribe el nombre del vehículo.");
+    return;
+  }
+
+  if (foto) {
+    try {
+      if (new URL(foto).protocol !== "https:") {
+        throw new Error();
+      }
+    } catch {
+      alert("La foto debe tener un enlace que empiece con https://");
+      return;
+    }
+  }
+
+  auto.nombre = nombre;
+  auto.modelo = String(campos.get("modelo") || "").trim();
+  auto.anio = String(campos.get("anio") || "").trim();
+  auto.banco = String(campos.get("banco") || "").trim();
+  auto.foto = foto;
+
+  save();
+  render();
+}
 function imagenCredito(tarjeta) {
   const normalizar = texto => String(texto || "")
     .toLowerCase()
