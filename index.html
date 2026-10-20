@@ -1526,6 +1526,101 @@ html.tema-oscuro #movVentana {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+/* Ajustes: categorías principales */
+.ajustes-pantalla h2 {
+  margin: 0 4px 6px;
+  font-size: 1.4rem;
+}
+
+.ajustes-subtitulo {
+  margin: 0 4px 20px;
+  color: #84909d;
+  font-size: .8rem;
+}
+
+.ajustes-fila {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  min-height: 72px;
+  margin-bottom: 10px;
+  padding: 15px 19px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: #fff;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ajustes-icono {
+  display: grid;
+  place-items: center;
+  flex: 0 0 27px;
+}
+
+.ajustes-icono svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ajustes-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.ajustes-texto strong {
+  display: block;
+  font-size: .9rem;
+  font-weight: 650;
+}
+
+.ajustes-texto small {
+  display: block;
+  margin-top: 4px;
+  color: #84909d;
+  font-size: .7rem;
+  line-height: 1.4;
+}
+
+.ajustes-flecha {
+  color: #84909d;
+  font-size: 1.3rem;
+}
+
+.ajustes-version {
+  text-align: center;
+  color: #84909d;
+  font-size: .7rem;
+  margin: 20px 0;
+}
+
+.ajustes-volver {
+  border: 0;
+  background: transparent;
+  color: #F28C28;
+  font: inherit;
+  padding: 8px 4px;
+  margin-bottom: 12px;
+}
+
+html.tema-oscuro .ajustes-fila {
+  background: #20242b;
+  border-color: #343943;
+}
+
+html.tema-oscuro .ajustes-texto small,
+html.tema-oscuro .ajustes-subtitulo,
+html.tema-oscuro .ajustes-version {
+  color: #aab3c2;
+}
 
 </style>
 </head>
