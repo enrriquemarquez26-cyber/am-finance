@@ -1621,6 +1621,79 @@ html.tema-oscuro .ajustes-subtitulo,
 html.tema-oscuro .ajustes-version {
   color: #aab3c2;
 }
+/* Perfil personal */
+.perfil-tarjeta {
+  text-align: center;
+  border-radius: 34px;
+  padding: 24px 18px;
+  margin-bottom: 14px;
+}
+
+.perfil-avatar {
+  position: relative;
+  width: 82px;
+  height: 82px;
+  margin: 0 auto 14px;
+}
+
+.perfil-avatar > img,
+.perfil-avatar > .perfil-silueta {
+  display: grid;
+  place-items: center;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ededf3;
+  color: #7c8795;
+}
+
+.perfil-silueta svg {
+  width: 48px;
+  height: 48px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.perfil-camara {
+  position: absolute;
+  right: -3px;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #ff7900;
+  color: #fff;
+}
+
+.perfil-camara svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.perfil-plan {
+  padding: 4px 10px;
+  border: 1px solid #F28C28;
+  border-radius: 999px;
+  color: #F28C28;
+  font-size: .75rem;
+}
+
+html.tema-oscuro .perfil-silueta {
+  background: #343b46;
+  color: #aab3c2;
+}
+
+html.tema-oscuro .perfil-camara {
+  border-color: #20242b;
+}
 
 </style>
 </head>
