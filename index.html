@@ -1950,6 +1950,54 @@ if(!Array.isArray(data.vehiculos))data.vehiculos=[];
 if(!Array.isArray(data.tarjetas))data.tarjetas=[];
 if(!Array.isArray(data.pagos))data.pagos=[];
 
+function idiomaActual() {
+  return localStorage.getItem("balanceone-idioma") === "en"
+    ? "en"
+    : "es";
+}
+
+function textoApp(espanol, ingles) {
+  return idiomaActual() === "en" ? ingles : espanol;
+}
+
+function aplicarIdiomaGeneral() {
+  const ingles = idiomaActual() === "en";
+  document.documentElement.lang = ingles ? "en" : "es";
+
+  const nombres = ingles
+    ? ["Home", "Transactions", "Vehicles", "Cards", "Profile"]
+    : ["Inicio", "Movimientos", "Vehículos", "Tarjetas", "Perfil"];
+
+  document.querySelectorAll("nav button span").forEach((texto, i) => {
+    if (nombres[i]) texto.textContent = nombres[i];
+  });
+
+  const subtitulo = document.querySelector("header .sub");
+  if (subtitulo) {
+    subtitulo.textContent = textoApp(
+      "Control inteligente de tus finanzas · 0.2.0 Beta",
+      "Smart control of your finances · 0.2.0 Beta"
+    );
+  }
+}
+
+function guardarIdiomaApp(idioma) {
+  if (!["es", "en"].includes(idioma)) return;
+
+  try {
+    localStorage.setItem("balanceone-idioma", idioma);
+  } catch {
+    alert(textoApp(
+      "No se pudo guardar el idioma.",
+      "Could not save the language."
+    ));
+    return;
+  }
+
+  aplicarIdiomaGeneral();
+  preferenciasPerfil();
+}
+
 const money = n => {
   const preferencia = localStorage.getItem(
     "balanceone-formato-importes"
