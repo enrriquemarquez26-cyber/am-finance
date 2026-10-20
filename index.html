@@ -1497,6 +1497,33 @@ html.tema-oscuro #movVentana {
 html.tema-oscuro #movVentana {
   background: rgba(35,40,50,.38);
 }
+/* Título por encima de la ventana */
+#movVentana {
+  overflow: visible;
+  max-height: calc(100dvh - 140px);
+}
+
+#movVentanaTitulo {
+  position: absolute;
+  top: -38px;
+  left: 0;
+  width: 100%;
+  margin: 0 !important;
+  text-align: center;
+  font-size: 1rem !important;
+  font-weight: 650;
+}
+
+#movVentana > .row {
+  justify-content: flex-end;
+  margin-bottom: 8px !important;
+}
+
+#movVentanaForm {
+  max-height: calc(100dvh - 220px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 
 </style>
 </head>
@@ -1514,8 +1541,6 @@ html.tema-oscuro #movVentana {
 <section id="movVentana" class="hidden"
          role="dialog" aria-modal="true"
          aria-labelledby="movVentanaTitulo">
-
-  <div style="width:36px;height:5px;border-radius:999px;background:rgba(130,140,155,.5);margin:0 auto 14px"></div>
 
   <div class="row" style="margin-bottom:12px">
     <h3 id="movVentanaTitulo" style="margin:0;font-size:1rem">
