@@ -2254,26 +2254,36 @@ const banco = String(c.nombre || "").toLowerCase();
 
  el().innerHTML=`
  ${avisosVencimiento()}
- <div class="card balance-principal">
-  <div class="label">Balance del mes</div>
+<div class="card balance-principal">
+  <div class="label">
+    ${textoApp("Balance del mes", "Monthly balance")}
+  </div>
   <div class="amount">${money(ingresos-gastos-pagos)}</div>
- </div>
- <div class="row">
+</div>
+
+<div class="row">
   <div class="card resumen-ovalado" style="width:50%">
-   <div class="label">Ingresos</div>
-   <div class="smallamount green">${money(ingresos)}</div>
+    <div class="label">${textoApp("Ingresos", "Income")}</div>
+    <div class="smallamount green">${money(ingresos)}</div>
   </div>
+
   <div class="card resumen-ovalado" style="width:50%">
-   <div class="label">Gastos y pagos</div>
-   <div class="smallamount red">${money(gastos+pagos)}</div>
+    <div class="label">
+      ${textoApp("Gastos y pagos", "Expenses and payments")}
+    </div>
+    <div class="smallamount red">${money(gastos+pagos)}</div>
   </div>
- </div>
- ${autos + tarjetas > 0 ? `
+</div>
+
+${autos + tarjetas > 0 ? `
   <div class="card" style="border-radius:40px">
-    <div class="label">Mis deudas pendientes</div>
+    <div class="label">
+      ${textoApp("Mis deudas pendientes", "Outstanding debts")}
+    </div>
     <div class="smallamount">${money(autos+tarjetas)}</div>
     <div class="note">
-      Vehículos: ${money(autos)} · Tarjetas: ${money(tarjetas)}
+      ${textoApp("Vehículos", "Vehicles")}: ${money(autos)}
+      · ${textoApp("Tarjetas", "Cards")}: ${money(tarjetas)}
     </div>
   </div>
 ` : ""}
