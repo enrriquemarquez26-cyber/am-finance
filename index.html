@@ -4849,73 +4849,78 @@ function ajustes() {
 }
 
 function abrirAjuste(tipo) {
+  const t = textoApp;
+
   const pantallas = {
     cuenta: {
-      titulo: "Cuenta y perfil",
+      titulo: t("Cuenta y perfil", "Account and profile"),
       contenido: `
         <div class="card">
-          <h3>Mi cuenta</h3>
-          <p class="note">
-            El inicio de sesión con Apple, Google y correo
-            estará disponible más adelante.
-          </p>
+          <h3>${t("Mi cuenta", "My account")}</h3>
+          <p class="note">${t(
+            "El inicio de sesión con Apple, Google y correo estará disponible más adelante.",
+            "Sign-in with Apple, Google and email will be available later."
+          )}</p>
         </div>`
     },
 
     apariencia: {
-      titulo: "Apariencia",
+      titulo: t("Apariencia", "Appearance"),
       contenido: `
         <div class="card" style="border-radius:30px">
-          <label for="temaApp">Tema</label>
+          <label for="temaApp">${t("Tema", "Theme")}</label>
           <select id="temaApp" style="border-radius:999px"
                   onchange="cambiarTema(this.value)">
-            <option value="auto">Automático</option>
-            <option value="claro">Claro</option>
-            <option value="oscuro">Oscuro</option>
+            <option value="auto">${t("Automático", "Automatic")}</option>
+            <option value="claro">${t("Claro", "Light")}</option>
+            <option value="oscuro">${t("Oscuro", "Dark")}</option>
           </select>
 
-          <label for="tamanoTexto">Tamaño del texto</label>
+          <label for="tamanoTexto">
+            ${t("Tamaño del texto", "Text size")}
+          </label>
           <select id="tamanoTexto" style="border-radius:999px"
                   onchange="cambiarTamanoTexto(this.value)">
-            <option value="pequeno">Pequeño</option>
-            <option value="normal">Normal</option>
-            <option value="grande">Grande</option>
+            <option value="pequeno">${t("Pequeño", "Small")}</option>
+            <option value="normal">${t("Normal", "Normal")}</option>
+            <option value="grande">${t("Grande", "Large")}</option>
           </select>
         </div>`
     },
 
     avisos: {
-      titulo: "Notificaciones",
+      titulo: t("Notificaciones", "Notifications"),
       contenido: `
         <div class="card">
-          <h3>Pagos y recordatorios</h3>
-          <p class="note">
-            Los avisos de vencimiento se muestran dentro de
-            la aplicación. Las notificaciones del dispositivo
-            y sus controles todavía no están implementados.
-          </p>
+          <h3>${t("Pagos y recordatorios", "Payments and reminders")}</h3>
+          <p class="note">${t(
+            "Los avisos de vencimiento se muestran dentro de la aplicación. Las notificaciones del dispositivo y sus controles todavía no están implementados.",
+            "Due-date reminders appear inside the app. Device notifications and their controls have not been implemented yet."
+          )}</p>
         </div>`
     },
 
     datos: {
-      titulo: "Datos y copias",
+      titulo: t("Datos y copias", "Data and backups"),
       contenido: `
         <div class="card" style="border-radius:30px">
-          <h3>Guardar y exportar</h3>
-          <p class="note">
-            Descarga una copia de tus datos en formato JSON.
-          </p>
+          <h3>${t("Guardar y exportar", "Save and export")}</h3>
+          <p class="note">${t(
+            "Descarga una copia de tus datos en formato JSON.",
+            "Download a backup of your data in JSON format."
+          )}</p>
           <button class="primary" style="border-radius:999px"
                   onclick="exportarCopia()">
-            Guardar copia
+            ${t("Guardar copia", "Save backup")}
           </button>
         </div>
 
         <div class="card" style="border-radius:30px">
-          <h3>Restaurar copia</h3>
-          <label class="note" for="archivoCopia">
-            Selecciona una copia de Balance One.
-          </label>
+          <h3>${t("Restaurar copia", "Restore backup")}</h3>
+          <label class="note" for="archivoCopia">${t(
+            "Selecciona una copia de Balance One.",
+            "Select a Balance One backup."
+          )}</label>
           <input id="archivoCopia" type="file"
                  accept=".json,application/json"
                  onchange="restaurarCopia(event)">
@@ -4923,19 +4928,18 @@ function abrirAjuste(tipo) {
     },
 
     privacidad: {
-      titulo: "Privacidad y seguridad",
+      titulo: t("Privacidad y seguridad", "Privacy and security"),
       contenido: `
         <div class="card">
-          <h3>Almacenamiento de datos</h3>
-          <p class="note">
-            Tus registros se guardan en este dispositivo.
-            La sincronización en la nube y el bloqueo de
-            acceso todavía no están implementados.
-          </p>
-          <p class="note">
-            Guarda una copia antes de borrar los datos del
-            navegador o cambiar de dispositivo.
-          </p>
+          <h3>${t("Almacenamiento de datos", "Data storage")}</h3>
+          <p class="note">${t(
+            "Tus registros se guardan en este dispositivo. La sincronización en la nube y el bloqueo de acceso todavía no están implementados.",
+            "Your records are stored on this device. Cloud sync and access locking have not been implemented yet."
+          )}</p>
+          <p class="note">${t(
+            "Guarda una copia antes de borrar los datos del navegador o cambiar de dispositivo.",
+            "Save a backup before clearing browser data or switching devices."
+          )}</p>
         </div>`
     },
 
@@ -4943,30 +4947,30 @@ function abrirAjuste(tipo) {
       titulo: "Balance One Pro",
       contenido: `
         <div class="card" style="border-radius:30px">
-          <h3>Planes Free y Pro</h3>
-          <p>Mensual: <strong>$4.99 USD</strong></p>
-          <p>Anual: <strong>$39.99 USD</strong></p>
-          <p class="note">
-            Precios previstos para Pro. Las suscripciones
-            y los cobros aún no están habilitados.
-          </p>
+          <h3>${t("Planes Free y Pro", "Free and Pro plans")}</h3>
+          <p>${t("Mensual", "Monthly")}: <strong>$4.99 USD</strong></p>
+          <p>${t("Anual", "Annual")}: <strong>$39.99 USD</strong></p>
+          <p class="note">${t(
+            "Precios previstos para Pro. Las suscripciones y los cobros aún no están habilitados.",
+            "Planned Pro pricing. Subscriptions and billing are not enabled yet."
+          )}</p>
         </div>`
     },
 
     ayuda: {
-      titulo: "Ayuda e información",
+      titulo: t("Ayuda e información", "Help and information"),
       contenido: `
         <div class="card">
-          <h3>Registrar un movimiento</h3>
-          <p class="note">
-            Desde el inicio de la página, desliza hacia abajo
-            sobre una zona sin botones para abrir el registro.
-          </p>
+          <h3>${t("Registrar un movimiento", "Add a transaction")}</h3>
+          <p class="note">${t(
+            "Desde el inicio de la página, desliza hacia abajo sobre una zona sin botones para abrir el registro.",
+            "At the top of the page, swipe down on an area without buttons to open the transaction window."
+          )}</p>
         </div>
         <div class="card">
-          <h3>Acerca de</h3>
+          <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">Versión 0.2.0 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.2.0 Beta</p>
         </div>`
     }
   };
@@ -4977,7 +4981,7 @@ function abrirAjuste(tipo) {
   el().innerHTML = `
     <section class="ajustes-pantalla">
       <button class="ajustes-volver" onclick="ajustes()">
-        ‹ Ajustes
+        ‹ ${t("Ajustes", "Settings")}
       </button>
       <h2>${pantalla.titulo}</h2>
       <div style="margin-top:20px">
@@ -4996,6 +5000,7 @@ function abrirAjuste(tipo) {
 
   window.scrollTo(0, 0);
 }
+
 function cambiarTema(tema){
   if(!["auto","claro","oscuro"].includes(tema)) return;
 
