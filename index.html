@@ -4662,44 +4662,72 @@ function preferenciasPerfil() {
   el().innerHTML = `
     <section class="ajustes-pantalla">
       <button class="ajustes-volver" onclick="perfil()">
-        ‹ Mi perfil
+        ‹ ${textoApp("Mi perfil", "My profile")}
       </button>
 
-      <h2>Preferencias</h2>
+      <h2>${textoApp("Preferencias", "Preferences")}</h2>
 
       <div class="card" style="border-radius:30px;margin-top:20px">
-        <h3>Moneda</h3>
-        <p>USD · Dólar estadounidense</p>
-        <p class="note">
-          Tus registros actuales están expresados en dólares.
-        </p>
+        <h3>${textoApp("Moneda", "Currency")}</h3>
+        <p>${textoApp(
+          "USD · Dólar estadounidense",
+          "USD · US dollar"
+        )}</p>
+        <p class="note">${textoApp(
+          "Tus registros actuales están expresados en dólares.",
+          "Your current records are in US dollars."
+        )}</p>
       </div>
 
       <div class="card" style="border-radius:30px">
-        <label for="formatoImportes">Formato de los importes</label>
+        <label for="formatoImportes">${textoApp(
+          "Formato de los importes",
+          "Number format"
+        )}</label>
+
         <select id="formatoImportes"
                 style="border-radius:999px"
                 onchange="guardarFormatoImportes(this.value)">
-          <option value="en-US">Estados Unidos · $1,234.56</option>
-          <option value="es-ES">España · 1.234,56 US$</option>
+          <option value="en-US">${textoApp(
+            "Estados Unidos · $1,234.56",
+            "United States · $1,234.56"
+          )}</option>
+          <option value="es-ES">${textoApp(
+            "España · 1.234,56 US$",
+            "Spain · 1.234,56 US$"
+          )}</option>
         </select>
-        <p class="note">
-          Cambia la presentación de los números.
-          Los saldos conservan su valor.
-        </p>
+
+        <p class="note">${textoApp(
+          "Cambia la presentación de los números. Los saldos conservan su valor.",
+          "Changes how numbers are displayed. Balance values stay the same."
+        )}</p>
       </div>
 
       <div class="card" style="border-radius:30px">
-        <h3>Idioma</h3>
-        <p>Español</p>
-        <p class="note">
-          La traducción a otros idiomas se añadirá después.
-        </p>
+        <label for="idiomaPerfil">${textoApp(
+          "Idioma",
+          "Language"
+        )}</label>
+
+        <select id="idiomaPerfil"
+                style="border-radius:999px"
+                onchange="guardarIdiomaApp(this.value)">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+        </select>
+
+        <p class="note">${textoApp(
+          "Estamos incorporando la traducción por pantallas; algunas secciones siguen en español.",
+          "Translation is being added screen by screen; some sections remain in Spanish."
+        )}</p>
       </div>
     </section>
   `;
 
   document.getElementById("formatoImportes").value = formato;
+  document.getElementById("idiomaPerfil").value = idiomaActual();
+  aplicarIdiomaGeneral();
   window.scrollTo(0, 0);
 }
 
