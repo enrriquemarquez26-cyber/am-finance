@@ -1464,6 +1464,39 @@ html.tema-oscuro #movVentana select {
 html.tema-oscuro #movVentana {
   background: rgba(35,40,50,.48);
 }
+/* Ventana más pequeña, ovalada y centrada */
+#movVentana {
+  left: 22px;
+  right: 22px;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+  max-width: 370px;
+  max-height: calc(100dvh - 48px);
+  padding: 18px;
+  border-radius: 46px;
+  background: rgba(245,247,255,.28);
+}
+
+#movVentanaTitulo {
+  font-size: .9rem !important;
+}
+
+#movVentanaMonto {
+  font-size: 1.65rem !important;
+  padding: 8px !important;
+}
+
+#movVentanaTeclado button {
+  min-height: 35px;
+  padding: 7px !important;
+  border-radius: 999px;
+  font-size: 1.2rem !important;
+}
+
+html.tema-oscuro #movVentana {
+  background: rgba(35,40,50,.38);
+}
 
 </style>
 </head>
