@@ -4479,12 +4479,15 @@ function perfil() {
 
   el().innerHTML = `
     <section class="ajustes-pantalla">
-      <h2 style="margin-bottom:18px">Mi perfil</h2>
+      <h2 style="margin-bottom:18px">
+        ${textoApp("Mi perfil", "My profile")}
+      </h2>
 
       <div class="card perfil-tarjeta">
         <div class="perfil-avatar">
           ${usuario.foto ? `
-            <img src="${safe(usuario.foto)}" alt="Foto de perfil">
+            <img src="${safe(usuario.foto)}"
+                 alt="${textoApp("Foto de perfil", "Profile photo")}">
           ` : `
             <span class="perfil-silueta">
               ${iconoAjuste("cuenta")}
@@ -4493,7 +4496,9 @@ function perfil() {
 
           <button class="perfil-camara"
                   onclick="editarPerfilLocal()"
-                  aria-label="Editar foto de perfil">
+                  aria-label="${textoApp(
+                    "Editar foto de perfil", "Edit profile photo"
+                  )}">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M8 5l2-2h4l2 2h4v15H4V5Z"/>
               <circle cx="12" cy="12" r="4"/>
@@ -4502,25 +4507,27 @@ function perfil() {
         </div>
 
         <h3 style="margin:0 0 6px;font-size:1.2rem">
-          ${safe(usuario.nombre || "Mi perfil")}
+          ${safe(usuario.nombre || textoApp("Mi perfil", "My profile"))}
         </h3>
         <p class="note" style="margin:0">
-          Perfil en este dispositivo
+          ${textoApp("Perfil en este dispositivo", "Profile on this device")}
         </p>
       </div>
 
       <button class="ajustes-fila" onclick="editarPerfilLocal()">
         <span class="ajustes-icono">${iconoAjuste("cuenta")}</span>
         <span class="ajustes-texto">
-          <strong>Editar perfil</strong>
-          <small>Nombre y foto</small>
+          <strong>${textoApp("Editar perfil", "Edit profile")}</strong>
+          <small>${textoApp("Nombre y foto", "Name and photo")}</small>
         </span>
         <span class="ajustes-flecha">›</span>
       </button>
 
       <button class="ajustes-fila" onclick="abrirAjuste('pro')">
         <span class="ajustes-icono">${iconoAjuste("pro")}</span>
-        <span class="ajustes-texto"><strong>Mi plan</strong></span>
+        <span class="ajustes-texto">
+          <strong>${textoApp("Mi plan", "My plan")}</strong>
+        </span>
         <span class="perfil-plan">Free</span>
         <span class="ajustes-flecha">›</span>
       </button>
@@ -4528,8 +4535,10 @@ function perfil() {
       <button class="ajustes-fila" onclick="go('ajustes')">
         <span class="ajustes-icono">${iconoAjuste("apariencia")}</span>
         <span class="ajustes-texto">
-          <strong>Ajustes</strong>
-          <small>Personaliza Balance One</small>
+          <strong>${textoApp("Ajustes", "Settings")}</strong>
+          <small>${textoApp(
+            "Personaliza Balance One", "Personalize Balance One"
+          )}</small>
         </span>
         <span class="ajustes-flecha">›</span>
       </button>
@@ -4543,8 +4552,8 @@ function perfil() {
           </svg>
         </span>
         <span class="ajustes-texto">
-          <strong>Preferencias</strong>
-          <small>Moneda e idioma</small>
+          <strong>${textoApp("Preferencias", "Preferences")}</strong>
+          <small>${textoApp("Moneda e idioma", "Currency and language")}</small>
         </span>
         <span class="ajustes-flecha">›</span>
       </button>
