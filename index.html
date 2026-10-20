@@ -4785,19 +4785,49 @@ function iconoAjuste(tipo) {
 
 function ajustes() {
   const opciones = [
-    ["cuenta", "Cuenta y perfil", "Inicio de sesión y datos personales"],
-    ["apariencia", "Apariencia", "Tema y tamaño del texto"],
-    ["avisos", "Notificaciones", "Pagos y recordatorios"],
-    ["datos", "Datos y copias", "Guardar, restaurar y exportar"],
-    ["privacidad", "Privacidad y seguridad", "Acceso y protección de datos"],
-    ["pro", "Balance One Pro", "Planes y suscripción"],
-    ["ayuda", "Ayuda e información", "Uso de la aplicación y versión"]
+    [
+      "cuenta",
+      textoApp("Cuenta y perfil", "Account and profile"),
+      textoApp("Inicio de sesión y datos personales", "Sign-in and personal details")
+    ],
+    [
+      "apariencia",
+      textoApp("Apariencia", "Appearance"),
+      textoApp("Tema y tamaño del texto", "Theme and text size")
+    ],
+    [
+      "avisos",
+      textoApp("Notificaciones", "Notifications"),
+      textoApp("Pagos y recordatorios", "Payments and reminders")
+    ],
+    [
+      "datos",
+      textoApp("Datos y copias", "Data and backups"),
+      textoApp("Guardar, restaurar y exportar", "Save, restore and export")
+    ],
+    [
+      "privacidad",
+      textoApp("Privacidad y seguridad", "Privacy and security"),
+      textoApp("Acceso y protección de datos", "Access and data protection")
+    ],
+    [
+      "pro",
+      "Balance One Pro",
+      textoApp("Planes y suscripción", "Plans and subscription")
+    ],
+    [
+      "ayuda",
+      textoApp("Ayuda e información", "Help and information"),
+      textoApp("Uso de la aplicación y versión", "App guide and version")
+    ]
   ];
 
   el().innerHTML = `
     <section class="ajustes-pantalla">
-      <h2>Ajustes</h2>
-      <p class="ajustes-subtitulo">Personaliza Balance One</p>
+      <h2>${textoApp("Ajustes", "Settings")}</h2>
+      <p class="ajustes-subtitulo">
+        ${textoApp("Personaliza Balance One", "Personalize Balance One")}
+      </p>
 
       ${opciones.map(([tipo, titulo, detalle]) => `
         <button class="ajustes-fila"
@@ -4811,7 +4841,9 @@ function ajustes() {
         </button>
       `).join("")}
 
-      <p class="ajustes-version">Versión 0.2.0 Beta</p>
+      <p class="ajustes-version">
+        ${textoApp("Versión", "Version")} 0.2.0 Beta
+      </p>
     </section>
   `;
 }
