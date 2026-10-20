@@ -4598,23 +4598,63 @@ async function guardarPerfilLocal(event) {
 }
 
 function preferenciasPerfil() {
+  const formato = localStorage.getItem(
+    "balanceone-formato-importes"
+  ) || "en-US";
+
   el().innerHTML = `
     <section class="ajustes-pantalla">
-      <button class="ajustes-volver" onclick="perfil()">‹ Mi perfil</button>
+      <button class="ajustes-volver" onclick="perfil()">
+        ‹ Mi perfil
+      </button>
+
       <h2>Preferencias</h2>
 
       <div class="card" style="border-radius:30px;margin-top:20px">
-        <p>Moneda actual: <strong>USD · Dólar estadounidense</strong></p>
-        <p>Idioma actual: <strong>Español</strong></p>
+        <h3>Moneda</h3>
+        <p>USD · Dólar estadounidense</p>
         <p class="note">
-          La selección de otras monedas e idiomas
-          estará disponible más adelante.
+          Tus registros actuales están expresados en dólares.
+        </p>
+      </div>
+
+      <div class="card" style="border-radius:30px">
+        <label for="formatoImportes">Formato de los importes</label>
+        <select id="formatoImportes"
+                style="border-radius:999px"
+                onchange="guardarFormatoImportes(this.value)">
+          <option value="en-US">Estados Unidos · $1,234.56</option>
+          <option value="es-ES">España · 1.234,56 US$</option>
+        </select>
+        <p class="note">
+          Cambia la presentación de los números.
+          Los saldos conservan su valor.
+        </p>
+      </div>
+
+      <div class="card" style="border-radius:30px">
+        <h3>Idioma</h3>
+        <p>Español</p>
+        <p class="note">
+          La traducción a otros idiomas se añadirá después.
         </p>
       </div>
     </section>
   `;
 
+  document.getElementById("formatoImportes").value = formato;
   window.scrollTo(0, 0);
+}
+
+function guardarFormatoImportes(formato) {
+  if (!["en-US", "es-ES"].includes(formato)) return;
+
+  try {
+    localStorage.setItem("balanceone-formato-importes", formato);
+    preferenciasPerfil();
+  } catch {
+    alert("No se pudo guardar la preferencia.");
+  }
 }
 
 function iconoAjuste(tipo) {
