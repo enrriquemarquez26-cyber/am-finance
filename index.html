@@ -1321,6 +1321,70 @@ html.tema-oscuro #amIndicadores span.activo {
   background: #ff7900;
   color: #fff;
 }
+/* Ventana flotante para movimientos */
+#movVentanaFondo {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15,20,30,.28);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+#movVentana {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 10001;
+  width: auto;
+  max-width: 440px;
+  max-height: calc(100dvh - 70px - env(safe-area-inset-bottom));
+  margin: 0 auto;
+  padding: 20px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 38px;
+  background: rgba(245,247,255,.55);
+  color: #17212e;
+  border: 1px solid rgba(255,255,255,.65);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,.8),
+    0 18px 60px rgba(0,0,0,.2);
+}
+
+#movVentana input,
+#movVentana select {
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 999px;
+  background: rgba(255,255,255,.38);
+  color: inherit;
+  border-color: rgba(130,140,155,.25);
+}
+
+#movVentana button {
+  font: inherit;
+}
+
+#movVentana .mov-guardar {
+  background: #ff7900;
+  border-radius: 999px;
+  color: #fff;
+}
+
+html.tema-oscuro #movVentana {
+  background: rgba(35,40,50,.65);
+  color: #f5f6f8;
+  border-color: rgba(255,255,255,.18);
+}
+
+html.tema-oscuro #movVentana input,
+html.tema-oscuro #movVentana select {
+  background: rgba(255,255,255,.08);
+}
 
 </style>
 </head>
@@ -1332,6 +1396,69 @@ html.tema-oscuro #amIndicadores span.activo {
 <div class="sub">Control inteligente de tus finanzas · 0.2.0 Beta</div>
 </header>
 <main id="content" style="padding-bottom: 130px;"></main>
+<div id="movVentanaFondo" class="hidden"
+     onclick="cerrarMovVentana()"></div>
+
+<section id="movVentana" class="hidden"
+         role="dialog" aria-modal="true"
+         aria-labelledby="movVentanaTitulo">
+
+  <div style="width:36px;height:5px;border-radius:999px;background:rgba(130,140,155,.5);margin:0 auto 14px"></div>
+
+  <div class="row" style="margin-bottom:12px">
+    <h3 id="movVentanaTitulo" style="margin:0;font-size:1rem">
+      Nuevo movimiento
+    </h3>
+    <button type="button" onclick="cerrarMovVentana()"
+            aria-label="Cerrar"
+            style="border:0;border-radius:50%;width:34px;height:34px;background:rgba(130,140,155,.15);color:inherit">
+      ✕
+    </button>
+  </div>
+
+  <form id="movVentanaForm">
+    <output id="movVentanaMonto"
+            style="display:block;text-align:center;font-size:2rem;font-weight:650;padding:12px;border-radius:999px;background:rgba(255,255,255,.25);margin-bottom:12px"
+            aria-live="polite">$0.00</output>
+
+    <div id="movVentanaTeclado"
+         style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px">
+    </div>
+
+    <label class="label" for="movVentanaTipo">Tipo</label>
+    <select id="movVentanaTipo" name="tipo">
+      <option value="gasto">Gasto</option>
+      <option value="ingreso">Ingreso</option>
+    </select>
+
+    <label class="label" for="movVentanaNota">Nota</label>
+    <input id="movVentanaNota" name="nombre"
+           placeholder="Agregar nota…" maxlength="80" required>
+
+    <label class="label" for="movVentanaFecha">Fecha</label>
+    <input id="movVentanaFecha" name="fecha"
+           type="date" required>
+
+    <label class="label" for="movVentanaCategoria">Categoría</label>
+    <select id="movVentanaCategoria" name="categoria">
+      <option value="">Seleccionar categoría</option>
+      <option>Alimentación</option>
+      <option>Transporte</option>
+      <option>Compras</option>
+      <option>Hogar</option>
+      <option>Salud</option>
+      <option>Trabajo</option>
+      <option>Otros</option>
+    </select>
+
+    <label class="label" for="movVentanaCuenta">Cuenta</label>
+    <select id="movVentanaCuenta" name="cuentaId" required>
+      <option value="">Seleccionar cuenta</option>
+    </select>
+
+    <button class="mov-guardar" type="submit">Guardar</button>
+  </form>
+</section>
 <nav>
   <button onclick="go('inicio')" id="nav-inicio">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -4267,6 +4394,198 @@ if (paginasAM && indicadoresAM.length) {
     });
   }, { passive: true });
 }
+let importeVentana = "";
+let focoAntesVentana = null;
+
+function cerrarMovVentana() {
+  document.getElementById("movVentana").classList.add("hidden");
+  document.getElementById("movVentanaFondo").classList.add("hidden");
+  document.body.style.overflow = "";
+  if (focoAntesVentana) focoAntesVentana.focus();
+}
+
+function abrirMovVentana() {
+  const ventana = document.getElementById("movVentana");
+  if (!ventana.classList.contains("hidden")) return;
+
+  let cuentas;
+  try {
+    cuentas = JSON.parse(
+      localStorage.getItem("amfinance-cuentas-banco") || "[]"
+    );
+    if (!Array.isArray(cuentas)) throw new Error();
+  } catch {
+    alert("No se pudieron leer las cuentas.");
+    return;
+  }
+
+  if (!cuentas.length) {
+    alert("Primero agrega una cuenta bancaria en Inicio.");
+    return;
+  }
+
+  focoAntesVentana = document.activeElement;
+  document.getElementById("movVentanaForm").reset();
+  importeVentana = "";
+  document.getElementById("movVentanaMonto").textContent = "$0.00";
+  document.getElementById("movVentanaFecha").value = today();
+
+  const selector = document.getElementById("movVentanaCuenta");
+  selector.replaceChildren(new Option("Seleccionar cuenta", ""));
+  cuentas.forEach(c => {
+    selector.add(new Option(
+      c.nombre + " · " + (c.tipo || "") + " · " + money(c.saldo),
+      String(c.id)
+    ));
+  });
+
+  ventana.classList.remove("hidden");
+  document.getElementById("movVentanaFondo").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  ventana.scrollTop = 0;
+  ventana.querySelector("button").focus();
+}
+
+const tecladoVentana = document.getElementById("movVentanaTeclado");
+
+["1","2","3","4","5","6","7","8","9",".","0","⌫"].forEach(tecla => {
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.textContent = tecla;
+  boton.setAttribute("aria-label", tecla === "⌫" ? "Borrar cifra" : tecla);
+  boton.style.cssText =
+    "padding:11px;border:0;border-radius:999px;" +
+    "background:rgba(150,160,180,.2);color:inherit;font-size:1.4rem";
+
+  boton.onclick = () => {
+    if (tecla === "⌫") {
+      importeVentana = importeVentana.slice(0, -1);
+    } else if (tecla === ".") {
+      if (!importeVentana.includes(".")) {
+        importeVentana = (importeVentana || "0") + ".";
+      }
+    } else {
+      const decimales = importeVentana.split(".")[1];
+      if (importeVentana.length >= 12) return;
+      if (decimales !== undefined && decimales.length >= 2) return;
+      importeVentana = importeVentana === "0" ? tecla : importeVentana + tecla;
+    }
+
+    document.getElementById("movVentanaMonto").textContent =
+      "$" + (importeVentana || "0.00");
+  };
+
+  tecladoVentana.appendChild(boton);
+});
+
+document.getElementById("movVentanaForm").onsubmit = event => {
+  event.preventDefault();
+
+  const campos = new FormData(event.target);
+  const monto = round(Number(importeVentana));
+  const nombre = String(campos.get("nombre") || "").trim();
+  const fecha = String(campos.get("fecha") || "");
+  const cuentaId = String(campos.get("cuentaId") || "");
+  const tipo = String(campos.get("tipo") || "");
+
+  if (
+    !Number.isFinite(monto) || monto <= 0 ||
+    !nombre || !fecha || !cuentaId ||
+    !["gasto", "ingreso"].includes(tipo)
+  ) {
+    alert("Revisa la cantidad, nota, fecha y cuenta.");
+    return;
+  }
+
+  const movimiento = {
+    id: id(),
+    cuentaId,
+    nombre,
+    tipo,
+    monto,
+    fecha,
+    categoria: String(campos.get("categoria") || "")
+  };
+
+  if (!guardarMovimientoBanco(null, movimiento)) return;
+
+  cerrarMovVentana();
+  render();
+};
+
+document.addEventListener("keydown", event => {
+  const ventana = document.getElementById("movVentana");
+  if (ventana.classList.contains("hidden")) return;
+
+  if (event.key === "Escape") cerrarMovVentana();
+
+  if (event.key === "Tab") {
+    const campos = [...ventana.querySelectorAll(
+      "button, input, select"
+    )].filter(c => !c.disabled);
+    const primero = campos[0];
+    const ultimo = campos[campos.length - 1];
+
+    if (event.shiftKey && document.activeElement === primero) {
+      event.preventDefault();
+      ultimo.focus();
+    } else if (!event.shiftKey && document.activeElement === ultimo) {
+      event.preventDefault();
+      primero.focus();
+    }
+  }
+});
+
+let gestoMovimiento = null;
+
+document.addEventListener("touchstart", event => {
+  gestoMovimiento = null;
+
+  if (
+    event.touches.length !== 1 ||
+    window.scrollY > 0 ||
+    event.target.closest(
+      "input,select,textarea,button,a,nav,#amMenu,#movVentana,#movVentanaFondo"
+    ) ||
+    document.getElementById("amMenu").classList.contains("abierto") ||
+    !document.getElementById("movVentana").classList.contains("hidden")
+  ) return;
+
+  gestoMovimiento = {
+    x: event.touches[0].clientX,
+    y: event.touches[0].clientY,
+    distancia: 0
+  };
+}, {passive: true});
+
+document.addEventListener("touchmove", event => {
+  if (!gestoMovimiento) return;
+  if (event.touches.length !== 1) {
+    gestoMovimiento = null;
+    return;
+  }
+
+  const dx = event.touches[0].clientX - gestoMovimiento.x;
+  const dy = event.touches[0].clientY - gestoMovimiento.y;
+
+  if (dy < -10 || Math.abs(dx) > Math.max(20, Math.abs(dy))) {
+    gestoMovimiento = null;
+    return;
+  }
+
+  gestoMovimiento.distancia = dy;
+  if (dy > 12 && event.cancelable) event.preventDefault();
+}, {passive: false});
+
+document.addEventListener("touchend", () => {
+  const abrir = gestoMovimiento && gestoMovimiento.distancia > 70;
+  gestoMovimiento = null;
+  if (abrir) abrirMovVentana();
+}, {passive: true});
+
+document.addEventListener("touchcancel", () => {
+  gestoMovimiento = null;
+}, {passive: true});
 </script>
 
 
