@@ -4568,27 +4568,42 @@ function editarPerfilLocal() {
 
   el().innerHTML = `
     <section class="ajustes-pantalla">
-      <button class="ajustes-volver" onclick="perfil()">‹ Mi perfil</button>
-      <h2>Editar perfil</h2>
+      <button class="ajustes-volver" onclick="perfil()">
+        ‹ ${textoApp("Mi perfil", "My profile")}
+      </button>
 
-      <form class="card" style="border-radius:30px;margin-top:20px"
+      <h2>${textoApp("Editar perfil", "Edit profile")}</h2>
+
+      <form class="card"
+            style="border-radius:30px;margin-top:20px"
             onsubmit="guardarPerfilLocal(event)">
-        <label for="perfilNombre">Nombre</label>
+        <label for="perfilNombre">
+          ${textoApp("Nombre", "Name")}
+        </label>
+
         <input id="perfilNombre" name="nombre"
                maxlength="60" required
                style="border-radius:999px"
-               placeholder="Tu nombre"
+               placeholder="${textoApp("Tu nombre", "Your name")}"
                value="${safe(usuario.nombre || "")}">
 
-        <label for="perfilFoto">Foto de la galería</label>
-        <input id="perfilFoto" name="foto" type="file" accept="image/*">
+        <label for="perfilFoto">
+          ${textoApp("Foto de la galería", "Photo from your library")}
+        </label>
+
+        <input id="perfilFoto" name="foto"
+               type="file" accept="image/*">
 
         <p class="note">
-          Si no eliges otra foto, se conservará la actual.
-          El perfil se guarda en este dispositivo.
+          ${textoApp(
+            "Si no eliges otra foto, se conservará la actual. El perfil se guarda en este dispositivo.",
+            "Your current photo will be kept unless you choose another. Your profile is saved on this device."
+          )}
         </p>
 
-        <button class="mov-guardar">Guardar perfil</button>
+        <button class="mov-guardar">
+          ${textoApp("Guardar perfil", "Save profile")}
+        </button>
       </form>
     </section>
   `;
