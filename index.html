@@ -4416,23 +4416,207 @@ function impuestos(){
   el().innerHTML = `<h2>Impuestos</h2>
     <div class="card"><p>Organiza tus ingresos y gastos para impuestos.</p></div>`;
 }
-function perfil(){
-  el().innerHTML=`
-    <h2>Mi perfil</h2>
+function perfil() {
+  const usuario = data.perfil || {};
 
-    <div class="card" style="text-align:center">
-      <div style="font-size:42px">👤</div>
-      <h3>Mi cuenta</h3>
-      <p class="note">Inicia sesión para conectar tu perfil.</p>
-    </div>
+  el().innerHTML = `
+    <section class="ajustes-pantalla">
+      <h2 style="margin-bottom:18px">Mi perfil</h2>
 
-    <div class="card">
-      <button onclick="go('ajustes')">
-        Ajustes
+      <div class="card perfil-tarjeta">
+        <div class="perfil-avatar">
+          ${usuario.foto ? `
+            <img src="${safe(usuario.foto)}" alt="Foto de perfil">
+          ` : `
+            <span class="perfil-silueta">
+              ${iconoAjuste("cuenta")}
+            </span>
+          `}
+
+          <button class="perfil-camara"
+                  onclick="editarPerfilLocal()"
+                  aria-label="Editar foto de perfil">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5l2-2h4l2 2h4v15H4V5Z"/>
+              <circle cx="12" cy="12" r="4"/>
+            </svg>
+          </button>
+        </div>
+
+        <h3 style="margin:0 0 6px;font-size:1.2rem">
+          ${safe(usuario.nombre || "Mi perfil")}
+        </h3>
+        <p class="note" style="margin:0">
+          Perfil en este dispositivo
+        </p>
+      </div>
+
+      <button class="ajustes-fila" onclick="editarPerfilLocal()">
+        <span class="ajustes-icono">${iconoAjuste("cuenta")}</span>
+        <span class="ajustes-texto">
+          <strong>Editar perfil</strong>
+          <small>Nombre y foto</small>
+        </span>
+        <span class="ajustes-flecha">›</span>
       </button>
-    </div>
+
+      <button class="ajustes-fila" onclick="abrirAjuste('pro')">
+        <span class="ajustes-icono">${iconoAjuste("pro")}</span>
+        <span class="ajustes-texto"><strong>Mi plan</strong></span>
+        <span class="perfil-plan">Free</span>
+        <span class="ajustes-flecha">›</span>
+      </button>
+
+      <button class="ajustes-fila" onclick="go('ajustes')">
+        <span class="ajustes-icono">${iconoAjuste("apariencia")}</span>
+        <span class="ajustes-texto">
+          <strong>Ajustes</strong>
+          <small>Personaliza Balance One</small>
+        </span>
+        <span class="ajustes-flecha">›</span>
+      </button>
+
+      <button class="ajustes-fila" onclick="preferenciasPerfil()">
+        <span class="ajustes-icono">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <ellipse cx="12" cy="12" rx="4" ry="9"/>
+            <path d="M3 12h18"/>
+          </svg>
+        </span>
+        <span class="ajustes-texto">
+          <strong>Preferencias</strong>
+          <small>Moneda e idioma</small>
+        </span>
+        <span class="ajustes-flecha">›</span>
+      </button>
+
+      <p class="ajustes-version">Balance One · 0.2.0 Beta</p>
+    </section>
   `;
 }
+
+function editarPerfilLocal() {
+  const usuario = data.perfil || {};
+
+  el().innerHTML = `
+    <section class="ajustes-pantalla">
+      <button class="ajustes-volver" onclick="perfil()">‹ Mi perfil</button>
+      <h2>Editar perfil</h2>
+
+      <form class="card" style="border-radius:30px;margin-top:20px"
+            onsubmit="guardarPerfilLocal(event)">
+        <label for="perfilNombre">Nombre</label>
+        <input id="perfilNombre" name="nombre"
+               maxlength="60" required
+               style="border-radius:999px"
+               placeholder="Tu nombre"
+               value="${safe(usuario.nombre || "")}">
+
+        <label for="perfilFoto">Foto de la galería</label>
+        <input id="perfilFoto" name="foto" type="file" accept="image/*">
+
+        <p class="note">
+          Si no eliges otra foto, se conservará la actual.
+          El perfil se guarda en este dispositivo.
+        </p>
+
+        <button class="mov-guardar">Guardar perfil</button>
+      </form>
+    </section>
+  `;
+
+  window.scrollTo(0, 0);
+}
+
+async function guardarPerfilLocal(event) {
+  event.preventDefault();
+
+  const formulario = event.target;
+  const campos = new FormData(formulario);
+  const nombre = String(campos.get("nombre") || "").trim();
+  const archivo = campos.get("foto");
+  const boton = formulario.querySelector("button");
+
+  if (!nombre) {
+    alert("Escribe tu nombre.");
+    return;
+  }
+
+  boton.disabled = true;
+
+  try {
+    let foto = data.perfil?.foto || "";
+
+    if (archivo && archivo.size > 0) {
+      const url = URL.createObjectURL(archivo);
+
+      try {
+        const imagen = new Image();
+
+        await new Promise((resolve, reject) => {
+          imagen.onload = resolve;
+          imagen.onerror = () => reject(
+            new Error("No se pudo abrir la foto. Prueba con JPG o PNG.")
+          );
+          imagen.src = url;
+        });
+
+        const escala = Math.min(
+          1, 400 / Math.max(imagen.naturalWidth, imagen.naturalHeight)
+        );
+
+        const lienzo = document.createElement("canvas");
+        lienzo.width = Math.max(1, Math.round(imagen.naturalWidth * escala));
+        lienzo.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
+
+        const contexto = lienzo.getContext("2d");
+        if (!contexto) throw new Error("No se pudo preparar la foto.");
+
+        contexto.fillStyle = "#ffffff";
+        contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+        contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+        foto = lienzo.toDataURL("image/jpeg", 0.8);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    const nuevosDatos = {...data, perfil: {nombre, foto}};
+    localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+    data = nuevosDatos;
+    perfil();
+  } catch (error) {
+    alert(
+      error.name === "QuotaExceededError"
+        ? "No hay espacio suficiente para guardar la foto."
+        : error.message || "No se pudo guardar el perfil."
+    );
+  } finally {
+    boton.disabled = false;
+  }
+}
+
+function preferenciasPerfil() {
+  el().innerHTML = `
+    <section class="ajustes-pantalla">
+      <button class="ajustes-volver" onclick="perfil()">‹ Mi perfil</button>
+      <h2>Preferencias</h2>
+
+      <div class="card" style="border-radius:30px;margin-top:20px">
+        <p>Moneda actual: <strong>USD · Dólar estadounidense</strong></p>
+        <p>Idioma actual: <strong>Español</strong></p>
+        <p class="note">
+          La selección de otras monedas e idiomas
+          estará disponible más adelante.
+        </p>
+      </div>
+    </section>
+  `;
+
+  window.scrollTo(0, 0);
+}
+
 function iconoAjuste(tipo) {
   const dibujos = {
     cuenta: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2Z"/>',
