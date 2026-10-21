@@ -2311,11 +2311,11 @@ ${autos + tarjetas > 0 ? `
   style="padding:0;border:0;border-radius:30px;overflow:hidden;margin-top:16px">
 
   <div class="cuentas-cabecera">
-    <h2>Tarjetas de crédito</h2>
+    <h2>${textoApp("Tarjetas de crédito", "Credit cards")}</h2>
 
     <button type="button" class="cuentas-agregar"
       onclick="go('tarjetas')">
-      Ver todas ›
+      ${textoApp("Ver todas", "View all")} ›
     </button>
   </div>
 
@@ -2367,7 +2367,7 @@ ${autos + tarjetas > 0 ? `
 
           <div class="banco-info">
             <span class="banco-nombre">${safe(t.nombre)}</span>
-            <span class="banco-tipo">Tarjeta de crédito</span>
+            <span class="banco-tipo">${textoApp("Tarjeta de crédito", "Credit card")}</span>
           </div>
 
           <span class="banco-saldo">${money(saldo)}</span>
@@ -2379,10 +2379,10 @@ ${autos + tarjetas > 0 ? `
           </div>
 
           <div class="banco-meta-texto">
-            <span>Límite: ${money(limite)}</span>
+            <span>${textoApp("Límite", "Limit")}: ${money(limite)}</span>
             <span>${limite > 0
-              ? uso.toFixed(0) + "% utilizado"
-              : "Sin límite configurado"}</span>
+              ? uso.toFixed(0) + textoApp("% utilizado", "% used")
+              : textoApp("Sin límite configurado", "No limit set")}</span>
           </div>
         </div>
       </button>
@@ -2391,7 +2391,7 @@ ${autos + tarjetas > 0 ? `
 
   ${data.tarjetas.length === 0 ? `
     <p class="note" style="padding:0 16px 16px;margin:0">
-      Agrega tu primera tarjeta desde Ver todas.
+      ${textoApp("Agrega tu primera tarjeta desde Ver todas.", "Add your first card through View all.")}
     </p>
   ` : ""}
 </div>
