@@ -2514,51 +2514,63 @@ function movimientos(){
 
  el().innerHTML=`
 <div class="mov-pantalla">
-  <h2>Movimientos</h2>
+    <h2>${textoApp("Movimientos", "Transactions")}</h2>
 
   <div class="mov-formulario">
     <form id="formMov">
-      <label for="movCuenta">Cuenta</label>
+      <label for="movCuenta">${textoApp("Cuenta", "Account")}</label>
       <select id="movCuenta" name="cuentaId" required>
-        <option value="">Selecciona una cuenta</option>
+        <option value="">
+          ${textoApp("Selecciona una cuenta", "Select an account")}
+        </option>
       </select>
       <p class="mov-ayuda" id="movSaldo">
-        Selecciona la cuenta que deseas utilizar.
+        ${textoApp(
+          "Selecciona la cuenta que deseas utilizar.",
+          "Select the account you want to use."
+        )}
       </p>
 
-      <label>Tipo</label>
+      <label>${textoApp("Tipo", "Type")}</label>
       <input type="hidden" name="tipo" value="gasto">
       <div class="mov-tipos">
         <button type="button" data-tipo="ingreso">
-          Ingreso
+          ${textoApp("Ingreso", "Income")}
         </button>
         <button type="button" data-tipo="gasto" class="activo">
-          Gasto
+          ${textoApp("Gasto", "Expense")}
         </button>
       </div>
 
-      <label for="movNombre">Descripción</label>
+      <label for="movNombre">
+        ${textoApp("Descripción", "Description")}
+      </label>
       <input id="movNombre" name="nombre"
-        placeholder="Supermercado"
+        placeholder="${textoApp("Supermercado", "Groceries")}"
         maxlength="80" required>
 
-      <label for="movMonto">Cantidad ($)</label>
+      <label for="movMonto">
+        ${textoApp("Cantidad ($)", "Amount ($)")}
+      </label>
       <input id="movMonto" name="monto"
         type="number" min="0.01"
         step="0.01" placeholder="0.00" required>
 
-      <label for="movFecha">Fecha</label>
+      <label for="movFecha">${textoApp("Fecha", "Date")}</label>
       <input id="movFecha" name="fecha"
         type="date" value="${today()}" required>
 
       <p class="mov-ayuda" id="movSaldoDespues"></p>
 
       <button class="mov-guardar" type="submit">
-        Guardar movimiento
+        ${textoApp("Guardar movimiento", "Save transaction")}
       </button>
 
       <p class="mov-ayuda">
-        El movimiento actualizará únicamente esta cuenta.
+        ${textoApp(
+          "El movimiento actualizará únicamente esta cuenta.",
+          "This transaction will update only this account."
+        )}
       </p>
     </form>
   </div>
