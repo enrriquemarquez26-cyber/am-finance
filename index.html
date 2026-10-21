@@ -2211,7 +2211,7 @@ const banco = String(c.nombre || "").toLowerCase();
     <div class="banco-info">
       <span class="banco-nombre">${safe(c.nombre)}</span>
       <span class="banco-tipo">
-        ${tipo === "ahorro" ? "Ahorros" : "Cheques"}
+        ${tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")}
       </span>
     </div>
 
@@ -2227,8 +2227,8 @@ const banco = String(c.nombre || "").toLowerCase();
       <div class="banco-meta-texto">
         <span>${
           meta > 0
-            ? "Meta: " + money(meta)
-            : "Sin meta configurada"
+            ? textoApp("Meta: ", "Goal: ") + money(meta)
+            : textoApp("Sin meta configurada", "No goal set")
         }</span>
         <span>${
           meta > 0 ? porcentaje.toFixed(0) + "%" : ""
@@ -2290,11 +2290,11 @@ ${autos + tarjetas > 0 ? `
 
 <div id="cuentasInicio">
   <div class="cuentas-cabecera">
-    <h2>Cuentas bancarias</h2>
+    <h2>${textoApp("Cuentas bancarias", "Bank accounts")}</h2>
 
     <button type="button" class="cuentas-agregar"
       onclick="abrirNuevaCuenta()">
-      + Agregar
+      + ${textoApp("Agregar", "Add")}
     </button>
   </div>
 
@@ -2303,7 +2303,7 @@ ${autos + tarjetas > 0 ? `
 
   ${cuentasBanco.length === 0 ? `
     <p class="note" style="padding:0 16px 16px;margin:0">
-      Agrega tu primera cuenta bancaria.
+      ${textoApp("Agrega tu primera cuenta bancaria.", "Add your first bank account.")}
     </p>
   ` : ""}
 </div>
