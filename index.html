@@ -2508,7 +2508,7 @@ function movimientos(){
   ...data.movimientos.map(m=>({...m,origen:"movimiento"})),
   ...data.pagos.map(p=>({
    ...p,origen:"pago",tipo:"gasto",
-   nombre:"Pago: "+p.nombre
+   nombre:textoApp("Pago: ", "Payment: ")+p.nombre
   }))
  ].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
 
@@ -2577,10 +2577,10 @@ function movimientos(){
 
 <div class="mov-historial" style="margin-top:20px">
   <div class="hist-cabecera">
-    <h3>Historial</h3>
+    <h3>${textoApp("Historial", "History")}</h3>
 
     <button type="button" class="hist-buscar"
-      id="histBuscarBoton" aria-label="Buscar movimientos"
+      id="histBuscarBoton" aria-label="${textoApp("Buscar movimientos", "Search transactions")}"
       aria-expanded="false">
       <svg width="18" height="18" viewBox="0 0 24 24"
         fill="none" stroke="currentColor" stroke-width="1.8"
@@ -2593,18 +2593,18 @@ function movimientos(){
 
   <div id="histBusqueda" class="hidden">
     <input id="histBuscarTexto" type="search"
-      placeholder="Buscar movimiento..."
-      aria-label="Buscar movimiento"
+      placeholder="${textoApp("Buscar movimiento...", "Search transactions...")}"
+      aria-label="${textoApp("Buscar movimiento", "Search transactions")}"
       style="border-radius:999px">
   </div>
 
   <div class="hist-filtros">
     <button type="button" class="activo"
-      data-filtro-hist="todos">Todos</button>
+      data-filtro-hist="todos">${textoApp("Todos", "All")}</button>
     <button type="button"
-      data-filtro-hist="gasto">Gastos</button>
+      data-filtro-hist="gasto">${textoApp("Gastos", "Expenses")}</button>
     <button type="button"
-      data-filtro-hist="ingreso">Ingresos</button>
+      data-filtro-hist="ingreso">${textoApp("Ingresos", "Income")}</button>
   </div>
 
   <div id="histLista">
