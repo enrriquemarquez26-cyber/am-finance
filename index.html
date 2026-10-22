@@ -2836,7 +2836,7 @@ cuentasMov.forEach(cuenta => {
   const opcion = document.createElement("option");
   opcion.value = cuenta.id;
   opcion.textContent = cuenta.nombre + " · " +
-    (cuenta.tipo === "ahorro" ? "Ahorros" : "Cheques");
+        (cuenta.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking"));
   selectorCuenta.appendChild(opcion);
 });
 
@@ -2859,7 +2859,7 @@ function actualizarVistaMovimiento() {
   const saldo = Number(cuenta.saldo) || 0;
   const monto = round(campoMonto.value);
 
-  saldoTexto.textContent = "Saldo disponible: " + money(saldo);
+    saldoTexto.textContent = textoApp("Saldo disponible: ", "Available balance: ") + money(saldo);
 
   if (!validAmount(monto)) {
     despuesTexto.textContent = "";
@@ -2869,8 +2869,10 @@ function actualizarVistaMovimiento() {
   const gasto = campoTipo.value === "gasto";
   const nuevoSaldo = round(saldo + (gasto ? -monto : monto));
 
-  despuesTexto.textContent =
-    "Saldo después del " + (gasto ? "gasto: " : "ingreso: ") +
+    despuesTexto.textContent =
+    (gasto
+      ? textoApp("Saldo después del gasto: ", "Balance after expense: ")
+      : textoApp("Saldo después del ingreso: ", "Balance after income: ")) +
     money(nuevoSaldo);
 
   despuesTexto.style.color = nuevoSaldo < 0 ? "#d44d56" : "";
