@@ -2663,7 +2663,7 @@ function movimientos(){
             <div class="hist-fecha">${
               validDate(String(m.fecha))
                 ? new Date(m.fecha+"T12:00:00").toLocaleDateString(
-                    "es", {
+                    idiomaActual() === "en" ? "en-US" : "es", {
                       day:"numeric",
                       month:"short",
                       year:"numeric"
@@ -2676,7 +2676,7 @@ function movimientos(){
           <span class="hist-tipo ${
             m.tipo==="ingreso"?"ingreso":"gasto"
           }">
-            ${m.tipo==="ingreso"?"Ingreso":"Gasto"}
+            ${m.tipo==="ingreso"?textoApp("Ingreso","Income"):textoApp("Gasto","Expense")}
           </span>
 
           <strong class="hist-importe ${
@@ -2687,16 +2687,16 @@ function movimientos(){
 
           <button type="button" class="hist-menu"
             data-hist-menu="${i}"
-            aria-label="Opciones de ${safe(m.nombre)}"
+            aria-label="${textoApp("Opciones de ", "Options for ")}${safe(m.nombre)}"
             aria-expanded="false">⋯</button>
         </div>
 
         <div id="histOpciones${i}" class="hidden">
           <div class="hist-acciones">
             <button type="button"
-              data-hist-editar="${i}">Editar</button>
+              data-hist-editar="${i}">${textoApp("Editar", "Edit")}</button>
             <button type="button"
-              data-hist-eliminar="${i}">Eliminar</button>
+              data-hist-eliminar="${i}">${textoApp("Eliminar", "Delete")}</button>
           </div>
         </div>
 
@@ -2707,7 +2707,7 @@ function movimientos(){
 
   <p id="histSinResultados" class="mov-vacio"
     ${items.length?'hidden':''}>
-    Sin movimientos
+    ${textoApp("Sin movimientos", "No transactions")}
   </p>
 </div>
 </div>`;
@@ -2745,8 +2745,8 @@ function filtrarHistorial() {
 
   avisoHistorial.hidden = visibles > 0;
   avisoHistorial.textContent = items.length
-    ? "No hay movimientos que coincidan."
-    : "Sin movimientos";
+    ? textoApp("No hay movimientos que coincidan.", "No matching transactions.")
+    : textoApp("Sin movimientos", "No transactions");
 }
 
 botonBusqueda.onclick = () => {
