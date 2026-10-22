@@ -2829,7 +2829,7 @@ try {
     cuentasMov = guardadas;
   }
 } catch (error) {
-  alert("No se pudieron leer las cuentas bancarias.");
+    alert(textoApp("No se pudieron leer las cuentas bancarias.", "Could not load bank accounts."));
 }
 
 cuentasMov.forEach(cuenta => {
@@ -2910,12 +2910,12 @@ formulario.onsubmit = e => {
     !validDate(fecha) ||
     !["ingreso", "gasto"].includes(tipo)
   ) {
-    alert("Revisa la descripción, cantidad y fecha.");
+        alert(textoApp("Revisa la descripción, cantidad y fecha.", "Check the description, amount and date."));
     return;
   }
 
   if (!cuentasMov.some(c => String(c.id) === cuentaId)) {
-    alert("Selecciona una cuenta válida.");
+        alert(textoApp("Selecciona una cuenta válida.", "Select a valid account."));
     return;
   }
 
@@ -2993,7 +2993,7 @@ function cuentaDePago(p){
 function ajustarSaldo(cuenta,delta){
  const nuevo=round(Number(cuenta.saldo)+delta);
  if(!Number.isFinite(nuevo)||nuevo<0){
-  alert("Este cambio dejaría la deuda con saldo negativo. Revisa los pagos.");
+    alert(textoApp("Este cambio dejaría la deuda con saldo negativo. Revisa los pagos.", "This change would make the debt balance negative. Check the payments."));
   return false;
  }
  cuenta.saldo=nuevo;
@@ -3009,7 +3009,7 @@ function guardarEdicion(e,origen,ident){
  const fecha=String(f.get("fecha"));
 
  if(!validAmount(monto)||!validDate(fecha)){
-  alert("Introduce una cantidad y una fecha válidas.");
+    alert(textoApp("Introduce una cantidad y una fecha válidas.", "Enter a valid amount and date."));
   return;
  }
 if (
@@ -3027,7 +3027,7 @@ if (
 
   openEdit = null;
   render();
-  alert("Pago corregido y saldos actualizados.");
+    alert(textoApp("Pago corregido y saldos actualizados.", "Payment corrected and balances updated."));
   return;
 }
 
@@ -3045,13 +3045,13 @@ const corregido = {
 if (!guardarMovimientoBanco(item, corregido)) return;
 
 openEdit = null;
-alert("Cambios guardados correctamente.");
+alert(textoApp("Cambios guardados correctamente.", "Changes saved successfully."));
 render();
 return;
  }else{
   const cuenta=cuentaDePago(item);
   if(!cuenta){
-   alert("No se encontró la cuenta de este pago. No se puede corregir la deuda automáticamente.");
+      alert(textoApp("No se encontró la cuenta de este pago. No se puede corregir la deuda automáticamente.", "The account for this payment was not found. The debt cannot be adjusted automatically."));
    return;
   }
   const anterior=Number(item.monto);
@@ -3061,12 +3061,12 @@ return;
    const interes=Number(item.interes);
    const capitalAnterior=Number(item.capital);
    if(!Number.isFinite(interes)||!Number.isFinite(capitalAnterior)){
-    alert("Este pago antiguo no tiene suficientes datos para editarse con seguridad.");
+        alert(textoApp("Este pago antiguo no tiene suficientes datos para editarse con seguridad.", "This older payment does not have enough information to be edited safely."));
     return;
    }
    const capitalNuevo=round(capitalAnterior+diferencia);
    if(capitalNuevo<=0){
-    alert("El pago corregido no cubre el interés registrado.");
+        alert(textoApp("El pago corregido no cubre el interés registrado.", "The corrected payment does not cover the recorded interest."));
     return;
    }
    if(!ajustarSaldo(cuenta,-diferencia))return;
