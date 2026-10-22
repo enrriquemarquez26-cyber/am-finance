@@ -2850,8 +2850,8 @@ function actualizarVistaMovimiento() {
 
   if (!cuenta) {
     saldoTexto.textContent = cuentasMov.length
-      ? "Selecciona la cuenta que deseas utilizar."
-      : "Primero agrega una cuenta desde Inicio.";
+            ? textoApp("Selecciona la cuenta que deseas utilizar.", "Select the account you want to use.")
+      : textoApp("Primero agrega una cuenta desde Inicio.", "First, add an account from Home.");
     despuesTexto.textContent = "";
     return;
   }
