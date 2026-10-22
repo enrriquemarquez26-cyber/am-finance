@@ -2938,25 +2938,25 @@ function editor(m){
  const pago=m.origen==="pago";
  return `
  <div class="editbox">
-  <h3>Editar ${pago?"pago":"movimiento"}</h3>
+    <h3>${pago ? textoApp("Editar pago", "Edit payment") : textoApp("Editar movimiento", "Edit transaction")}</h3>
   <form onsubmit="guardarEdicion(event,'${m.origen}','${m.id}')">
    ${pago?`
-    <p class="note">Cuenta: ${safe(m.nombre)}. Se conservará la distribución original de intereses y capital, ajustando el capital por la diferencia del pago.</p>
+        <p class="note">${textoApp("Cuenta: ", "Account: ")}${safe(m.nombre)}. ${textoApp("Se conservará la distribución original de intereses y capital, ajustando el capital por la diferencia del pago.", "The original interest and principal allocation will be preserved, adjusting the principal by the payment difference.")}</p>
    `:`
-    <label class="label">Tipo</label>
+        <label class="label">${textoApp("Tipo", "Type")}</label>
     <select name="tipo">
-     <option value="ingreso" ${m.tipo==="ingreso"?"selected":""}>Ingreso</option>
-     <option value="gasto" ${m.tipo==="gasto"?"selected":""}>Gasto</option>
+          <option value="ingreso" ${m.tipo==="ingreso"?"selected":""}>${textoApp("Ingreso", "Income")}</option>
+     <option value="gasto" ${m.tipo==="gasto"?"selected":""}>${textoApp("Gasto", "Expense")}</option>
     </select>
-    <label class="label">Descripción</label>
+        <label class="label">${textoApp("Descripción", "Description")}</label>
     <input name="nombre" maxlength="80" value="${safe(m.nombre)}" required>
    `}
-   <label class="label">Cantidad ($)</label>
+      <label class="label">${textoApp("Cantidad ($)", "Amount ($)")}</label>
    <input name="monto" type="number" min="0.01" step="0.01" value="${m.monto}" required>
-   <label class="label">Fecha</label>
+      <label class="label">${textoApp("Fecha", "Date")}</label>
    <input name="fecha" type="date" value="${safe(m.fecha)}" required>
-   <button class="primary">Guardar cambios</button>
-   <button type="button" class="secondary" onclick="cancelarEdicion()">Cancelar</button>
+      <button class="primary">${textoApp("Guardar cambios", "Save changes")}</button>
+      <button type="button" class="secondary" onclick="cancelarEdicion()">${textoApp("Cancelar", "Cancel")}</button>
   </form>
  </div>`;
 }
