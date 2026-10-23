@@ -3933,7 +3933,7 @@ function guardarDatosTarjeta(event, indice) {
   const pagoMinimo = entrada === "" ? null : Number(entrada);
 
   if (ultimos4 && !/^\d{4}$/.test(ultimos4)) {
-    alert("Introduce únicamente los últimos cuatro dígitos.");
+        alert(textoApp("Introduce únicamente los últimos cuatro dígitos.", "Enter only the last four digits."));
     return;
   }
 
@@ -3941,7 +3941,7 @@ function guardarDatosTarjeta(event, indice) {
     pagoMinimo !== null &&
     (!Number.isFinite(pagoMinimo) || pagoMinimo < 0)
   ) {
-    alert("Introduce un pago mínimo válido.");
+        alert(textoApp("Introduce un pago mínimo válido.", "Enter a valid minimum payment."));
     return;
   }
 
@@ -3959,7 +3959,7 @@ function guardarDatosTarjeta(event, indice) {
   }
 
   render();
-  alert("Datos de la tarjeta guardados.");
+    alert(textoApp("Datos de la tarjeta guardados.", "Card details saved."));
 }
 
 function guardarVencimiento(e,tipo,i){
@@ -3968,7 +3968,7 @@ e.preventDefault();
 const dia=Number(new FormData(e.target).get("dia"));
 
 if(!Number.isInteger(dia)||dia<1||dia>31){
-alert("Selecciona un día válido.");
+alert(textoApp("Selecciona un día válido.", "Select a valid day."));
 return;
 }
 
@@ -3977,7 +3977,7 @@ const cuenta=tipo==="tarjeta"
 :data.vehiculos[i];
 
 if(!cuenta){
-alert("No se encontró la cuenta.");
+alert(textoApp("No se encontró la cuenta.", "Account not found."));
 return;
 }
 
@@ -3985,7 +3985,7 @@ cuenta.vencimiento=dia;
 save();
 render();
 
-alert("Vencimiento guardado: día "+dia+" de cada mes.");
+alert(textoApp("Vencimiento guardado: día "+dia+" de cada mes.", "Due date saved: day "+dia+" of each month."));
 }
 function toggle(ident){
  const element=document.getElementById(ident);
@@ -4055,7 +4055,7 @@ function guardarPagoTarjetaBanco(anterior, nuevo) {
     const cuentas = JSON.parse(bancosPrevios || "[]");
 
     if (!Array.isArray(cuentas) || !pago) {
-      throw new Error("Datos no válidos");
+            throw new Error(textoApp("Datos no válidos", "Invalid data"));
     }
 
     const cuenta = cuentas.find(
@@ -4067,7 +4067,7 @@ function guardarPagoTarjetaBanco(anterior, nuevo) {
     );
 
     if (!cuenta || !tarjeta) {
-      alert("No se encontró la cuenta bancaria o la tarjeta.");
+            alert(textoApp("No se encontró la cuenta bancaria o la tarjeta.", "The bank account or card was not found."));
       return false;
     }
 
@@ -4085,7 +4085,7 @@ function guardarPagoTarjetaBanco(anterior, nuevo) {
       saldoBanco < 0 ||
       deudaTarjeta < 0
     ) {
-      alert("Revisa el saldo de la cuenta y la deuda de la tarjeta.");
+            alert(textoApp("Revisa el saldo de la cuenta y la deuda de la tarjeta.", "Check the account balance and the card debt."));
       return false;
     }
 
@@ -4125,7 +4125,7 @@ function guardarPagoTarjetaBanco(anterior, nuevo) {
     data = datosNuevos;
     return true;
   } catch (error) {
-    alert("No se pudieron guardar los cambios del pago.");
+        alert(textoApp("No se pudieron guardar los cambios del pago.", "Could not save the payment changes."));
     return false;
   }
 }
@@ -4141,21 +4141,21 @@ function pagarTarjeta(e, i) {
   const bancoId = String(campos.get("bancoId") || "");
 
   if (!validAmount(monto)) {
-    alert("Introduce una cantidad válida.");
+        alert(textoApp("Introduce una cantidad válida.", "Enter a valid amount."));
     return;
   }
 
   if (!bancoId) {
-    alert("Selecciona la cuenta de origen.");
+        alert(textoApp("Selecciona la cuenta de origen.", "Select the source account."));
     return;
   }
 
   if (monto > Number(tarjeta.saldo)) {
-    alert("El pago supera la deuda de la tarjeta.");
+        alert(textoApp("El pago supera la deuda de la tarjeta.", "The payment exceeds the card debt."));
     return;
   }
 
-  if (!confirm("¿Registrar pago de " + money(monto) + "?")) {
+    if (!confirm(textoApp("¿Registrar pago de ", "Record a payment of ") + money(monto) + "?")) {
     return;
   }
 
@@ -4172,7 +4172,7 @@ function pagarTarjeta(e, i) {
   if (!guardarPagoTarjetaBanco(null, pago)) return;
 
   render();
-  alert("Pago registrado y descontado de la cuenta elegida.");
+    alert(textoApp("Pago registrado y descontado de la cuenta elegida.", "Payment recorded and deducted from the selected account."));
 }
 
 function presupuestos(){
