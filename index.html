@@ -4645,7 +4645,7 @@ async function guardarPerfilLocal(event) {
   const boton = formulario.querySelector("button");
 
   if (!nombre) {
-    alert("Escribe tu nombre.");
+        alert(textoApp("Escribe tu nombre.", "Enter your name."));
     return;
   }
 
@@ -4663,7 +4663,7 @@ async function guardarPerfilLocal(event) {
         await new Promise((resolve, reject) => {
           imagen.onload = resolve;
           imagen.onerror = () => reject(
-            new Error("No se pudo abrir la foto. Prueba con JPG o PNG.")
+                        new Error(textoApp("No se pudo abrir la foto. Prueba con JPG o PNG.", "Could not open the photo. Try a JPG or PNG image."))
           );
           imagen.src = url;
         });
@@ -4677,7 +4677,7 @@ async function guardarPerfilLocal(event) {
         lienzo.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
 
         const contexto = lienzo.getContext("2d");
-        if (!contexto) throw new Error("No se pudo preparar la foto.");
+                if (!contexto) throw new Error(textoApp("No se pudo preparar la foto.", "Could not process the photo."));
 
         contexto.fillStyle = "#ffffff";
         contexto.fillRect(0, 0, lienzo.width, lienzo.height);
@@ -4695,8 +4695,8 @@ async function guardarPerfilLocal(event) {
   } catch (error) {
     alert(
       error.name === "QuotaExceededError"
-        ? "No hay espacio suficiente para guardar la foto."
-        : error.message || "No se pudo guardar el perfil."
+               ? textoApp("No hay espacio suficiente para guardar la foto.", "There is not enough storage space to save the photo.")
+                : error.message || textoApp("No se pudo guardar el perfil.", "Could not save the profile.")
     );
   } finally {
     boton.disabled = false;
@@ -4787,7 +4787,7 @@ function guardarFormatoImportes(formato) {
     localStorage.setItem("balanceone-formato-importes", formato);
     preferenciasPerfil();
   } catch {
-    alert("No se pudo guardar la preferencia.");
+        alert(textoApp("No se pudo guardar la preferencia.", "Could not save the preference."));
   }
 }
 
