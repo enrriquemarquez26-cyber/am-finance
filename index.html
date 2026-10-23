@@ -3164,31 +3164,31 @@ function vehiculos(){
  el().innerHTML=`
 <div class="row" style="margin-bottom:20px">
   <div>
-    <h2 style="margin:0 0 6px">Vehículos</h2>
-    <div class="label">Tu auto y sus pagos</div>
+        <h2 style="margin:0 0 6px">${textoApp("Vehículos", "Vehicles")}</h2>
+        <div class="label">${textoApp("Tu auto y sus pagos", "Your car and its payments")}</div>
   </div>
 
   <button class="cuentas-agregar"
           style="background:#fff0e4;border-radius:999px;padding:12px 16px"
           onclick="toggle('agregarVehiculo')">
-    + Agregar
+        + ${textoApp("Agregar", "Add")}
   </button>
 </div>
 
   <div class="card hidden vehiculo-panel" id="agregarVehiculo">
   <form id="formAuto">
-   <input name="nombre" placeholder="Nombre del vehículo" maxlength="80" required>
-   <input name="saldo" type="number" min="0" step="0.01" placeholder="Saldo pendiente ($)" required>
-   <input name="apr" type="number" min="0" step="0.01" placeholder="APR (%)" required>
-   <input name="pago" type="number" min="0.01" step="0.01" placeholder="Pago mensual ($)" required>
-   <label class="label">Día de vencimiento mensual</label>
+      <input name="nombre" placeholder="${textoApp("Nombre del vehículo", "Vehicle name")}" maxlength="80" required>
+      <input name="saldo" type="number" min="0" step="0.01" placeholder="${textoApp("Saldo pendiente ($)", "Outstanding balance ($)")}" required>
+      <input name="apr" type="number" min="0" step="0.01" placeholder="APR (%)" required>
+      <input name="pago" type="number" min="0.01" step="0.01" placeholder="${textoApp("Pago mensual ($)", "Monthly payment ($)")}" required>
+      <label class="label">${textoApp("Día de vencimiento mensual", "Monthly payment due day")}</label>
 <select name="vencimiento" required>
-<option value="">Seleccionar día de pago</option>
+<option value="">${textoApp("Seleccionar día de pago", "Select payment day")}</option>
 ${Array.from({length:31},(_,i)=>`
-<option value="${i+1}">Día ${i+1}</option>
+<option value="${i+1}">${textoApp("Día", "Day")} ${i+1}</option>
 `).join("")}
 </select>
-  <button class="primary">Añadir vehículo</button>
+    <button class="primary">${textoApp("Añadir vehículo", "Add vehicle")}</button>
   </form>
  </div>
  ${data.vehiculos.map((v,i)=>{
