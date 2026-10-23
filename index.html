@@ -3601,30 +3601,30 @@ function tarjetas(){
 <div class="tarjetas-pantalla">
   <div class="credito-cabecera">
   <div>
-    <h2>Tarjetas de crédito</h2>
-    <p class="tarjetas-ayuda">Gestiona tus tarjetas y pagos</p>
+        <h2>${textoApp("Tarjetas de crédito", "Credit cards")}</h2>
+        <p class="tarjetas-ayuda">${textoApp("Gestiona tus tarjetas y pagos", "Manage your cards and payments")}</p>
   </div>
 
   <button type="button" class="credito-agregar"
     onclick="toggle('formularioNuevaTarjeta')">
-    + Agregar
+        + ${textoApp("Agregar", "Add")}
   </button>
 </div>
 
 <div class="tarjeta-formulario hidden"
   id="formularioNuevaTarjeta">
     <form id="formTarjeta">
-      <label for="tarjetaNombre">Nombre de la tarjeta</label>
+            <label for="tarjetaNombre">${textoApp("Nombre de la tarjeta", "Card name")}</label>
       <input id="tarjetaNombre" name="nombre"
-        placeholder="Ej. American Express"
+                placeholder="${textoApp("Ej. American Express", "e.g. American Express")}"
         maxlength="80" required>
 
-      <label for="tarjetaSaldo">Deuda actual ($)</label>
+            <label for="tarjetaSaldo">${textoApp("Deuda actual ($)", "Current debt ($)")}</label>
       <input id="tarjetaSaldo" name="saldo"
         type="number" min="0" step="0.01"
         placeholder="0.00" required>
 
-      <label for="tarjetaLimite">Límite de crédito ($)</label>
+            <label for="tarjetaLimite">${textoApp("Límite de crédito ($)", "Credit limit ($)")}</label>
       <input id="tarjetaLimite" name="limite"
         type="number" min="0" step="0.01"
         placeholder="0.00" required>
@@ -3632,23 +3632,23 @@ function tarjetas(){
       <label for="tarjetaApr">APR (%)</label>
       <input id="tarjetaApr" name="apr"
         type="number" min="0" step="0.01"
-        placeholder="Ej. 24.99" required>
+                placeholder="${textoApp("Ej. 24.99", "e.g. 24.99")}" required>
 
-      <label for="tarjetaVencimiento">Día de vencimiento</label>
+            <label for="tarjetaVencimiento">${textoApp("Día de vencimiento", "Payment due day")}</label>
       <select id="tarjetaVencimiento"
         name="vencimiento" required>
-        <option value="">Seleccionar día</option>
+                <option value="">${textoApp("Seleccionar día", "Select day")}</option>
         ${Array.from({length:31},(_,i)=>`
-          <option value="${i+1}">Día ${i+1}</option>
+                    <option value="${i+1}">${textoApp("Día", "Day")} ${i+1}</option>
         `).join("")}
       </select>
 
       <button class="primary" type="submit">
-        Añadir tarjeta
+                ${textoApp("Añadir tarjeta", "Add card")}
       </button>
 
       <p class="tarjetas-ayuda">
-        La deuda se mantiene separada de tus cuentas bancarias.
+                ${textoApp("La deuda se mantiene separada de tus cuentas bancarias.", "Your debt is kept separate from your bank accounts.")}
       </p>
     </form>
   </div>
