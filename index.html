@@ -2032,7 +2032,7 @@ function save(){
   localStorage.setItem(KEY,JSON.stringify(data));
   return true;
  }catch(e){
-  alert("No se pudieron guardar los cambios en este dispositivo.");
+    alert(textoApp("No se pudieron guardar los cambios en este dispositivo.", "Could not save changes on this device."));
   return false;
  }
 }
@@ -2408,7 +2408,7 @@ function guardarMovimientoBanco(anterior, nuevo) {
     const cuentas = JSON.parse(bancosPrevios || "[]");
 
     if (!Array.isArray(cuentas)) {
-      throw new Error("Cuentas no válidas");
+            throw new Error(textoApp("Cuentas no válidas", "Invalid accounts"));
     }
 
     const cambios = new Map();
@@ -2422,7 +2422,7 @@ function guardarMovimientoBanco(anterior, nuevo) {
         !validAmount(cantidad) ||
         !["ingreso", "gasto"].includes(movimiento.tipo)
       ) {
-        throw new Error("Movimiento no válido");
+                throw new Error(textoApp("Movimiento no válido", "Invalid transaction"));
       }
 
       const cuentaId = String(movimiento.cuentaId);
@@ -2445,14 +2445,14 @@ function guardarMovimientoBanco(anterior, nuevo) {
       );
 
       if (!cuenta) {
-        alert("No se encontró la cuenta del movimiento.");
+                alert(textoApp("No se encontró la cuenta del movimiento.", "The account for this transaction was not found."));
         return false;
       }
 
       const saldo = round(Number(cuenta.saldo) + diferencia);
 
       if (!Number.isFinite(saldo) || saldo < 0) {
-        alert("La operación dejaría la cuenta sin saldo suficiente.");
+                alert(textoApp("La operación dejaría la cuenta sin saldo suficiente.", "The account would have insufficient funds after this operation."));
         return false;
       }
 
@@ -2499,7 +2499,7 @@ function guardarMovimientoBanco(anterior, nuevo) {
     data.movimientos = movimientosNuevos;
     return true;
   } catch (error) {
-    alert("No se pudieron guardar los cambios del movimiento.");
+        alert(textoApp("No se pudieron guardar los cambios del movimiento.", "Could not save the transaction changes."));
     return false;
   }
 }
@@ -3082,7 +3082,7 @@ return;
 
  openEdit=null;
  save();
- alert("Cambios guardados correctamente.");
+   alert(textoApp("Cambios guardados correctamente.", "Changes saved successfully."));
  render();
 }
 
@@ -3092,7 +3092,7 @@ function eliminar(origen,ident){
  if(index<0)return;
  const item=group[index];
 
- if(!confirm("¿Seguro que deseas eliminar este "+(origen==="pago"?"pago":"movimiento")+"?"))return;
+   if(!confirm(origen==="pago" ? textoApp("¿Seguro que deseas eliminar este pago?", "Are you sure you want to delete this payment?") : textoApp("¿Seguro que deseas eliminar este movimiento?", "Are you sure you want to delete this transaction?")))return;
  if (
   origen === "pago" &&
   item.tipo === "tarjeta" &&
@@ -3102,19 +3102,19 @@ function eliminar(origen,ident){
 
   openEdit = null;
   render();
-  alert("Pago eliminado y saldos restaurados.");
+    alert(textoApp("Pago eliminado y saldos restaurados.", "Payment deleted and balances restored."));
   return;
 }
  if(origen==="pago"){
   const cuenta=cuentaDePago(item);
   if(!cuenta){
-   alert("No se encontró la cuenta asociada. No se eliminará el pago para evitar descuadrar la deuda.");
+      alert(textoApp("No se encontró la cuenta asociada. No se eliminará el pago para evitar descuadrar la deuda.", "The linked account was not found. The payment will not be deleted to keep the debt balance accurate."));
    return;
   }
   const devolver=item.tipo==="vehiculo"?
    Number(item.capital):Number(item.monto);
   if(!Number.isFinite(devolver)){
-   alert("Este pago no tiene información suficiente para eliminarlo.");
+      alert(textoApp("Este pago no tiene información suficiente para eliminarlo.", "This payment does not have enough information to be deleted."));
    return;
   }
   if(!ajustarSaldo(cuenta,devolver))return;
@@ -3124,14 +3124,14 @@ function eliminar(origen,ident){
   if (!guardarMovimientoBanco(item, null)) return;
 
 openEdit = null;
-alert("Registro eliminado.");
+alert(textoApp("Registro eliminado.", "Record deleted."));
 render();
 return;
  }
 
  openEdit=null;
  save();
- alert("Registro eliminado.");
+   alert(textoApp("Registro eliminado.", "Record deleted."));
  render();
 }
 
