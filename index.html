@@ -3334,22 +3334,22 @@ ${textoApp("Día", "Day")} ${j+1}
 
         <label class="label">${textoApp("Modelo y versión", "Model and trim")}</label>
     <input name="modelo" maxlength="80"
-           placeholder="Ej. Q8 Prestige Sport"
+                      placeholder="${textoApp("Ej. Q8 Prestige Sport", "e.g. Q8 Prestige Sport")}"
            value="${safe(v.modelo || "")}">
 
         <label class="label">${textoApp("Año", "Year")}</label>
     <input name="anio" type="number" min="1900" max="2100"
-           placeholder="Ej. 2019"
+                      placeholder="${textoApp("Ej. 2019", "e.g. 2019")}"
            value="${safe(v.anio || "")}">
 <label class="label">${textoApp("Monto inicial del préstamo ($)", "Original loan amount ($)")}</label>
 <input name="montoInicial" type="number"
        min="0.01" step="0.01"
-       placeholder="Ej. 45000"
+              placeholder="${textoApp("Ej. 45000", "e.g. 45000")}"
        value="${safe(v.montoInicial || "")}">
 
         <label class="label">${textoApp("Banco del préstamo", "Lender")}</label>
     <input name="banco" maxlength="80"
-           placeholder="Ej. Ally Auto"
+                      placeholder="${textoApp("Ej. Ally Auto", "e.g. Ally Auto")}"
            value="${safe(v.banco || "")}">
 
         <label class="label">${textoApp("Enlace de la foto (opcional)", "Photo link (optional)")}</label>
@@ -3399,7 +3399,7 @@ async function guardarDatosAuto(event, i) {
   const archivo = campos.get("fotoArchivo");
 
   if (!nombre) {
-    alert("Escribe el nombre del vehículo.");
+        alert(textoApp("Escribe el nombre del vehículo.", "Enter the vehicle name."));
     return;
   }
 
@@ -3407,7 +3407,7 @@ async function guardarDatosAuto(event, i) {
     try {
       if (new URL(foto).protocol !== "https:") throw new Error();
     } catch {
-      alert("El enlace debe empezar con https://");
+            alert(textoApp("El enlace debe empezar con https://", "The link must start with https://"));
       return;
     }
   }
@@ -3465,7 +3465,7 @@ async function guardarDatosAuto(event, i) {
        montoInicial <= 0 ||
        montoInicial < Number(auto.saldo))
     ) {
-      alert("El monto inicial debe ser mayor que cero y no menor al saldo pendiente.");
+            alert(textoApp("El monto inicial debe ser mayor que cero y no menor al saldo pendiente.", "The original loan amount must be greater than zero and cannot be less than the outstanding balance."));
       return;
     }
 
@@ -3491,8 +3491,8 @@ async function guardarDatosAuto(event, i) {
   } catch (error) {
     alert(
       error.name === "QuotaExceededError"
-        ? "No hay espacio suficiente para guardar la foto."
-        : error.message || "No se pudieron guardar los datos."
+                ? textoApp("No hay espacio suficiente para guardar la foto.", "There is not enough storage space to save the photo.")
+                : error.message || textoApp("No se pudieron guardar los datos.", "Could not save the details.")
     );
   } finally {
     if (boton) boton.disabled = false;
