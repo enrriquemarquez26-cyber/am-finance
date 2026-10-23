@@ -3299,8 +3299,8 @@ ${textoApp("Día", "Day")} ${j+1}
     <span style="flex:1">${textoApp("Historial de pagos", "Payment history")}</span>
   <span>›</span>
 </button>
-       <h3>${textoApp("Historial de pagos", "Payment history")}</h3>
-    <h3>Historial de pagos</h3>
+         <div class="payment hidden" id="historial${i}">
+    <h3>${textoApp("Historial de pagos", "Payment history")}</h3>
     ${historial.map(p=>`
      <div class="item">
             <strong>${textoApp("Fecha: ", "Date: ")}${safe(p.fecha)}</strong>
