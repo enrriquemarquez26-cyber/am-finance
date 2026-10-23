@@ -3426,7 +3426,7 @@ async function guardarDatosAuto(event, i) {
         await new Promise((resolve, reject) => {
           imagen.onload = resolve;
           imagen.onerror = () => reject(
-            new Error("No se pudo abrir la foto. Prueba con JPG o PNG.")
+                        new Error(textoApp("No se pudo abrir la foto. Prueba con JPG o PNG.", "Could not open the photo. Try a JPG or PNG image."))
           );
           imagen.src = url;
         });
@@ -3440,7 +3440,7 @@ async function guardarDatosAuto(event, i) {
         lienzo.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
 
         const contexto = lienzo.getContext("2d");
-        if (!contexto) throw new Error("No se pudo preparar la foto.");
+                if (!contexto) throw new Error(textoApp("No se pudo preparar la foto.", "Could not process the photo."));
 
         contexto.fillStyle = "#ffffff";
         contexto.fillRect(0, 0, lienzo.width, lienzo.height);
@@ -4002,14 +4002,14 @@ function pagarAuto(e,i){
 
  if(!validAmount(monto))return;
  if(capital<=0){
-  alert("El pago no cubre el interés mensual estimado.");
+    alert(textoApp("El pago no cubre el interés mensual estimado.", "The payment does not cover the estimated monthly interest."));
   return;
  }
  if(capital>saldo){
-  alert("El pago supera el saldo más el interés estimado.");
+    alert(textoApp("El pago supera el saldo más el interés estimado.", "The payment exceeds the balance plus estimated interest."));
   return;
  }
- if(!confirm("¿Registrar pago de "+money(monto)+"?"))return;
+   if(!confirm(textoApp("¿Registrar pago de ", "Record a payment of ")+money(monto)+"?"))return;
 
  v.saldo=round(saldo-capital);
  data.pagos.push({
@@ -4018,9 +4018,9 @@ function pagarAuto(e,i){
   fecha:today(),saldoRestante:v.saldo
  });
  save();
- alert("Pago registrado.\nInterés estimado: "+money(interes)+
- "\nCapital: "+money(capital)+
- "\nNuevo saldo: "+money(v.saldo));
+   alert(textoApp("Pago registrado.\nInterés estimado: ", "Payment recorded.\nEstimated interest: ")+money(interes)+
+  textoApp("\nCapital: ", "\nPrincipal: ")+money(capital)+
+  textoApp("\nNuevo saldo: ", "\nNew balance: ")+money(v.saldo));
  render();
 }
 function opcionesCuentasPago() {
