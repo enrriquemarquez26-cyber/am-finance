@@ -3312,59 +3312,59 @@ ${textoApp("Día", "Day")} ${j+1}
      </div>
         `).join("")||'<p class="note">'+textoApp("Todavía no hay pagos registrados.", "No payments recorded yet.")+'</p>'}
    </div>
-   <button class="secondary" onclick="toggle('auto${i}')">Registrar pago</button>
+      <button class="secondary" onclick="toggle('auto${i}')">${textoApp("Registrar pago", "Record payment")}</button>
    <div class="payment hidden" id="auto${i}">
     <form onsubmit="pagarAuto(event,${i})">
-     <label class="label">Cantidad pagada ($)</label>
+          <label class="label">${textoApp("Cantidad pagada ($)", "Amount paid ($)")}</label>
      <input name="monto" type="number" min="0.01" step="0.01" value="${v.pago}" required>
-     <button class="primary">Confirmar pago</button>
+          <button class="primary">${textoApp("Confirmar pago", "Confirm payment")}</button>
     </form>
-    <p class="note">Interés estimado: saldo × APR ÷ 12. El banco puede calcularlo de otra manera.</p>
+        <p class="note">${textoApp("Interés estimado: saldo × APR ÷ 12. El banco puede calcularlo de otra manera.", "Estimated interest: balance × APR ÷ 12. Your lender may calculate it differently.")}</p>
   </div>
 <button style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:16px 4px;margin-top:14px;border:0;border-top:1px solid rgba(130,140,155,.2);border-radius:0;background:transparent;color:inherit;font:inherit;font-size:.85rem;text-align:left"
         onclick="toggle('datosAuto${i}')">
-  <span>Datos del vehículo</span><span>›</span>
+    <span>${textoApp("Datos del vehículo", "Vehicle details")}</span><span>›</span>
 </button>
 
 <div class="payment hidden" id="datosAuto${i}">
   <form onsubmit="guardarDatosAuto(event,${i})">
-    <label class="label">Nombre del vehículo</label>
+        <label class="label">${textoApp("Nombre del vehículo", "Vehicle name")}</label>
     <input name="nombre" maxlength="80"
            value="${safe(v.nombre)}" required>
 
-    <label class="label">Modelo y versión</label>
+        <label class="label">${textoApp("Modelo y versión", "Model and trim")}</label>
     <input name="modelo" maxlength="80"
            placeholder="Ej. Q8 Prestige Sport"
            value="${safe(v.modelo || "")}">
 
-    <label class="label">Año</label>
+        <label class="label">${textoApp("Año", "Year")}</label>
     <input name="anio" type="number" min="1900" max="2100"
            placeholder="Ej. 2019"
            value="${safe(v.anio || "")}">
-<label class="label">Monto inicial del préstamo ($)</label>
+<label class="label">${textoApp("Monto inicial del préstamo ($)", "Original loan amount ($)")}</label>
 <input name="montoInicial" type="number"
        min="0.01" step="0.01"
        placeholder="Ej. 45000"
        value="${safe(v.montoInicial || "")}">
 
-    <label class="label">Banco del préstamo</label>
+        <label class="label">${textoApp("Banco del préstamo", "Lender")}</label>
     <input name="banco" maxlength="80"
            placeholder="Ej. Ally Auto"
            value="${safe(v.banco || "")}">
 
-    <label class="label">Enlace de la foto (opcional)</label>
+        <label class="label">${textoApp("Enlace de la foto (opcional)", "Photo link (optional)")}</label>
     <input name="foto" type="url"
            placeholder="https://..."
            value="${safe(v.foto || "")}">
 
-<label class="label">Foto de la galería (opcional)</label>
+<label class="label">${textoApp("Foto de la galería (opcional)", "Photo from gallery (optional)")}</label>
 <input name="fotoArchivo" type="file" accept="image/*">
 
 <p class="note">
-  Si eliges una foto, se usará en lugar del enlace.
+   ${textoApp("Si eliges una foto, se usará en lugar del enlace.", "If you choose a photo, it will be used instead of the link.")}
 </p>
 
-    <button class="primary">Guardar datos</button>
+        <button class="primary">${textoApp("Guardar datos", "Save details")}</button>
   </form>
 </div>
    
