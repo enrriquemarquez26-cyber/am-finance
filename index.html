@@ -3846,23 +3846,23 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
 
       <button type="button" class="secondary"
         onclick="toggle('tarjeta${i}')">
-        Registrar pago
+                ${textoApp("Registrar pago", "Record payment")}
       </button>
 
       <div class="payment hidden" id="tarjeta${i}">
         <form onsubmit="pagarTarjeta(event,${i})">
          <label for="cuentaPagoTarjeta${i}" class="label">
-  Cuenta de origen
+    ${textoApp("Cuenta de origen", "Source account")}
 </label>
 
 <select id="cuentaPagoTarjeta${i}" name="bancoId" required>
   ${opcionesCuentasPago()}
 </select>
-           <label class="label">Cantidad pagada ($)</label>
+                      <label class="label">${textoApp("Cantidad pagada ($)", "Amount paid ($)")}</label>
           <input name="monto" type="number"
             min="0.01" step="0.01"
             placeholder="0.00" required>
-          <button class="primary">Confirmar pago</button>
+                    <button class="primary">${textoApp("Confirmar pago", "Confirm payment")}</button>
         </form>
       </div>
     </div>
@@ -3876,14 +3876,14 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
         <rect x="2" y="5" width="20" height="14" rx="3"/>
         <path d="M2 10h20M6 15h4"/>
       </svg>
-      <p>Aún no tienes tarjetas registradas.</p>
+            <p>${textoApp("Aún no tienes tarjetas registradas.", "You have no cards added yet.")}</p>
     </div>
   ` : ""}
   
 ${data.tarjetas.length > 0 ? `
   <div class="credito-resumen">
     <div>
-      <span class="credito-etiqueta">Deuda total</span>
+            <span class="credito-etiqueta">${textoApp("Deuda total", "Total debt")}</span>
       <strong>${
         money(data.tarjetas.reduce(
           (total, tarjeta) =>
@@ -4030,19 +4030,19 @@ function opcionesCuentasPago() {
     );
 
     if (!Array.isArray(cuentas)) {
-      return '<option value="">No se pudieron leer las cuentas</option>';
+            return '<option value="">'+textoApp("No se pudieron leer las cuentas", "Could not load accounts")+'</option>';
     }
 
-    return '<option value="">Seleccionar cuenta</option>' +
+        return '<option value="">'+textoApp("Seleccionar cuenta", "Select account")+'</option>' +
       cuentas.map(cuenta => `
         <option value="${safe(cuenta.id)}">
           ${safe(cuenta.nombre)} ·
-          ${cuenta.tipo === "ahorro" ? "Ahorros" : "Cheques"}
+                    ${cuenta.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")}
           · ${money(cuenta.saldo)}
         </option>
       `).join("");
   } catch (error) {
-    return '<option value="">No se pudieron leer las cuentas</option>';
+        return '<option value="">'+textoApp("No se pudieron leer las cuentas", "Could not load accounts")+'</option>';
   }
 }
 function guardarPagoTarjetaBanco(anterior, nuevo) {
