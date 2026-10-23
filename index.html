@@ -3756,17 +3756,17 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
     <p class="tarjetas-ayuda">APR: ${safe(t.apr)}%</p>
 <button type="button" class="secondary"
   onclick="toggle('datosCredito${i}')">
-  Configurar datos de la tarjeta
+    ${textoApp("Configurar datos de la tarjeta", "Set up card details")}
 </button>
 
 <div class="payment hidden" id="datosCredito${i}">
   <form class="tarjeta-formulario"
     style="padding:0;background:transparent;margin:0"
     onsubmit="guardarDatosTarjeta(event,${i})">
-<label for="bancoCredito${i}">Banco</label>
+<label for="bancoCredito${i}">${textoApp("Banco", "Bank")}</label>
 <select id="bancoCredito${i}" name="banco"
   onchange="actualizarModelosCredito(${i})">
-  <option value="">Seleccionar banco</option>
+    <option value="">${textoApp("Seleccionar banco", "Select bank")}</option>
 
   ${[
     "American Express",
@@ -3781,19 +3781,19 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
   ].map(banco => `
     <option value="${banco}"
       ${t.banco === banco ? "selected" : ""}>
-      ${banco}
+            ${banco === "Otro" ? textoApp("Otro", "Other") : banco}
     </option>
   `).join("")}
 </select>
 
 <label for="modeloCredito${i}"
        style="display:block;margin:14px 0 6px">
-  Modelo de tarjeta
+    ${textoApp("Modelo de tarjeta", "Card model")}
 </label>
 
     <input id="modeloCredito${i}" name="modelo"
   list="modelosCredito${i}"
-  placeholder="Selecciona o escribe el modelo"
+    placeholder="${textoApp("Selecciona o escribe el modelo", "Select or enter the model")}"
   maxlength="60"
   value="${safe(t.modelo || "")}">
 
@@ -3803,44 +3803,44 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
   `).join("")}
 </datalist>
 
-    <label for="digitosCredito${i}">Últimos cuatro dígitos</label>
+        <label for="digitosCredito${i}">${textoApp("Últimos cuatro dígitos", "Last four digits")}</label>
     <input id="digitosCredito${i}" name="ultimos4"
       type="text" inputmode="numeric"
       pattern="[0-9]{4}" maxlength="4"
-      placeholder="Ej. 1234"
+            placeholder="${textoApp("Ej. 1234", "e.g. 1234")}"
       value="${safe(t.ultimos4 || "")}">
 
-    <label for="minimoCredito${i}">Pago mínimo ($)</label>
+        <label for="minimoCredito${i}">${textoApp("Pago mínimo ($)", "Minimum payment ($)")}</label>
     <input id="minimoCredito${i}" name="pagoMinimo"
       type="number" min="0" step="0.01"
       placeholder="0.00"
       value="${safe(t.pagoMinimo ?? "")}">
 
     <button class="primary" type="submit">
-      Guardar datos
+            ${textoApp("Guardar datos", "Save details")}
     </button>
   </form>
 </div>
 
     <button type="button" class="secondary"
       onclick="toggle('venceTarjeta${i}')">
-      Configurar vencimiento
+            ${textoApp("Configurar vencimiento", "Set due date")}
     </button>
 
       <div class="payment hidden" id="venceTarjeta${i}">
         <form onsubmit="guardarVencimiento(event,'tarjeta',${i})">
-          <label class="label">Día de vencimiento mensual</label>
+                    <label class="label">${textoApp("Día de vencimiento mensual", "Monthly payment due day")}</label>
 
           <select name="dia" required>
             ${Array.from({length:31},(_,j)=>`
               <option value="${j+1}"
                 ${Number(t.vencimiento)===j+1?"selected":""}>
-                Día ${j+1}
+                                ${textoApp("Día", "Day")} ${j+1}
               </option>
             `).join("")}
           </select>
 
-          <button class="primary">Guardar vencimiento</button>
+                    <button class="primary">${textoApp("Guardar vencimiento", "Save due date")}</button>
         </form>
       </div>
 
