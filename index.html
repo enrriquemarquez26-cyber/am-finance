@@ -3657,7 +3657,7 @@ function tarjetas(){
   <button type="button" class="credito-fila"
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
     onclick="toggle('detalleCredito${i}')"
-aria-label="Abrir opciones de ${safe(t.nombre)}">
+aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombre)}">
     ${imagenCredito(t) ? `
   <div class="credito-visual"
     style="padding:0;background:transparent;justify-content:center">
@@ -3678,7 +3678,7 @@ aria-label="Abrir opciones de ${safe(t.nombre)}">
 
   <span hidden
     style="padding:16px;color:#84909d;font-size:.75rem">
-    No se pudo cargar la imagen de la tarjeta.
+        ${textoApp("No se pudo cargar la imagen de la tarjeta.", "Could not load the card image.")}
   </span>
 </div>
   </div>
@@ -3687,7 +3687,7 @@ aria-label="Abrir opciones de ${safe(t.nombre)}">
     <span class="credito-marca">${safe(t.nombre)}</span>
 
     <span class="credito-modelo">
-      ${safe(t.modelo || "Tarjeta de crédito")}
+            ${safe(t.modelo || textoApp("Tarjeta de crédito", "Credit card"))}
     </span>
 
     <span class="credito-final">${
@@ -3699,7 +3699,7 @@ aria-label="Abrir opciones de ${safe(t.nombre)}">
 `}
 
     <div class="credito-datos">
-      <div class="credito-etiqueta">Deuda actual</div>
+            <div class="credito-etiqueta">${textoApp("Deuda actual", "Current debt")}</div>
       <div class="credito-deuda">${money(t.saldo)}</div>
 
       <div class="credito-uso">
@@ -3723,30 +3723,30 @@ aria-label="Abrir opciones de ${safe(t.nombre)}">
       </div>
 
       <div class="credito-texto">
-        Límite: ${money(t.limite)}
+                ${textoApp("Límite: ", "Limit: ")}${money(t.limite)}
       </div>
 
       <div class="credito-texto">
-        Pago mínimo: ${
+                ${textoApp("Pago mínimo: ", "Minimum payment: ")}${
           t.pagoMinimo !== undefined &&
           t.pagoMinimo !== null &&
           t.pagoMinimo !== ""
             ? money(t.pagoMinimo)
-            : "Sin configurar"
+                        : textoApp("Sin configurar", "Not set")
         }
       </div>
 
       <div class="credito-texto">
-        Vence: ${
+                ${textoApp("Vence: ", "Due: ")}${
           t.vencimiento
-            ? "día " + safe(t.vencimiento)
-            : "Sin configurar"
+                       ? textoApp("día ", "day ") + safe(t.vencimiento)
+                        : textoApp("Sin configurar", "Not set")
         }
       </div>
 
       <div class="credito-texto"
         style="text-align:right;color:#F28C28">
-        Ver opciones ›
+                ${textoApp("Ver opciones", "View options")} ›
       </div>
     </div>
   </button>
