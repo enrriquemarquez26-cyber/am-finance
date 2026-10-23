@@ -5067,30 +5067,30 @@ cambiarTamanoTexto(
 go("inicio");
 
 function abrirNuevaCuenta() {
-  const nombre = prompt("Nombre del banco o cuenta:");
+    const nombre = prompt(textoApp("Nombre del banco o cuenta:", "Bank or account name:"));
   if (nombre === null || !nombre.trim()) return;
 
-  const tipo = prompt("Tipo: cheques o ahorro", "ahorro");
+    const tipo = prompt(textoApp("Tipo: cheques o ahorro", "Type: checking or savings"), textoApp("ahorro", "savings"));
   if (tipo === null) return;
-  const t = tipo.trim().toLowerCase();
+    const t = tipo.trim().toLowerCase().replace(/^checking$/, "cheques").replace(/^savings$/, "ahorro");
   if (t !== "cheques" && t !== "ahorro") {
-    alert("Escribe cheques o ahorro.");
+        alert(textoApp("Escribe cheques o ahorro.", "Enter checking or savings."));
     return;
   }
 
-  const s = prompt("Saldo inicial en dólares:");
+    const s = prompt(textoApp("Saldo inicial en dólares:", "Starting balance in dollars:"));
   if (s === null) return;
   const saldo = Number(s);
   if (!s.trim() || !Number.isFinite(saldo) || saldo < 0) {
-    alert("Saldo no válido.");
+        alert(textoApp("Saldo no válido.", "Invalid balance."));
     return;
   }
 
-  const m = prompt("Meta en dólares:", "0");
+    const m = prompt(textoApp("Meta en dólares:", "Savings goal in dollars:"), "0");
   if (m === null) return;
   const meta = Number(m);
   if (!m.trim() || !Number.isFinite(meta) || meta < 0) {
-    alert("Meta no válida.");
+        alert(textoApp("Meta no válida.", "Invalid savings goal."));
     return;
   }
 
@@ -5111,7 +5111,7 @@ function abrirNuevaCuenta() {
 
   localStorage.setItem(clave, JSON.stringify(cuentas));
   go("inicio");
-  alert("Cuenta creada correctamente.");
+    alert(textoApp("Cuenta creada correctamente.", "Account created successfully."));
 }
 
 
@@ -5123,40 +5123,40 @@ function abrirCuentaBanco(id) {
     cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
     if (!Array.isArray(cuentas)) return;
   } catch (e) {
-    alert("No se pudieron leer las cuentas.");
+        alert(textoApp("No se pudieron leer las cuentas.", "Could not load accounts."));
     return;
   }
 
   const cuenta = cuentas.find(c => String(c.id) === String(id));
   if (!cuenta) {
-    alert("Cuenta no encontrada.");
+        alert(textoApp("Cuenta no encontrada.", "Account not found."));
     return;
   }
 
   const opcion = prompt(
-    cuenta.nombre + "\nSaldo: " + money(cuenta.saldo) +
-    "\n\nEscribe:\n1 - Depositar\n2 - Retirar"
+        cuenta.nombre + textoApp("\nSaldo: ", "\nBalance: ") + money(cuenta.saldo) +
+    textoApp("\n\nEscribe:\n1 - Depositar\n2 - Retirar", "\n\nEnter:\n1 - Deposit\n2 - Withdraw")
   );
 
   if (opcion === null) return;
   if (opcion !== "1" && opcion !== "2") {
-    alert("Selecciona 1 o 2.");
+        alert(textoApp("Selecciona 1 o 2.", "Select 1 or 2."));
     return;
   }
 
-  const entrada = prompt("Cantidad en dólares:");
+    const entrada = prompt(textoApp("Cantidad en dólares:", "Amount in dollars:"));
   if (entrada === null) return;
   const monto = Number(entrada);
 
   if (!entrada.trim() || !Number.isFinite(monto) || monto <= 0) {
-    alert("Introduce una cantidad válida.");
+        alert(textoApp("Introduce una cantidad válida.", "Enter a valid amount."));
     return;
   }
 
   const saldoActual = Number(cuenta.saldo) || 0;
 
   if (opcion === "2" && monto > saldoActual) {
-    alert("Saldo insuficiente.");
+        alert(textoApp("Saldo insuficiente.", "Insufficient funds."));
     return;
   }
 
@@ -5174,7 +5174,7 @@ function abrirCuentaBanco(id) {
 
   localStorage.setItem(clave, JSON.stringify(cuentas));
   go("inicio");
-  alert("Operación realizada. Nuevo saldo: " + money(cuenta.saldo));
+    alert(textoApp("Operación realizada. Nuevo saldo: ", "Transaction completed. New balance: ") + money(cuenta.saldo));
 }
 
 function abrirAmMenu() {
