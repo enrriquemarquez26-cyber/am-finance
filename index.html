@@ -3296,21 +3296,21 @@ ${textoApp("Día", "Day")} ${j+1}
     <rect x="5" y="3" width="14" height="18" rx="2"/>
     <path d="M9 8h6M9 12h6M9 16h3"/>
   </svg>
-  <span style="flex:1">Historial de pagos</span>
+    <span style="flex:1">${textoApp("Historial de pagos", "Payment history")}</span>
   <span>›</span>
 </button>
-   <div class="payment hidden" id="historial${i}">
+       <h3>${textoApp("Historial de pagos", "Payment history")}</h3>
     <h3>Historial de pagos</h3>
     ${historial.map(p=>`
      <div class="item">
-      <strong>Fecha: ${safe(p.fecha)}</strong>
-      <div class="row"><span>Pago realizado</span><strong>${money(p.monto)}</strong></div>
-      <div class="row"><span>Intereses estimados</span><span>${money(p.interes)}</span></div>
-      <div class="row"><span>Capital abonado</span><span class="green">${money(p.capital)}</span></div>
-      <div class="row"><span>Saldo restante</span><strong>${p.saldoRestante==null?"No registrado":money(p.saldoRestante)}</strong></div>
-      <p class="note">Para editar o eliminar este pago, entra en Movimientos.</p>
+            <strong>${textoApp("Fecha: ", "Date: ")}${safe(p.fecha)}</strong>
+            <div class="row"><span>${textoApp("Pago realizado", "Payment made")}</span><strong>${money(p.monto)}</strong></div>
+            <div class="row"><span>${textoApp("Intereses estimados", "Estimated interest")}</span><span>${money(p.interes)}</span></div>
+            <div class="row"><span>${textoApp("Capital abonado", "Principal paid")}</span><span class="green">${money(p.capital)}</span></div>
+            <div class="row"><span>${textoApp("Saldo restante", "Remaining balance")}</span><strong>${p.saldoRestante==null?textoApp("No registrado", "Not recorded"):money(p.saldoRestante)}</strong></div>
+            <p class="note">${textoApp("Para editar o eliminar este pago, entra en Movimientos.", "To edit or delete this payment, go to Transactions.")}</p>
      </div>
-    `).join("")||'<p class="note">Todavía no hay pagos registrados.</p>'}
+        `).join("")||'<p class="note">'+textoApp("Todavía no hay pagos registrados.", "No payments recorded yet.")+'</p>'}
    </div>
    <button class="secondary" onclick="toggle('auto${i}')">Registrar pago</button>
    <div class="payment hidden" id="auto${i}">
