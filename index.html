@@ -4239,7 +4239,7 @@ function pagosPendientes(){
 );
 
 if (!Array.isArray(cuentasBanco)) {
-  throw new Error("Las cuentas bancarias no son válidas.");
+    throw new Error(textoApp("Las cuentas bancarias no son válidas.", "The bank accounts are invalid."));
 }
 
 const respaldo = {
@@ -4269,7 +4269,7 @@ const respaldo = {
 
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   } catch(error) {
-    alert("No se pudo crear la copia de seguridad.");
+        alert(textoApp("No se pudo crear la copia de seguridad.", "Could not create the backup."));
   }
 }
 async function restaurarCopia(event){
@@ -4289,19 +4289,19 @@ async function restaurarCopia(event){
       !Array.isArray(respaldo.datos.vehiculos) ||
       !Array.isArray(respaldo.datos.tarjetas)
     ){
-      alert("Este archivo no es una copia válida de Balance One.");
+            alert(textoApp("Este archivo no es una copia válida de Balance One.", "This file is not a valid Balance One backup."));
       return;
     }
 
     if(!confirm(
-      "¿Restaurar esta copia? Se reemplazarán los datos actuales de Balance One."
+            textoApp("¿Restaurar esta copia? Se reemplazarán los datos actuales de Balance One.", "Restore this backup? Your current Balance One data will be replaced.")
     )) return;
 
     if (
   respaldo.cuentasBanco !== undefined &&
   !Array.isArray(respaldo.cuentasBanco)
 ) {
-  alert("Las cuentas bancarias del respaldo no son válidas.");
+    alert(textoApp("Las cuentas bancarias del respaldo no son válidas.", "The bank accounts in the backup are invalid."));
   return;
 }
 
@@ -4317,11 +4317,11 @@ if (Array.isArray(respaldo.cuentasBanco)) {
   );
 }
 
-    alert("Copia restaurada correctamente.");
+        alert(textoApp("Copia restaurada correctamente.", "Backup restored successfully."));
     location.reload();
 
   } catch(error) {
-    alert("No se pudo restaurar la copia de seguridad.");
+        alert(textoApp("No se pudo restaurar la copia de seguridad.", "Could not restore the backup."));
   } finally {
     event.target.value = "";
   }
