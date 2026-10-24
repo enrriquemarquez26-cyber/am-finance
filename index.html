@@ -1756,6 +1756,80 @@ html.tema-oscuro .banco-deslizable > .banco-card {
     transition: none;
   }
 }
+.banco-dialogo {
+  width: calc(100% - 40px);
+  max-width: 370px;
+  max-height: calc(100dvh - 48px);
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid rgba(130, 140, 155, .25);
+  border-radius: 36px;
+  background: #f8f9fb;
+  color: #1c2733;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .25);
+  overflow-y: auto;
+}
+
+.banco-dialogo::backdrop {
+  background: rgba(15, 20, 28, .4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.banco-dialogo h2 {
+  margin: 0 0 20px;
+  font-size: 1.2rem;
+}
+
+.banco-dialogo label {
+  display: block;
+  margin: 14px 0 7px;
+  font-size: .85rem;
+}
+
+.banco-dialogo input,
+.banco-dialogo select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 46px;
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid #d9dfe6;
+  border-radius: 999px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+.banco-dialogo button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 12px;
+  border-radius: 999px;
+  font: inherit;
+}
+
+.banco-dialogo .primary {
+  background: #ff7900;
+  color: #fff;
+  border: 0;
+}
+
+.banco-dialogo .banco-error {
+  color: #dc4554;
+  font-size: .8rem;
+}
+
+html.tema-oscuro .banco-dialogo {
+  background: #20242b;
+  color: #f5f6f8;
+}
+
+html.tema-oscuro .banco-dialogo input,
+html.tema-oscuro .banco-dialogo select {
+  background: #15191f;
+  border-color: #39414c;
+}
 
 </style>
 </head>
