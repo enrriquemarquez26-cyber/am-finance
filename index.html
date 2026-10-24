@@ -5263,6 +5263,28 @@ function abrirAjuste(tipo) {
             )}</small>
           </span>
           <span aria-hidden="true">›</span>
+                </button>
+
+        <button type="button" class="ajustes-fila"
+          onclick="abrirOpcionApariencia('color')">
+          <span class="ajustes-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="9"/>
+              <circle cx="9" cy="8" r="1"/>
+              <circle cx="15" cy="8" r="1"/>
+              <circle cx="7" cy="13" r="1"/>
+              <path d="M16 16h-4"/>
+            </svg>
+          </span>
+          <span class="ajustes-texto">
+            <strong>${t("Color principal", "Accent color")}</strong>
+            <small>${t(
+              "Personaliza el color de la aplicación",
+              "Customize the app color"
+            )}</small>
+          </span>
+          <span aria-hidden="true">›</span>
         </button>`
     },
 
@@ -6214,7 +6236,20 @@ function crearVentanaApariencia(titulo, contenido) {
 }
 function abrirOpcionApariencia(tipo) {
   const configuraciones = {
-    tema: {
+        color: {
+      titulo: textoApp("Color principal", "Accent color"),
+      clave: "balanceone-color",
+      defecto: "#ff7900",
+      aplicar: cambiarColorPrincipal,
+      opciones: [
+        ["#ff7900", textoApp("Naranja", "Orange")],
+        ["#007aff", textoApp("Azul", "Blue")],
+        ["#13865b", textoApp("Verde", "Green")],
+        ["#af52de", textoApp("Morado", "Purple")],
+        ["#d63384", textoApp("Rosa", "Pink")]
+      ]
+    },
+     tema: {
       titulo: textoApp("Tema", "Theme"),
       clave: "amfinance-tema",
       defecto: "auto",
