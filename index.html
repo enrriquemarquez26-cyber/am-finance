@@ -1830,6 +1830,95 @@ html.tema-oscuro .banco-dialogo select {
   background: #15191f;
   border-color: #39414c;
 }
+.apariencia-ventana {
+  width: calc(100% - 28px);
+  max-width: 420px;
+  max-height: calc(100dvh - 60px);
+  box-sizing: border-box;
+  position: fixed;
+  inset: auto 0 14px;
+  margin: 0 auto;
+  padding: 22px;
+  border: 1px solid rgba(130,140,155,.2);
+  border-radius: 36px;
+  background: #f8f9fb;
+  color: #1c2733;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+
+.apariencia-ventana[open] {
+  animation: aparienciaSubir .25s ease-out;
+}
+
+.apariencia-ventana::backdrop {
+  background: rgba(15,20,28,.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.apariencia-ventana h2 {
+  margin: 8px 0 20px;
+  font-size: 1.15rem;
+}
+
+.apariencia-opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  margin: 10px 0;
+  border: 1px solid transparent;
+  border-radius: 24px;
+  background: rgba(130,140,155,.08);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.apariencia-opcion[aria-checked="true"] {
+  background: rgba(255,121,0,.1);
+  border-color: rgba(255,121,0,.35);
+}
+
+.apariencia-ventana .apariencia-listo {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #ff7900;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.apariencia-ventana .apariencia-tirador {
+  width: 36px;
+  height: 4px;
+  margin: 0 auto 18px;
+  border-radius: 999px;
+  background: rgba(130,140,155,.4);
+}
+
+html.tema-oscuro .apariencia-ventana {
+  background: #20242b;
+  color: #f5f6f8;
+}
+
+@keyframes aparienciaSubir {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apariencia-ventana[open] {
+    animation: none;
+  }
+}
 
 </style>
 </head>
