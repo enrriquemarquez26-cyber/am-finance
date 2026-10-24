@@ -4043,21 +4043,11 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
             <div class="credito-etiqueta">${textoApp("Deuda actual", "Current debt")}</div>
       <div class="credito-deuda">${money(t.saldo)}</div>
 
-      <div class="credito-uso">
-        <div class="credito-barra">
-          <span style="width:${
-            Number(t.limite) > 0
-              ? Math.min(100, Math.max(
-                          ${barraProgreso(
+              ${barraProgreso(
           Number(t.limite) > 0
             ? Number(t.saldo) / Number(t.limite) * 100
             : 0
         )}
-                Number(t.saldo) / Number(t.limite) * 100
-              ) + "%"
-            : "—"
-        }</span>
-      </div>
 
       <div class="credito-texto">
                 ${textoApp("Límite: ", "Limit: ")}${money(t.limite)}
