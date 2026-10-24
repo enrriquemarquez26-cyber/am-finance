@@ -2450,6 +2450,60 @@ ${autos + tarjetas > 0 ? `
     </div>
   </div>
 ` : ""}
+<button type="button" class="card"
+  onclick="go('movimientos')"
+  style="display:flex;flex-direction:column;width:100%;
+  height:220px;box-sizing:border-box;padding:18px;
+  border-radius:32px;text-align:left;color:inherit;
+  font:inherit;overflow:hidden;margin-bottom:16px">
+
+  <span style="display:flex;justify-content:space-between;
+    align-items:center;width:100%;margin-bottom:10px">
+    <strong>${textoApp("Últimas transacciones", "Recent transactions")}</strong>
+    <span style="color:#f28c28" aria-hidden="true">›</span>
+  </span>
+
+  ${[
+    ...data.movimientos,
+    ...data.pagos.map(p => ({
+      ...p,
+      tipo: "gasto",
+      nombre: textoApp("Pago: ", "Payment: ") + p.nombre
+    }))
+  ].sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)))
+   .slice(0,3).map(m => `
+    <span style="display:flex;align-items:center;
+      gap:10px;width:100%;min-height:46px">
+      <span style="color:${m.tipo === "ingreso" ? "#42b883" : "#dc5965"};
+        font-size:1.2rem" aria-hidden="true">
+        ${m.tipo === "ingreso" ? "↗" : "↙"}
+      </span>
+
+      <span style="flex:1;min-width:0">
+        <span style="display:block;font-size:.85rem;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          ${safe(m.nombre)}
+        </span>
+        <span class="label" style="display:block;font-size:.7rem">
+          ${validDate(String(m.fecha))
+            ? new Date(m.fecha + "T12:00:00").toLocaleDateString(
+                idiomaActual() === "en" ? "en-US" : "es",
+                {day:"numeric", month:"short"})
+            : safe(m.fecha)}
+        </span>
+      </span>
+
+      <strong style="font-size:.85rem;white-space:nowrap;
+        color:${m.tipo === "ingreso" ? "#42b883" : "#dc5965"}">
+        ${m.tipo === "ingreso" ? "+" : "−"}${money(m.monto)}
+      </strong>
+    </span>
+  `).join("") || `
+    <span class="note">
+      ${textoApp("Todavía no hay transacciones.", "No transactions yet.")}
+    </span>
+  `}
+</button>
 
 <div id="cuentasInicio">
   <div class="cuentas-cabecera">
