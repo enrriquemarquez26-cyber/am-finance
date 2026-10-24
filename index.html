@@ -2472,9 +2472,7 @@ const banco = String(c.nombre || "").toLowerCase();
 
   ${tipo === "ahorro" ? `
     <div class="banco-meta">
-      <div class="banco-progreso">
-        <div style="width:${porcentaje}%"></div>
-      </div>
+            ${barraProgreso(porcentaje, "#42b883")}
 
       <div class="banco-meta-texto">
         <span>${
@@ -2686,9 +2684,7 @@ ${autos + tarjetas > 0 ? `
         <div class="banco-meta">
           <div class="banco-progreso">
             <div style="width:${ancho}%;background:${color}"></div>
-          </div>
-
-          <div class="banco-meta-texto">
+                   ${barraProgreso(ancho, color)}
             <span>${textoApp("Límite", "Limit")}: ${money(limite)}</span>
             <span>${limite > 0
               ? uso.toFixed(0) + textoApp("% utilizado", "% used")
@@ -4054,15 +4050,11 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
           <span style="width:${
             Number(t.limite) > 0
               ? Math.min(100, Math.max(
-                  0, Number(t.saldo) / Number(t.limite) * 100
-                ))
-              : 0
-          }%"></span>
-        </div>
-
-        <span class="credito-porcentaje">${
+                          ${barraProgreso(
           Number(t.limite) > 0
-            ? Math.round(
+            ? Number(t.saldo) / Number(t.limite) * 100
+            : 0
+        )}
                 Number(t.saldo) / Number(t.limite) * 100
               ) + "%"
             : "—"
