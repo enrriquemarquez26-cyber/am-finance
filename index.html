@@ -6160,6 +6160,51 @@ function imagenCompania(nombre) {
       padding:3px;border-radius:50%">
   `;
 }
+function crearVentanaApariencia(titulo, contenido) {
+  if (document.querySelector(".apariencia-ventana")) return null;
+
+  const ventana = document.createElement("dialog");
+  ventana.className = "apariencia-ventana";
+  ventana.setAttribute("aria-labelledby", "aparienciaTitulo");
+
+  ventana.innerHTML = `
+    <div class="apariencia-tirador" aria-hidden="true"></div>
+    <h2 id="aparienciaTitulo">${safe(titulo)}</h2>
+
+    <div class="apariencia-contenido">
+      ${contenido}
+    </div>
+
+    <p class="note" data-aviso-apariencia
+      role="status" aria-live="polite" hidden></p>
+
+    <button type="button" class="apariencia-listo">
+      ${textoApp("Listo", "Done")}
+    </button>
+  `;
+
+  const focoAnterior = document.activeElement;
+  const overflowAnterior = document.body.style.overflow;
+
+  ventana.querySelector(".apariencia-listo").onclick = () => {
+    ventana.close();
+  };
+
+  ventana.addEventListener("close", () => {
+    document.body.style.overflow = overflowAnterior;
+    ventana.remove();
+
+    if (focoAnterior && focoAnterior.isConnected) {
+      focoAnterior.focus();
+    }
+  }, {once: true});
+
+  document.body.appendChild(ventana);
+  document.body.style.overflow = "hidden";
+  ventana.showModal();
+
+  return ventana;
+}
 </script>
 
 
