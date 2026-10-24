@@ -4177,58 +4177,58 @@ function pagarTarjeta(e, i) {
 
 function presupuestos(){
   el().innerHTML=`
-    <h2>Presupuestos</h2>
+        <h2>${textoApp("Presupuestos", "Budgets")}</h2>
 
     <div class="card">
-  <h3>Mis presupuestos</h3>
-  <p class="note">Aquí podrás organizar tus presupuestos mensuales.</p>
+    <h3>${textoApp("Mis presupuestos", "My budgets")}</h3>
+    <p class="note">${textoApp("Aquí podrás organizar tus presupuestos mensuales.", "Here you will be able to organize your monthly budgets.")}</p>
 </div>
   `;
 }
  function suscripciones(){
   el().innerHTML = `
-    <h2>Suscripciones</h2>
+        <h2>${textoApp("Suscripciones", "Subscriptions")}</h2>
     <div class="card">
-      <h3>Mis suscripciones</h3>
-      <p class="note">Aquí podrás administrar tus pagos recurrentes.</p>
+            <h3>${textoApp("Mis suscripciones", "My subscriptions")}</h3>
+            <p class="note">${textoApp("Aquí podrás administrar tus pagos recurrentes.", "Here you will be able to manage your recurring payments.")}</p>
     </div>
   `;
 }
 function metasAhorro(){
   el().innerHTML = `
-    <h2>Metas de ahorro</h2>
+        <h2>${textoApp("Metas de ahorro", "Savings goals")}</h2>
     <div class="card">
-      <h3>Mis metas de ahorro</h3>
-      <p class="note">Aquí podrás organizar tus objetivos de ahorro.</p>
+            <h3>${textoApp("Mis metas de ahorro", "My savings goals")}</h3>
+            <p class="note">${textoApp("Aquí podrás organizar tus objetivos de ahorro.", "Here you will be able to organize your savings goals.")}</p>
     </div>
   `;
 }
 
 function recordatorios(){
   el().innerHTML = `
-    <h2>Recordatorios</h2>
+        <h2>${textoApp("Recordatorios", "Reminders")}</h2>
     <div class="card">
-      <h3>Mis recordatorios</h3>
-      <p class="note">Aquí podrás consultar tus próximos recordatorios.</p>
+            <h3>${textoApp("Mis recordatorios", "My reminders")}</h3>
+            <p class="note">${textoApp("Aquí podrás consultar tus próximos recordatorios.", "Here you will be able to view your upcoming reminders.")}</p>
     </div>
   `;
 }
 
 function reportes(){
   el().innerHTML = `
-    <h2>Reportes</h2>
+        <h2>${textoApp("Reportes", "Reports")}</h2>
     <div class="card">
-      <h3>Mis reportes</h3>
-      <p class="note">Aquí podrás consultar los reportes de tus finanzas.</p>
+            <h3>${textoApp("Mis reportes", "My reports")}</h3>
+            <p class="note">${textoApp("Aquí podrás consultar los reportes de tus finanzas.", "Here you will be able to view your financial reports.")}</p>
     </div>
   `;
 }
 function pagosPendientes(){
   el().innerHTML = `
-    <h2>Pagos pendientes</h2>
+        <h2>${textoApp("Pagos pendientes", "Upcoming payments")}</h2>
     <div class="card">
-      <h3>Mis pagos pendientes</h3>
-      <p class="note">Aquí podrás consultar y organizar tus próximos pagos.</p>
+            <h3>${textoApp("Mis pagos pendientes", "My upcoming payments")}</h3>
+            <p class="note">${textoApp("Aquí podrás consultar y organizar tus próximos pagos.", "Here you will be able to view and organize your upcoming payments.")}</p>
     </div>
   `;
 }
