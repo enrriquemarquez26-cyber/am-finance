@@ -2474,9 +2474,13 @@ ${autos + tarjetas > 0 ? `
    .slice(0,3).map(m => `
     <span style="display:flex;align-items:center;
            gap:10px;width:100%;min-height:40px">
-      <span style="color:${m.tipo === "ingreso" ? "#42b883" : "#dc5965"};
-        font-size:1.2rem" aria-hidden="true">
+            <span style="position:relative;display:grid;place-items:center;
+        width:30px;height:30px;flex-shrink:0;border-radius:50%;
+        font-size:1.2rem;
+        color:${m.tipo === "ingreso" ? "#42b883" : "#dc5965"}"
+        aria-hidden="true">
         ${m.tipo === "ingreso" ? "↗" : "↙"}
+        ${imagenCompania(m.nombre)}
       </span>
 
       <span style="flex:1;min-width:0">
@@ -2909,35 +2913,7 @@ function movimientos(){
       :"M12 7v10m-4-4 4 4 4-4"}"/>
   </svg>
 
-  ${(()=>{
-    const nombre = String(m.nombre || "").toLowerCase();
-
-    const comercios = [
-      ["amazon", "amazon.com"],
-      ["walmart", "walmart.com"],
-      ["netflix", "netflix.com"],
-      ["target", "target.com"],
-      ["costco", "costco.com"],
-      ["spotify", "spotify.com"],
-      ["uber", "uber.com"],
-      ["shell", "shell.com"],
-      ["chevron", "chevron.com"],
-      ["starbucks", "starbucks.com"]
-    ];
-
-    const comercio = comercios.find(
-      ([nombreComercio]) => nombre.includes(nombreComercio)
-    );
-
-    if (!comercio) return "";
-
-    return '<img src="https://www.google.com/s2/favicons?domain=' +
-      comercio[1] + '&sz=128" alt="" loading="lazy"' +
-      ' referrerpolicy="no-referrer"' +
-      ' style="position:absolute;inset:0;width:100%;height:100%;' +
-      'object-fit:contain;background:white;padding:4px;border-radius:50%"' +
-      ' onerror="this.remove()">';
-  })()}
+    ${imagenCompania(m.nombre)}
 </div>
 
           <div class="hist-info">
