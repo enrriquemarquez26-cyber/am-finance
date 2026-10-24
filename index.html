@@ -2612,7 +2612,72 @@ ${autos + tarjetas > 0 ? `
     </p>
   ` : ""}
 </div>
+${data.vehiculos.map(v => {
+  const foto = v.fotoGaleria || v.foto;
+  const inicial = Number(v.montoInicial);
+  const progreso = inicial > 0
+    ? Math.min(100, Math.max(0,
+        (1 - Number(v.saldo) / inicial) * 100))
+    : null;
 
+  return `
+  <button type="button" class="card"
+    onclick="go('vehiculos')"
+    style="display:flex;flex-direction:column;width:100%;
+    height:220px;box-sizing:border-box;padding:18px;
+    border-radius:32px;text-align:left;color:inherit;
+    font:inherit;overflow:hidden;margin-top:16px">
+
+    <span style="display:flex;align-items:center;
+      gap:14px;width:100%;flex:1;min-height:0">
+
+      ${foto ? `
+        <img src="${safe(foto)}" alt=""
+          loading="lazy"
+          onerror="this.style.display='none'"
+          style="width:110px;max-width:35%;height:90px;
+          object-fit:contain;border-radius:18px">
+      ` : ""}
+
+      <span style="flex:1;min-width:0">
+        <strong style="display:block;white-space:nowrap;
+          overflow:hidden;text-overflow:ellipsis">
+          ${safe(v.nombre)}
+        </strong>
+        <span class="label" style="display:block;
+          margin-top:6px;font-size:.75rem">
+          ${textoApp("Saldo pendiente", "Outstanding balance")}
+        </span>
+        <strong style="display:block;font-size:1.15rem">
+          ${money(v.saldo)}
+        </strong>
+      </span>
+
+      <span style="color:#f28c28" aria-hidden="true">›</span>
+    </span>
+
+    <span class="note" style="display:block;margin:10px 0;
+      font-size:.8rem">
+      ${textoApp("Pago mensual: ", "Monthly payment: ")}
+      ${money(v.pago)}
+    </span>
+
+    ${progreso !== null ? `
+      <span style="display:block;width:100%;height:6px;
+        flex-shrink:0;background:rgba(130,140,155,.22);
+        border-radius:999px;overflow:hidden">
+        <span style="display:block;height:100%;
+          width:${progreso}%;background:#ff7900;
+          border-radius:inherit"></span>
+      </span>
+
+      <span class="label" style="display:block;width:100%;
+        text-align:right;margin-top:6px;font-size:.7rem">
+        ${textoApp("Pagado", "Paid")} ${Math.round(progreso)}%
+      </span>
+    ` : ""}
+  </button>`;
+}).join("")}
 `;
 }
 
