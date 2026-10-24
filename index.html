@@ -6468,9 +6468,18 @@ function aplicarColorPrincipal(color) {
       color: #fff !important;
     }
 
-    .apariencia-opcion[aria-checked="true"] {
+        .apariencia-opcion[aria-checked="true"],
+    html .mov-tipos button.activo,
+    html .credito-agregar,
+    html .cuentas-agregar {
       background: ${color}1a !important;
       border-color: ${color}66 !important;
+      color: ${color} !important;
+    }
+
+    html .credito-texto[style*="color"],
+    html span[style*="color:#f28c28"] {
+      color: ${color} !important;
     }
   `;
 }
