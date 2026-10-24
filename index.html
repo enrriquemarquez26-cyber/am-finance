@@ -6022,6 +6022,79 @@ function eliminarCuentaBanco(identificador) {
     ));
   }
 }
+function imagenCompania(nombre) {
+  const texto = String(nombre || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  const companias = [
+    ["h-e-b", "heb.com"],
+    ["h e b", "heb.com"],
+    ["heb", "heb.com"],
+    ["paypal", "paypal.com"],
+    ["klarna", "klarna.com"],
+    ["affirm", "affirm.com"],
+    ["afterpay", "afterpay.com"],
+    ["zip", "zip.co"],
+    ["ebay", "ebay.com"],
+    ["aliexpress", "aliexpress.com"],
+    ["dhgate", "dhgate.com"],
+    ["zara", "zara.com"],
+    ["h&m", "hm.com"],
+    ["h & m", "hm.com"],
+    ["temu", "temu.com"],
+    ["nike", "nike.com"],
+    ["sam's club", "samsclub.com"],
+    ["sams club", "samsclub.com"],
+    ["alibaba", "alibaba.com"],
+    ["shein", "shein.com"],
+    ["shop", "shop.app"],
+    ["playstation", "playstation.com"],
+    ["play station", "playstation.com"],
+    ["at&t", "att.com"],
+    ["at & t", "att.com"],
+    ["verizon", "verizon.com"],
+    ["veraizon", "verizon.com"],
+    ["t-mobile", "t-mobile.com"],
+    ["tmobile", "t-mobile.com"],
+    ["tmovil", "t-mobile.com"],
+    ["spectrum", "spectrum.com"],
+    ["amazon", "amazon.com"],
+    ["walmart", "walmart.com"],
+    ["netflix", "netflix.com"],
+    ["target", "target.com"],
+    ["costco", "costco.com"],
+    ["spotify", "spotify.com"],
+    ["uber", "uber.com"],
+    ["doordash", "doordash.com"],
+    ["roadie", "roadie.com"],
+    ["shell", "shell.com"],
+    ["chevron", "chevron.com"],
+    ["starbucks", "starbucks.com"],
+    ["mcdonald", "mcdonalds.com"],
+    ["apple", "apple.com"],
+    ["chase", "chase.com"],
+    ["american express", "americanexpress.com"],
+    ["amex", "americanexpress.com"],
+    ["capital one", "capitalone.com"],
+    ["ally", "ally.com"]
+  ];
+
+  const compania = companias.find(
+    ([marca]) => texto.includes(marca)
+  );
+  if (!compania) return "";
+
+  return `
+    <img src="https://www.google.com/s2/favicons?domain=${compania[1]}&sz=128"
+      alt="" loading="lazy" referrerpolicy="no-referrer"
+      onerror="this.remove()"
+      style="position:absolute;inset:0;width:100%;height:100%;
+      box-sizing:border-box;object-fit:contain;background:#fff;
+      padding:3px;border-radius:50%">
+  `;
+}
 </script>
 
 
