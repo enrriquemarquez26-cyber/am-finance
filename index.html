@@ -6205,6 +6205,88 @@ function crearVentanaApariencia(titulo, contenido) {
 
   return ventana;
 }
+function abrirOpcionApariencia(tipo) {
+  const configuraciones = {
+    tema: {
+      titulo: textoApp("Tema", "Theme"),
+      clave: "amfinance-tema",
+      defecto: "auto",
+      aplicar: cambiarTema,
+      opciones: [
+        ["auto", textoApp("Automático", "Automatic")],
+        ["claro", textoApp("Claro", "Light")],
+        ["oscuro", textoApp("Oscuro", "Dark")]
+      ]
+    },
+    texto: {
+      titulo: textoApp("Tamaño del texto", "Text size"),
+      clave: "balanceone-tamano-texto",
+      defecto: "normal",
+      aplicar: cambiarTamanoTexto,
+      opciones: [
+        ["pequeno", textoApp("Pequeño", "Small")],
+        ["normal", textoApp("Normal", "Normal")],
+        ["grande", textoApp("Grande", "Large")]
+      ]
+    }
+  };
+
+  const config = configuraciones[tipo];
+  if (!config) return;
+
+  let actual = config.defecto;
+
+  try {
+    const guardado = localStorage.getItem(config.clave);
+    if (config.opciones.some(([valor]) => valor === guardado)) {
+      actual = guardado;
+    }
+  } catch {}
+
+  const ventana = crearVentanaApariencia(
+    config.titulo,
+    config.opciones.map(([valor, nombre]) => `
+      <button type="button" class="apariencia-opcion"
+        data-valor="${valor}"
+        aria-pressed="${valor === actual}"
+        aria-checked="${valor === actual}">
+        <span>${nombre}</span>
+        <span aria-hidden="true" data-marca>
+          ${valor === actual ? "✓" : "○"}
+        </span>
+      </button>
+    `).join("")
+  );
+
+  if (!ventana) return;
+
+  ventana.querySelectorAll("[data-valor]").forEach(boton => {
+    boton.onclick = () => {
+      const aviso = ventana.querySelector("[data-aviso-apariencia]");
+
+      try {
+        config.aplicar(boton.dataset.valor);
+      } catch {
+        aviso.hidden = false;
+        aviso.textContent = textoApp(
+          "No se pudo guardar la configuración.",
+          "Could not save the setting."
+        );
+        return;
+      }
+
+      aviso.hidden = true;
+
+      ventana.querySelectorAll("[data-valor]").forEach(opcion => {
+        const activa = opcion === boton;
+        opcion.setAttribute("aria-pressed", String(activa));
+        opcion.setAttribute("aria-checked", String(activa));
+        opcion.querySelector("[data-marca]").textContent =
+          activa ? "✓" : "○";
+      });
+    };
+  });
+}
 </script>
 
 
