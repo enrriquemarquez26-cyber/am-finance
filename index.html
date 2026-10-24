@@ -5626,6 +5626,89 @@ document.addEventListener("keydown", event => {
     }
   }
 });
+function editarCuentaBanco(identificador) {
+  const clave = "amfinance-cuentas-banco";
+
+  try {
+    const cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
+
+    if (!Array.isArray(cuentas)) {
+      throw new Error();
+    }
+
+    const cuenta = cuentas.find(
+      c => String(c.id) === String(identificador)
+    );
+
+    if (!cuenta) {
+      alert(textoApp("Cuenta no encontrada.", "Account not found."));
+      return;
+    }
+
+    const nombre = prompt(
+      textoApp("Nombre del banco o cuenta:", "Bank or account name:"),
+      cuenta.nombre
+    );
+    if (nombre === null) return;
+
+    if (!nombre.trim() || nombre.trim().length > 80) {
+      alert(textoApp(
+        "Escribe un nombre de entre 1 y 80 caracteres.",
+        "Enter a name between 1 and 80 characters."
+      ));
+      return;
+    }
+
+    const tipo = prompt(
+      textoApp("Tipo: cheques o ahorro", "Type: checking or savings"),
+      cuenta.tipo === "ahorro"
+        ? textoApp("ahorro", "savings")
+        : textoApp("cheques", "checking")
+    );
+    if (tipo === null) return;
+
+    const tipoFinal = tipo.trim().toLowerCase()
+      .replace(/^checking$/, "cheques")
+      .replace(/^savings$/, "ahorro");
+
+    if (!["cheques", "ahorro"].includes(tipoFinal)) {
+      alert(textoApp(
+        "Escribe cheques o ahorro.",
+        "Enter checking or savings."
+      ));
+      return;
+    }
+
+    const entradaMeta = prompt(
+      textoApp("Meta en dólares:", "Savings goal in dollars:"),
+      String(cuenta.meta ?? 0)
+    );
+    if (entradaMeta === null) return;
+
+    const meta = Number(entradaMeta);
+    if (!entradaMeta.trim() || !Number.isFinite(meta) || meta < 0) {
+      alert(textoApp("Meta no válida.", "Invalid savings goal."));
+      return;
+    }
+
+    cuenta.nombre = nombre.trim();
+    cuenta.tipo = tipoFinal;
+    cuenta.meta = Math.round(meta * 100) / 100;
+
+    localStorage.setItem(clave, JSON.stringify(cuentas));
+    go("inicio");
+
+    alert(textoApp(
+      "Cuenta actualizada correctamente.",
+      "Account updated successfully."
+    ));
+  } catch (error) {
+    alert(textoApp(
+      "No se pudieron guardar los cambios de la cuenta.",
+      "Could not save the account changes."
+    ));
+  }
+}
 </script>
 
 
