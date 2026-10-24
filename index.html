@@ -2681,14 +2681,17 @@ ${autos + tarjetas > 0 ? `
           <span class="banco-saldo">${money(saldo)}</span>
         </div>
 
-        <div class="banco-meta">
-          <div class="banco-progreso">
-            <div style="width:${ancho}%;background:${color}"></div>
-                   ${barraProgreso(ancho, color)}
-            <span>${textoApp("Límite", "Limit")}: ${money(limite)}</span>
+                <div class="banco-meta">
+          ${barraProgreso(ancho, color)}
+
+          <div class="banco-meta-texto">
+            <span>
+              ${textoApp("Límite", "Limit")}: ${money(limite)}
+            </span>
             <span>${limite > 0
               ? uso.toFixed(0) + textoApp("% utilizado", "% used")
-              : textoApp("Sin límite configurado", "No limit set")}</span>
+              : textoApp("Sin límite configurado", "No limit set")
+            }</span>
           </div>
         </div>
       </button>
