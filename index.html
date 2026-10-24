@@ -6226,6 +6226,19 @@ function abrirOpcionApariencia(tipo) {
         ["oscuro", textoApp("Oscuro", "Dark")]
       ]
     },
+        progreso: {
+      titulo: textoApp("Barras de progreso", "Progress bars"),
+      clave: "balanceone-progreso",
+      defecto: "clasica",
+      aplicar: aplicarEstiloProgreso,
+      opciones: [
+        ["clasica", textoApp("Clásica ovalada", "Classic rounded")],
+        ["fina", textoApp("Minimalista fina", "Minimal thin")],
+        ["capsula", textoApp("Cápsula flotante", "Floating capsule")],
+        ["segmentada", textoApp("Segmentada", "Segmented")],
+        ["3d", textoApp("Premium 3D", "Premium 3D")]
+      ]
+    },
     texto: {
       titulo: textoApp("Tamaño del texto", "Text size"),
       clave: "balanceone-tamano-texto",
@@ -6263,7 +6276,10 @@ function abrirOpcionApariencia(tipo) {
           ${valor === actual ? "✓" : "○"}
         </span>
       </button>
-    `).join("")
+        `).join("") + (tipo === "progreso" ? `
+      <p class="note">${textoApp("Vista previa", "Preview")} · 40%</p>
+      ${barraProgreso(40, "#ff7900", actual)}
+    ` : "")
   );
 
   if (!ventana) return;
