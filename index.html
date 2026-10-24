@@ -5264,6 +5264,25 @@ function abrirAjuste(tipo) {
             )}</small>
           </span>
           <span aria-hidden="true">›</span>
+                </button>
+
+        <button type="button" class="ajustes-fila"
+          onclick="abrirOpcionApariencia('progreso')">
+          <span class="ajustes-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="9" width="18" height="6" rx="3"/>
+              <path d="M6 12h6"/>
+            </svg>
+          </span>
+          <span class="ajustes-texto">
+            <strong>${t("Barras de progreso", "Progress bars")}</strong>
+            <small>${t(
+              "Elige el diseño que prefieras",
+              "Choose your preferred style"
+            )}</small>
+          </span>
+          <span aria-hidden="true">›</span>
         </button>`
     },
 
@@ -6284,7 +6303,7 @@ function abrirOpcionApariencia(tipo) {
 
   if (!ventana) return;
 
-  ventana.querySelectorAll("[data-valor]").forEach(boton => {
+    ventana.querySelectorAll("button[data-valor]").forEach(boton => {
     boton.onclick = () => {
       const aviso = ventana.querySelector("[data-aviso-apariencia]");
 
@@ -6301,7 +6320,7 @@ function abrirOpcionApariencia(tipo) {
 
       aviso.hidden = true;
 
-      ventana.querySelectorAll("[data-valor]").forEach(opcion => {
+            ventana.querySelectorAll("button[data-valor]").forEach(opcion => {
         const activa = opcion === boton;
         opcion.setAttribute("aria-pressed", String(activa));
         opcion.setAttribute("aria-checked", String(activa));
