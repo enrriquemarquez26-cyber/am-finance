@@ -5238,25 +5238,33 @@ function abrirAjuste(tipo) {
     apariencia: {
       titulo: t("Apariencia", "Appearance"),
       contenido: `
-        <div class="card" style="border-radius:30px">
-          <label for="temaApp">${t("Tema", "Theme")}</label>
-          <select id="temaApp" style="border-radius:999px"
-                  onchange="cambiarTema(this.value)">
-            <option value="auto">${t("Automático", "Automatic")}</option>
-            <option value="claro">${t("Claro", "Light")}</option>
-            <option value="oscuro">${t("Oscuro", "Dark")}</option>
-          </select>
+                <button type="button" class="ajustes-fila"
+          onclick="abrirOpcionApariencia('tema')">
+          <span class="ajustes-icono" aria-hidden="true">
+            ${iconoAjuste("apariencia")}
+          </span>
+          <span class="ajustes-texto">
+            <strong>${t("Tema", "Theme")}</strong>
+            <small>${t(
+              "Automático, claro u oscuro",
+              "Automatic, light or dark"
+            )}</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
 
-          <label for="tamanoTexto">
-            ${t("Tamaño del texto", "Text size")}
-          </label>
-          <select id="tamanoTexto" style="border-radius:999px"
-                  onchange="cambiarTamanoTexto(this.value)">
-            <option value="pequeno">${t("Pequeño", "Small")}</option>
-            <option value="normal">${t("Normal", "Normal")}</option>
-            <option value="grande">${t("Grande", "Large")}</option>
-          </select>
-        </div>`
+        <button type="button" class="ajustes-fila"
+          onclick="abrirOpcionApariencia('texto')">
+          <span class="ajustes-icono" aria-hidden="true">Aa</span>
+          <span class="ajustes-texto">
+            <strong>${t("Tamaño del texto", "Text size")}</strong>
+            <small>${t(
+              "Pequeño, normal o grande",
+              "Small, normal or large"
+            )}</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>`
     },
 
     avisos: {
