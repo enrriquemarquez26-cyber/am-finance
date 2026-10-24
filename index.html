@@ -5701,87 +5701,147 @@ document.addEventListener("keydown", event => {
   }
 });
 function editarCuentaBanco(identificador) {
+  if (document.querySelector(".banco-dialogo")) return;
+
   const clave = "amfinance-cuentas-banco";
+  let cuenta;
 
   try {
     const cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
+    if (!Array.isArray(cuentas)) throw new Error();
 
-    if (!Array.isArray(cuentas)) {
-      throw new Error();
-    }
-
-    const cuenta = cuentas.find(
+    cuenta = cuentas.find(
       c => String(c.id) === String(identificador)
     );
-
-    if (!cuenta) {
-      alert(textoApp("Cuenta no encontrada.", "Account not found."));
-      return;
-    }
-
-    const nombre = prompt(
-      textoApp("Nombre del banco o cuenta:", "Bank or account name:"),
-      cuenta.nombre
-    );
-    if (nombre === null) return;
-
-    if (!nombre.trim() || nombre.trim().length > 80) {
-      alert(textoApp(
-        "Escribe un nombre de entre 1 y 80 caracteres.",
-        "Enter a name between 1 and 80 characters."
-      ));
-      return;
-    }
-
-    const tipo = prompt(
-      textoApp("Tipo: cheques o ahorro", "Type: checking or savings"),
-      cuenta.tipo === "ahorro"
-        ? textoApp("ahorro", "savings")
-        : textoApp("cheques", "checking")
-    );
-    if (tipo === null) return;
-
-    const tipoFinal = tipo.trim().toLowerCase()
-      .replace(/^checking$/, "cheques")
-      .replace(/^savings$/, "ahorro");
-
-    if (!["cheques", "ahorro"].includes(tipoFinal)) {
-      alert(textoApp(
-        "Escribe cheques o ahorro.",
-        "Enter checking or savings."
-      ));
-      return;
-    }
-
-    const entradaMeta = prompt(
-      textoApp("Meta en dólares:", "Savings goal in dollars:"),
-      String(cuenta.meta ?? 0)
-    );
-    if (entradaMeta === null) return;
-
-    const meta = Number(entradaMeta);
-    if (!entradaMeta.trim() || !Number.isFinite(meta) || meta < 0) {
-      alert(textoApp("Meta no válida.", "Invalid savings goal."));
-      return;
-    }
-
-    cuenta.nombre = nombre.trim();
-    cuenta.tipo = tipoFinal;
-    cuenta.meta = Math.round(meta * 100) / 100;
-
-    localStorage.setItem(clave, JSON.stringify(cuentas));
-    go("inicio");
-
+    if (!cuenta) throw new Error();
+  } catch {
     alert(textoApp(
-      "Cuenta actualizada correctamente.",
-      "Account updated successfully."
+      "No se pudo abrir la cuenta.",
+      "Could not open the account."
     ));
-  } catch (error) {
-    alert(textoApp(
-      "No se pudieron guardar los cambios de la cuenta.",
-      "Could not save the account changes."
-    ));
+    return;
   }
+
+  const ventana = document.createElement("dialog");
+  ventana.className = "banco-dialogo";
+  ventana.setAttribute("aria-labelledby", "bancoEditarTitulo");
+
+  ventana.innerHTML = `
+    <form>
+      <h2 id="bancoEditarTitulo">
+        ${textoApp("Editar cuenta", "Edit account")}
+      </h2>
+
+      <label for="bancoEditarNombre">
+        ${textoApp("Nombre", "Name")}
+      </label>
+      <input id="bancoEditarNombre" name="nombre"
+        maxlength="80" required autofocus
+        value="${safe(cuenta.nombre)}">
+
+      <label for="bancoEditarTipo">
+        ${textoApp("Tipo de cuenta", "Account type")}
+      </label>
+      <select id="bancoEditarTipo" name="tipo">
+        <option value="cheques"
+          ${cuenta.tipo === "cheques" ? "selected" : ""}>
+          ${textoApp("Cheques", "Checking")}
+        </option>
+        <option value="ahorro"
+          ${cuenta.tipo === "ahorro" ? "selected" : ""}>
+          ${textoApp("Ahorros", "Savings")}
+        </option>
+      </select>
+
+      <label for="bancoEditarMeta">
+        ${textoApp("Meta de ahorro ($)", "Savings goal ($)")}
+      </label>
+      <input id="bancoEditarMeta" name="meta"
+        type="number" min="0" step="0.01" required
+        value="${safe(cuenta.meta ?? 0)}">
+
+      <p class="note">
+        ${textoApp("Saldo actual: ", "Current balance: ")}
+        ${money(cuenta.saldo)}
+      </p>
+
+      <p class="banco-error" role="alert" hidden></p>
+
+      <button type="submit" class="primary">
+        ${textoApp("Guardar cambios", "Save changes")}
+      </button>
+      <button type="button" class="secondary" data-cancelar>
+        ${textoApp("Cancelar", "Cancel")}
+      </button>
+    </form>
+  `;
+
+  const focoAnterior = document.activeElement;
+  const desbordamientoAnterior = document.body.style.overflow;
+
+  ventana.addEventListener("close", () => {
+    document.body.style.overflow = desbordamientoAnterior;
+    ventana.remove();
+
+    if (focoAnterior && focoAnterior.isConnected) {
+      focoAnterior.focus();
+    }
+  }, {once: true});
+
+  ventana.querySelector("[data-cancelar]").onclick = () => {
+    ventana.close();
+  };
+
+  ventana.querySelector("form").onsubmit = event => {
+    event.preventDefault();
+
+    const formulario = new FormData(event.currentTarget);
+    const nombre = String(formulario.get("nombre")).trim();
+    const tipo = String(formulario.get("tipo"));
+    const meta = Math.round(Number(formulario.get("meta")) * 100) / 100;
+    const aviso = ventana.querySelector(".banco-error");
+
+    aviso.hidden = false;
+
+    if (!nombre || nombre.length > 80 ||
+        !["cheques", "ahorro"].includes(tipo) ||
+        !Number.isFinite(meta) || meta < 0) {
+      aviso.textContent = textoApp(
+        "Revisa el nombre, el tipo y la meta.",
+        "Check the name, account type and savings goal."
+      );
+      return;
+    }
+
+    try {
+      const cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
+      if (!Array.isArray(cuentas)) throw new Error();
+
+      const actual = cuentas.find(
+        c => String(c.id) === String(identificador)
+      );
+      if (!actual) throw new Error();
+
+      actual.nombre = nombre;
+      actual.tipo = tipo;
+      actual.meta = meta;
+
+      localStorage.setItem(clave, JSON.stringify(cuentas));
+    } catch {
+      aviso.textContent = textoApp(
+        "No se pudieron guardar los cambios.",
+        "Could not save the changes."
+      );
+      return;
+    }
+
+    ventana.close();
+    go("inicio");
+  };
+
+  document.body.appendChild(ventana);
+  document.body.style.overflow = "hidden";
+  ventana.showModal();
 }
 function eliminarCuentaBanco(identificador) {
   const clave = "amfinance-cuentas-banco";
