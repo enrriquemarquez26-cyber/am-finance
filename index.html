@@ -1694,6 +1694,68 @@ html.tema-oscuro .perfil-silueta {
 html.tema-oscuro .perfil-camara {
   border-color: #20242b;
 }
+.banco-deslizable {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+}
+
+.banco-acciones {
+  position: absolute;
+  inset: 0 12px 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.banco-acciones button {
+  width: 62px;
+  height: 64px;
+  border-radius: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font: inherit;
+  font-size: .7rem;
+  cursor: pointer;
+}
+
+.banco-editar {
+  background: rgba(255, 140, 30, .12);
+  border: 1px solid rgba(255, 140, 30, .25);
+  color: #f28c28;
+}
+
+.banco-eliminar {
+  background: rgba(235, 65, 80, .12);
+  border: 1px solid rgba(235, 65, 80, .25);
+  color: #eb4150;
+}
+
+.banco-deslizable > .banco-card {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  transition: transform .22s ease;
+  touch-action: pan-y;
+}
+
+.banco-deslizable.abierta > .banco-card {
+  transform: translateX(-152px);
+}
+
+html.tema-oscuro .banco-deslizable,
+html.tema-oscuro .banco-deslizable > .banco-card {
+  background: #20242b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banco-deslizable > .banco-card {
+    transition: none;
+  }
+}
 
 </style>
 </head>
