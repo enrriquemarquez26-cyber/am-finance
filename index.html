@@ -5709,6 +5709,66 @@ function editarCuentaBanco(identificador) {
     ));
   }
 }
+function eliminarCuentaBanco(identificador) {
+  const clave = "amfinance-cuentas-banco";
+
+  try {
+    const cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
+    if (!Array.isArray(cuentas)) throw new Error();
+
+    const cuenta = cuentas.find(
+      c => String(c.id) === String(identificador)
+    );
+
+    if (!cuenta) {
+      alert(textoApp("Cuenta no encontrada.", "Account not found."));
+      return;
+    }
+
+    const tieneMovimientos = data.movimientos.some(
+      m => String(m.cuentaId) === String(cuenta.id)
+    );
+
+    const tienePagos = data.pagos.some(
+      p => String(p.bancoId) === String(cuenta.id)
+    );
+
+    if (tieneMovimientos || tienePagos) {
+      alert(textoApp(
+        "Esta cuenta tiene movimientos o pagos vinculados y no se puede eliminar.",
+        "This account has linked transactions or payments and cannot be deleted."
+      ));
+      return;
+    }
+
+    const mensaje = textoApp(
+      "¿Eliminar la cuenta ",
+      "Delete account "
+    ) + cuenta.nombre + "?\n\n" + textoApp(
+      "Se eliminarán de Balance One la cuenta y su historial de depósitos y retiros. Esta acción no se puede deshacer.",
+      "The account and its deposit and withdrawal history will be removed from Balance One. This cannot be undone."
+    );
+
+    if (!confirm(mensaje)) return;
+
+    const restantes = cuentas.filter(
+      c => String(c.id) !== String(cuenta.id)
+    );
+
+    localStorage.setItem(clave, JSON.stringify(restantes));
+    go("inicio");
+
+    alert(textoApp(
+      "Cuenta eliminada.",
+      "Account deleted."
+    ));
+  } catch (error) {
+    alert(textoApp(
+      "No se pudo eliminar la cuenta.",
+      "Could not delete the account."
+    ));
+  }
+}
 </script>
 
 
