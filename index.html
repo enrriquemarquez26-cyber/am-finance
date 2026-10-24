@@ -2260,10 +2260,37 @@ const banco = String(c.nombre || "").toLowerCase();
   banco.includes("bmo") ? "bmo.com" :
   "example.com") + "&sz=128";
    return `
-<button type="button" class="banco-card"
-  onclick="abrirCuentaBanco(${
-    safe(JSON.stringify(String(c.id)))
-  })">
+<div class="banco-deslizable" data-cuenta-id="${safe(String(c.id))}">
+  <div class="banco-acciones" inert>
+    <button type="button" class="banco-editar"
+      onclick="editarCuentaBanco(this.closest('.banco-deslizable').dataset.cuentaId)">
+      <svg width="22" height="22" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true">
+        <path d="m16 3 5 5-12 12-6 1 1-6Z"/>
+        <path d="m14 5 5 5"/>
+      </svg>
+      <span>${textoApp("Editar", "Edit")}</span>
+    </button>
+
+    <button type="button" class="banco-eliminar"
+      onclick="eliminarCuentaBanco(this.closest('.banco-deslizable').dataset.cuentaId)">
+      <svg width="22" height="22" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true">
+        <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15"/>
+        <path d="M10 10v7M14 10v7"/>
+      </svg>
+      <span>${textoApp("Eliminar", "Delete")}</span>
+    </button>
+  </div>
+
+  <button type="button" class="banco-card"
+    onclick="abrirCuentaBanco(${
+      safe(JSON.stringify(String(c.id)))
+    })">
 
   <div class="banco-fila">
     <img src="${logoBanco}"
@@ -2298,7 +2325,7 @@ const banco = String(c.nombre || "").toLowerCase();
       </div>
     </div>
   ` : ""}
-</button>`;
+</button></div>`;
   }).join("");
 
  const mov=data.movimientos.filter(m=>
