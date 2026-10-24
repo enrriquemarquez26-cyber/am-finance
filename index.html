@@ -5510,6 +5510,122 @@ document.addEventListener("touchend", () => {
 document.addEventListener("touchcancel", () => {
   gestoMovimiento = null;
 }, {passive: true});
+function mostrarAccionesBanco(fila, abrir) {
+  document.querySelectorAll(".banco-deslizable").forEach(otra => {
+    const activa = otra === fila && abrir;
+    otra.classList.toggle("abierta", activa);
+    otra.querySelector(".banco-acciones").inert = !activa;
+  });
+}
+
+let gestoBanco = null;
+const clicBancoBloqueado = new WeakMap();
+
+document.addEventListener("pointerdown", event => {
+  if (!event.isPrimary || event.button !== 0) return;
+
+  const tarjeta = event.target.closest(
+    ".banco-deslizable > .banco-card"
+  );
+  if (!tarjeta) return;
+
+  gestoBanco = {
+    tarjeta,
+    fila: tarjeta.parentElement,
+    id: event.pointerId,
+    x: event.clientX,
+    y: event.clientY,
+    dx: 0,
+    horizontal: false
+  };
+});
+
+document.addEventListener("pointermove", event => {
+  const g = gestoBanco;
+  if (!g || event.pointerId !== g.id) return;
+
+  const dx = event.clientX - g.x;
+  const dy = event.clientY - g.y;
+
+  if (!g.horizontal) {
+    if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
+      gestoBanco = null;
+      return;
+    }
+
+    if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy)) {
+      return;
+    }
+
+    g.horizontal = true;
+    g.tarjeta.setPointerCapture(event.pointerId);
+  }
+
+  g.dx = dx;
+  if (event.cancelable) event.preventDefault();
+}, {passive: false});
+
+document.addEventListener("pointerup", event => {
+  const g = gestoBanco;
+  if (!g || event.pointerId !== g.id) return;
+  gestoBanco = null;
+
+  if (!g.horizontal) return;
+
+  clicBancoBloqueado.set(g.tarjeta, performance.now() + 600);
+
+  if (g.dx < -35) mostrarAccionesBanco(g.fila, true);
+  if (g.dx > 35) mostrarAccionesBanco(g.fila, false);
+});
+
+document.addEventListener("pointercancel", () => {
+  gestoBanco = null;
+});
+
+document.addEventListener("click", event => {
+  const tarjeta = event.target.closest(
+    ".banco-deslizable > .banco-card"
+  );
+
+  if (tarjeta) {
+    const bloqueado = clicBancoBloqueado.get(tarjeta) || 0;
+    const abierta = tarjeta.parentElement.classList.contains("abierta");
+
+    if (performance.now() < bloqueado || abierta) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (performance.now() >= bloqueado) {
+        mostrarAccionesBanco(tarjeta.parentElement, false);
+      }
+      return;
+    }
+  }
+
+  if (!event.target.closest(".banco-deslizable")) {
+    mostrarAccionesBanco(null, false);
+  }
+}, true);
+
+document.addEventListener("keydown", event => {
+  const tarjeta = event.target.closest(
+    ".banco-deslizable > .banco-card"
+  );
+
+  if (tarjeta && event.key === "ArrowLeft") {
+    event.preventDefault();
+    mostrarAccionesBanco(tarjeta.parentElement, true);
+    tarjeta.parentElement.querySelector(".banco-editar").focus();
+  }
+
+  if (event.key === "Escape") {
+    const fila = document.querySelector(".banco-deslizable.abierta");
+    if (fila) {
+      fila.querySelector(".banco-card").focus();
+      mostrarAccionesBanco(fila, false);
+    }
+  }
+});
 </script>
 
 
