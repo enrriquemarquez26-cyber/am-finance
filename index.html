@@ -6419,6 +6419,62 @@ function aplicarEstiloProgreso(estilo) {
     );
   });
 }
+function cambiarColorPrincipal(color) {
+  const colores = [
+    "#ff7900", "#007aff", "#13865b", "#af52de", "#d63384"
+  ];
+  if (!colores.includes(color)) return;
+
+  localStorage.setItem("balanceone-color", color);
+  aplicarColorPrincipal(color);
+}
+
+function aplicarColorPrincipal(color) {
+  const colores = [
+    "#ff7900", "#007aff", "#13865b", "#af52de", "#d63384"
+  ];
+  if (!colores.includes(color)) return;
+
+  let estilo = document.getElementById("colorPrincipalApp");
+  if (!estilo) {
+    estilo = document.createElement("style");
+    estilo.id = "colorPrincipalApp";
+    document.head.appendChild(estilo);
+  }
+
+  estilo.textContent = `
+    html nav button.active,
+    html .logo span,
+    .perfil-plan {
+      color: ${color} !important;
+    }
+
+    .perfil-plan {
+      border-color: ${color} !important;
+    }
+
+    .mov-guardar,
+    #movVentana .mov-guardar,
+    .tarjetas-pantalla .primary,
+    #formAuto .primary,
+    .vehiculo-panel .payment .primary,
+    .banco-dialogo .primary,
+    .apariencia-ventana .apariencia-listo {
+      background: ${color} !important;
+      color: #fff !important;
+    }
+
+    .apariencia-opcion[aria-checked="true"] {
+      background: ${color}1a !important;
+      border-color: ${color}66 !important;
+    }
+  `;
+}
+
+try {
+  const colorGuardado = localStorage.getItem("balanceone-color");
+  if (colorGuardado) aplicarColorPrincipal(colorGuardado);
+} catch {}
 </script>
 
 
