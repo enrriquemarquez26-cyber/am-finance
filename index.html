@@ -4420,36 +4420,92 @@ function toggle(ident){
  if(element)element.classList.toggle("hidden");
 }
 
-function pagarAuto(e,i){
- e.preventDefault();
- const v=data.vehiculos[i];
- const monto=round(new FormData(e.target).get("monto"));
- const saldo=Number(v.saldo);
- const interes=round(saldo*Number(v.apr)/1200);
- const capital=round(monto-interes);
+function pagarAuto(e, i) {
+  e.preventDefault();
+  const v = data.vehiculos[i];
+  if (!v) return;
 
- if(!validAmount(monto))return;
- if(capital<=0){
-    alert(textoApp("El pago no cubre el interés mensual estimado.", "The payment does not cover the estimated monthly interest."));
-  return;
- }
- if(capital>saldo){
-    alert(textoApp("El pago supera el saldo más el interés estimado.", "The payment exceeds the balance plus estimated interest."));
-  return;
- }
-   if(!confirm(textoApp("¿Registrar pago de ", "Record a payment of ")+money(monto)+"?"))return;
+  const monto = round(new FormData(e.target).get("monto"));
+  const saldo = Number(v.saldo);
+  const apr = Number(v.apr);
 
- v.saldo=round(saldo-capital);
- data.pagos.push({
-  id:id(),cuentaId:v.id,nombre:v.nombre,
-  monto,interes,capital,tipo:"vehiculo",
-  fecha:today(),saldoRestante:v.saldo
- });
- save();
-   alert(textoApp("Pago registrado.\nInterés estimado: ", "Payment recorded.\nEstimated interest: ")+money(interes)+
-  textoApp("\nCapital: ", "\nPrincipal: ")+money(capital)+
-  textoApp("\nNuevo saldo: ", "\nNew balance: ")+money(v.saldo));
- render();
+  if (!validAmount(monto) ||
+      !Number.isFinite(saldo) || saldo < 0 ||
+      !Number.isFinite(apr) || apr < 0) {
+    alert(textoApp(
+      "Revisa el importe, el saldo y la tasa APR.",
+      "Check the amount, balance and APR."
+    ));
+    return;
+  }
+
+  const interes = round(saldo * apr / 1200);
+  const capital = round(monto - interes);
+
+  if (capital <= 0) {
+    alert(textoApp(
+      "El pago no cubre el interés mensual estimado.",
+      "The payment does not cover the estimated monthly interest."
+    ));
+    return;
+  }
+
+  if (capital > saldo) {
+    alert(textoApp(
+      "El pago supera el saldo más el interés estimado.",
+      "The payment exceeds the balance plus estimated interest."
+    ));
+    return;
+  }
+
+  if (!confirm(
+    textoApp("¿Registrar pago de ", "Record a payment of ") +
+    money(monto) + "?"
+  )) return;
+
+  const saldoNuevo = round(saldo - capital);
+  const pago = {
+    id: id(),
+    cuentaId: v.id,
+    nombre: v.nombre,
+    monto,
+    interes,
+    capital,
+    tipo: "vehiculo",
+    fecha: today(),
+    saldoRestante: saldoNuevo
+  };
+
+  const nuevosDatos = {
+    ...data,
+    vehiculos: data.vehiculos.map((auto, indice) =>
+      indice === i ? {...auto, saldo: saldoNuevo} : auto
+    ),
+    pagos: [...data.pagos, pago]
+  };
+
+  try {
+    localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+  } catch {
+    alert(textoApp(
+      "No se pudo guardar el pago. Inténtalo de nuevo.",
+      "Could not save the payment. Please try again."
+    ));
+    return;
+  }
+
+  data = nuevosDatos;
+
+  alert(
+    textoApp(
+      "Pago registrado.\nInterés estimado: ",
+      "Payment recorded.\nEstimated interest: "
+    ) + money(interes) +
+    textoApp("\nCapital: ", "\nPrincipal: ") + money(capital) +
+    textoApp("\nNuevo saldo: ", "\nNew balance: ") + money(saldoNuevo)
+  );
+
+  render();
 }
 function opcionesCuentasPago() {
   try {
