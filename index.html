@@ -6360,6 +6360,9 @@ function barraProgreso(valor, color = "#ff7900", diseno) {
 
   if (!estilos.includes(estilo)) estilo = "clasica";
   if (!/^#[0-9a-f]{6}$/i.test(color)) color = "#ff7900";
+  if (color.toLowerCase() === "#ff7900") {
+    color = "var(--balanceone-color, #ff7900)";
+  }
 
   const numero = Number(valor);
   const porcentaje = Number.isFinite(numero)
@@ -6445,7 +6448,10 @@ function aplicarColorPrincipal(color) {
     document.head.appendChild(estilo);
   }
 
-  estilo.textContent = `
+    estilo.textContent = `
+    :root {
+      --balanceone-color: ${color};
+    }
        html nav button.active,
     html .logo span,
     .cuentas-agregar,
