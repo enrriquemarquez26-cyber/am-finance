@@ -4733,18 +4733,34 @@ async function restaurarCopia(event){
   return;
 }
 
-localStorage.setItem(
-  "amfinance-demo-v1",
-  JSON.stringify(respaldo.datos)
-);
+const claveBanco = "amfinance-cuentas-banco";
+const anteriores = [
+  [KEY, localStorage.getItem(KEY)],
+  [claveBanco, localStorage.getItem(claveBanco)]
+];
 
-if (Array.isArray(respaldo.cuentasBanco)) {
+try {
   localStorage.setItem(
-    "amfinance-cuentas-banco",
-    JSON.stringify(respaldo.cuentasBanco)
+    KEY,
+    JSON.stringify(respaldo.datos)
   );
-}
 
+  if (Array.isArray(respaldo.cuentasBanco)) {
+    localStorage.setItem(
+      claveBanco,
+      JSON.stringify(respaldo.cuentasBanco)
+    );
+  }
+} catch (error) {
+  for (const [clave, valor] of anteriores) {
+    if (valor === null) {
+      localStorage.removeItem(clave);
+    } else {
+      localStorage.setItem(clave, valor);
+    }
+  }
+  throw error;
+}
         alert(textoApp("Copia restaurada correctamente.", "Backup restored successfully."));
     location.reload();
 
