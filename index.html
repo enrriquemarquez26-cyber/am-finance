@@ -4330,7 +4330,7 @@ ${data.tarjetas.length > 0 ? `
     </div>
 
     <div style="border-left:1px solid #84909d33;padding-left:12px">
-      <span class="credito-etiqueta">Límite total</span>
+            <span class="credito-etiqueta">${textoApp("Límite total", "Total limit")}</span>
       <strong>${
         money(data.tarjetas.reduce(
           (total, tarjeta) =>
@@ -5826,12 +5826,12 @@ function abrirMovVentana() {
     );
     if (!Array.isArray(cuentas)) throw new Error();
   } catch {
-    alert("No se pudieron leer las cuentas.");
+        alert(textoApp("No se pudieron leer las cuentas.", "Could not load the accounts."));
     return;
   }
 
   if (!cuentas.length) {
-    alert("Primero agrega una cuenta bancaria en Inicio.");
+        alert(textoApp("Primero agrega una cuenta bancaria en Inicio.", "First add a bank account on Home."));
     return;
   }
 
@@ -5842,7 +5842,7 @@ function abrirMovVentana() {
   document.getElementById("movVentanaFecha").value = today();
 
   const selector = document.getElementById("movVentanaCuenta");
-  selector.replaceChildren(new Option("Seleccionar cuenta", ""));
+    selector.replaceChildren(new Option(textoApp("Seleccionar cuenta", "Select account"), ""));
   cuentas.forEach(c => {
     selector.add(new Option(
       c.nombre + " · " + (c.tipo || "") + " · " + money(c.saldo),
@@ -5904,7 +5904,7 @@ document.getElementById("movVentanaForm").onsubmit = event => {
     !nombre || !fecha || !cuentaId ||
     !["gasto", "ingreso"].includes(tipo)
   ) {
-    alert("Revisa la cantidad, nota, fecha y cuenta.");
+        alert(textoApp("Revisa la cantidad, nota, fecha y cuenta.", "Check the amount, note, date and account."));
     return;
   }
 
