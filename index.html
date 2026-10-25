@@ -6743,7 +6743,7 @@ function aplicarEstiloListas(tipo) {
   }
 
   estilo.textContent = tipo === "lineas" ? `
-       html .transaccion-resumen,
+    html .transaccion-resumen,
     html .hist-registro {
       background: transparent !important;
       border-radius: 0 !important;
@@ -6752,11 +6752,42 @@ function aplicarEstiloListas(tipo) {
       border-bottom: 1px solid rgba(130,140,155,.25) !important;
     }
 
-        html .transaccion-resumen:last-child,
+    html .transaccion-resumen:last-child,
     html .hist-registro:last-child {
       border-bottom: 0 !important;
     }
-  ` : "";
+  ` : `
+    html .banco-deslizable {
+      margin: 8px 12px;
+      border-radius: 28px;
+      background: transparent !important;
+    }
+
+    html .banco-card {
+      border: 0 !important;
+      border-radius: 28px;
+      background: #f5f6f7 !important;
+    }
+
+    html.tema-oscuro .banco-card {
+      background: #292e36 !important;
+    }
+
+    html .banco-deslizable > .banco-card {
+      margin: 0;
+      width: 100%;
+      border-radius: inherit;
+    }
+
+    html .card > .banco-card {
+      margin: 8px 12px;
+      width: calc(100% - 24px);
+    }
+
+    .banco-deslizable:not(.abierta) .banco-acciones {
+      visibility: hidden;
+    }
+  `;
 }
 
 try {
