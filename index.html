@@ -2850,7 +2850,8 @@ ${data.vehiculos.map(v => {
       </span>
 
       ${progreso !== null ? `
-        <span style="display:flex;align-items:center;gap:10px">
+              <span class="transaccion-resumen"
+         style="display:flex;align-items:center;
           <span style="display:block;flex:1;min-width:0">
             ${barraProgreso(progreso)}
           </span>
@@ -5385,6 +5386,25 @@ function abrirAjuste(tipo) {
             )}</small>
           </span>
           <span aria-hidden="true">›</span>
+                </button>
+
+        <button type="button" class="ajustes-fila"
+          onclick="abrirFormasTarjetas()">
+          <span class="ajustes-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="5" width="18" height="14" rx="6"/>
+              <path d="M7 10h10M7 14h6"/>
+            </svg>
+          </span>
+          <span class="ajustes-texto">
+            <strong>${t("Forma de tarjetas", "Card appearance")}</strong>
+            <small>${t(
+              "Forma y estilo de listas",
+              "Shape and list style"
+            )}</small>
+          </span>
+          <span aria-hidden="true">›</span>
         </button>`
     },
 
@@ -6337,7 +6357,28 @@ function crearVentanaApariencia(titulo, contenido) {
 }
 function abrirOpcionApariencia(tipo) {
   const configuraciones = {
-        color: {
+            forma: {
+      titulo: textoApp("Forma", "Shape"),
+      clave: "balanceone-forma",
+      defecto: "ovalada",
+      aplicar: cambiarFormaTarjetas,
+      opciones: [
+        ["ovalada", textoApp("Ovaladas", "Oval")],
+        ["redondeada", textoApp("Redondeadas", "Rounded")],
+        ["recta", textoApp("Rectas", "Square")]
+      ]
+    },
+    listas: {
+      titulo: textoApp("Estilo de listas", "List style"),
+      clave: "balanceone-listas",
+      defecto: "recuadros",
+      aplicar: cambiarEstiloListas,
+      opciones: [
+        ["recuadros", textoApp("Recuadros", "Cards")],
+        ["lineas", textoApp("Líneas separadoras", "Divider lines")]
+      ]
+    },
+      color: {
       titulo: textoApp("Color principal", "Accent color"),
       clave: "balanceone-color",
       defecto: "#ff7900",
@@ -6591,6 +6632,139 @@ function aplicarColorPrincipal(color) {
 try {
   const colorGuardado = localStorage.getItem("balanceone-color");
   if (colorGuardado) aplicarColorPrincipal(colorGuardado);
+} catch {}
+function abrirFormasTarjetas() {
+  el().innerHTML = `
+    <section class="ajustes-pantalla">
+      <button type="button" class="ajustes-volver"
+        onclick="abrirAjuste('apariencia')">
+        ‹ ${textoApp("Apariencia", "Appearance")}
+      </button>
+
+      <h2>${textoApp("Forma de tarjetas", "Card appearance")}</h2>
+
+      <div style="margin-top:20px">
+        <button type="button" class="ajustes-fila"
+          onclick="abrirOpcionApariencia('forma')">
+          <span class="ajustes-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="5" width="18" height="14" rx="6"/>
+            </svg>
+          </span>
+          <span class="ajustes-texto">
+            <strong>${textoApp("Forma", "Shape")}</strong>
+            <small>${textoApp(
+              "Ovaladas, redondeadas o rectas",
+              "Oval, rounded or square"
+            )}</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+
+        <button type="button" class="ajustes-fila"
+          onclick="abrirOpcionApariencia('listas')">
+          <span class="ajustes-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </span>
+          <span class="ajustes-texto">
+            <strong>${textoApp("Estilo de listas", "List style")}</strong>
+            <small>${textoApp(
+              "Recuadros o líneas separadoras",
+              "Cards or divider lines"
+            )}</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+      </div>
+    </section>
+  `;
+
+  window.scrollTo(0, 0);
+}
+function cambiarFormaTarjetas(forma) {
+  if (!["ovalada", "redondeada", "recta"].includes(forma)) return;
+
+  localStorage.setItem("balanceone-forma", forma);
+  aplicarFormaTarjetas(forma);
+}
+
+function aplicarFormaTarjetas(forma) {
+  const radios = {
+    ovalada: {panel: 36, fila: 28},
+    redondeada: {panel: 20, fila: 16},
+    recta: {panel: 8, fila: 6}
+  };
+
+  const radio = radios[forma];
+  if (!radio) return;
+
+  let estilo = document.getElementById("formaTarjetasApp");
+  if (!estilo) {
+    estilo = document.createElement("style");
+    estilo.id = "formaTarjetasApp";
+    document.head.appendChild(estilo);
+  }
+
+  estilo.textContent = `
+    .card,
+    .mov-formulario,
+    .mov-historial,
+    .credito-fila {
+      border-radius: ${radio.panel}px !important;
+    }
+
+    .ajustes-fila,
+    .hist-registro,
+    .transaccion-resumen {
+      border-radius: ${radio.fila}px !important;
+    }
+  `;
+}
+
+function cambiarEstiloListas(tipo) {
+  if (!["recuadros", "lineas"].includes(tipo)) return;
+
+  localStorage.setItem("balanceone-listas", tipo);
+  aplicarEstiloListas(tipo);
+}
+
+function aplicarEstiloListas(tipo) {
+  if (!["recuadros", "lineas"].includes(tipo)) return;
+
+  let estilo = document.getElementById("estiloListasApp");
+  if (!estilo) {
+    estilo = document.createElement("style");
+    estilo.id = "estiloListasApp";
+    document.head.appendChild(estilo);
+  }
+
+  estilo.textContent = tipo === "lineas" ? `
+       html .transaccion-resumen,
+    html .hist-registro {
+      background: transparent !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      border: 0 !important;
+      border-bottom: 1px solid rgba(130,140,155,.25) !important;
+    }
+
+    .transaccion-resumen:last-child,
+    .hist-registro:last-child {
+      border-bottom: 0 !important;
+    }
+  ` : "";
+}
+
+try {
+  const forma = localStorage.getItem("balanceone-forma");
+  const listas = localStorage.getItem("balanceone-listas");
+
+  if (forma) aplicarFormaTarjetas(forma);
+  if (listas) aplicarEstiloListas(listas);
 } catch {}
 </script>
 
