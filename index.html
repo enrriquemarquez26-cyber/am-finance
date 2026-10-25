@@ -3442,6 +3442,7 @@ function ajustarSaldo(cuenta,delta){
 
 function guardarEdicion(e,origen,ident){
  e.preventDefault();
+ const datosAnteriores = JSON.stringify(data);
  const item=findItem(origen,ident);
  if(!item)return;
  const f=new FormData(e.target);
@@ -3521,12 +3522,16 @@ return;
  }
 
  openEdit=null;
- save();
+  if (!save()) {
+   data = JSON.parse(datosAnteriores);
+   return;
+ }
    alert(textoApp("Cambios guardados correctamente.", "Changes saved successfully."));
  render();
 }
 
 function eliminar(origen,ident){
+ const datosAnteriores = JSON.stringify(data);
  const group=origen==="pago"?data.pagos:data.movimientos;
  const index=group.findIndex(x=>x.id===ident);
  if(index<0)return;
@@ -3570,7 +3575,10 @@ return;
  }
 
  openEdit=null;
- save();
+  if (!save()) {
+   data = JSON.parse(datosAnteriores);
+   return;
+ }
    alert(textoApp("Registro eliminado.", "Record deleted."));
  render();
 }
