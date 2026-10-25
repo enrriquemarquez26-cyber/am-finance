@@ -2539,61 +2539,118 @@ ${autos + tarjetas > 0 ? `
 ` : ""}
 <button type="button" class="card"
   onclick="go('movimientos')"
-  style="display:flex;flex-direction:column;width:100%;
-    height:190px;box-sizing:border-box;padding:16px;
-  border-radius:32px;text-align:left;color:inherit;
-  font:inherit;overflow:hidden;margin-bottom:16px">
+  style="display:block;width:100%;padding:16px;
+  border-radius:36px;text-align:left;color:inherit;
+  font:inherit;margin-bottom:16px">
 
   <span style="display:flex;justify-content:space-between;
-    align-items:center;width:100%;margin-bottom:10px">
-    <strong>${textoApp("Últimas transacciones", "Recent transactions")}</strong>
-    <span style="color:#f28c28" aria-hidden="true">›</span>
+    align-items:center;gap:10px;margin-bottom:12px">
+    <strong style="font-size:.95rem">
+      ${textoApp("Últimas transacciones", "Recent transactions")}
+    </strong>
+    <span style="color:var(--balanceone-color,#ff7900);
+      font-size:.7rem;white-space:nowrap">
+      ${textoApp("Ver todas", "View all")} ›
+    </span>
   </span>
 
   ${[
-    ...data.movimientos,
+    ...data.movimientos.map(m => ({
+      ...m,
+      esPago: false,
+      bancoRef: m.cuentaId
+    })),
     ...data.pagos.map(p => ({
       ...p,
       tipo: "gasto",
+      esPago: true,
+      bancoRef: p.bancoId,
       nombre: textoApp("Pago: ", "Payment: ") + p.nombre
     }))
   ].sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)))
-   .slice(0,3).map(m => `
-    <span style="display:flex;align-items:center;
-           gap:10px;width:100%;min-height:40px">
-            <span style="position:relative;display:grid;place-items:center;
-        width:30px;height:30px;flex-shrink:0;border-radius:50%;
-        font-size:1.2rem;
-        color:${m.tipo === "ingreso" ? "#42b883" : "#dc5965"}"
-        aria-hidden="true">
-        ${m.tipo === "ingreso" ? "↗" : "↙"}
-        ${imagenCompania(m.nombre)}
-      </span>
+   .slice(0,3).map(m => {
+     const ingreso = m.tipo === "ingreso";
+     const color = ingreso ? "#13865b" : "#d44d56";
 
-      <span style="flex:1;min-width:0">
-        <span style="display:block;font-size:.85rem;
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-          ${safe(m.nombre)}
-        </span>
-        <span class="label" style="display:block;font-size:.7rem">
-          ${validDate(String(m.fecha))
-            ? new Date(m.fecha + "T12:00:00").toLocaleDateString(
-                idiomaActual() === "en" ? "en-US" : "es",
-                {day:"numeric", month:"short"})
-            : safe(m.fecha)}
-        </span>
-      </span>
+     const cuenta = m.bancoRef == null ? null : cuentasBanco.find(
+       c => String(c.id) === String(m.bancoRef)
+     );
 
-      <strong style="font-size:.85rem;white-space:nowrap;
-        color:${m.tipo === "ingreso" ? "#42b883" : "#dc5965"}">
-        ${m.tipo === "ingreso" ? "+" : "−"}${money(m.monto)}
-      </strong>
-    </span>
-  `).join("") || `
-    <span class="note">
-      ${textoApp("Todavía no hay transacciones.", "No transactions yet.")}
-    </span>
-  `}
+     const tipoCuenta = cuenta
+       ? cuenta.tipo === "ahorro"
+         ? textoApp("Ahorros", "Savings")
+         : textoApp("Cheques", "Checking")
+       : "";
+
+     const fecha = validDate(String(m.fecha))
+       ? new Date(m.fecha + "T12:00:00").toLocaleDateString(
+           idiomaActual() === "en" ? "en-US" : "es",
+           {day:"numeric", month:"short"})
+       : String(m.fecha || "");
+
+     const detalle = [
+       fecha,
+       cuenta ? cuenta.nombre : "",
+       tipoCuenta
+     ].filter(Boolean).join(" · ");
+
+     const etiqueta = m.esPago
+       ? textoApp("Pago", "Payment")
+       : ingreso
+         ? textoApp("Ingreso", "Income")
+         : textoApp("Gasto", "Expense");
+
+     return `
+       <span style="display:flex;align-items:center;
+         gap:10px;padding:9px 11px;margin-top:6px;
+         border-radius:28px;background:rgba(130,140,155,.07)">
+
+         <span aria-hidden="true"
+           style="position:relative;display:grid;place-items:center;
+           width:32px;height:32px;flex-shrink:0;
+           border-radius:50%;font-size:1.2rem;color:${color}">
+           ${ingreso ? "↗" : "↙"}
+           ${imagenCompania(m.nombre)}
+         </span>
+
+         <span style="flex:1;min-width:0">
+           <strong style="display:block;font-size:.82rem;
+             white-space:nowrap;overflow:hidden;
+             text-overflow:ellipsis">
+             ${safe(m.nombre)}
+           </strong>
+           <span class="label" title="${safe(detalle)}"
+             style="display:block;margin-top:3px;font-size:.65rem;
+             white-space:nowrap;overflow:hidden;
+             text-overflow:ellipsis">
+             ${safe(detalle)}
+           </span>
+         </span>
+
+         <span style="display:flex;flex-direction:column;
+           align-items:flex-end;gap:4px;flex-shrink:0">
+           <span style="padding:2px 7px;border-radius:999px;
+             font-size:.58rem;
+             background:${m.esPago
+               ? "rgba(130,140,155,.12)"
+               : ingreso
+                 ? "rgba(19,134,91,.1)"
+                 : "rgba(212,77,86,.1)"};
+             color:${m.esPago ? "inherit" : color}">
+             ${etiqueta}
+           </span>
+           <strong style="font-size:.82rem;
+             white-space:nowrap;color:${color}">
+             ${ingreso ? "+" : "−"}${money(m.monto)}
+           </strong>
+         </span>
+       </span>
+     `;
+   }).join("") || `
+     <span class="note">
+       ${textoApp("Todavía no hay transacciones.", "No transactions yet.")}
+     </span>
+   `}
 </button>
 
 <div id="cuentasInicio">
