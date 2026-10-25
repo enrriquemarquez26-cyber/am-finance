@@ -5855,6 +5855,7 @@ document.addEventListener("touchstart", event => {
   if (
     event.touches.length !== 1 ||
     window.scrollY > 0 ||
+    event.touches[0].clientY > 140 ||
     event.target.closest(
       "input,select,textarea,button,a,nav,#amMenu,#movVentana,#movVentanaFondo"
     ) ||
