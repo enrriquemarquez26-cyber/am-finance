@@ -2601,7 +2601,8 @@ ${autos + tarjetas > 0 ? `
          : textoApp("Gasto", "Expense");
 
      return `
-       <span style="display:flex;align-items:center;
+              <span class="transaccion-resumen"
+         style="display:flex;align-items:center;
          gap:10px;padding:9px 11px;margin-top:6px;
          border-radius:28px;background:rgba(130,140,155,.07)">
 
@@ -2850,8 +2851,7 @@ ${data.vehiculos.map(v => {
       </span>
 
       ${progreso !== null ? `
-              <span class="transaccion-resumen"
-         style="display:flex;align-items:center;
+                <span style="display:flex;align-items:center;gap:10px">
           <span style="display:block;flex:1;min-width:0">
             ${barraProgreso(progreso)}
           </span>
@@ -6752,8 +6752,8 @@ function aplicarEstiloListas(tipo) {
       border-bottom: 1px solid rgba(130,140,155,.25) !important;
     }
 
-    .transaccion-resumen:last-child,
-    .hist-registro:last-child {
+        html .transaccion-resumen:last-child,
+    html .hist-registro:last-child {
       border-bottom: 0 !important;
     }
   ` : "";
