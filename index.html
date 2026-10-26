@@ -1919,6 +1919,117 @@ html.tema-oscuro .apariencia-ventana {
     animation: none;
   }
 }
+.cal-controles {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+}
+.cal-mes {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex:1;
+  gap:8px;
+}
+.cal-controles button {
+  border:0;
+  border-radius:999px;
+  padding:10px 12px;
+  background:rgba(130,140,155,.1);
+  color:inherit;
+  font:inherit;
+}
+.cal-cuadricula {
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+}
+.cal-semana {
+  padding:10px 0;
+  text-align:center;
+  font-size:.7rem;
+  color:#84909d;
+}
+.cal-dia {
+  min-width:0;
+  min-height:66px;
+  padding:6px 2px;
+  border:0;
+  border-right:1px solid rgba(130,140,155,.15);
+  border-bottom:1px solid rgba(130,140,155,.15);
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  text-align:center;
+}
+.cal-dia[aria-pressed="true"] {
+  border-radius:14px;
+  box-shadow:inset 0 0 0 2px var(--balanceone-color,#ff7900);
+}
+.cal-dia.cal-hoy strong {
+  color:var(--balanceone-color,#ff7900);
+}
+.cal-dia small {
+  display:block;
+  margin-top:4px;
+  font-size:.58rem;
+  overflow-wrap:anywhere;
+}
+.cal-dia-ventana {
+  position:fixed;
+  inset:auto 0 12px;
+  width:calc(100% - 24px);
+  max-width:500px;
+  height:min(52dvh,440px);
+  max-height:calc(100dvh - 32px);
+  margin:0 auto;
+  padding:0;
+  border:1px solid rgba(130,140,155,.25);
+  border-radius:36px;
+  background:#f8f9fb;
+  color:#17212e;
+  overflow:hidden;
+  transition:height .25s ease;
+}
+.cal-dia-ventana.cal-expandida {
+  height:calc(100dvh - 32px);
+}
+.cal-dia-ventana::backdrop {
+  background:rgba(15,20,28,.35);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.cal-dia-interior {
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+.cal-dia-cabecera {
+  flex-shrink:0;
+  padding:14px 20px;
+  touch-action:none;
+}
+.cal-dia-tirador {
+  width:38px;
+  height:4px;
+  margin:0 auto 14px;
+  border-radius:999px;
+  background:#959da8;
+}
+.cal-dia-contenido {
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:0 20px 20px;
+}
+html.tema-oscuro .cal-dia-ventana {
+  background:#20242b;
+  color:#f5f6f8;
+}
+@media(prefers-reduced-motion:reduce) {
+  .cal-dia-ventana {transition:none;}
+}
 
 </style>
 </head>
