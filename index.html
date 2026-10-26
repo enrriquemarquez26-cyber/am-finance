@@ -4829,14 +4829,110 @@ function presupuestos(){
 </div>
   `;
 }
- function suscripciones(){
+ function suscripciones() {
+  const lista = Array.isArray(data.suscripciones)
+    ? data.suscripciones : [];
+
   el().innerHTML = `
-        <h2>${textoApp("Suscripciones", "Subscriptions")}</h2>
+    <h2>${textoApp("Suscripciones", "Subscriptions")}</h2>
+
     <div class="card">
-            <h3>${textoApp("Mis suscripciones", "My subscriptions")}</h3>
-            <p class="note">${textoApp("Aquí podrás administrar tus pagos recurrentes.", "Here you will be able to manage your recurring payments.")}</p>
+      <h3>${textoApp("Agregar suscripción", "Add subscription")}</h3>
+
+      <form id="formSuscripcion">
+        <label>${textoApp("Nombre", "Name")}</label>
+        <input name="nombre" maxlength="80" required
+          placeholder="Netflix, Spotify…">
+
+        <label>${textoApp("Importe mensual ($)", "Monthly amount ($)")}</label>
+        <input name="monto" type="number"
+          min="0.01" step="0.01" required>
+
+        <label>${textoApp("Primer cobro", "First charge")}</label>
+        <input name="inicio" type="date" value="${today()}" required>
+
+        <button class="primary" type="submit">
+          ${textoApp("Guardar suscripción", "Save subscription")}
+        </button>
+      </form>
+
+      <p class="note">
+        ${textoApp(
+          "Se repetirá cada mes desde la fecha indicada. No registra gastos automáticamente.",
+          "Repeats monthly from the selected date. Expenses are not recorded automatically."
+        )}
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>${textoApp("Mis suscripciones", "My subscriptions")}</h3>
+
+      ${lista.map(s => `
+        <div style="display:flex;align-items:center;gap:12px;
+          padding:12px 0;border-bottom:1px solid rgba(130,140,155,.15)">
+          <span aria-hidden="true"
+            style="position:relative;width:36px;height:36px;
+            display:grid;place-items:center;flex-shrink:0">
+            ↻ ${imagenCompania(s.nombre)}
+          </span>
+
+          <span style="flex:1;min-width:0">
+            <strong>${safe(s.nombre)}</strong>
+            <small style="display:block">
+              ${textoApp("Mensual · Día ", "Monthly · Day ")}
+              ${Number(String(s.inicio).slice(8,10))}
+            </small>
+          </span>
+
+          <strong>${money(s.monto)}</strong>
+        </div>
+      `).join("") || `
+        <p class="note">
+          ${textoApp("Todavía no hay suscripciones.", "No subscriptions yet.")}
+        </p>
+      `}
     </div>
   `;
+
+  const form = document.getElementById("formSuscripcion");
+
+  form.onsubmit = event => {
+    event.preventDefault();
+    if (form.dataset.guardado === "si") return;
+
+    const campos = new FormData(form);
+    const nombre = String(campos.get("nombre") || "").trim();
+    const monto = round(campos.get("monto"));
+    const inicio = String(campos.get("inicio"));
+
+    if (!nombre || !validAmount(monto) || !validDate(inicio)) {
+      alert(textoApp(
+        "Revisa el nombre, importe y fecha.",
+        "Check the name, amount and date."
+      ));
+      return;
+    }
+
+    const nueva = {id:id(), nombre, monto, inicio};
+    const nuevosDatos = {
+      ...data,
+      suscripciones:[...lista, nueva]
+    };
+
+    try {
+      localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+    } catch {
+      alert(textoApp(
+        "No se pudo guardar. No se hicieron cambios.",
+        "Could not save. No changes were made."
+      ));
+      return;
+    }
+
+    form.dataset.guardado = "si";
+    data = nuevosDatos;
+    render();
+  };
 }
 function metasAhorro(){
   el().innerHTML = `
