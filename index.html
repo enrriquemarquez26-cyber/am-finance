@@ -7189,6 +7189,107 @@ function abrirCalculadora(tipo) {
 
   actualizarSimulacion(ventana, tipo);
 }
+function actualizarSimulacion(ventana, tipo) {
+  const resultado = ventana.querySelector("[data-resultado-simulacion]");
+  if (!resultado) return;
+
+  const valores = {};
+  const inputs = [...ventana.querySelectorAll(
+    "[data-campos-simulacion] input"
+  )];
+
+  if (inputs.some(input =>
+      !input.validity.valid || !Number.isFinite(input.valueAsNumber))) {
+    resultado.textContent = textoApp(
+      "Completa los campos con valores válidos.",
+      "Complete the fields with valid values."
+    );
+    return;
+  }
+
+  inputs.forEach(input => {
+    valores[input.name] = input.valueAsNumber;
+  });
+
+  const r = calcularSimulacion(tipo, valores);
+
+  if (r.error) {
+    resultado.textContent = r.error;
+    return;
+  }
+
+  const ahorro = tipo === "ahorro";
+  const tarjeta = tipo === "tarjeta";
+
+  const titulo = ahorro
+    ? textoApp("Ahorro estimado", "Estimated savings")
+    : tarjeta
+      ? textoApp("Plazo para pagar", "Time to pay off")
+      : textoApp("Pago mensual estimado", "Estimated monthly payment");
+
+  const principal = tarjeta
+    ? r.meses + " " + textoApp(
+        r.meses === 1 ? "mes" : "meses",
+        r.meses === 1 ? "month" : "months"
+      )
+    : money(ahorro ? r.total : r.mensual);
+
+  const filas = ahorro ? [
+    [textoApp("Total aportado", "Total contributed"), money(r.principal)],
+    [textoApp("Intereses estimados", "Estimated interest"), money(r.intereses)]
+  ] : [
+    [textoApp("Intereses estimados", "Estimated interest"), money(r.intereses)],
+    [textoApp("Total a pagar", "Total to pay"), money(r.total)]
+  ];
+
+  if (tarjeta) filas.unshift([
+    textoApp("Pago mensual fijo", "Fixed monthly payment"),
+    money(r.mensual)
+  ]);
+
+  const porcentaje = r.total > 0
+    ? Math.min(100, Math.max(0, r.principal / r.total * 100))
+    : 0;
+
+  resultado.innerHTML = `
+    <p class="label" style="margin:0 0 8px">${titulo}</p>
+
+    <strong style="display:block;font-size:1.9rem;
+      color:var(--balanceone-color,#ff7900);
+      margin-bottom:18px;overflow-wrap:anywhere">
+      ${principal}
+    </strong>
+
+    ${filas.map(([etiqueta, importe]) => `
+      <div style="display:flex;justify-content:space-between;
+        gap:12px;margin:10px 0;font-size:.85rem">
+        <span>${etiqueta}</span>
+        <strong style="text-align:right;overflow-wrap:anywhere">
+          ${importe}
+        </strong>
+      </div>
+    `).join("")}
+
+    <div style="margin-top:16px">
+      ${barraProgreso(porcentaje)}
+    </div>
+
+    <div class="label" style="display:flex;
+      justify-content:space-between;gap:10px;
+      margin-top:7px;font-size:.68rem">
+      <span>
+        ${ahorro
+          ? textoApp("Aportaciones", "Contributions")
+          : textoApp("Capital", "Principal")}
+        ${Math.round(porcentaje)}%
+      </span>
+      <span>
+        ${textoApp("Intereses", "Interest")}
+        ${r.total > 0 ? 100 - Math.round(porcentaje) : 0}%
+      </span>
+    </div>
+  `;
+}
 </script>
 
 
