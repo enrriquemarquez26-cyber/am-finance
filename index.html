@@ -2188,7 +2188,7 @@ function textoApp(espanol, ingles) {
 function aplicarIdiomaGeneral() {
   const ingles = idiomaActual() === "en";
   document.documentElement.lang = ingles ? "en" : "es";
-
+  traducirMenusVentana();
   const nombres = ingles
     ? ["Home", "Transactions", "Vehicles", "Cards", "Profile"]
     : ["Inicio", "Movimientos", "Vehículos", "Tarjetas", "Perfil"];
@@ -5845,7 +5845,7 @@ function abrirMovVentana() {
     selector.replaceChildren(new Option(textoApp("Seleccionar cuenta", "Select account"), ""));
   cuentas.forEach(c => {
     selector.add(new Option(
-      c.nombre + " · " + (c.tipo || "") + " · " + money(c.saldo),
+            c.nombre + " · " + (c.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")) + " · " + money(c.saldo),
       String(c.id)
     ));
   });
@@ -6877,6 +6877,75 @@ try {
   if (forma) aplicarFormaTarjetas(forma);
   if (listas) aplicarEstiloListas(listas);
 } catch {}
+function traducirMenusVentana() {
+  const poner = (selector, es, en) => {
+    const elemento = document.querySelector(selector);
+    if (elemento) elemento.textContent = textoApp(es, en);
+  };
+
+  poner("#movVentanaTitulo", "Nuevo movimiento", "New transaction");
+  poner('label[for="movVentanaTipo"]', "Tipo", "Type");
+  poner('label[for="movVentanaNota"]', "Nota", "Note");
+  poner('label[for="movVentanaFecha"]', "Fecha", "Date");
+  poner('label[for="movVentanaCategoria"]', "Categoría", "Category");
+  poner('label[for="movVentanaCuenta"]', "Cuenta", "Account");
+  poner('#movVentanaTipo option[value="gasto"]', "Gasto", "Expense");
+  poner('#movVentanaTipo option[value="ingreso"]', "Ingreso", "Income");
+  poner("#movVentanaForm .mov-guardar", "Guardar", "Save");
+  poner("#amMenu h3", "Herramientas", "Tools");
+
+  const nota = document.getElementById("movVentanaNota");
+  if (nota) nota.placeholder = textoApp("Agregar nota…", "Add a note…");
+
+  const cerrar = document.querySelector(
+    '#movVentana button[onclick="cerrarMovVentana()"]'
+  );
+  if (cerrar) cerrar.setAttribute(
+    "aria-label", textoApp("Cerrar", "Close")
+  );
+
+  const categorias = [
+    ["", "Seleccionar categoría", "Select category"],
+    ["Alimentación", "Alimentación", "Food"],
+    ["Transporte", "Transporte", "Transport"],
+    ["Compras", "Compras", "Shopping"],
+    ["Hogar", "Hogar", "Home"],
+    ["Salud", "Salud", "Health"],
+    ["Trabajo", "Trabajo", "Work"],
+    ["Otros", "Otros", "Other"]
+  ];
+
+  document.querySelectorAll(
+    "#movVentanaCategoria option"
+  ).forEach((opcion, i) => {
+    const categoria = categorias[i];
+    if (!categoria) return;
+    opcion.value = categoria[0];
+    opcion.textContent = textoApp(categoria[1], categoria[2]);
+  });
+
+  const herramientas = [
+    ["Suscripciones", "Subscriptions"],
+    ["Pagos pendientes", "Upcoming payments"],
+    ["Metas de ahorro", "Savings goals"],
+    ["Recordatorios", "Reminders"],
+    ["Presupuestos", "Budgets"],
+    ["Reportes", "Reports"],
+    ["Calculadora", "Calculator"],
+    ["Transferencias", "Transfers"],
+    ["Documentos", "Documents"],
+    ["Control de deudas", "Debt management"],
+    ["Patrimonio", "Net worth"],
+    ["Impuestos", "Taxes"]
+  ];
+
+  document.querySelectorAll(
+    "#amPaginas button span"
+  ).forEach((elemento, i) => {
+    const nombre = herramientas[i];
+    if (nombre) elemento.textContent = textoApp(nombre[0], nombre[1]);
+  });
+}
 </script>
 
 
