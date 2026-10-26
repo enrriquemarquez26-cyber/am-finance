@@ -7707,7 +7707,8 @@ function abrirDiaCalendario(fecha) {
       : textoApp("Gasto", "Expense");
 
     return `
-      <div style="display:flex;align-items:center;gap:10px;
+      <div data-registro-dia
+  style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;
         margin:8px 0;padding:12px;border-radius:24px;
         background:rgba(130,140,155,.08)">
         <span aria-hidden="true"
@@ -7843,6 +7844,7 @@ function abrirDiaCalendario(fecha) {
   activarGestosDiaCalendario(ventana);
   ventana.showModal();
   conectarFormularioDia(ventana, fecha);
+  conectarAccionesDia(ventana, fecha, resumen.registros);
 }
 function activarGestosDiaCalendario(ventana) {
   const cabecera = ventana.querySelector(".cal-dia-cabecera");
@@ -7969,6 +7971,95 @@ function conectarFormularioDia(ventana, fecha) {
       posicionOriginal.replaceWith(formulario);
     }
   }, {once:true});
+}
+function conectarAccionesDia(ventana, fecha, registros) {
+  function actualizarDia() {
+    ventana.addEventListener("close", () => {
+      setTimeout(() => {
+        if (page === "movimientos" || page === "transferencias") {
+          abrirDiaCalendario(fecha);
+        }
+      }, 0);
+    }, {once:true});
+    ventana.close();
+  }
+
+  ventana.querySelectorAll("[data-registro-dia]").forEach((fila, i) => {
+    const registro = registros[i];
+    if (!registro) return;
+
+    const origen = registro.origenCalendario === "pago"
+      ? "pago" : "movimiento";
+    const ident = registro.id;
+    const acciones = document.createElement("div");
+
+    acciones.style.cssText =
+      "display:flex;gap:8px;width:100%;margin-top:10px";
+
+    function crearBoton(es, en, color) {
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.textContent = textoApp(es, en);
+      boton.style.cssText = `
+        flex:1;padding:10px;border:0;border-radius:999px;
+        background:rgba(130,140,155,.12);
+        color:${color};font:inherit;
+      `;
+      acciones.appendChild(boton);
+      return boton;
+    }
+
+    const editarBoton = crearBoton("Editar", "Edit", "inherit");
+    const borrarBoton = crearBoton("Eliminar", "Delete", "#d44d56");
+
+    borrarBoton.onclick = () => {
+      if (!findItem(origen, ident)) return;
+      eliminar(origen, ident);
+      if (!findItem(origen, ident)) actualizarDia();
+    };
+
+    editarBoton.onclick = () => {
+      if (fila.querySelector(".editbox")) return;
+
+      const original = findItem(origen, ident);
+      if (!original) return;
+
+      const caja = document.createElement("div");
+      caja.style.width = "100%";
+      caja.innerHTML = editor({...original, origen});
+      fila.appendChild(caja);
+      acciones.hidden = true;
+
+      const form = caja.querySelector("form");
+      const cancelar = form.querySelector('[type="button"]');
+      cancelar.removeAttribute("onclick");
+      cancelar.onclick = () => {
+        caja.remove();
+        acciones.hidden = false;
+      };
+
+      form.removeAttribute("onsubmit");
+      form.onsubmit = event => {
+        event.preventDefault();
+        const anterior = JSON.stringify(findItem(origen, ident));
+
+        guardarEdicion(event, origen, ident);
+
+        const posterior = JSON.stringify(findItem(origen, ident));
+        if (anterior !== posterior) {
+          actualizarDia();
+        }
+      };
+
+      ventana.querySelector("[data-ampliar-dia]")
+        .getAttribute("aria-expanded") === "false" &&
+        ventana.querySelector("[data-ampliar-dia]").click();
+
+      caja.scrollIntoView({behavior:"smooth", block:"nearest"});
+    };
+
+    fila.appendChild(acciones);
+  });
 }
 </script>
 
