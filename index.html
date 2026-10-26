@@ -6393,7 +6393,7 @@ function imagenCompania(nombre) {
       padding:3px;border-radius:50%">
   `;
 }
-function crearVentanaApariencia(titulo, contenido) {
+function crearVentanaApariencia(titulo, contenido, sinTeclado = false) {
   if (document.querySelector(".apariencia-ventana")) return null;
 
   const ventana = document.createElement("dialog");
@@ -6431,7 +6431,11 @@ function crearVentanaApariencia(titulo, contenido) {
       focoAnterior.focus();
     }
   }, {once: true});
-
+   if (sinTeclado) {
+    const tituloVentana = ventana.querySelector("h2");
+    tituloVentana.tabIndex = -1;
+    tituloVentana.setAttribute("autofocus", "");
+  }
   document.body.appendChild(ventana);
   document.body.style.overflow = "hidden";
   ventana.showModal();
@@ -7176,11 +7180,61 @@ function abrirCalculadora(tipo) {
       <p class="note" style="font-size:.72rem;margin-top:16px">
         ${notas[tipo]}
       </p>
-    `
+       `,
+    true
   );
 
   if (!ventana) return;
+   let deslizamiento = null;
 
+  ventana.addEventListener("touchstart", event => {
+    deslizamiento = null;
+
+    if (event.touches.length !== 1 ||
+        ventana.scrollTop > 0 ||
+        event.target.closest("input,select,textarea,button")) return;
+
+    const toque = event.touches[0];
+    if (toque.clientY - ventana.getBoundingClientRect().top > 110) return;
+
+    deslizamiento = {
+      x: toque.clientX,
+      y: toque.clientY,
+      distancia: 0
+    };
+  }, {passive: true});
+
+  ventana.addEventListener("touchmove", event => {
+    if (!deslizamiento) return;
+
+    if (event.touches.length !== 1) {
+      deslizamiento = null;
+      return;
+    }
+
+    const dx = event.touches[0].clientX - deslizamiento.x;
+    const dy = event.touches[0].clientY - deslizamiento.y;
+
+    if (dy < -10 || Math.abs(dx) > Math.max(20, Math.abs(dy))) {
+      deslizamiento = null;
+      return;
+    }
+
+    deslizamiento.distancia = dy;
+    if (dy > 12 && event.cancelable) event.preventDefault();
+  }, {passive: false});
+
+  ventana.addEventListener("touchend", () => {
+    const cerrar = deslizamiento &&
+      deslizamiento.distancia > 60;
+
+    deslizamiento = null;
+    if (cerrar) ventana.close();
+  }, {passive: true});
+
+  ventana.addEventListener("touchcancel", () => {
+    deslizamiento = null;
+  }, {passive: true});
   ventana.querySelectorAll("input").forEach(input => {
     input.addEventListener("input", () => {
       actualizarSimulacion(ventana, tipo);
