@@ -6435,7 +6435,8 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false) {
     const tituloVentana = ventana.querySelector("h2");
     tituloVentana.tabIndex = -1;
     tituloVentana.setAttribute("autofocus", "");
-  }
+      tituloVentana.style.outline = "none";
+}
   document.body.appendChild(ventana);
   document.body.style.overflow = "hidden";
   ventana.showModal();
