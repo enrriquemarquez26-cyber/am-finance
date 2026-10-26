@@ -5264,15 +5264,7 @@ function transferencias() {
         aria-label="${fecha}"
         onclick="abrirDiaCalendario('${fecha}')">
         <strong>${numero}</strong>
-       ${suscripcionesDia.length ? `
-  <small style="color:var(--balanceone-color,#ff7900)"
-    aria-label="${textoApp(
-      'Suscripciones programadas',
-      'Scheduled subscriptions'
-    )}">
-    ↻ ${suscripcionesDia.length}
-  </small>
-` : ""}
+       ${iconosDiaCalendario(fecha)}
 
         ${resumen.gastos > 0 ? `
           <small style="color:#d44d56">
@@ -8400,6 +8392,59 @@ function conectarSuscripcionesDia(ventana, fecha) {
 
   ventana.querySelector(".cal-dia-contenido")
     .insertAdjacentHTML("afterbegin", bloque);
+}
+function iconosDiaCalendario(fecha) {
+  const [anio, mes] = fecha.slice(0,7).split("-").map(Number);
+  const ultimo = new Date(anio, mes, 0, 12).getDate();
+  const dia = Number(fecha.slice(8,10));
+
+  const coincide = elemento => {
+    const vencimiento = Number(elemento.vencimiento);
+    return Number.isInteger(vencimiento) &&
+      vencimiento >= 1 && vencimiento <= 31 &&
+      Math.min(vencimiento, ultimo) === dia &&
+      Number(elemento.saldo) > 0;
+  };
+
+  const eventos = [
+    ...suscripcionesDelMes(fecha.slice(0,7))
+      .filter(s => s.fecha === fecha)
+      .map(s => ({nombre:s.nombre, icono:"↻"})),
+    ...data.tarjetas.filter(coincide)
+      .map(t => ({nombre:t.nombre, icono:"💳"})),
+    ...data.vehiculos.filter(coincide)
+      .map(v => ({nombre:v.nombre, icono:"🚘"}))
+  ];
+
+  if (!eventos.length) return "";
+
+  return `
+    <span style="display:flex;align-items:center;
+      justify-content:center;gap:2px;margin-top:5px"
+      aria-label="${safe(textoApp(
+        "Cobros programados: ",
+        "Scheduled charges: "
+      ) + eventos.map(e => e.nombre).join(", "))}">
+
+      ${eventos.slice(0,2).map(e => `
+        <span aria-hidden="true"
+          style="position:relative;display:grid;
+          place-items:center;width:17px;height:17px;
+          flex:0 0 17px;border-radius:50%;
+          overflow:hidden;background:rgba(130,140,155,.12);
+          font-size:10px">
+          ${e.icono}
+          ${imagenCompania(e.nombre)}
+        </span>
+      `).join("")}
+
+      ${eventos.length > 2 ? `
+        <span style="font-size:9px">
+          +${eventos.length - 2}
+        </span>
+      ` : ""}
+    </span>
+  `;
 }
 </script>
 
