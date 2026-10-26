@@ -2352,30 +2352,37 @@ hoy.getFullYear(),hoy.getMonth()+2,0
 return Math.round((fecha-hoy)/86400000);
 }
 
-function avisosVencimiento(){
-const cuentas=[
-...data.vehiculos.map(v=>({...v,tipo:"Vehículo"})),
-...data.tarjetas.map(t=>({...t,tipo:"Tarjeta"}))
-];
+function avisosVencimiento() {
+  const cuentas = [
+    ...data.vehiculos.map(v => ({
+      ...v, tipo: textoApp("Vehículo", "Vehicle")
+    })),
+    ...data.tarjetas.map(t => ({
+      ...t, tipo: textoApp("Tarjeta", "Card")
+    }))
+  ];
 
-return cuentas.map(c=>{
-const dia=Number(c.vencimiento);
-if(!Number.isInteger(dia)||dia<1||dia>31)return "";
+  return cuentas.map(c => {
+    const dia = Number(c.vencimiento);
+    if (!Number.isInteger(dia) || dia < 1 || dia > 31) return "";
 
-const faltan=diasParaVencer(dia);
+    const faltan = diasParaVencer(dia);
+    if (![7, 3, 0].includes(faltan)) return "";
 
-if(![7,3,0].includes(faltan))return "";
+    const mensaje = faltan === 0
+      ? textoApp("¡Tu pago vence hoy!", "Your payment is due today!")
+      : textoApp(
+          `Faltan ${faltan} días para tu próximo pago.`,
+          `Your next payment is due in ${faltan} days.`
+        );
 
-const mensaje=faltan===0
-?"¡Vence hoy!"
-:`Faltan ${faltan} días`;
-
-return `
-<div class="card">
-<strong>🔔 ${safe(c.tipo)}: ${safe(c.nombre)}</strong>
-<p>${mensaje} para tu próximo pago.</p>
-</div>`;
-}).join("");
+    return `
+      <div class="card">
+        <strong>🔔 ${safe(c.tipo)}: ${safe(c.nombre)}</strong>
+        <p>${mensaje}</p>
+      </div>
+    `;
+  }).join("");
 }
 function inicio(){
 
@@ -4982,29 +4989,32 @@ function guardarCalc() {
   alert("La función Guardar se agregará próximamente.");
 }
 
-function transferencias(){
-  el().innerHTML = `<h2>Transferencias</h2>
-    <div class="card"><p>Administra tus transferencias entre cuentas.</p></div>`;
+function mostrarHerramientaPendiente(es, en) {
+  el().innerHTML = `
+    <h2>${textoApp(es, en)}</h2>
+    <div class="card">
+      <p>${textoApp(
+        "Esta función estará disponible próximamente.",
+        "This feature is coming soon."
+      )}</p>
+    </div>
+  `;
 }
 
-function documentos(){
-  el().innerHTML = `<h2>Documentos</h2>
-    <div class="card"><p>Organiza tus documentos financieros.</p></div>`;
+function transferencias() {
+  mostrarHerramientaPendiente("Transferencias", "Transfers");
 }
-
-function deudas(){
-  el().innerHTML = `<h2>Control de deudas</h2>
-    <div class="card"><p>Consulta y organiza tus deudas.</p></div>`;
+function documentos() {
+  mostrarHerramientaPendiente("Documentos", "Documents");
 }
-
-function patrimonio(){
-  el().innerHTML = `<h2>Patrimonio</h2>
-    <div class="card"><p>Consulta tus activos y deudas.</p></div>`;
+function deudas() {
+  mostrarHerramientaPendiente("Control de deudas", "Debt management");
 }
-
-function impuestos(){
-  el().innerHTML = `<h2>Impuestos</h2>
-    <div class="card"><p>Organiza tus ingresos y gastos para impuestos.</p></div>`;
+function patrimonio() {
+  mostrarHerramientaPendiente("Patrimonio", "Net worth");
+}
+function impuestos() {
+  mostrarHerramientaPendiente("Impuestos", "Taxes");
 }
 function perfil() {
   const usuario = data.perfil || {};
