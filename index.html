@@ -2426,6 +2426,7 @@ function render(){
  if(page==="reportes")return reportes();
  if(page==="pagosPendientes")return pagosPendientes();
  if(page==="movimientos")return movimientos();
+ if(page==="historialMovimientos")return historialMovimientos();
  if(page==="vehiculos")return vehiculos();
  if(page==="tarjetas")return tarjetas();
  if(page==="ajustes")return ajustes();
@@ -3100,7 +3101,19 @@ function movimientos(){
 
  el().innerHTML=`
 <div class="mov-pantalla">
-    <h2>${textoApp("Movimientos", "Transactions")}</h2>
+    <div data-cabecera-mov
+  style="display:flex;align-items:center;
+  justify-content:space-between;gap:12px">
+
+  <h2>${textoApp("Movimientos", "Transactions")}</h2>
+
+  <button type="button" onclick="go('historialMovimientos')"
+    style="border:0;border-radius:999px;padding:10px 14px;
+    background:rgba(130,140,155,.1);
+    color:var(--balanceone-color,#ff7900);font:inherit">
+    ${textoApp("Historial", "History")}
+  </button>
+</div>
   <div id="movCalendario" style="margin-bottom:20px"></div>
   <div class="mov-formulario" style="display:none">
     <form id="formMov">
@@ -3161,7 +3174,7 @@ function movimientos(){
     </form>
   </div>
 
-<div class="mov-historial" style="margin-top:20px">
+<<div class="mov-historial" style="display:none;margin-top:20px">
   <div class="hist-cabecera">
     <h3>${textoApp("Historial", "History")}</h3>
 
@@ -8057,6 +8070,32 @@ function conectarAccionesDia(ventana, fecha, registros) {
     };
 
     fila.appendChild(acciones);
+  });
+}
+function historialMovimientos() {
+  movimientos();
+
+  const pantalla = document.querySelector(".mov-pantalla");
+  const calendario = document.getElementById("movCalendario");
+  const formulario = pantalla.querySelector(".mov-formulario");
+  const historial = pantalla.querySelector(".mov-historial");
+  const cabecera = pantalla.querySelector("[data-cabecera-mov]");
+
+  calendario.hidden = true;
+  formulario.style.display = "none";
+  historial.style.display = "block";
+
+  cabecera.innerHTML = `
+    <button type="button" onclick="go('movimientos')"
+      style="border:0;background:transparent;
+      color:var(--balanceone-color,#ff7900);
+      font:inherit;padding:8px 0">
+      ‹ ${textoApp("Movimientos", "Transactions")}
+    </button>
+  `;
+
+  document.querySelectorAll("nav button").forEach(boton => {
+    boton.classList.toggle("active", boton.id === "nav-movimientos");
   });
 }
 </script>
