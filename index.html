@@ -3101,7 +3101,7 @@ function movimientos(){
  el().innerHTML=`
 <div class="mov-pantalla">
     <h2>${textoApp("Movimientos", "Transactions")}</h2>
-
+  <div id="movCalendario" style="margin-bottom:20px"></div>
   <div class="mov-formulario">
     <form id="formMov">
       <label for="movCuenta">${textoApp("Cuenta", "Account")}</label>
@@ -3269,6 +3269,7 @@ function movimientos(){
   </p>
 </div>
 </div>`;
+transferencias();
 const botonBusqueda = document.getElementById("histBuscarBoton");
 const cajaBusqueda = document.getElementById("histBusqueda");
 const textoBusqueda = document.getElementById("histBuscarTexto");
@@ -5156,7 +5157,7 @@ function transferencias() {
     `;
   }).join("");
 
-  el().innerHTML = `
+  (document.getElementById("movCalendario") || el()).innerHTML = `
     <section>
       <h2>${textoApp("Calendario financiero", "Financial calendar")}</h2>
 
@@ -7813,7 +7814,7 @@ function abrirDiaCalendario(fecha) {
     document.body.style.overflow = overflowAnterior;
     ventana.remove();
 
-    if (page === "transferencias") {
+    if (page === "transferencias" || page === "movimientos") {
       transferencias();
       const dia = document.querySelector(
         '.cal-dia[aria-label="' + fecha + '"]'
