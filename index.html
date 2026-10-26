@@ -4308,7 +4308,15 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
                     <button class="primary">${textoApp("Confirmar pago", "Confirm payment")}</button>
         </form>
       </div>
-    </div>
+          <button type="button"
+        onclick="eliminarTarjetaCredito(${i})"
+        style="width:100%;margin-top:14px;padding:13px;
+        border-radius:999px;border:1px solid rgba(212,77,86,.3);
+        background:rgba(212,77,86,.1);color:#d44d56;
+        font:inherit;font-weight:600">
+        ${textoApp("Eliminar tarjeta", "Delete card")}
+      </button>
+   </div>
   `).join("")}
 
   ${data.tarjetas.length === 0 ? `
