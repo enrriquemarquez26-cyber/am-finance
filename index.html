@@ -3487,7 +3487,21 @@ formulario.onsubmit = e => {
     fecha
   };
 
-  if (!guardarMovimientoBanco(null, movimiento)) return;
+  if (formulario.dataset.guardado === "si") return;
+
+if (!guardarMovimientoBanco(null, movimiento)) return;
+
+formulario.dataset.guardado = "si";
+
+const botonGuardar = formulario.querySelector('[type="submit"]');
+if (botonGuardar) botonGuardar.disabled = true;
+
+const ventanaDia = formulario.closest("dialog");
+if (ventanaDia && ventanaDia.open) {
+  ventanaDia.close();
+}
+
+render();
 
   render();
 };
