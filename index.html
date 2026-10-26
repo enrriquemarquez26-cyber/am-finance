@@ -5254,14 +5254,25 @@ function transferencias() {
     const numero = i + 1;
     const fecha = mesCalendario + "-" + String(numero).padStart(2, "0");
     const resumen = resumenDiaCalendario(fecha);
-
-    return `
+   const suscripcionesDia = suscripcionesDelMes(mesCalendario)
+  .filter(s => s.fecha === fecha);
+   
+       return `
       <button type="button"
         class="cal-dia ${fecha === today() ? "cal-hoy" : ""}"
         aria-pressed="${fecha === diaCalendario}"
         aria-label="${fecha}"
         onclick="abrirDiaCalendario('${fecha}')">
         <strong>${numero}</strong>
+       ${suscripcionesDia.length ? `
+  <small style="color:var(--balanceone-color,#ff7900)"
+    aria-label="${textoApp(
+      'Suscripciones programadas',
+      'Scheduled subscriptions'
+    )}">
+    ↻ ${suscripcionesDia.length}
+  </small>
+` : ""}
 
         ${resumen.gastos > 0 ? `
           <small style="color:#d44d56">
@@ -5321,6 +5332,7 @@ function transferencias() {
       </p>
    
     ${pagosMesCalendario()}
+    ${bloqueSuscripcionesCalendario()}
     </section>
   `;
 }
@@ -7954,6 +7966,7 @@ function abrirDiaCalendario(fecha) {
   ventana.showModal();
   conectarFormularioDia(ventana, fecha);
   conectarAccionesDia(ventana, fecha, resumen.registros);
+  conectarSuscripcionesDia(ventana, fecha);
 }
 function activarGestosDiaCalendario(ventana) {
   const cabecera = ventana.querySelector(".cal-dia-cabecera");
@@ -8288,6 +8301,105 @@ function pagosMesCalendario() {
       </div>
     </div>
   `;
+}
+function suscripcionesDelMes(mesElegido) {
+  const [anio, mes] = mesElegido.split("-").map(Number);
+  const ultimo = new Date(anio, mes, 0, 12).getDate();
+  const lista = Array.isArray(data.suscripciones)
+    ? data.suscripciones : [];
+
+  return lista.filter(s =>
+    validDate(String(s.inicio)) &&
+    String(s.inicio).slice(0,7) <= mesElegido
+  ).map(s => {
+    const dia = Math.min(
+      Number(String(s.inicio).slice(8,10)),
+      ultimo
+    );
+
+    return {
+      ...s,
+      fecha: mesElegido + "-" + String(dia).padStart(2,"0")
+    };
+  }).sort((a,b) => a.fecha.localeCompare(b.fecha));
+}
+
+function bloqueSuscripcionesCalendario(fecha) {
+  const mesElegido = fecha ? fecha.slice(0,7) : mesCalendario;
+  const lista = suscripcionesDelMes(mesElegido)
+    .filter(s => !fecha || s.fecha === fecha);
+
+  if (fecha && !lista.length) return "";
+
+  return `
+    <div class="card" style="margin-top:16px">
+      <h3>${textoApp(
+        "Suscripciones programadas",
+        "Scheduled subscriptions"
+      )}</h3>
+
+      <p class="note">${textoApp(
+        "Cobros previstos; no están incluidos en los gastos registrados.",
+        "Expected charges; not included in recorded expenses."
+      )}</p>
+
+      ${lista.map(s => `
+        <div style="display:flex;align-items:center;
+          gap:12px;padding:12px 0">
+          <span aria-hidden="true"
+            style="position:relative;display:grid;
+            place-items:center;width:36px;height:36px;
+            flex-shrink:0">
+            ↻ ${imagenCompania(s.nombre)}
+          </span>
+
+          <span style="flex:1;min-width:0">
+            <strong>${safe(s.nombre)}</strong>
+            <small style="display:block">
+              ${textoApp("Día ", "Day ")}
+              ${Number(s.fecha.slice(8,10))}
+            </small>
+          </span>
+
+          <strong>${money(s.monto)}</strong>
+        </div>
+      `).join("") || `
+        <p class="note">${textoApp(
+          "No hay suscripciones para este mes.",
+          "No subscriptions for this month."
+        )}</p>
+      `}
+
+      <button type="button"
+        onclick="abrirSuscripcionesDesdeCalendario()"
+        class="secondary">
+        ${textoApp("Administrar suscripciones", "Manage subscriptions")}
+      </button>
+    </div>
+  `;
+}
+
+function abrirSuscripcionesDesdeCalendario() {
+  const ventana = document.querySelector(".cal-dia-ventana");
+
+  if (!ventana) {
+    go("suscripciones");
+    return;
+  }
+
+  ventana.addEventListener("close", () => {
+    setTimeout(() => go("suscripciones"), 0);
+  }, {once:true});
+
+  ventana.close();
+}
+
+function conectarSuscripcionesDia(ventana, fecha) {
+  const bloque = bloqueSuscripcionesCalendario(fecha);
+  if (!bloque) return;
+
+  ventana.querySelector(".cal-dia-contenido")
+    .insertAdjacentHTML("afterbegin", bloque);
 }
 </script>
 
