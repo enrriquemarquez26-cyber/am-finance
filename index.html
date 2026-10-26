@@ -5003,7 +5003,91 @@ function mostrarHerramientaPendiente(es, en) {
 }
 
 function transferencias() {
-  mostrarHerramientaPendiente("Transferencias", "Transfers");
+  const [anio, mes] = mesCalendario.split("-").map(Number);
+  const primero = new Date(anio, mes - 1, 1, 12);
+  const espacios = (primero.getDay() + 6) % 7;
+  const cantidadDias = new Date(anio, mes, 0, 12).getDate();
+
+  const nombreMes = primero.toLocaleDateString(
+    idiomaActual() === "en" ? "en-US" : "es",
+    {month: "long", year: "numeric"}
+  );
+
+  const semana = idiomaActual() === "en"
+    ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    : ["L", "M", "X", "J", "V", "S", "D"];
+
+  const dias = Array.from({length: cantidadDias}, (_, i) => {
+    const numero = i + 1;
+    const fecha = mesCalendario + "-" + String(numero).padStart(2, "0");
+    const resumen = resumenDiaCalendario(fecha);
+
+    return `
+      <button type="button"
+        class="cal-dia ${fecha === today() ? "cal-hoy" : ""}"
+        aria-pressed="${fecha === diaCalendario}"
+        aria-label="${fecha}"
+        onclick="abrirDiaCalendario('${fecha}')">
+        <strong>${numero}</strong>
+
+        ${resumen.gastos > 0 ? `
+          <small style="color:#d44d56">
+            −${money(resumen.gastos)}
+          </small>
+        ` : ""}
+
+        ${resumen.ingresos > 0 ? `
+          <small style="color:#13865b">
+            +${money(resumen.ingresos)}
+          </small>
+        ` : ""}
+      </button>
+    `;
+  }).join("");
+
+  el().innerHTML = `
+    <section>
+      <h2>${textoApp("Calendario financiero", "Financial calendar")}</h2>
+
+      <div class="cal-controles">
+        <div class="card cal-mes" style="margin:0;padding:8px">
+          <button type="button"
+            aria-label="${textoApp("Mes anterior", "Previous month")}"
+            onclick="cambiarMesCalendario(-1)">‹</button>
+
+          <strong style="text-transform:capitalize;font-size:.9rem">
+            ${nombreMes}
+          </strong>
+
+          <button type="button"
+            aria-label="${textoApp("Mes siguiente", "Next month")}"
+            onclick="cambiarMesCalendario(1)">›</button>
+        </div>
+
+        <button type="button" onclick="volverHoyCalendario()">
+          ${textoApp("Hoy", "Today")}
+        </button>
+      </div>
+
+      <div class="card" style="padding:10px;overflow:hidden">
+        <div class="cal-cuadricula">
+          ${semana.map(nombre => `
+            <span class="cal-semana">${nombre}</span>
+          `).join("")}
+
+          ${'<span aria-hidden="true"></span>'.repeat(espacios)}
+          ${dias}
+        </div>
+      </div>
+
+      <p class="note">
+        ${textoApp(
+          "Toca un día para ver sus totales y movimientos.",
+          "Tap a day to see its totals and transactions."
+        )}
+      </p>
+    </section>
+  `;
 }
 function documentos() {
   mostrarHerramientaPendiente("Documentos", "Documents");
@@ -7401,6 +7485,295 @@ function eliminarTarjetaCredito(indice) {
   data = nuevosDatos;
   render();
   alert(textoApp("Tarjeta eliminada.", "Card deleted."));
+}
+let mesCalendario = month();
+let diaCalendario = today();
+
+function resumenDiaCalendario(fecha) {
+  const registros = [
+    ...data.movimientos.map(m => ({
+      ...m,
+      origenCalendario: "movimiento"
+    })),
+    ...data.pagos.map(p => ({
+      ...p,
+      tipoPago: p.tipo,
+      tipo: "gasto",
+      origenCalendario: "pago",
+      nombre: textoApp("Pago: ", "Payment: ") + p.nombre
+    }))
+  ].filter(registro =>
+    String(registro.fecha).slice(0, 10) === fecha &&
+    Number.isFinite(Number(registro.monto)) &&
+    Number(registro.monto) > 0
+  );
+
+  const ingresos = round(registros
+    .filter(r => r.tipo === "ingreso")
+    .reduce((total, r) => total + Number(r.monto), 0));
+
+  const gastos = round(registros
+    .filter(r => r.tipo !== "ingreso")
+    .reduce((total, r) => total + Number(r.monto), 0));
+
+  return {
+    registros,
+    ingresos,
+    gastos,
+    balance: round(ingresos - gastos)
+  };
+}
+
+function cambiarMesCalendario(paso) {
+  if (![1, -1].includes(paso)) return;
+
+  const [anio, mes] = mesCalendario.split("-").map(Number);
+  const fecha = new Date(anio, mes - 1 + paso, 1, 12);
+  const nuevoAnio = fecha.getFullYear();
+
+  if (nuevoAnio < 1000 || nuevoAnio > 9999) return;
+
+  mesCalendario = nuevoAnio + "-" +
+    String(fecha.getMonth() + 1).padStart(2, "0");
+
+  diaCalendario = mesCalendario + "-01";
+  transferencias();
+}
+
+function volverHoyCalendario() {
+  mesCalendario = month();
+  diaCalendario = today();
+  transferencias();
+}
+function abrirDiaCalendario(fecha) {
+  if (!validDate(fecha) ||
+      document.querySelector(".cal-dia-ventana")) return;
+
+  diaCalendario = fecha;
+  const resumen = resumenDiaCalendario(fecha);
+
+  const titulo = new Date(fecha + "T12:00:00").toLocaleDateString(
+    idiomaActual() === "en" ? "en-US" : "es",
+    {weekday: "long", day: "numeric", month: "long", year: "numeric"}
+  );
+
+  let cuentas = [];
+  try {
+    const guardadas = JSON.parse(
+      localStorage.getItem("amfinance-cuentas-banco") || "[]"
+    );
+    if (Array.isArray(guardadas)) cuentas = guardadas;
+  } catch {}
+
+  const filas = resumen.registros.map(registro => {
+    const ingreso = registro.tipo === "ingreso";
+    const bancoId = registro.origenCalendario === "pago"
+      ? registro.bancoId : registro.cuentaId;
+
+    const cuenta = bancoId == null ? null : cuentas.find(
+      c => String(c.id) === String(bancoId)
+    );
+
+    const etiqueta = registro.origenCalendario === "pago"
+      ? textoApp("Pago", "Payment")
+      : ingreso ? textoApp("Ingreso", "Income")
+      : textoApp("Gasto", "Expense");
+
+    return `
+      <div style="display:flex;align-items:center;gap:10px;
+        margin:8px 0;padding:12px;border-radius:24px;
+        background:rgba(130,140,155,.08)">
+        <span aria-hidden="true"
+          style="position:relative;display:grid;place-items:center;
+          width:32px;height:32px;flex-shrink:0;
+          color:${ingreso ? "#13865b" : "#d44d56"}">
+          ${ingreso ? "↗" : "↙"}
+          ${imagenCompania(registro.nombre)}
+        </span>
+
+        <span style="flex:1;min-width:0">
+          <strong style="display:block;overflow-wrap:anywhere">
+            ${safe(registro.nombre)}
+          </strong>
+          <span class="label" style="font-size:.72rem">
+            ${etiqueta}${cuenta ? " · " + safe(cuenta.nombre) : ""}
+          </span>
+        </span>
+
+        <strong style="flex-shrink:0;font-size:.85rem;
+          color:${ingreso ? "#13865b" : "#d44d56"}">
+          ${ingreso ? "+" : "−"}${money(registro.monto)}
+        </strong>
+      </div>
+    `;
+  }).join("");
+
+  const ventana = document.createElement("dialog");
+  ventana.className = "cal-dia-ventana";
+  ventana.setAttribute("aria-labelledby", "calTituloDia");
+
+  ventana.innerHTML = `
+    <div class="cal-dia-interior">
+      <div class="cal-dia-cabecera">
+        <div class="cal-dia-tirador" aria-hidden="true"></div>
+
+        <div style="display:flex;align-items:center;gap:10px">
+          <h2 id="calTituloDia" tabindex="-1" autofocus
+            style="flex:1;margin:0;font-size:1rem;outline:none;
+            text-transform:capitalize">
+            ${safe(titulo)}
+          </h2>
+
+          <button type="button" data-ampliar-dia
+            aria-expanded="false"
+            aria-label="${textoApp("Ampliar ventana", "Expand window")}"
+            style="border:0;border-radius:50%;padding:10px;
+            background:rgba(130,140,155,.12);color:inherit">
+            ↕
+          </button>
+
+          <button type="button" data-cerrar-dia
+            aria-label="${textoApp("Cerrar", "Close")}"
+            style="border:0;border-radius:50%;padding:10px;
+            background:rgba(130,140,155,.12);color:inherit">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div class="cal-dia-contenido">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);
+          gap:8px;margin:8px 0 16px;text-align:center">
+          <div>
+            <div class="label" style="font-size:.65rem">
+              ${textoApp("Ingresos", "Income")}
+            </div>
+            <strong style="color:#13865b;overflow-wrap:anywhere">
+              ${money(resumen.ingresos)}
+            </strong>
+          </div>
+
+          <div>
+            <div class="label" style="font-size:.65rem">
+              ${textoApp("Gastos y pagos", "Expenses and payments")}
+            </div>
+            <strong style="color:#d44d56;overflow-wrap:anywhere">
+              ${money(resumen.gastos)}
+            </strong>
+          </div>
+
+          <div>
+            <div class="label" style="font-size:.65rem">
+              ${textoApp("Balance", "Balance")}
+            </div>
+            <strong style="overflow-wrap:anywhere">
+              ${money(resumen.balance)}
+            </strong>
+          </div>
+        </div>
+
+        ${filas || `
+          <p class="note">${textoApp(
+            "No hay movimientos registrados este día.",
+            "No transactions recorded on this day."
+          )}</p>
+        `}
+
+        <button type="button" data-listo-dia
+          style="width:100%;margin-top:16px;padding:14px;
+          border:0;border-radius:999px;
+          background:var(--balanceone-color,#ff7900);
+          color:#fff;font:inherit">
+          ${textoApp("Listo", "Done")}
+        </button>
+      </div>
+    </div>
+  `;
+
+  const overflowAnterior = document.body.style.overflow;
+
+  ventana.querySelectorAll(
+    "[data-cerrar-dia], [data-listo-dia]"
+  ).forEach(boton => {
+    boton.onclick = () => ventana.close();
+  });
+
+  ventana.addEventListener("close", () => {
+    document.body.style.overflow = overflowAnterior;
+    ventana.remove();
+
+    if (page === "transferencias") {
+      transferencias();
+      const dia = document.querySelector(
+        '.cal-dia[aria-label="' + fecha + '"]'
+      );
+      if (dia) dia.focus({preventScroll: true});
+    }
+  }, {once: true});
+
+  document.body.appendChild(ventana);
+  document.body.style.overflow = "hidden";
+  activarGestosDiaCalendario(ventana);
+  ventana.showModal();
+}
+function activarGestosDiaCalendario(ventana) {
+  const cabecera = ventana.querySelector(".cal-dia-cabecera");
+  const boton = ventana.querySelector("[data-ampliar-dia]");
+  let gesto = null;
+
+  const ampliar = activo => {
+    ventana.classList.toggle("cal-expandida", activo);
+    boton.setAttribute("aria-expanded", String(activo));
+
+    boton.setAttribute("aria-label", activo
+      ? textoApp("Reducir ventana", "Collapse window")
+      : textoApp("Ampliar ventana", "Expand window"));
+  };
+
+  boton.onclick = () => {
+    ampliar(!ventana.classList.contains("cal-expandida"));
+  };
+
+  cabecera.addEventListener("pointerdown", event => {
+    gesto = null;
+
+    if (!event.isPrimary || event.button !== 0 ||
+        event.target.closest("button,input,select,textarea")) return;
+
+    gesto = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY
+    };
+
+    cabecera.setPointerCapture(event.pointerId);
+    if (event.cancelable) event.preventDefault();
+  });
+
+  cabecera.addEventListener("pointerup", event => {
+    if (!gesto || event.pointerId !== gesto.id) return;
+
+    const dx = event.clientX - gesto.x;
+    const dy = event.clientY - gesto.y;
+    gesto = null;
+
+    if (Math.abs(dy) < 55 ||
+        Math.abs(dx) >= Math.abs(dy)) return;
+
+    if (dy < 0) {
+      ampliar(true);
+    } else if (ventana.classList.contains("cal-expandida")) {
+      ampliar(false);
+    } else {
+      ventana.close();
+    }
+  });
+
+  cabecera.addEventListener("pointercancel", () => {
+    gesto = null;
+  });
+
+  ampliar(false);
 }
 </script>
 
