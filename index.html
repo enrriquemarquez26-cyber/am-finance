@@ -7061,6 +7061,134 @@ function calcularSimulacion(tipo, v) {
 
   return error("Calculadora no válida.", "Invalid calculator.");
 }
+function abrirCalculadora(tipo) {
+  const titulos = {
+    prestamo: textoApp("Préstamo", "Loan"),
+    hipoteca: textoApp("Hipoteca", "Mortgage"),
+    tarjeta: textoApp("Tarjeta de crédito", "Credit card"),
+    ahorro: textoApp("Ahorro", "Savings")
+  };
+
+  if (!titulos[tipo]) return;
+
+  const campo = (nombre, etiqueta, valor, minimo, maximo, paso) => ({
+    nombre, etiqueta, valor, minimo, maximo, paso
+  });
+
+  const campos = [
+    campo(
+      "monto",
+      tipo === "tarjeta"
+        ? textoApp("Deuda actual", "Current debt")
+        : tipo === "ahorro"
+          ? textoApp("Ahorro inicial", "Starting savings")
+          : textoApp("Monto a financiar", "Amount financed"),
+      tipo === "hipoteca" ? 200000
+        : tipo === "prestamo" ? 10000 : 1000,
+      tipo === "ahorro" ? 0 : 0.01,
+      1e9,
+      0.01
+    ),
+    campo(
+      "tasa",
+      textoApp("Tasa anual (%)", "Annual rate (%)"),
+      tipo === "tarjeta" ? 24 : tipo === "ahorro" ? 5 : 6,
+      0, 100, 0.01
+    )
+  ];
+
+  if (tipo === "tarjeta") {
+    campos.push(campo(
+      "pago",
+      textoApp("Pago mensual ($)", "Monthly payment ($)"),
+      100, 0.01, 1e9, 0.01
+    ));
+  } else {
+    if (tipo === "ahorro") {
+      campos.push(campo(
+        "aporte",
+        textoApp("Aportación mensual ($)", "Monthly contribution ($)"),
+        100, 0, 1e9, 0.01
+      ));
+    }
+
+    campos.push(campo(
+      "plazo",
+      tipo === "prestamo"
+        ? textoApp("Plazo (meses)", "Term (months)")
+        : textoApp("Plazo (años)", "Term (years)"),
+      tipo === "prestamo" ? 36 : tipo === "hipoteca" ? 30 : 5,
+      1,
+      tipo === "prestamo" ? 600 : 50,
+      1
+    ));
+  }
+
+  const notas = {
+    prestamo: textoApp(
+      "Estimación con tasa fija y pagos mensuales, sin comisiones.",
+      "Estimate with a fixed rate and monthly payments, excluding fees."
+    ),
+    hipoteca: textoApp(
+      "Solo capital e intereses. No incluye impuestos, seguros ni comisiones.",
+      "Principal and interest only. Excludes taxes, insurance and fees."
+    ),
+    tarjeta: textoApp(
+      "Pago fijo e interés mensual estimado. Sin compras nuevas ni comisiones.",
+      "Fixed payment and estimated monthly interest. No new purchases or fees."
+    ),
+    ahorro: textoApp(
+      "Tasa nominal anual con capitalización mensual y aportaciones al final del mes. Sin impuestos ni comisiones.",
+      "Nominal annual rate compounded monthly, with contributions at month end. Excludes taxes and fees."
+    )
+  };
+
+  const ventana = crearVentanaApariencia(
+    titulos[tipo],
+    `
+      <div data-campos-simulacion>
+        ${campos.map(c => `
+          <label for="sim-${c.nombre}"
+            style="display:grid;
+            grid-template-columns:minmax(0,1fr) minmax(100px,45%);
+            align-items:center;gap:12px;margin:12px 0;
+            font-size:.85rem">
+            <span>${c.etiqueta}</span>
+
+            <input id="sim-${c.nombre}" name="${c.nombre}"
+              type="number" inputmode="decimal" required
+              value="${c.valor}" min="${c.minimo}"
+              max="${c.maximo}" step="${c.paso}"
+              style="margin:0;min-width:0;padding:10px;
+              border-radius:999px;color:inherit;
+              border:1px solid rgba(130,140,155,.25);
+              background:rgba(130,140,155,.1)">
+          </label>
+        `).join("")}
+      </div>
+
+      <div data-resultado-simulacion
+        aria-live="polite"
+        style="margin-top:18px;padding-top:16px;
+        border-top:1px solid rgba(130,140,155,.22)">
+      </div>
+
+      <p class="note" style="font-size:.72rem;margin-top:16px">
+        ${notas[tipo]}
+      </p>
+    `
+  );
+
+  if (!ventana) return;
+
+  ventana.querySelectorAll("input").forEach(input => {
+    input.addEventListener("input", () => {
+      actualizarSimulacion(ventana, tipo);
+    });
+  });
+
+  actualizarSimulacion(ventana, tipo);
+}
 </script>
 
 
