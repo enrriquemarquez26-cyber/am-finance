@@ -7827,6 +7827,7 @@ function abrirDiaCalendario(fecha) {
   document.body.style.overflow = "hidden";
   activarGestosDiaCalendario(ventana);
   ventana.showModal();
+  conectarFormularioDia(ventana, fecha);
 }
 function activarGestosDiaCalendario(ventana) {
   const cabecera = ventana.querySelector(".cal-dia-cabecera");
