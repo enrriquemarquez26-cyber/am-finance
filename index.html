@@ -4843,97 +4843,90 @@ try {
 }
 
 function calculadora() {
+  const opciones = [
+    {
+      tipo: "prestamo",
+      titulo: textoApp("Préstamo", "Loan"),
+      detalle: textoApp(
+        "Pago mensual e intereses",
+        "Monthly payment and interest"
+      ),
+      icono: '<path d="M5 11l2-6h10l2 6"/><rect x="3" y="11" width="18" height="8" rx="3"/><path d="M7 15h1m8 0h1M6 19v2m12-2v2"/>'
+    },
+    {
+      tipo: "hipoteca",
+      titulo: textoApp("Hipoteca", "Mortgage"),
+      detalle: textoApp(
+        "Financiación de tu vivienda",
+        "Home financing"
+      ),
+      icono: '<path d="M3 11l9-8 9 8M5 10v11h14V10M10 21v-7h4v7"/>'
+    },
+    {
+      tipo: "tarjeta",
+      titulo: textoApp("Tarjeta de crédito", "Credit card"),
+      detalle: textoApp(
+        "Tiempo para pagar tu deuda",
+        "Time to pay off your debt"
+      ),
+      icono: '<rect x="2" y="5" width="20" height="14" rx="4"/><path d="M2 10h20M6 15h4"/>'
+    },
+    {
+      tipo: "ahorro",
+      titulo: textoApp("Ahorro", "Savings"),
+      detalle: textoApp(
+        "Proyección de tu meta",
+        "Savings goal projection"
+      ),
+      icono: '<path d="M12 3v18M16 7H9a3 3 0 000 6h6a3 3 0 010 6H7"/><circle cx="12" cy="12" r="10"/>'
+    }
+  ];
+
   el().innerHTML = `
-    <div class="amCalc">
-      <h2>Calculadora financiera</h2>
-      <p class="note">Calcula pagos, intereses y el costo total</p>
+    <section class="ajustes-pantalla">
+      <button type="button" class="ajustes-volver"
+        onclick="abrirAmMenu()">
+        ‹ ${textoApp("Herramientas", "Tools")}
+      </button>
 
-      <div class="amCalcTabs">
-        
-<button class="activo" onclick="cambiarTipoCalc('prestamo')">
-  <svg viewBox="0 0 24 24">
-    <path d="M5 11l1.5-5h11L19 11"/>
-    <rect x="3" y="11" width="18" height="8" rx="2"/>
-    <circle cx="7" cy="19" r="1"/>
-    <circle cx="17" cy="19" r="1"/>
-  </svg>
-  <span>Préstamo</span>
-</button>
+      <h2>${textoApp("Calculadora", "Calculator")}</h2>
+      <p class="note">
+        ${textoApp(
+          "Planifica antes de decidir",
+          "Plan before you decide"
+        )}
+      </p>
 
-<button onclick="cambiarTipoCalc('hipoteca')">
-  <svg viewBox="0 0 24 24">
-    <path d="M3 11L12 3l9 8"/>
-    <path d="M5 10v11h14V10"/>
-    <path d="M10 21v-7h4v7"/>
-  </svg>
-  <span>Hipoteca</span>
-</button>
+      <div style="margin-top:20px">
+        ${opciones.map(opcion => `
+          <button type="button" class="ajustes-fila"
+            onclick="abrirCalculadora('${opcion.tipo}')">
+            <span class="ajustes-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.7"
+                stroke-linecap="round" stroke-linejoin="round">
+                ${opcion.icono}
+              </svg>
+            </span>
 
-<button onclick="cambiarTipoCalc('tarjeta')">
-  <svg viewBox="0 0 24 24">
-    <rect x="2" y="5" width="20" height="14" rx="3"/>
-    <path d="M2 10h20M6 15h4"/>
-  </svg>
-  <span>Tarjeta</span>
-</button>
+            <span class="ajustes-texto">
+              <strong>${opcion.titulo}</strong>
+              <small>${opcion.detalle}</small>
+            </span>
 
-<button onclick="cambiarTipoCalc('ahorro')">
-  <svg viewBox="0 0 24 24">
-    <path d="M19 5L5 19"/>
-    <circle cx="7" cy="7" r="3"/>
-    <circle cx="17" cy="17" r="3"/>
-  </svg>
-  <span>Ahorro</span>
-</button>
-
+            <span aria-hidden="true">›</span>
+          </button>
+        `).join("")}
       </div>
 
-      <div class="card amCalcCampos">
-        <label>Monto del préstamo</label>
-        <div class="amCalcInput">
-        <span>$</span>
-        <input id="calcMonto" type="number" value="28000" min="0" oninput="actualizarCalc()">
-        </div>
-        <input id="calcMontoBarra" type="range" min="1000" max="200000" step="500" value="28000" oninput="sincronizarCalc('Monto')">
-
-        <label>Tasa de interés (APR)</label>
-        <div class="amCalcInput">
-        <span>%</span>
-        <input id="calcTasa" type="number" value="6.5" min="0" step="0.1" oninput="actualizarCalc()">
-        </div>
-        <input id="calcTasaBarra" type="range" min="0" max="30" step="0.1" value="6.5" oninput="sincronizarCalc('Tasa')">
-
-        <label>Plazo del préstamo (meses)</label>
-        <input id="calcPlazo" type="number" value="36" min="1" oninput="actualizarCalc()">
-        <input id="calcPlazoBarra" type="range" min="12" max="84" step="1" value="36" oninput="sincronizarCalc('Plazo')">
-
-        <label>Pago inicial (opcional)</label>
-        <div class="amCalcInput">
-        <span>$</span>
-        <input id="calcInicial" type="number" value="2000" min="0" oninput="actualizarCalc()">
-        </div>
-        <input id="calcInicialBarra" type="range" min="0" max="100000" step="500" value="2000" oninput="sincronizarCalc('Inicial')">
-      </div>
-
-      <div class="card amCalcResultado">
-        <p>Pago mensual estimado</p>
-        <h1 id="calcMensual">$0.00</h1>
-        <div class="amCalcTotales">
-          <div>Monto financiado<strong id="calcFinanciado">$0.00</strong></div>
-          <div>Intereses totales<strong id="calcIntereses">$0.00</strong></div>
-          <div>Costo total<strong id="calcTotal">$0.00</strong></div>
-        </div>
-      </div>
-
-      <button class="primary" onclick="verAmortizacionCalc()">Ver tabla de amortización →</button>
-      <div class="amCalcAcciones">
-        <button onclick="verGraficoCalc()">◴ Gráfico</button>
-        <button onclick="guardarCalc()">▢ Guardar</button>
-      </div>
-      <div id="calcDetalle"></div>
-    </div>
+      <p class="note" style="text-align:center;margin-top:20px">
+        ${textoApp(
+          "Selecciona una opción para calcular",
+          "Select an option to calculate"
+        )}
+      </p>
+    </section>
   `;
-  actualizarCalc();
 }
 
 function sincronizarCalc(campo) {
@@ -6955,6 +6948,118 @@ function traducirMenusVentana() {
     const nombre = herramientas[i];
     if (nombre) elemento.textContent = textoApp(nombre[0], nombre[1]);
   });
+}
+function calcularSimulacion(tipo, v) {
+  const error = (es, en) => ({error: textoApp(es, en)});
+  const redondear = n =>
+    Math.round((n + Number.EPSILON) * 100) / 100;
+
+  const monto = Number(v.monto);
+  const tasa = Number(v.tasa);
+
+  if (!Number.isFinite(monto) || monto < 0 || monto > 1e9 ||
+      !Number.isFinite(tasa) || tasa < 0 || tasa > 100) {
+    return error(
+      "Revisa el importe y la tasa anual (0 a 100%).",
+      "Check the amount and annual rate (0 to 100%)."
+    );
+  }
+
+  const r = tasa / 1200;
+
+  if (tipo === "prestamo" || tipo === "hipoteca") {
+    const plazo = Number(v.plazo);
+    const meses = tipo === "hipoteca" ? plazo * 12 : plazo;
+
+    if (monto <= 0 || !Number.isInteger(plazo) ||
+        plazo <= 0 || meses > 600) {
+      return error(
+        "Revisa el monto y el plazo (máximo 50 años).",
+        "Check the amount and term (50 years maximum)."
+      );
+    }
+
+    const mensual = r === 0 ? monto / meses
+      : monto * r / (1 - Math.pow(1 + r, -meses));
+
+    const total = mensual * meses;
+
+    return {
+      principal: monto, mensual, meses, total,
+      intereses: Math.max(0, total - monto)
+    };
+  }
+
+  if (tipo === "tarjeta") {
+    const pago = redondear(Number(v.pago));
+    let saldo = redondear(monto);
+
+    if (saldo <= 0 || !Number.isFinite(pago) || pago <= 0) {
+      return error(
+        "Introduce una deuda y un pago mensual mayores que cero.",
+        "Enter a debt and monthly payment greater than zero."
+      );
+    }
+
+    const principal = saldo;
+    let total = 0, intereses = 0, meses = 0;
+
+    while (saldo > 0 && meses < 1200) {
+      const interes = redondear(saldo * r);
+
+      if (pago <= interes) {
+        return error(
+          "Ese pago no reduce la deuda. Aumenta el pago mensual.",
+          "That payment does not reduce the debt. Increase the monthly payment."
+        );
+      }
+
+      const abono = Math.min(pago, redondear(saldo + interes));
+      saldo = redondear(saldo + interes - abono);
+      total = redondear(total + abono);
+      intereses = redondear(intereses + interes);
+      meses++;
+    }
+
+    if (saldo > 0) return error(
+      "El plazo supera 100 años. Aumenta el pago mensual.",
+      "The payoff term exceeds 100 years. Increase the monthly payment."
+    );
+
+    return {principal, mensual: pago, meses, total, intereses};
+  }
+
+  if (tipo === "ahorro") {
+    const aporte = Number(v.aporte);
+    const plazo = Number(v.plazo);
+
+    if (!Number.isFinite(aporte) || aporte < 0 || aporte > 1e9 ||
+        !Number.isInteger(plazo) || plazo < 1 || plazo > 50) {
+      return error(
+        "Revisa la aportación y el plazo (1 a 50 años).",
+        "Check the contribution and term (1 to 50 years)."
+      );
+    }
+
+    const meses = plazo * 12;
+    const aportado = monto + aporte * meses;
+    const factor = Math.pow(1 + r, meses);
+
+    const total = r === 0 ? aportado
+      : monto * factor + aporte * (factor - 1) / r;
+
+    if (!Number.isFinite(total) || total > 1e12) return error(
+      "El resultado es demasiado grande. Revisa los valores.",
+      "The result is too large. Check the values."
+    );
+
+    return {
+      principal: aportado, mensual: aporte, meses, total,
+      intereses: Math.max(0, total - aportado)
+    };
+  }
+
+  return error("Calculadora no válida.", "Invalid calculator.");
 }
 </script>
 
