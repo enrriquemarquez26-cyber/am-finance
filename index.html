@@ -3102,7 +3102,7 @@ function movimientos(){
 <div class="mov-pantalla">
     <h2>${textoApp("Movimientos", "Transactions")}</h2>
   <div id="movCalendario" style="margin-bottom:20px"></div>
-  <div class="mov-formulario">
+  <div class="mov-formulario" style="display:none">
     <form id="formMov">
       <label for="movCuenta">${textoApp("Cuenta", "Account")}</label>
       <select id="movCuenta" name="cuentaId" required>
@@ -3161,7 +3161,7 @@ function movimientos(){
     </form>
   </div>
 
-<div class="mov-historial" style="margin-top:20px">
+<div class="mov-historial" style="display:none;margin-top:20px">
   <div class="hist-cabecera">
     <h3>${textoApp("Historial", "History")}</h3>
 
@@ -7886,6 +7886,73 @@ function activarGestosDiaCalendario(ventana) {
   });
 
   ampliar(false);
+}
+function conectarFormularioDia(ventana, fecha) {
+  if (page !== "movimientos") return;
+
+  const formulario = document.querySelector(".mov-formulario");
+  if (!formulario) return;
+
+  const contenido = ventana.querySelector(".cal-dia-contenido");
+  const listo = contenido.querySelector("[data-listo-dia]");
+  const posicionOriginal = document.createComment("formulario-movimiento");
+  formulario.before(posicionOriginal);
+
+  const agregar = document.createElement("button");
+  agregar.type = "button";
+  agregar.textContent = textoApp(
+    "＋ Agregar movimiento",
+    "＋ Add transaction"
+  );
+  agregar.style.cssText = `
+    width:100%;margin-top:16px;padding:14px;
+    border:0;border-radius:999px;
+    background:var(--balanceone-color,#ff7900);
+    color:white;font:inherit;
+  `;
+  contenido.insertBefore(agregar, listo);
+
+  agregar.onclick = () => {
+    agregar.hidden = true;
+    formulario.style.display = "block";
+    contenido.insertBefore(formulario, listo);
+
+    const campoFecha = formulario.querySelector('[name="fecha"]');
+    campoFecha.value = fecha;
+    campoFecha.dispatchEvent(new Event("change", {bubbles:true}));
+
+    ventana.classList.add("cal-expandida");
+    const ampliar = ventana.querySelector("[data-ampliar-dia]");
+    ampliar.setAttribute("aria-expanded", "true");
+    ampliar.setAttribute(
+      "aria-label",
+      textoApp("Reducir ventana", "Collapse window")
+    );
+
+    formulario.scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
+  };
+
+  const form = formulario.querySelector("form");
+  const comprobarGuardado = () => {
+    const cantidadAnterior = data.movimientos.length;
+    queueMicrotask(() => {
+      if (data.movimientos.length > cantidadAnterior && ventana.open) {
+        ventana.close();
+      }
+    });
+  };
+  form.addEventListener("submit", comprobarGuardado, true);
+
+  ventana.addEventListener("close", () => {
+    form.removeEventListener("submit", comprobarGuardado, true);
+    formulario.style.display = "none";
+    if (posicionOriginal.isConnected) {
+      posicionOriginal.replaceWith(formulario);
+    }
+  }, {once:true});
 }
 </script>
 
