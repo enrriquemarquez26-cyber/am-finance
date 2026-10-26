@@ -5223,6 +5223,8 @@ function transferencias() {
           "Tap a day to see its totals and transactions."
         )}
       </p>
+   
+    ${pagosMesCalendario()}
     </section>
   `;
 }
@@ -8097,6 +8099,99 @@ function historialMovimientos() {
   document.querySelectorAll("nav button").forEach(boton => {
     boton.classList.toggle("active", boton.id === "nav-movimientos");
   });
+}
+function pagosMesCalendario() {
+  const [anio, mes] = mesCalendario.split("-").map(Number);
+  const ultimoDia = new Date(anio, mes, 0, 12).getDate();
+
+  const pagos = [
+    ...data.tarjetas.map(t => ({
+      nombre: t.nombre,
+      dia: Number(t.vencimiento),
+      monto: t.pagoMinimo,
+      saldo: Number(t.saldo),
+      destino: "tarjetas",
+      tipo: textoApp("Tarjeta", "Credit card")
+    })),
+    ...data.vehiculos.map(v => ({
+      nombre: v.nombre,
+      dia: Number(v.vencimiento),
+      monto: v.pago,
+      saldo: Number(v.saldo),
+      destino: "vehiculos",
+      tipo: textoApp("Auto", "Vehicle")
+    }))
+  ].filter(p =>
+    p.saldo > 0 &&
+    Number.isInteger(p.dia) &&
+    p.dia >= 1 &&
+    p.dia <= 31
+  ).map(p => ({
+    ...p,
+    dia: Math.min(p.dia, ultimoDia)
+  })).sort((a, b) => a.dia - b.dia);
+
+  return `
+    <div class="card" style="margin-top:20px">
+      <h3>${textoApp("Pagos del mes", "Monthly payments")}</h3>
+
+      <p class="note">
+        ${textoApp(
+          "Vencimientos programados. No indican si el pago ya fue realizado.",
+          "Scheduled due dates. These do not indicate whether a payment has already been made."
+        )}
+      </p>
+
+      <div style="display:flex;gap:12px;overflow-x:auto;padding:8px 0">
+        ${pagos.map(p => {
+          const configurado = p.monto !== null &&
+            p.monto !== undefined &&
+            p.monto !== "" &&
+            Number.isFinite(Number(p.monto)) &&
+            Number(p.monto) > 0;
+
+          return `
+            <button type="button" onclick="go('${p.destino}')"
+              style="flex:0 0 130px;padding:14px 10px;
+              border:0;border-radius:24px;
+              background:rgba(130,140,155,.08);
+              color:inherit;font:inherit;text-align:center">
+
+              <span aria-hidden="true"
+                style="position:relative;display:grid;
+                place-items:center;width:40px;height:40px;
+                margin:0 auto 8px">
+                ${p.destino === "vehiculos" ? "🚘" : "💳"}
+                ${imagenCompania(p.nombre)}
+              </span>
+
+              <strong style="display:block;overflow-wrap:anywhere">
+                ${safe(p.nombre)}
+              </strong>
+
+              <small style="display:block;margin:6px 0">
+                ${p.tipo} · ${textoApp("Día ", "Day ")}${p.dia}
+              </small>
+
+              <strong style="display:block;
+                color:var(--balanceone-color,#ff7900)">
+                ${configurado
+                  ? money(p.monto)
+                  : textoApp("Sin importe", "Amount not set")}
+              </strong>
+            </button>
+          `;
+        }).join("") || `
+          <p class="note">
+            ${textoApp(
+              "No hay vencimientos configurados. Agrégalos en Tarjetas o Vehículos.",
+              "No due dates configured. Set them in Cards or Vehicles."
+            )}
+          </p>
+        `}
+      </div>
+    </div>
+  `;
 }
 </script>
 
