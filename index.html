@@ -7353,6 +7353,55 @@ function actualizarSimulacion(ventana, tipo) {
     </div>
   `;
 }
+function eliminarTarjetaCredito(indice) {
+  const tarjeta = data.tarjetas[indice];
+  if (!tarjeta) return;
+
+  const tienePagos = data.pagos.some(p =>
+    p.tipo === "tarjeta" && (
+      p.cuentaId
+        ? String(p.cuentaId) === String(tarjeta.id)
+        : p.nombre === tarjeta.nombre
+    )
+  );
+
+  if (tienePagos) {
+    alert(textoApp(
+      "Esta tarjeta tiene pagos registrados y no se puede eliminar para conservar su historial y los saldos vinculados.",
+      "This card has recorded payments and cannot be deleted, to preserve its history and linked balances."
+    ));
+    return;
+  }
+
+  const mensaje = textoApp(
+    "¿Eliminar de Balance One la tarjeta ",
+    "Delete this card from Balance One: "
+  ) + tarjeta.nombre + "?\n\n" + textoApp(
+    "Se quitará su registro y su deuda del resumen. Esto no cancela la tarjeta ni la deuda con el banco.",
+    "Its record and debt will be removed from the summary. This does not cancel the card or the debt with the bank."
+  );
+
+  if (!confirm(mensaje)) return;
+
+  const nuevosDatos = {
+    ...data,
+    tarjetas: data.tarjetas.filter((t, i) => i !== indice)
+  };
+
+  try {
+    localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+  } catch {
+    alert(textoApp(
+      "No se pudo eliminar la tarjeta. No se hicieron cambios.",
+      "Could not delete the card. No changes were made."
+    ));
+    return;
+  }
+
+  data = nuevosDatos;
+  render();
+  alert(textoApp("Tarjeta eliminada.", "Card deleted."));
+}
 </script>
 
 
