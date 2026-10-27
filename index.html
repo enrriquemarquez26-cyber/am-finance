@@ -3080,20 +3080,7 @@ function ajustarPrestamo(movimiento, signo) {
   }
 
   const saldo = round(Number(prestamo.saldo) + signo * capital);
-  if (anterior && anterior.prestamoId && nuevo) {
-  const intereses = Number(anterior.interesPrestamo || 0);
-
-  if (
-    nuevo.tipo !== "gasto" ||
-    Number(nuevo.monto) <= intereses
-  ) {
-    alert(textoApp(
-      "Este registro es un pago de préstamo. Debe seguir siendo un gasto y superar los intereses registrados.",
-      "This entry is a loan payment. It must remain an expense and exceed the recorded interest."
-    ));
-    return false;
-  }
-}
+  
   if (!Number.isFinite(saldo) || saldo < 0) {
     throw new Error("El capital supera el saldo pendiente");
   }
@@ -3136,7 +3123,8 @@ const datosNuevos = {
       throw error;
     }
 
-    data.prestamos = prestamosActualizados;
+   data.movimientos = movimientosNuevos;
+   data.prestamos = prestamosActualizados;
     return true;
   } catch (error) {
         alert(textoApp("No se pudieron guardar los cambios del movimiento.", "Could not save the transaction changes."));
