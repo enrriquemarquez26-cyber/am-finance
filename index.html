@@ -4840,7 +4840,19 @@ function presupuestos(){
       <h3>${textoApp("Agregar suscripción", "Add subscription")}</h3>
 
       <form id="formSuscripcion">
-        <label for="tipoPagoProgramado">
+      <label for="frecuenciaProgramada">
+  ${textoApp("Frecuencia", "Frequency")}
+</label>
+
+<select id="frecuenciaProgramada" name="frecuencia" required>
+  <option value="mensual">
+    ${textoApp("Mensual", "Monthly")}
+  </option>
+  <option value="cada14dias">
+    ${textoApp("Cada dos semanas · 14 días", "Every two weeks · 14 days")}
+  </option>
+</select>
+      <label for="tipoPagoProgramado">
   ${textoApp("Tipo de pago", "Payment type")}
 </label>
 
@@ -4863,7 +4875,7 @@ function presupuestos(){
         <input name="nombre" maxlength="80" required
           placeholder="Netflix, Spotify…">
 
-        <label>${textoApp("Importe mensual ($)", "Monthly amount ($)")}</label>
+        <label>${"Importe por cobro ($)", "Amount per charge ($)")}</label>
         <input name="monto" type="number"
           min="0.01" step="0.01" required>
 
@@ -4889,8 +4901,8 @@ function presupuestos(){
 
       <p class="note">
         ${textoApp(
-          "Se repetirá cada mes desde la fecha indicada. No registra gastos automáticamente.",
-          "Repeats monthly from the selected date. Expenses are not recorded automatically."
+          "Se repetirá según la frecuencia elegida hasta el último cobro. No registra gastos automáticamente.",
+"Repeats at the selected frequency through the last charge. Expenses are not recorded automatically."
         )}
       </p>
     </div>
@@ -4910,7 +4922,7 @@ function presupuestos(){
           <span style="flex:1;min-width:0">
             <strong>${safe(s.nombre)}</strong>
             <small style="display:block">
-              ${textoApp("Mensual · Día ", "Monthly · Day ")}
+              ${textoApp("Primer cobro · Día ", "First charge · Day ")}
               ${Number(String(s.inicio).slice(8,10))}
             </small>
           </span>
@@ -4969,8 +4981,12 @@ if (["prestamo", "cuotas"].includes(categoria) && !fin) {
   return;
 }
 
+const frecuencia = String(campos.get("frecuencia") || "mensual");
+
+if (!["mensual", "cada14dias"].includes(frecuencia)) return;
+
 const nueva = {
-  id:id(), nombre, monto, inicio, categoria, fin
+  id:id(), nombre, monto, inicio, categoria, fin, frecuencia
 };
     const nuevosDatos = {
       ...data,
@@ -8354,26 +8370,55 @@ function pagosMesCalendario() {
 }
 function suscripcionesDelMes(mesElegido) {
   const [anio, mes] = mesElegido.split("-").map(Number);
-  const ultimo = new Date(anio, mes, 0, 12).getDate();
+  const ultimo = new Date(Date.UTC(anio, mes, 0)).getUTCDate();
+  const inicioMes = mesElegido + "-01";
+  const finMes = mesElegido + "-" + String(ultimo).padStart(2,"0");
   const lista = Array.isArray(data.suscripciones)
     ? data.suscripciones : [];
+  const eventos = [];
 
-  return lista.filter(s =>
-    validDate(String(s.inicio)) &&
-    String(s.inicio).slice(0,7) <= mesElegido
-  ).map(s => {
-    const dia = Math.min(
-      Number(String(s.inicio).slice(8,10)),
-      ultimo
-    );
+  for (const s of lista) {
+    if (!validDate(String(s.inicio))) continue;
 
-    return {
-      ...s,
-      fecha: mesElegido + "-" + String(dia).padStart(2,"0")
-    };
-  }).filter(s =>
-  !s.fin || s.fecha <= s.fin
-).sort((a,b) => a.fecha.localeCompare(b.fecha));
+    const limite = s.fin && s.fin < finMes ? s.fin : finMes;
+    if (s.inicio > limite || limite < inicioMes) continue;
+
+    if (s.frecuencia === "cada14dias") {
+      const convertir = fecha => {
+        const [a,m,d] = fecha.split("-").map(Number);
+        return Date.UTC(a,m-1,d);
+      };
+
+      const primero = convertir(s.inicio);
+      const salto = 14 * 86400000;
+      const comienzo = convertir(inicioMes);
+      const final = convertir(limite);
+
+      const pasos = Math.max(0, Math.ceil(
+        (comienzo - primero) / salto
+      ));
+
+      for (
+        let instante = primero + pasos * salto;
+        instante <= final;
+        instante += salto
+      ) {
+        eventos.push({
+          ...s,
+          fecha: new Date(instante).toISOString().slice(0,10)
+        });
+      }
+    } else {
+      const dia = Math.min(Number(s.inicio.slice(8,10)), ultimo);
+      const fecha = mesElegido + "-" + String(dia).padStart(2,"0");
+
+      if (fecha >= s.inicio && fecha <= limite) {
+        eventos.push({...s, fecha});
+      }
+    }
+  }
+
+  return eventos.sort((a,b) => a.fecha.localeCompare(b.fecha));
 }
 
 function bloqueSuscripcionesCalendario(fecha) {
