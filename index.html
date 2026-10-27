@@ -5641,7 +5641,12 @@ function verPrestamoCompacto(indice) {
         ${textoApp("Saldo pendiente", "Outstanding balance")}
       </span>
       <h2>${money(p.saldo)}</h2>
-      ${resumenInteresesPrestamo(p)}
+      ${resumenContratoPrestamo(p)}
+
+<button type="button" class="secondary"
+  onclick="abrirContratoPrestamo(${indice})">
+  ${textoApp("Datos del contrato", "Contract details")}
+</button>
       <p>${textoApp("Cuota: ", "Installment: ")}${money(p.cuota)}</p>
       <p>${p.frecuencia === "cada14dias"
         ? textoApp("Cada dos semanas", "Every two weeks")
@@ -9453,6 +9458,154 @@ function simplificarFormularioPrestamo(form) {
     cerrar.style.background = "rgba(130,140,155,.12)";
     cerrar.style.color = "inherit";
   }
+}
+function resumenContratoPrestamo(p) {
+  const c = p.contrato;
+  if (!c) return resumenInteresesPrestamo(p);
+
+  const total = round(c.montoOriginal + c.interesesTotales);
+  const fila = (nombre, valor, destacado = false) => `
+    <div style="display:flex;justify-content:space-between;
+      gap:12px;padding:14px 0;
+      ${destacado ? "font-weight:700;border-top:1px solid rgba(130,140,155,.2)" : ""}">
+      <span>${nombre}</span>
+      <span style="white-space:nowrap">${valor}</span>
+    </div>
+  `;
+
+  return `
+    <div style="padding:14px;margin:16px 0;border-radius:24px;
+      border:1px solid rgba(130,140,155,.25)">
+      ${fila(
+        textoApp("Monto original", "Original amount"),
+        money(c.montoOriginal)
+      )}
+      ${fila(
+        textoApp("Intereses", "Interest") +
+          (c.tasaAnual == null ? "" : ` (${c.tasaAnual}% APR)`),
+        "+" + money(c.interesesTotales)
+      )}
+      ${fila(
+        textoApp("Total de pagos del contrato", "Total contract payments"),
+        money(total),
+        true
+      )}
+    </div>
+    <p class="note">${textoApp(
+      "Importes del contrato original. El saldo pendiente se muestra arriba.",
+      "Original contract amounts. The outstanding balance is shown above."
+    )}</p>
+  `;
+}
+
+function abrirContratoPrestamo(indice) {
+  const abierta = document.querySelector(".apariencia-ventana");
+
+  if (abierta) {
+    abierta.addEventListener("close", () => {
+      setTimeout(() => abrirContratoPrestamo(indice), 0);
+    }, {once:true});
+    abierta.close();
+    return;
+  }
+
+  const p = (data.prestamos || [])[indice];
+  if (!p) return;
+
+  const prestamoId = p.id;
+  const c = p.contrato || {};
+  const campos = [
+    ["original", "Monto original ($)", "Original amount ($)",
+      c.montoOriginal ?? p.montoOriginal ?? ""],
+    ["intereses", "Intereses totales del contrato ($)",
+      "Total contract interest ($)", c.interesesTotales ?? ""],
+    ["tasa", "Tasa anual APR (%) · opcional",
+      "Annual APR (%) · optional",
+      c.tasaAnual ?? p.tasaAnualInicial ?? ""]
+  ];
+
+  const ventana = crearVentanaApariencia(
+    textoApp("Datos del contrato", "Contract details"),
+    `
+      <p><strong>${safe(p.nombre)}</strong></p>
+      <form>
+        ${campos.map(([nombre, es, en, valor]) => `
+          <label for="contrato-${nombre}">${textoApp(es,en)}</label>
+          <input id="contrato-${nombre}" name="${nombre}"
+            type="number" min="${nombre === "original" ? "0.01" : "0"}"
+            step="any" value="${safe(String(valor))}"
+            ${nombre !== "tasa" ? "required" : ""}>
+        `).join("")}
+
+        <p class="note">${textoApp(
+          "Copia los importes de tu contrato. No cambia el saldo pendiente ni registra pagos.",
+          "Copy the amounts from your contract. This does not change the outstanding balance or record payments."
+        )}</p>
+
+        <button type="submit" class="primary"
+          style="background:var(--balanceone-color,#ff7900)">
+          ${textoApp("Guardar contrato", "Save contract")}
+        </button>
+      </form>
+    `,
+    true
+  );
+
+  if (!ventana) return;
+  const form = ventana.querySelector("form");
+
+  form.onsubmit = event => {
+    event.preventDefault();
+    if (form.dataset.guardado === "si") return;
+
+    const f = new FormData(form);
+    const montoOriginal = round(f.get("original"));
+    const interesesTotales = round(f.get("intereses"));
+    const entradaTasa = String(f.get("tasa") || "").trim();
+    const tasaAnual = entradaTasa === "" ? null : Number(entradaTasa);
+
+    if (
+      !validAmount(montoOriginal) ||
+      !Number.isFinite(interesesTotales) ||
+      interesesTotales < 0 ||
+      !Number.isFinite(round(montoOriginal + interesesTotales)) ||
+      (tasaAnual !== null &&
+        (!Number.isFinite(tasaAnual) || tasaAnual < 0))
+    ) {
+      alert(textoApp(
+        "Revisa los importes y la tasa.",
+        "Check the amounts and rate."
+      ));
+      return;
+    }
+
+    const lista = data.prestamos || [];
+    if (!lista.some(p => String(p.id) === String(prestamoId))) return;
+
+    const nuevosDatos = {
+      ...data,
+      prestamos:lista.map(p =>
+        String(p.id) === String(prestamoId)
+          ? {...p, contrato:{montoOriginal, interesesTotales, tasaAnual}}
+          : p
+      )
+    };
+
+    try {
+      localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+    } catch {
+      alert(textoApp(
+        "No se pudo guardar. No se hicieron cambios.",
+        "Could not save. No changes were made."
+      ));
+      return;
+    }
+
+    form.dataset.guardado = "si";
+    data = nuevosDatos;
+    ventana.close();
+    render();
+  };
 }
 </script>
 
