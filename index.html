@@ -4951,7 +4951,7 @@ function presupuestos(){
     <div class="card">
       <h3>${textoApp("Mis suscripciones", "My subscriptions")}</h3>
 
-      ${lista.map(s => `
+      ${lista.map((s, i) => `
         <div style="display:flex;align-items:center;gap:12px;
           padding:12px 0;border-bottom:1px solid rgba(130,140,155,.15)">
           <span aria-hidden="true"
@@ -4969,7 +4969,13 @@ function presupuestos(){
           </span>
 
           <strong>${money(s.monto)}</strong>
-        </div>
+        <button type="button"
+  onclick="eliminarRegistroProgramado('suscripcion', ${i})"
+  style="border:0;border-radius:999px;padding:8px;
+  color:#d44d56;background:rgba(212,77,86,.1);font:inherit">
+  ${textoApp("Eliminar", "Delete")}
+</button>
+      </div>
       `).join("") || `
         <p class="note">
           ${textoApp("Todavía no hay suscripciones.", "No subscriptions yet.")}
@@ -5645,7 +5651,13 @@ function verPrestamoCompacto(indice) {
   style="background:var(--balanceone-color,#ff7900)">
   ${textoApp("Registrar pago", "Record payment")}
 </button>
-    `,
+ <button type="button" class="secondary"
+  onclick="eliminarRegistroProgramado('prestamo', ${indice})"
+  style="margin-top:10px;color:#d44d56;
+  background:rgba(212,77,86,.1)">
+  ${textoApp("Eliminar préstamo", "Delete loan")}
+</button>
+   `,
     true
   );
 }
@@ -9014,6 +9026,63 @@ function abrirPagoPrestamo(indice) {
       "Payment saved. Bank account and debt updated."
     ));
   };
+}
+function eliminarRegistroProgramado(tipo, indice) {
+  const clave = tipo === "prestamo" ? "prestamos"
+    : tipo === "suscripcion" ? "suscripciones" : null;
+  if (!clave) return;
+
+  const lista = Array.isArray(data[clave]) ? data[clave] : [];
+  const registro = lista[indice];
+  if (!registro) return;
+
+  if (
+    tipo === "prestamo" &&
+    data.movimientos.some(m =>
+      m.prestamoId != null &&
+      String(m.prestamoId) === String(registro.id)
+    )
+  ) {
+    alert(textoApp(
+      "Este préstamo tiene pagos registrados. Conservaremos el registro para poder corregir esos pagos sin descuadrar los saldos. Después añadiremos Archivar.",
+      "This loan has recorded payments. Keep it so those payments can be corrected without affecting balance accuracy. An Archive option will be added later."
+    ));
+    return;
+  }
+
+  const mensaje = tipo === "prestamo"
+    ? textoApp(
+        "¿Eliminar este préstamo de Balance One? No cancela la deuda con el banco o aplicación.",
+        "Delete this loan from Balance One? This does not cancel the debt with the bank or app."
+      )
+    : textoApp(
+        "¿Eliminar este pago programado? No cancela el servicio ni borra gastos ya registrados.",
+        "Delete this scheduled payment? This does not cancel the service or delete recorded expenses."
+      );
+
+  if (!confirm(mensaje + "\n\n" + registro.nombre)) return;
+
+  const nuevosDatos = {
+    ...data,
+    [clave]: lista.filter((_, i) => i !== indice)
+  };
+
+  try {
+    localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+  } catch {
+    alert(textoApp(
+      "No se pudo eliminar. No se hicieron cambios.",
+      "Could not delete. No changes were made."
+    ));
+    return;
+  }
+
+  data = nuevosDatos;
+
+  const ventana = document.querySelector(".apariencia-ventana");
+  if (ventana) ventana.close();
+
+  render();
 }
 </script>
 
