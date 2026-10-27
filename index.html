@@ -9084,6 +9084,49 @@ function eliminarRegistroProgramado(tipo, indice) {
 
   render();
 }
+function estimarSaldoAnterior(
+  montoOriginal,
+  tasaAnual,
+  cuota,
+  pagosRealizados
+) {
+  const valores = [
+    montoOriginal, tasaAnual, cuota, pagosRealizados
+  ];
+
+  if (
+    !valores.every(v => Number.isFinite(v)) ||
+    montoOriginal <= 0 ||
+    cuota <= 0 ||
+    tasaAnual < 0 ||
+    tasaAnual > 100 ||
+    !Number.isInteger(pagosRealizados) ||
+    pagosRealizados < 0 ||
+    pagosRealizados > 1200
+  ) {
+    throw new Error("datos");
+  }
+
+  let saldo = round(montoOriginal);
+  const tasaMensual = tasaAnual / 1200;
+
+  for (
+    let i = 0;
+    i < pagosRealizados && saldo > 0;
+    i++
+  ) {
+    const interes = round(saldo * tasaMensual);
+
+    if (cuota <= interes) {
+      throw new Error("cuota");
+    }
+
+    const capital = round(cuota - interes);
+    saldo = round(Math.max(0, saldo - capital));
+  }
+
+  return saldo;
+}
 </script>
 
 
