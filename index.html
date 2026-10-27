@@ -5574,6 +5574,7 @@ function abrirNuevoPrestamo() {
 
   if (!ventana) return;
   const form = ventana.querySelector("form");
+  conectarEstimacionPrestamo(form);
 
   form.onsubmit = event => {
     event.preventDefault();
@@ -5606,7 +5607,8 @@ function abrirNuevoPrestamo() {
       ...data,
       prestamos:[...lista, {
         id:id(), nombre, saldo, saldoInicial:saldo,
-        cuota, proximo, fin, frecuencia
+        cuota, proximo, fin, frecuencia,
+...JSON.parse(form.dataset.historiaPrestamo || "{}")
       }]
     };
 
@@ -9126,6 +9128,136 @@ function estimarSaldoAnterior(
   }
 
   return saldo;
+}
+function conectarEstimacionPrestamo(form) {
+  const zona = document.createElement("div");
+
+  zona.innerHTML = `
+    <label for="modoSaldoPrestamo">
+      ${textoApp("¿Cómo quieres empezar?", "How would you like to start?")}
+    </label>
+
+    <select id="modoSaldoPrestamo">
+      <option value="actual">
+        ${textoApp("Sé cuánto debo hoy", "I know my current balance")}
+      </option>
+      <option value="estimar">
+        ${textoApp("Estimar desde el inicio", "Estimate from the start")}
+      </option>
+    </select>
+
+    <div data-estimacion hidden>
+      <label>${textoApp("Fecha de inicio", "Loan start date")}</label>
+      <input data-inicio type="date">
+
+      <label>${textoApp("Monto original ($)", "Original amount ($)")}</label>
+      <input data-original type="number" min="0.01" step="0.01">
+
+      <label>${textoApp("Tasa anual fija (%)", "Fixed annual rate (%)")}</label>
+      <input data-tasa type="number" min="0" max="100" step="0.01" value="0">
+
+      <label>${textoApp("Cuotas mensuales ya pagadas", "Monthly installments already paid")}</label>
+      <input data-pagadas type="number" min="0" max="1200" step="1" value="0">
+
+      <p class="note">${textoApp(
+        "Usaremos la cuota del formulario. Solo para pagos mensuales iguales y puntuales, sin comisiones ni abonos extra.",
+        "Uses the installment amount below. For equal, on-time monthly payments, with no fees or extra payments."
+      )}</p>
+
+      <button type="button" class="secondary" data-calcular>
+        ${textoApp("Calcular saldo estimado", "Calculate estimated balance")}
+      </button>
+
+      <p class="note" data-resultado role="status"></p>
+    </div>
+  `;
+
+  form.prepend(zona);
+
+  const modo = zona.querySelector("select");
+  const panel = zona.querySelector("[data-estimacion]");
+  const resultado = zona.querySelector("[data-resultado]");
+  let calculado = false;
+
+  function invalidar() {
+    calculado = false;
+    resultado.textContent = "";
+    delete form.dataset.historiaPrestamo;
+  }
+
+  modo.onchange = () => {
+    panel.hidden = modo.value !== "estimar";
+    invalidar();
+  };
+
+  zona.addEventListener("input", invalidar);
+  form.elements.cuota.addEventListener("input", invalidar);
+  form.elements.frecuencia.addEventListener("change", invalidar);
+
+  zona.querySelector("[data-calcular]").onclick = () => {
+    const inicio = zona.querySelector("[data-inicio]").value;
+    const original = Number(zona.querySelector("[data-original]").value);
+    const tasaEntrada = zona.querySelector("[data-tasa]").value;
+    const tasa = Number(tasaEntrada);
+    const pagadasEntrada = zona.querySelector("[data-pagadas]").value;
+    const pagadas = Number(pagadasEntrada);
+    const cuota = Number(form.elements.cuota.value);
+
+    if (
+      !validDate(inicio) ||
+      inicio > today() ||
+      tasaEntrada === "" ||
+      pagadasEntrada === "" ||
+      form.elements.frecuencia.value !== "mensual"
+    ) {
+      alert(textoApp(
+        "Indica una fecha de inicio válida, tasa, cuotas pagadas y frecuencia mensual.",
+        "Enter a valid start date, rate, paid installments and monthly frequency."
+      ));
+      return;
+    }
+
+    try {
+      const saldo = estimarSaldoAnterior(
+        original, tasa, cuota, pagadas
+      );
+
+      form.elements.saldo.value = saldo.toFixed(2);
+
+      form.dataset.historiaPrestamo = JSON.stringify({
+        fechaInicio:inicio,
+        montoOriginal:original,
+        tasaAnualInicial:tasa,
+        cuotasPrevias:pagadas,
+        saldoEstimadoInicial:saldo
+      });
+
+      calculado = true;
+      resultado.textContent = textoApp(
+        "Saldo estimado: ",
+        "Estimated balance: "
+      ) + money(saldo) + textoApp(
+        ". Compáralo con tu estado de cuenta y corrige el saldo pendiente si hace falta.",
+        ". Compare it with your statement and adjust the outstanding balance if needed."
+      );
+    } catch {
+      alert(textoApp(
+        "Revisa el monto, tasa, cuota y número de pagos. La cuota debe superar los intereses.",
+        "Check the amount, rate, installment and payment count. The installment must exceed interest."
+      ));
+    }
+  };
+
+  form.addEventListener("submit", event => {
+    if (modo.value === "estimar" && !calculado) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      alert(textoApp(
+        "Primero calcula y revisa el saldo estimado.",
+        "First calculate and review the estimated balance."
+      ));
+    }
+  }, true);
 }
 </script>
 
