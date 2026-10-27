@@ -3090,6 +3090,9 @@ function ajustarPrestamo(movimiento, signo) {
 
 ajustarPrestamo(anterior, 1);
 ajustarPrestamo(nuevo, -1);
+for (const prestamo of prestamosActualizados) {
+  actualizarCalendarioPrestamo(prestamo, movimientosNuevos);
+}
 
 const datosNuevos = {
   ...data,
@@ -9016,6 +9019,7 @@ function abrirPagoPrestamo(indice) {
       tipo:"gasto",
       monto,
       interesPrestamo,
+      vencimientoPrestamo: actual.proximo,
       fecha
     };
 
@@ -9895,6 +9899,67 @@ form.addEventListener("submit", event => {
     ventana.close();
     render();
   };
+}
+function actualizarCalendarioPrestamo(p, movimientos) {
+  const inicio = p.calendarioInicio || p.proximo;
+  if (!validDate(inicio) || !validDate(p.fin)) return;
+
+  p.calendarioInicio = inicio;
+
+  const [anio, mes, dia] = inicio.split("-").map(Number);
+  const base = Date.UTC(anio, mes - 1, dia);
+  const pagado = new Map();
+
+  for (const m of movimientos) {
+    if (
+      String(m.prestamoId) !== String(p.id) ||
+      m.tipo !== "gasto" ||
+      !validDate(String(m.vencimientoPrestamo))
+    ) continue;
+
+    const fecha = m.vencimientoPrestamo;
+
+    pagado.set(
+      fecha,
+      round((pagado.get(fecha) || 0) + Number(m.monto))
+    );
+  }
+
+  p.cuotasPagadas = [];
+  let siguiente = null;
+
+  for (let i = 0; i < 1200; i++) {
+    let fecha;
+
+    if (p.frecuencia === "cada14dias") {
+      fecha = new Date(
+        base + i * 14 * 86400000
+      ).toISOString().slice(0,10);
+    } else {
+      const ultimo = new Date(
+        Date.UTC(anio, mes + i, 0)
+      ).getUTCDate();
+
+      fecha = new Date(
+        Date.UTC(anio, mes - 1 + i, Math.min(dia, ultimo))
+      ).toISOString().slice(0,10);
+    }
+
+    if (fecha > p.fin) break;
+
+    const suma = pagado.get(fecha) || 0;
+    const cubierta = suma >= Number(p.cuota) ||
+      (Number(p.saldo) === 0 && suma > 0);
+
+    if (cubierta) {
+      p.cuotasPagadas.push(fecha);
+    } else if (!siguiente) {
+      siguiente = fecha;
+    }
+  }
+
+  p.calendarioCompleto = Number(p.saldo) === 0 || !siguiente;
+  p.proximo = siguiente || p.fin;
 }
 </script>
 
