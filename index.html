@@ -5406,7 +5406,201 @@ function documentos() {
   mostrarHerramientaPendiente("Documentos", "Documents");
 }
 function deudas() {
-  mostrarHerramientaPendiente("Control de deudas", "Debt management");
+  const lista = Array.isArray(data.prestamos)
+    ? data.prestamos : [];
+
+  const total = round(lista.reduce(
+    (suma, p) => suma + Number(p.saldo), 0
+  ));
+
+  el().innerHTML = `
+    <div style="display:flex;align-items:center;
+      justify-content:space-between;gap:12px">
+      <h2>${textoApp("Control de deudas", "Debt management")}</h2>
+      <button type="button" class="cuentas-agregar"
+        onclick="abrirNuevoPrestamo()">
+        + ${textoApp("Agregar", "Add")}
+      </button>
+    </div>
+
+    <div class="card">
+      <span class="label">
+        ${textoApp("Saldo pendiente", "Outstanding balance")}
+      </span>
+      <h2 style="margin:8px 0">${money(total)}</h2>
+      <span class="note">
+        ${lista.length} ${textoApp("préstamos", "loans")}
+      </span>
+    </div>
+
+    <h3>${textoApp("Mis préstamos", "My loans")}</h3>
+
+    ${lista.map((p, i) => `
+      <button type="button" class="card"
+        onclick="verPrestamoCompacto(${i})"
+        style="display:flex;align-items:center;gap:12px;
+        width:100%;padding:16px;margin-bottom:10px;
+        border:0;color:inherit;font:inherit;text-align:left">
+
+        <span aria-hidden="true"
+          style="position:relative;display:grid;place-items:center;
+          width:36px;height:36px;flex-shrink:0">
+          <svg width="24" height="24" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9h18L12 3 3 9Zm2 3v6m5-6v6m4-6v6m5-6v6M3 21h18"/>
+          </svg>
+          ${imagenCompania(p.nombre)}
+        </span>
+
+        <span style="flex:1;min-width:0">
+          <strong style="display:block;overflow-wrap:anywhere">
+            ${safe(p.nombre)}
+          </strong>
+          <small class="label">
+            ${textoApp("Vence: ", "Due: ")}${safe(p.proximo)}
+          </small>
+        </span>
+
+        <span style="text-align:right;flex-shrink:0">
+          <strong style="display:block">${money(p.saldo)}</strong>
+          <small class="label">
+            ${textoApp("Cuota ", "Payment ")}${money(p.cuota)}
+          </small>
+        </span>
+        <span aria-hidden="true">›</span>
+      </button>
+    `).join("") || `
+      <div class="card">
+        <p class="note">${textoApp(
+          "Agrega un préstamo de un banco o una aplicación.",
+          "Add a loan from a bank or an app."
+        )}</p>
+      </div>
+    `}
+  `;
+}
+
+function abrirNuevoPrestamo() {
+  const campos = [
+    ["nombre", "Banco o aplicación", "Bank or app", "text"],
+    ["saldo", "Saldo pendiente ($)", "Outstanding balance ($)", "number"],
+    ["cuota", "Importe de la cuota ($)", "Installment amount ($)", "number"],
+    ["proximo", "Próximo vencimiento", "Next due date", "date"],
+    ["fin", "Último pago previsto", "Expected final payment", "date"]
+  ];
+
+  const ventana = crearVentanaApariencia(
+    textoApp("Agregar préstamo", "Add loan"),
+    `
+      <form id="formPrestamoCompacto">
+        ${campos.map(([nombre, es, en, tipo]) => `
+          <label for="prestamo-${nombre}">${textoApp(es, en)}</label>
+          <input id="prestamo-${nombre}" name="${nombre}"
+            type="${tipo}" required
+            ${tipo === "number" ? 'min="0.01" step="0.01"' : ""}
+            ${tipo === "text" ? 'maxlength="80"' : ""}
+            ${nombre === "proximo" ? `value="${today()}"` : ""}>
+        `).join("")}
+
+        <label for="prestamo-frecuencia">
+          ${textoApp("Frecuencia", "Frequency")}
+        </label>
+        <select id="prestamo-frecuencia" name="frecuencia">
+          <option value="mensual">
+            ${textoApp("Mensual", "Monthly")}
+          </option>
+          <option value="cada14dias">
+            ${textoApp("Cada dos semanas", "Every two weeks")}
+          </option>
+        </select>
+
+        <button type="submit" class="primary"
+          style="background:var(--balanceone-color,#ff7900)">
+          ${textoApp("Guardar préstamo", "Save loan")}
+        </button>
+      </form>
+    `,
+    true
+  );
+
+  if (!ventana) return;
+  const form = ventana.querySelector("form");
+
+  form.onsubmit = event => {
+    event.preventDefault();
+    if (form.dataset.guardado === "si") return;
+
+    const f = new FormData(form);
+    const nombre = String(f.get("nombre") || "").trim();
+    const saldo = round(f.get("saldo"));
+    const cuota = round(f.get("cuota"));
+    const proximo = String(f.get("proximo"));
+    const fin = String(f.get("fin"));
+    const frecuencia = String(f.get("frecuencia"));
+
+    if (
+      !nombre || !validAmount(saldo) || !validAmount(cuota) ||
+      !validDate(proximo) || !validDate(fin) || fin < proximo ||
+      !["mensual", "cada14dias"].includes(frecuencia)
+    ) {
+      alert(textoApp(
+        "Revisa los importes y las fechas.",
+        "Check the amounts and dates."
+      ));
+      return;
+    }
+
+    const lista = Array.isArray(data.prestamos)
+      ? data.prestamos : [];
+
+    const nuevosDatos = {
+      ...data,
+      prestamos:[...lista, {
+        id:id(), nombre, saldo, saldoInicial:saldo,
+        cuota, proximo, fin, frecuencia
+      }]
+    };
+
+    try {
+      localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+    } catch {
+      alert(textoApp(
+        "No se pudo guardar. No se hicieron cambios.",
+        "Could not save. No changes were made."
+      ));
+      return;
+    }
+
+    form.dataset.guardado = "si";
+    data = nuevosDatos;
+    ventana.close();
+    render();
+  };
+}
+
+function verPrestamoCompacto(indice) {
+  const p = (data.prestamos || [])[indice];
+  if (!p) return;
+
+  crearVentanaApariencia(
+    p.nombre,
+    `
+      <span class="label">
+        ${textoApp("Saldo pendiente", "Outstanding balance")}
+      </span>
+      <h2>${money(p.saldo)}</h2>
+      <p>${textoApp("Cuota: ", "Installment: ")}${money(p.cuota)}</p>
+      <p>${p.frecuencia === "cada14dias"
+        ? textoApp("Cada dos semanas", "Every two weeks")
+        : textoApp("Mensual", "Monthly")}</p>
+      <p>${textoApp("Próximo vencimiento: ", "Next due date: ")}
+        ${safe(p.proximo)}</p>
+      <p>${textoApp("Último pago previsto: ", "Expected final payment: ")}
+        ${safe(p.fin)}</p>
+    `,
+    true
+  );
 }
 function patrimonio() {
   mostrarHerramientaPendiente("Patrimonio", "Net worth");
