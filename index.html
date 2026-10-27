@@ -8821,15 +8821,32 @@ function prestamosDelMes(mesElegido) {
   const lista = Array.isArray(data.prestamos)
     ? data.prestamos : [];
 
-  const cuotas = lista
-    .filter(p => Number(p.saldo) > 0)
-    .map(p => ({
-      ...p,
-      inicio:p.proximo,
-      monto:p.cuota
-    }));
+  const cuotas = lista.map(p => ({
+    ...p,
+    inicio:p.calendarioInicio || p.proximo,
+    monto:p.cuota
+  }));
 
-  return suscripcionesDelMes(mesElegido, cuotas);
+  return suscripcionesDelMes(mesElegido, cuotas)
+    .map(p => {
+      const importePagado = round(data.movimientos
+        .filter(m =>
+          m.prestamoId != null &&
+          String(m.prestamoId) === String(p.id) &&
+          m.tipo === "gasto" &&
+          m.vencimientoPrestamo === p.fecha
+        )
+        .reduce((total, m) => total + Number(m.monto), 0)
+      );
+
+      return {
+        ...p,
+        importePagado,
+        pagada:Array.isArray(p.cuotasPagadas) &&
+          p.cuotasPagadas.includes(p.fecha)
+      };
+    })
+    .filter(p => Number(p.saldo) > 0 || p.importePagado > 0);
 }
 function bloqueCuotasCalendario(fecha) {
   const mes = fecha ? fecha.slice(0,7) : mesCalendario;
@@ -8842,8 +8859,8 @@ function bloqueCuotasCalendario(fecha) {
     <div class="card" style="margin-top:16px">
       <h3>${textoApp("Cuotas de préstamos", "Loan installments")}</h3>
       <p class="note">${textoApp(
-        "Pagos previstos; no indican si ya se pagaron.",
-        "Scheduled payments; these do not indicate whether they have been paid."
+        "El estado se actualiza con los pagos vinculados a cada cuota.",
+"Status updates from payments linked to each installment."
       )}</p>
 
       ${cuotas.map(p => `
@@ -8862,9 +8879,17 @@ function bloqueCuotasCalendario(fecha) {
               ${textoApp("Día ", "Day ")}
               ${Number(p.fecha.slice(8,10))}
             </small>
-          </span>
+          <small style="display:block;margin-top:4px;
+  color:${p.pagada ? '#13865b' : 'var(--balanceone-color,#ff7900)'}">
+  ${p.pagada
+    ? textoApp("Pagada", "Paid")
+    : p.importePagado > 0
+      ? textoApp("Pago parcial", "Partially paid")
+      : textoApp("Pendiente", "Pending")}
+</small>
+      </span>
 
-          <strong>${money(p.cuota)}</strong>
+          <strong>${money(p.pagada ? p.importePagado : p.cuota)}</strong>
         </div>
       `).join("")}
     </div>
