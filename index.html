@@ -5640,6 +5640,12 @@ function verPrestamoCompacto(indice) {
         ${safe(p.proximo)}</p>
       <p>${textoApp("Último pago previsto: ", "Expected final payment: ")}
         ${safe(p.fin)}</p>
+     ${safe(p.fin)}</p>
+     <button type="button" class="primary"
+  onclick="abrirPagoPrestamo(${indice})"
+  style="background:var(--balanceone-color,#ff7900)">
+  ${textoApp("Registrar pago", "Record payment")}
+</button>
     `,
     true
   );
@@ -8852,6 +8858,163 @@ function conectarCuotasDia(ventana, fecha) {
 
   ventana.querySelector(".cal-dia-contenido")
     .insertAdjacentHTML("afterbegin", contenido);
+}
+function abrirPagoPrestamo(indice) {
+  const detalle = document.querySelector(".apariencia-ventana");
+
+  if (detalle) {
+    detalle.addEventListener("close", () => {
+      setTimeout(() => abrirPagoPrestamo(indice), 0);
+    }, {once:true});
+    detalle.close();
+    return;
+  }
+
+  const prestamo = (data.prestamos || [])[indice];
+  if (!prestamo || Number(prestamo.saldo) <= 0) return;
+
+  const prestamoId = prestamo.id;
+  let cuentas;
+
+  try {
+    cuentas = JSON.parse(
+      localStorage.getItem("amfinance-cuentas-banco") || "[]"
+    );
+    if (!Array.isArray(cuentas)) throw new Error();
+  } catch {
+    alert(textoApp(
+      "No se pudieron leer las cuentas bancarias.",
+      "Could not load bank accounts."
+    ));
+    return;
+  }
+
+  if (!cuentas.length) {
+    alert(textoApp(
+      "Primero agrega una cuenta bancaria desde Inicio.",
+      "First, add a bank account from Home."
+    ));
+    return;
+  }
+
+  const ventana = crearVentanaApariencia(
+    textoApp("Registrar pago", "Record payment"),
+    `
+      <p><strong>${safe(prestamo.nombre)}</strong></p>
+      <p class="note">
+        ${textoApp("Deuda pendiente: ", "Outstanding debt: ")}
+        ${money(prestamo.saldo)}
+      </p>
+
+      <form id="formPagoPrestamo">
+        <label for="pagoPrestamoBanco">
+          ${textoApp("Cuenta de origen", "Pay from")}
+        </label>
+        <select id="pagoPrestamoBanco" name="cuentaId" required>
+          <option value="">
+            ${textoApp("Selecciona una cuenta", "Select an account")}
+          </option>
+          ${cuentas.map(c => `
+            <option value="${safe(String(c.id))}">
+              ${safe(c.nombre)} · ${money(c.saldo)}
+            </option>
+          `).join("")}
+        </select>
+
+        <label for="pagoPrestamoMonto">
+          ${textoApp("Total pagado ($)", "Total paid ($)")}
+        </label>
+        <input id="pagoPrestamoMonto" name="monto"
+          type="number" min="0.01" step="0.01"
+          value="${Number(prestamo.cuota)}" required>
+
+        <label for="pagoPrestamoInteres">
+          ${textoApp(
+            "Intereses incluidos en el pago ($)",
+            "Interest included in this payment ($)"
+          )}
+        </label>
+        <input id="pagoPrestamoInteres" name="intereses"
+          type="number" min="0" step="0.01" value="0" required>
+
+        <p class="note">${textoApp(
+          "El total sale de tu cuenta. Solo el importe restante después de los intereses reduce la deuda.",
+          "The total leaves your account. Only the amount remaining after interest reduces the debt."
+        )}</p>
+
+        <label for="pagoPrestamoFecha">
+          ${textoApp("Fecha del pago", "Payment date")}
+        </label>
+        <input id="pagoPrestamoFecha" name="fecha"
+          type="date" value="${today()}" required>
+
+        <button type="submit" class="primary"
+          style="background:var(--balanceone-color,#ff7900)">
+          ${textoApp("Guardar pago", "Save payment")}
+        </button>
+      </form>
+    `,
+    true
+  );
+
+  if (!ventana) return;
+  const form = ventana.querySelector("form");
+
+  form.onsubmit = event => {
+    event.preventDefault();
+    if (form.dataset.guardado === "si") return;
+
+    const actual = (data.prestamos || []).find(
+      p => String(p.id) === String(prestamoId)
+    );
+    if (!actual) return;
+
+    const f = new FormData(form);
+    const cuentaId = String(f.get("cuentaId") || "");
+    const monto = round(f.get("monto"));
+    const interesPrestamo = round(f.get("intereses"));
+    const fecha = String(f.get("fecha"));
+    const capital = round(monto - interesPrestamo);
+
+    if (
+      !cuentas.some(c => String(c.id) === cuentaId) ||
+      !validAmount(monto) ||
+      !Number.isFinite(interesPrestamo) ||
+      interesPrestamo < 0 ||
+      !validAmount(capital) ||
+      capital > Number(actual.saldo) ||
+      !validDate(fecha)
+    ) {
+      alert(textoApp(
+        "Revisa la cuenta, fecha e importes. El capital debe ser mayor que cero y no superar la deuda.",
+        "Check the account, date and amounts. Principal must be positive and cannot exceed the debt."
+      ));
+      return;
+    }
+
+    const movimiento = {
+      id:id(),
+      cuentaId,
+      prestamoId,
+      nombre:textoApp("Pago: ", "Payment: ") + actual.nombre,
+      tipo:"gasto",
+      monto,
+      interesPrestamo,
+      fecha
+    };
+
+    if (!guardarMovimientoBanco(null, movimiento)) return;
+
+    form.dataset.guardado = "si";
+    form.querySelector('[type="submit"]').disabled = true;
+    ventana.close();
+    render();
+
+    alert(textoApp(
+      "Pago guardado. Cuenta bancaria y deuda actualizadas.",
+      "Payment saved. Bank account and debt updated."
+    ));
+  };
 }
 </script>
 
