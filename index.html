@@ -5466,7 +5466,7 @@ function deudas() {
       justify-content:space-between;gap:12px">
       <h2>${textoApp("Control de deudas", "Debt management")}</h2>
       <button type="button" class="cuentas-agregar"
-        onclick="abrirNuevoPrestamo()">
+        onclick="abrirPrestamoCompacto()">
         + ${textoApp("Agregar", "Add")}
       </button>
     </div>
@@ -9585,6 +9585,228 @@ function abrirContratoPrestamo(indice) {
           ? {...p, contrato:{montoOriginal, interesesTotales, tasaAnual}}
           : p
       )
+    };
+
+    try {
+      localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+    } catch {
+      alert(textoApp(
+        "No se pudo guardar. No se hicieron cambios.",
+        "Could not save. No changes were made."
+      ));
+      return;
+    }
+
+    form.dataset.guardado = "si";
+    data = nuevosDatos;
+    ventana.close();
+    render();
+  };
+}
+function abrirPrestamoCompacto() {
+  const campo = (nombre, es, en, tipo, opciones = "") => `
+    <label style="display:block;min-width:0">
+      <span class="label">${textoApp(es,en)}</span>
+      <input name="${nombre}" type="${tipo}" ${opciones}
+        style="box-sizing:border-box;width:100%;min-width:0;
+        margin:5px 0 0;padding:10px 12px;border-radius:16px">
+    </label>
+  `;
+
+  const ventana = crearVentanaApariencia(
+    textoApp("Agregar préstamo", "Add loan"),
+    `
+      <form id="prestamoCompactoNuevo">
+        ${campo(
+          "nombre", "Banco o aplicación", "Bank or app",
+          "text", 'maxlength="80" required'
+        )}
+
+        <div class="prestamo-dos">
+          ${campo(
+            "original", "Monto original", "Original amount",
+            "number", 'min="0.01" step="0.01" required'
+          )}
+          ${campo(
+            "intereses", "Intereses totales", "Total interest",
+            "number", 'min="0" step="0.01" required'
+          )}
+        </div>
+
+        <div style="display:flex;justify-content:space-between;
+          align-items:center;gap:10px;padding:12px;border-radius:18px;
+          background:rgba(255,121,0,.09);
+          color:var(--balanceone-color,#ff7900)">
+          <span>${textoApp("Total del contrato", "Contract total")}</span>
+          <strong data-total-contrato role="status">—</strong>
+        </div>
+
+        <div class="prestamo-dos">
+          ${campo(
+            "cuota", "Cuota", "Installment",
+            "number", 'min="0.01" step="0.01" required'
+          )}
+          <label style="min-width:0">
+            <span class="label">${textoApp("Frecuencia", "Frequency")}</span>
+            <select name="frecuencia" style="width:100%;
+              box-sizing:border-box;min-width:0;margin-top:5px;
+              padding:10px 12px;border-radius:16px">
+              <option value="mensual">${textoApp("Mensual","Monthly")}</option>
+              <option value="cada14dias">
+                ${textoApp("Cada 14 días","Every 14 days")}
+              </option>
+            </select>
+          </label>
+        </div>
+
+        <details data-fechas>
+          <summary>${textoApp("Fechas y tasa APR", "Dates and APR")}</summary>
+          ${campo("inicio","Fecha de inicio","Start date","date","required")}
+          ${campo("proximo","Próximo pago","Next payment","date","required")}
+          ${campo("fin","Último pago previsto","Expected final payment","date","required")}
+          ${campo(
+            "tasa","Tasa APR (%) · opcional","APR (%) · optional",
+            "number",'min="0" step="any"'
+          )}
+        </details>
+
+        <details data-anterior>
+          <summary>${textoApp(
+            "¿Ya empezaste a pagarlo?",
+            "Already started paying?"
+          )}</summary>
+
+          <label style="display:block;margin:10px 0">
+            <input name="empezado" type="checkbox"
+              style="width:auto;margin-right:8px">
+            ${textoApp("Sí, ya hice pagos", "Yes, I already made payments")}
+          </label>
+
+          <div data-saldo-anterior hidden>
+            ${campo(
+              "saldoActual",
+              "Capital pendiente actual ($)",
+              "Current outstanding principal ($)",
+              "number",'min="0.01" step="0.01"'
+            )}
+            <p class="note">${textoApp(
+              "Introduce el capital que aún debes según el banco. Los pagos anteriores no se descuentan otra vez de tu cuenta.",
+              "Enter the principal still owed according to your lender. Previous payments will not be deducted from your account again."
+            )}</p>
+          </div>
+        </details>
+
+        <button type="submit" class="primary"
+          style="background:var(--balanceone-color,#ff7900);
+          border-radius:999px">
+          ${textoApp("Guardar préstamo", "Save loan")}
+        </button>
+      </form>
+    `,
+    true
+  );
+
+  if (!ventana) return;
+
+  const estilo = document.createElement("style");
+  estilo.textContent = `
+    #prestamoCompactoNuevo {display:grid;gap:12px}
+    #prestamoCompactoNuevo .prestamo-dos {
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+    }
+    #prestamoCompactoNuevo details {
+      padding:12px;border-radius:18px;
+      border:1px solid rgba(130,140,155,.2);
+    }
+    #prestamoCompactoNuevo summary {cursor:pointer;font-weight:600}
+    #prestamoCompactoNuevo details > label {margin-top:10px}
+    #prestamoCompactoNuevo input,
+    #prestamoCompactoNuevo select {max-width:100%}
+  `;
+  ventana.appendChild(estilo);
+
+  const cerrar = ventana.querySelector(".apariencia-listo");
+  cerrar.textContent = textoApp("Cancelar", "Cancel");
+  cerrar.style.cssText +=
+    ";background:transparent;color:inherit;padding:8px;margin-top:8px";
+
+  const form = ventana.querySelector("form");
+  const f = form.elements;
+
+  function actualizarTotal() {
+    const original = round(f.original.value);
+    const intereses = round(f.intereses.value);
+
+    ventana.querySelector("[data-total-contrato]").textContent =
+      f.original.value !== "" &&
+      f.intereses.value !== "" &&
+      validAmount(original) &&
+      Number.isFinite(intereses) && intereses >= 0
+        ? money(round(original + intereses))
+        : "—";
+  }
+
+  f.original.oninput = actualizarTotal;
+  f.intereses.oninput = actualizarTotal;
+
+  f.empezado.onchange = () => {
+    form.querySelector("[data-saldo-anterior]").hidden =
+      !f.empezado.checked;
+    f.saldoActual.required = f.empezado.checked;
+  };
+
+  form.addEventListener("invalid", event => {
+    const seccion = event.target.closest("details");
+    if (seccion) seccion.open = true;
+  }, true);
+
+  form.onsubmit = event => {
+    event.preventDefault();
+    if (form.dataset.guardado === "si") return;
+
+    const nombre = f.nombre.value.trim();
+    const montoOriginal = round(f.original.value);
+    const interesesTotales = round(f.intereses.value);
+    const cuota = round(f.cuota.value);
+    const tasaAnual = f.tasa.value === "" ? null : Number(f.tasa.value);
+    const inicio = f.inicio.value;
+    const proximo = f.proximo.value;
+    const fin = f.fin.value;
+    const frecuencia = f.frecuencia.value;
+    const saldo = f.empezado.checked
+      ? round(f.saldoActual.value) : montoOriginal;
+
+    if (
+      !nombre || !validAmount(montoOriginal) ||
+      !Number.isFinite(interesesTotales) || interesesTotales < 0 ||
+      !Number.isFinite(round(montoOriginal + interesesTotales)) ||
+      !validAmount(cuota) || !validAmount(saldo) ||
+      !validDate(inicio) || !validDate(proximo) || !validDate(fin) ||
+      proximo < inicio || fin < proximo ||
+      !["mensual","cada14dias"].includes(frecuencia) ||
+      (tasaAnual !== null &&
+        (!Number.isFinite(tasaAnual) || tasaAnual < 0))
+    ) {
+      alert(textoApp(
+        "Revisa los importes y las fechas.",
+        "Check the amounts and dates."
+      ));
+      return;
+    }
+
+    const prestamo = {
+      id:id(), nombre, saldo, saldoInicial:saldo,
+      montoOriginal, fechaInicio:inicio,
+      cuota, proximo, fin, frecuencia,
+      contrato:{montoOriginal, interesesTotales, tasaAnual}
+    };
+
+    const nuevosDatos = {
+      ...data,
+      prestamos:[
+        ...(Array.isArray(data.prestamos) ? data.prestamos : []),
+        prestamo
+      ]
     };
 
     try {
