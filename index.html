@@ -9628,19 +9628,21 @@ function abrirPrestamoCompacto() {
             "number", 'min="0.01" step="0.01" required'
           )}
           ${campo(
-            "intereses", "Intereses totales", "Total interest",
-            "number", 'min="0" step="0.01" required'
-          )}
+  "tasa", "APR (%)", "APR (%)",
+  "number", 'min="0" step="any" required'
+)}
+<input name="intereses" type="hidden">
         </div>
 
         <div style="display:flex;justify-content:space-between;
           align-items:center;gap:10px;padding:12px;border-radius:18px;
           background:rgba(255,121,0,.09);
           color:var(--balanceone-color,#ff7900)">
-          <span>${textoApp("Total del contrato", "Contract total")}</span>
+          <span>${textoApp("Total estimado a pagar", "Estimated total to pay")}</span>
           <strong data-total-contrato role="status">—</strong>
         </div>
 
+        <small data-intereses-apr class="note" role="status"></small>
         <div class="prestamo-dos">
           ${campo(
             "cuota", "Cuota", "Installment",
@@ -9660,14 +9662,11 @@ function abrirPrestamoCompacto() {
         </div>
 
         <details data-fechas>
-          <summary>${textoApp("Fechas y tasa APR", "Dates and APR")}</summary>
+          <summary>${textoApp("Fechas del préstamo", "Loan dates")}</summary>
           ${campo("inicio","Fecha de inicio","Start date","date","required")}
           ${campo("proximo","Próximo pago","Next payment","date","required")}
           ${campo("fin","Último pago previsto","Expected final payment","date","required")}
-          ${campo(
-            "tasa","Tasa APR (%) · opcional","APR (%) · optional",
-            "number",'min="0" step="any"'
-          )}
+          
         </details>
 
         <details data-anterior>
@@ -9734,20 +9733,89 @@ function abrirPrestamoCompacto() {
   const f = form.elements;
 
   function actualizarTotal() {
-    const original = round(f.original.value);
-    const intereses = round(f.intereses.value);
+  const salida = ventana.querySelector("[data-total-contrato]");
+  const detalle = ventana.querySelector("[data-intereses-apr]");
 
-    ventana.querySelector("[data-total-contrato]").textContent =
-      f.original.value !== "" &&
-      f.intereses.value !== "" &&
-      validAmount(original) &&
-      Number.isFinite(intereses) && intereses >= 0
-        ? money(round(original + intereses))
-        : "—";
+  f.intereses.value = "";
+  salida.textContent = "—";
+  detalle.textContent = "";
+
+  if (
+    f.original.value === "" ||
+    f.tasa.value === "" ||
+    f.cuota.value === ""
+  ) return;
+
+  let saldo = round(f.original.value);
+  const tasa = Number(f.tasa.value);
+  const cuota = round(f.cuota.value);
+  const frecuencia = f.frecuencia.value;
+
+  if (
+    !validAmount(saldo) ||
+    !validAmount(cuota) ||
+    !Number.isFinite(tasa) ||
+    tasa < 0 ||
+    !["mensual","cada14dias"].includes(frecuencia)
+  ) return;
+
+  const tasaPeriodo = frecuencia === "mensual"
+    ? tasa / 1200
+    : tasa / 100 * 14 / 365;
+
+  let intereses = 0;
+  let total = 0;
+  let cuotas = 0;
+
+  while (saldo > 0 && cuotas < 1200) {
+    const interes = round(saldo * tasaPeriodo);
+
+    if (!Number.isFinite(interes) || cuota <= interes) {
+      detalle.textContent = textoApp(
+        "La cuota debe superar los intereses.",
+        "The installment must exceed interest."
+      );
+      return;
+    }
+
+    const pago = round(Math.min(cuota, saldo + interes));
+    saldo = round(Math.max(0, saldo - (pago - interes)));
+    intereses = round(intereses + interes);
+    total = round(total + pago);
+    cuotas++;
   }
 
-  f.original.oninput = actualizarTotal;
-  f.intereses.oninput = actualizarTotal;
+  if (saldo > 0 || !Number.isFinite(total)) return;
+
+  f.intereses.value = intereses.toFixed(2);
+  salida.textContent = money(total);
+
+  detalle.textContent = textoApp(
+    "Intereses estimados: ",
+    "Estimated interest: "
+  ) + money(intereses) + " · " + cuotas + textoApp(
+    " cuotas",
+    " installments"
+  );
+}
+
+f.original.oninput = actualizarTotal;
+f.tasa.oninput = actualizarTotal;
+f.cuota.oninput = actualizarTotal;
+f.frecuencia.onchange = actualizarTotal;
+
+form.addEventListener("submit", event => {
+  actualizarTotal();
+
+  if (f.intereses.value === "") {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    alert(textoApp(
+      "Revisa el monto, APR y cuota para calcular el total.",
+      "Check the amount, APR and installment to calculate the total."
+    ));
+  }
+}, true);
 
   f.empezado.onchange = () => {
     form.querySelector("[data-saldo-anterior]").hidden =
@@ -9798,7 +9866,10 @@ function abrirPrestamoCompacto() {
       id:id(), nombre, saldo, saldoInicial:saldo,
       montoOriginal, fechaInicio:inicio,
       cuota, proximo, fin, frecuencia,
-      contrato:{montoOriginal, interesesTotales, tasaAnual}
+      contrato:{
+  montoOriginal, interesesTotales, tasaAnual,
+  estimado:true
+}
     };
 
     const nuevosDatos = {
