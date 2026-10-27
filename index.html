@@ -5575,6 +5575,7 @@ function abrirNuevoPrestamo() {
   if (!ventana) return;
   const form = ventana.querySelector("form");
   conectarEstimacionPrestamo(form);
+  simplificarFormularioPrestamo(form);
 
   form.onsubmit = event => {
     event.preventDefault();
@@ -9375,6 +9376,83 @@ function resumenInteresesPrestamo(p) {
       )}</p>
     </div>
   `;
+}
+function simplificarFormularioPrestamo(form) {
+  const modo = form.querySelector("#modoSaldoPrestamo");
+  if (!modo) return;
+
+  const zona = modo.parentElement;
+  const panel = zona.querySelector("[data-estimacion]");
+
+  function moverCampo(nombre, destino, antes = null) {
+    const campo = form.elements[nombre];
+    if (!campo) return;
+
+    const etiqueta = form.querySelector(
+      'label[for="' + campo.id + '"]'
+    );
+
+    const grupo = document.createElement("div");
+    grupo.style.marginBottom = "12px";
+
+    if (etiqueta) grupo.appendChild(etiqueta);
+    grupo.appendChild(campo);
+    destino.insertBefore(grupo, antes);
+  }
+
+  moverCampo("nombre", form, zona);
+  moverCampo("cuota", zona, panel);
+  moverCampo("frecuencia", zona, panel);
+
+  const fechas = document.createElement("details");
+  fechas.style.cssText = `
+    margin:16px 0;padding:14px;border-radius:20px;
+    background:rgba(130,140,155,.07);
+  `;
+
+  const titulo = document.createElement("summary");
+  titulo.textContent = textoApp(
+    "Fechas del préstamo",
+    "Loan dates"
+  );
+  titulo.style.cssText = "cursor:pointer;font-weight:600";
+  fechas.appendChild(titulo);
+
+  const guardar = form.querySelector('[type="submit"]');
+  form.insertBefore(fechas, guardar);
+
+  moverCampo("proximo", fechas);
+  moverCampo("fin", fechas);
+
+  fechas.addEventListener("invalid", () => {
+    fechas.open = true;
+  }, true);
+
+  const nota = panel.querySelector(".note");
+  if (nota) {
+    nota.textContent = textoApp(
+      "Estimación con cuotas mensuales iguales, tasa fija y pagos puntuales; sin comisiones ni abonos extra.",
+      "Estimate using equal monthly installments, a fixed rate and on-time payments; no fees or extra payments."
+    );
+  }
+
+  form.querySelectorAll("input, select").forEach(campo => {
+    campo.style.boxSizing = "border-box";
+    campo.style.width = "100%";
+    campo.style.minWidth = "0";
+    campo.style.maxWidth = "100%";
+    campo.style.padding = "10px 14px";
+    campo.style.minHeight = "44px";
+  });
+
+  const ventana = form.closest("dialog");
+  const cerrar = ventana.querySelector(".apariencia-listo");
+
+  if (cerrar) {
+    cerrar.textContent = textoApp("Cancelar", "Cancel");
+    cerrar.style.background = "rgba(130,140,155,.12)";
+    cerrar.style.color = "inherit";
+  }
 }
 </script>
 
