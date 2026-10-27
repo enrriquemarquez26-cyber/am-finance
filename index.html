@@ -5640,6 +5640,7 @@ function verPrestamoCompacto(indice) {
         ${textoApp("Saldo pendiente", "Outstanding balance")}
       </span>
       <h2>${money(p.saldo)}</h2>
+      ${resumenInteresesPrestamo(p)}
       <p>${textoApp("Cuota: ", "Installment: ")}${money(p.cuota)}</p>
       <p>${p.frecuencia === "cada14dias"
         ? textoApp("Cada dos semanas", "Every two weeks")
@@ -9258,6 +9259,122 @@ function conectarEstimacionPrestamo(form) {
       ));
     }
   }, true);
+}
+function proyectarInteresesPrestamo(p) {
+  const tasaGuardada = p.tasaAnualInicial;
+
+  if (
+    tasaGuardada === undefined ||
+    tasaGuardada === null ||
+    String(tasaGuardada).trim() === ""
+  ) return {error:"tasa"};
+
+  const tasa = Number(tasaGuardada);
+  const cuota = Number(p.cuota);
+  let saldo = round(p.saldo);
+
+  if (
+    !Number.isFinite(tasa) || tasa < 0 || tasa > 100 ||
+    !Number.isFinite(saldo) || saldo < 0 ||
+    !validAmount(cuota)
+  ) return {error:"datos"};
+
+  if (p.frecuencia !== "mensual") {
+    return {error:"frecuencia"};
+  }
+
+  let total = 0;
+  let intereses = 0;
+  let cuotas = 0;
+
+  while (saldo > 0 && cuotas < 1200) {
+    const interes = round(saldo * tasa / 1200);
+
+    if (cuota <= interes) return {error:"cuota"};
+
+    const pago = round(Math.min(cuota, saldo + interes));
+
+    saldo = round(Math.max(0, saldo - (pago - interes)));
+    total = round(total + pago);
+    intereses = round(intereses + interes);
+    cuotas++;
+  }
+
+  if (saldo > 0) return {error:"plazo"};
+
+  return {tasa, total, intereses, cuotas};
+}
+
+function resumenInteresesPrestamo(p) {
+  const resultado = proyectarInteresesPrestamo(p);
+
+  if (resultado.error) {
+    const mensajes = {
+      tasa: textoApp(
+        "Falta la tasa anual para calcular los intereses.",
+        "An annual rate is needed to calculate interest."
+      ),
+      frecuencia: textoApp(
+        "La proyección de intereses está disponible por ahora para cuotas mensuales.",
+        "Interest projections currently support monthly installments."
+      ),
+      cuota: textoApp(
+        "La cuota no supera los intereses mensuales.",
+        "The installment does not exceed monthly interest."
+      ),
+      datos: textoApp(
+        "Revisa el saldo, la cuota y la tasa.",
+        "Check the balance, installment and rate."
+      ),
+      plazo: textoApp(
+        "El plazo calculado supera el límite de esta proyección.",
+        "The calculated term exceeds this projection's limit."
+      )
+    };
+
+    return `<p class="note">${mensajes[resultado.error]}</p>`;
+  }
+
+  return `
+    <div style="padding:16px;margin:16px 0;border-radius:24px;
+      background:rgba(130,140,155,.08)">
+      <span class="label">
+        ${textoApp(
+          "Total restante con intereses · estimado",
+          "Remaining total including interest · estimated"
+        )}
+      </span>
+
+      <h2 style="margin:8px 0;
+        color:var(--balanceone-color,#ff7900)">
+        ${money(resultado.total)}
+      </h2>
+
+      <p>${textoApp("Capital pendiente: ", "Outstanding principal: ")}
+        <strong>${money(p.saldo)}</strong>
+      </p>
+
+      <p>${textoApp(
+        "Intereses restantes estimados: ",
+        "Estimated remaining interest: "
+      )}
+        <strong>${money(resultado.intereses)}</strong>
+      </p>
+
+      <p>${textoApp("Tasa anual: ", "Annual rate: ")}
+        <strong>${resultado.tasa}%</strong>
+      </p>
+
+      <p>${textoApp("Cuotas restantes estimadas: ", "Estimated remaining installments: ")}
+        <strong>${resultado.cuotas}</strong>
+      </p>
+
+      <p class="note">${textoApp(
+        "Desde el saldo actual, con tasa fija y pagos mensuales puntuales. Sin comisiones ni compras nuevas. La última cuota puede ser menor. El plazo se calcula; no modifica la fecha final que registraste.",
+        "From the current balance, with a fixed rate and on-time monthly payments. No fees or new purchases. The final installment may be smaller. The calculated term does not change your recorded end date."
+      )}</p>
+    </div>
+  `;
 }
 </script>
 
