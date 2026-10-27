@@ -2620,6 +2620,9 @@ const banco = String(c.nombre || "").toLowerCase();
  ).reduce((a,p)=>a+Number(p.monto),0);
  const autos=data.vehiculos.reduce((a,v)=>a+Number(v.saldo),0);
  const tarjetas=data.tarjetas.reduce((a,t)=>a+Number(t.saldo),0);
+ const prestamos = (Array.isArray(data.prestamos)
+  ? data.prestamos : []
+).reduce((total, p) => total + Number(p.saldo), 0);
 
  el().innerHTML=`
  ${avisosVencimiento()}
@@ -2644,15 +2647,16 @@ const banco = String(c.nombre || "").toLowerCase();
   </div>
 </div>
 
-${autos + tarjetas > 0 ? `
+${autos + tarjetas + prestamos > 0 ? `
   <div class="card" style="border-radius:40px">
     <div class="label">
       ${textoApp("Mis deudas pendientes", "Outstanding debts")}
     </div>
-    <div class="smallamount">${money(autos+tarjetas)}</div>
+    <div class="smallamount">${money(autos+tarjetas+prestamos)}</div>
     <div class="note">
       ${textoApp("Vehículos", "Vehicles")}: ${money(autos)}
       · ${textoApp("Tarjetas", "Cards")}: ${money(tarjetas)}
+     · ${textoApp("Préstamos", "Loans")}: ${money(prestamos)}
     </div>
   </div>
 ` : ""}
