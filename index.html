@@ -4869,7 +4869,19 @@ function presupuestos(){
 
         <label>${textoApp("Primer cobro", "First charge")}</label>
         <input name="inicio" type="date" value="${today()}" required>
+        <label for="ultimoCobroProgramado">
+  ${textoApp("Último cobro", "Last charge")}
+</label>
 
+<input id="ultimoCobroProgramado"
+  name="fin" type="date">
+
+<p class="note">
+  ${textoApp(
+    "Obligatorio para préstamos y compras a cuotas. Déjalo vacío para pagos sin fecha de finalización.",
+    "Required for loans and installments. Leave blank for payments with no end date."
+  )}
+</p>
         <button class="primary" type="submit">
           ${textoApp("Guardar suscripción", "Save subscription")}
         </button>
@@ -4939,7 +4951,27 @@ function presupuestos(){
 const categoria = String(campos.get("categoria"));
 if (!tiposPermitidos.includes(categoria)) return;
 
-const nueva = {id:id(), nombre, monto, inicio, categoria};
+const fin = String(campos.get("fin") || "");
+
+if (fin && (!validDate(fin) || fin < inicio)) {
+  alert(textoApp(
+    "El último cobro debe ser igual o posterior al primero.",
+    "The last charge must be on or after the first."
+  ));
+  return;
+}
+
+if (["prestamo", "cuotas"].includes(categoria) && !fin) {
+  alert(textoApp(
+    "Indica la fecha del último cobro.",
+    "Enter the last charge date."
+  ));
+  return;
+}
+
+const nueva = {
+  id:id(), nombre, monto, inicio, categoria, fin
+};
     const nuevosDatos = {
       ...data,
       suscripciones:[...lista, nueva]
@@ -8339,7 +8371,9 @@ function suscripcionesDelMes(mesElegido) {
       ...s,
       fecha: mesElegido + "-" + String(dia).padStart(2,"0")
     };
-  }).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  }).filter(s =>
+  !s.fin || s.fecha <= s.fin
+).sort((a,b) => a.fecha.localeCompare(b.fecha));
 }
 
 function bloqueSuscripcionesCalendario(fecha) {
