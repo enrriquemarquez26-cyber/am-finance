@@ -8887,6 +8887,19 @@ function bloqueCuotasCalendario(fecha) {
       ? textoApp("Pago parcial", "Partially paid")
       : textoApp("Pendiente", "Pending")}
 </small>
+      ${!p.pagada && Number(p.saldo) > 0 ? `
+  <button type="button"
+    onclick="pagarCuotaDesdeCalendario(
+      ${data.prestamos.findIndex(deuda => String(deuda.id) === String(p.id))},
+      '${p.fecha}'
+    )"
+    style="margin-top:8px;padding:8px 14px;
+    border:0;border-radius:999px;
+    background:var(--balanceone-color,#ff7900);
+    color:white;font:inherit">
+    ${textoApp("Pagar cuota", "Pay installment")}
+  </button>
+` : ""}
       </span>
 
           <strong>${money(p.pagada ? p.importePagado : p.cuota)}</strong>
@@ -8903,12 +8916,12 @@ function conectarCuotasDia(ventana, fecha) {
   ventana.querySelector(".cal-dia-contenido")
     .insertAdjacentHTML("afterbegin", contenido);
 }
-function abrirPagoPrestamo(indice) {
+function abrirPagoPrestamo(indice, fechaCuota = null) {
   const detalle = document.querySelector(".apariencia-ventana");
 
   if (detalle) {
     detalle.addEventListener("close", () => {
-      setTimeout(() => abrirPagoPrestamo(indice), 0);
+      setTimeout(() => abrirPagoPrestamo(indice, fechaCuota), 0);
     }, {once:true});
     detalle.close();
     return;
@@ -9003,6 +9016,7 @@ function abrirPagoPrestamo(indice) {
 
   if (!ventana) return;
   const form = ventana.querySelector("form");
+  simplificarPagoPrestamo(form);
 
   form.onsubmit = event => {
     event.preventDefault();
@@ -9044,7 +9058,7 @@ function abrirPagoPrestamo(indice) {
       tipo:"gasto",
       monto,
       interesPrestamo,
-      vencimientoPrestamo: actual.proximo,
+      vencimientoPrestamo: fechaCuota || actual.proximo,
       fecha
     };
 
@@ -9985,6 +9999,60 @@ function actualizarCalendarioPrestamo(p, movimientos) {
 
   p.calendarioCompleto = Number(p.saldo) === 0 || !siguiente;
   p.proximo = siguiente || p.fin;
+}
+function pagarCuotaDesdeCalendario(indice, fecha) {
+  const ventana = document.querySelector(".cal-dia-ventana");
+
+  if (ventana) {
+    ventana.addEventListener("close", () => {
+      setTimeout(() => abrirPagoPrestamo(indice, fecha), 0);
+    }, {once:true});
+    ventana.close();
+  } else {
+    abrirPagoPrestamo(indice, fecha);
+  }
+}
+
+function simplificarPagoPrestamo(form) {
+  const detalles = document.createElement("details");
+  detalles.style.cssText = `
+    margin:12px 0;padding:12px;border-radius:18px;
+    background:rgba(130,140,155,.07);
+  `;
+
+  const titulo = document.createElement("summary");
+  titulo.textContent = textoApp(
+    "Otros detalles: fecha e intereses",
+    "Other details: date and interest"
+  );
+  detalles.appendChild(titulo);
+
+  const guardar = form.querySelector('[type="submit"]');
+  form.insertBefore(detalles, guardar);
+
+  ["intereses", "fecha"].forEach(nombre => {
+    const campo = form.elements[nombre];
+    const etiqueta = form.querySelector(
+      'label[for="' + campo.id + '"]'
+    );
+
+    if (etiqueta) detalles.appendChild(etiqueta);
+    detalles.appendChild(campo);
+  });
+
+  const aviso = form.querySelector("p.note");
+  if (aviso) detalles.appendChild(aviso);
+
+  detalles.addEventListener("invalid", () => {
+    detalles.open = true;
+  }, true);
+
+  const ventana = form.closest("dialog");
+  const cerrar = ventana.querySelector(".apariencia-listo");
+
+  cerrar.textContent = textoApp("Cancelar", "Cancel");
+  cerrar.style.cssText +=
+    ";background:transparent;color:inherit;padding:8px;margin-top:8px";
 }
 </script>
 
