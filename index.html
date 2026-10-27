@@ -8566,13 +8566,15 @@ function pagosMesCalendario() {
     </div>
   `;
 }
-function suscripcionesDelMes(mesElegido) {
+function suscripcionesDelMes(
+  mesElegido,
+  registros = data.suscripciones
+) {
   const [anio, mes] = mesElegido.split("-").map(Number);
   const ultimo = new Date(Date.UTC(anio, mes, 0)).getUTCDate();
   const inicioMes = mesElegido + "-01";
   const finMes = mesElegido + "-" + String(ultimo).padStart(2,"0");
-  const lista = Array.isArray(data.suscripciones)
-    ? data.suscripciones : [];
+  const lista = Array.isArray(registros) ? registros : [];
   const eventos = [];
 
   for (const s of lista) {
@@ -8748,6 +8750,20 @@ function iconosDiaCalendario(fecha) {
       ` : ""}
     </span>
   `;
+}
+function prestamosDelMes(mesElegido) {
+  const lista = Array.isArray(data.prestamos)
+    ? data.prestamos : [];
+
+  const cuotas = lista
+    .filter(p => Number(p.saldo) > 0)
+    .map(p => ({
+      ...p,
+      inicio:p.proximo,
+      monto:p.cuota
+    }));
+
+  return suscripcionesDelMes(mesElegido, cuotas);
 }
 </script>
 
