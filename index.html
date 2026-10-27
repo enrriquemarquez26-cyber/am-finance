@@ -4840,7 +4840,26 @@ function presupuestos(){
       <h3>${textoApp("Agregar suscripción", "Add subscription")}</h3>
 
       <form id="formSuscripcion">
-        <label>${textoApp("Nombre", "Name")}</label>
+        <label for="tipoPagoProgramado">
+  ${textoApp("Tipo de pago", "Payment type")}
+</label>
+
+<select id="tipoPagoProgramado" name="categoria" required>
+  <option value="suscripcion">
+    ${textoApp("Suscripción", "Subscription")}
+  </option>
+  <option value="renta">
+    ${textoApp("Renta", "Rent")}
+  </option>
+  <option value="prestamo">
+    ${textoApp("Préstamo personal", "Personal loan")}
+  </option>
+  <option value="cuotas">
+    ${textoApp("Compras a cuotas · Klarna y similares",
+      "Installments · Klarna and similar")}
+  </option>
+</select>
+       <label>${textoApp("Nombre", "Name")}</label>
         <input name="nombre" maxlength="80" required
           placeholder="Netflix, Spotify…">
 
@@ -4913,7 +4932,14 @@ function presupuestos(){
       return;
     }
 
-    const nueva = {id:id(), nombre, monto, inicio};
+    const tiposPermitidos = [
+  "suscripcion", "renta", "prestamo", "cuotas"
+];
+
+const categoria = String(campos.get("categoria"));
+if (!tiposPermitidos.includes(categoria)) return;
+
+const nueva = {id:id(), nombre, monto, inicio, categoria};
     const nuevosDatos = {
       ...data,
       suscripciones:[...lista, nueva]
