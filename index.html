@@ -5643,10 +5643,6 @@ function verPrestamoCompacto(indice) {
       <h2>${money(p.saldo)}</h2>
       ${resumenContratoPrestamo(p)}
 
-<button type="button" class="secondary"
-  onclick="abrirContratoPrestamo(${indice})">
-  ${textoApp("Datos del contrato", "Contract details")}
-</button>
       <p>${textoApp("Cuota: ", "Installment: ")}${money(p.cuota)}</p>
       <p>${p.frecuencia === "cada14dias"
         ? textoApp("Cada dos semanas", "Every two weeks")
