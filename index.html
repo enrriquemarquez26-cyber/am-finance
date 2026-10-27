@@ -5403,7 +5403,8 @@ function transferencias() {
    
     ${pagosMesCalendario()}
     ${bloqueSuscripcionesCalendario()}
-    </section>
+    ${bloqueCuotasCalendario()}
+     </section>
   `;
 }
 function documentos() {
@@ -8231,6 +8232,7 @@ function abrirDiaCalendario(fecha) {
   conectarFormularioDia(ventana, fecha);
   conectarAccionesDia(ventana, fecha, resumen.registros);
   conectarSuscripcionesDia(ventana, fecha);
+  conectarCuotasDia(ventana, fecha);
 }
 function activarGestosDiaCalendario(ventana) {
   const cabecera = ventana.querySelector(".cal-dia-cabecera");
@@ -8711,7 +8713,9 @@ function iconosDiaCalendario(fecha) {
       Number(elemento.saldo) > 0;
   };
 
-  const eventos = [
+  const eventos = [...prestamosDelMes(fecha.slice(0,7))
+  .filter(p => p.fecha === fecha)
+  .map(p => ({nombre:p.nombre, icono:"💰"})),
     ...suscripcionesDelMes(fecha.slice(0,7))
       .filter(s => s.fecha === fecha)
       .map(s => ({nombre:s.nombre, icono:"↻"})),
@@ -8764,6 +8768,53 @@ function prestamosDelMes(mesElegido) {
     }));
 
   return suscripcionesDelMes(mesElegido, cuotas);
+}
+function bloqueCuotasCalendario(fecha) {
+  const mes = fecha ? fecha.slice(0,7) : mesCalendario;
+  const cuotas = prestamosDelMes(mes)
+    .filter(p => !fecha || p.fecha === fecha);
+
+  if (!cuotas.length) return "";
+
+  return `
+    <div class="card" style="margin-top:16px">
+      <h3>${textoApp("Cuotas de préstamos", "Loan installments")}</h3>
+      <p class="note">${textoApp(
+        "Pagos previstos; no indican si ya se pagaron.",
+        "Scheduled payments; these do not indicate whether they have been paid."
+      )}</p>
+
+      ${cuotas.map(p => `
+        <div style="display:flex;align-items:center;
+          gap:10px;padding:12px 0">
+          <span aria-hidden="true"
+            style="position:relative;display:grid;
+            place-items:center;width:32px;height:32px;
+            flex-shrink:0">
+            💰 ${imagenCompania(p.nombre)}
+          </span>
+
+          <span style="flex:1;min-width:0">
+            <strong>${safe(p.nombre)}</strong>
+            <small class="label" style="display:block">
+              ${textoApp("Día ", "Day ")}
+              ${Number(p.fecha.slice(8,10))}
+            </small>
+          </span>
+
+          <strong>${money(p.cuota)}</strong>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function conectarCuotasDia(ventana, fecha) {
+  const contenido = bloqueCuotasCalendario(fecha);
+  if (!contenido) return;
+
+  ventana.querySelector(".cal-dia-contenido")
+    .insertAdjacentHTML("afterbegin", contenido);
 }
 </script>
 
