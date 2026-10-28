@@ -2378,8 +2378,10 @@ function validAmount(n){
 }
 
 function validDate(s){
- return /^\d{4}-\d{2}-\d{2}$/.test(s)&&
- !Number.isNaN(new Date(s+"T12:00:00").getTime());
+ if(typeof s!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;
+ const fecha=new Date(s+"T12:00:00Z");
+ return !Number.isNaN(fecha.getTime())&&
+   fecha.toISOString().slice(0,10)===s;
 }
 
 // Añade identificadores a los registros antiguos sin borrarlos.
@@ -8916,6 +8918,55 @@ function conectarCuotasDia(ventana, fecha) {
   ventana.querySelector(".cal-dia-contenido")
     .insertAdjacentHTML("afterbegin", contenido);
 }
+function desgloseCuotaPrestamo(prestamo, vencimiento) {
+  const pagos = (data.movimientos || []).filter(m =>
+    m.tipo === "gasto" &&
+    m.prestamoId != null &&
+    String(m.prestamoId) === String(prestamo.id) &&
+    m.vencimientoPrestamo === vencimiento
+  );
+
+  const pagado = round(pagos.reduce(
+    (total, m) => total + Number(m.monto), 0
+  ));
+  const interesesPagados = round(pagos.reduce(
+    (total, m) => total + Number(m.interesPrestamo || 0), 0
+  ));
+  const capitalPagado = round(pagado - interesesPagados);
+  const tasaGuardada = prestamo.contrato?.tasaAnual ??
+    prestamo.tasaAnualInicial;
+  const tasa = tasaGuardada === undefined || tasaGuardada === null ||
+    String(tasaGuardada).trim() === "" ? null : Number(tasaGuardada);
+
+  let interesPendiente = 0;
+  let interesEstimado = null;
+
+  if (tasa !== null && Number.isFinite(tasa) && tasa >= 0 && tasa <= 100) {
+    const tasaPeriodo = prestamo.frecuencia === "cada14dias"
+      ? tasa / 100 * 14 / 365
+      : tasa / 1200;
+    // Reconstituye el capital al inicio de la cuota para no cobrar
+    // los mismos intereses otra vez en un segundo pago parcial.
+    const capitalInicial = round(
+      Number(prestamo.saldo) + capitalPagado
+    );
+    interesEstimado = round(capitalInicial * tasaPeriodo);
+    interesPendiente = round(Math.max(
+      0, interesEstimado - interesesPagados
+    ));
+  }
+
+  const cuotaPendiente = round(Math.max(
+    0, Number(prestamo.cuota) - pagado
+  ));
+  const maximo = round(Number(prestamo.saldo) + interesPendiente);
+  const sugerido = round(Math.min(
+    cuotaPendiente > 0 ? cuotaPendiente : Number(prestamo.cuota),
+    maximo
+  ));
+
+  return {pagado, cuotaPendiente, interesPendiente, interesEstimado, sugerido};
+}
 function abrirPagoPrestamo(indice, fechaCuota = null) {
   const detalle = document.querySelector(".apariencia-ventana");
 
@@ -8931,6 +8982,8 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
   if (!prestamo || Number(prestamo.saldo) <= 0) return;
 
   const prestamoId = prestamo.id;
+  const vencimiento = fechaCuota || prestamo.proximo;
+  const desglose = desgloseCuotaPrestamo(prestamo, vencimiento);
   let cuentas;
 
   try {
@@ -8962,6 +9015,24 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
         ${textoApp("Deuda pendiente: ", "Outstanding debt: ")}
         ${money(prestamo.saldo)}
       </p>
+      ${desglose.pagado > 0 ? `
+        <p class="note">${textoApp(
+          "Ya abonado a esta cuota: ", "Already paid toward this installment: "
+        )}${money(desglose.pagado)} · ${textoApp(
+          "Falta: ", "Remaining: "
+        )}${money(desglose.cuotaPendiente)}</p>
+      ` : ""}
+      ${desglose.interesEstimado !== null ? `
+        <p class="note">${textoApp(
+          "Intereses estimados pendientes de esta cuota: ",
+          "Estimated remaining interest for this installment: "
+        )}${money(desglose.interesPendiente)}</p>
+      ` : `
+        <p class="note">${textoApp(
+          "Este préstamo no tiene una APR válida guardada. Revisa los intereses reales en Otros detalles antes de registrar el pago.",
+          "This loan has no valid saved APR. Check the actual interest under Other details before recording the payment."
+        )}</p>
+      `}
 
       <form id="formPagoPrestamo">
         <label for="pagoPrestamoBanco">
@@ -8979,11 +9050,11 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
         </select>
 
         <label for="pagoPrestamoMonto">
-          ${textoApp("Total pagado ($)", "Total paid ($)")}
+          ${textoApp("Cantidad pagada ($)", "Amount paid ($)")}
         </label>
         <input id="pagoPrestamoMonto" name="monto"
           type="number" min="0.01" step="0.01"
-          value="${Number(prestamo.cuota)}" required>
+          value="${desglose.sugerido.toFixed(2)}" required>
 
         <label for="pagoPrestamoInteres">
           ${textoApp(
@@ -8992,7 +9063,8 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
           )}
         </label>
         <input id="pagoPrestamoInteres" name="intereses"
-          type="number" min="0" step="0.01" value="0" required>
+          type="number" min="0" step="0.01"
+          value="${desglose.interesPendiente.toFixed(2)}" required>
 
         <p class="note">${textoApp(
           "El total sale de tu cuenta. Solo el importe restante después de los intereses reduce la deuda.",
@@ -9058,7 +9130,7 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
       tipo:"gasto",
       monto,
       interesPrestamo,
-      vencimientoPrestamo: fechaCuota || actual.proximo,
+      vencimientoPrestamo: vencimiento,
       fecha
     };
 
