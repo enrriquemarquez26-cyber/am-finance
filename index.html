@@ -2031,6 +2031,62 @@ html.tema-oscuro .cal-dia-ventana {
   .cal-dia-ventana {transition:none;}
 }
 
+/* Inicio alternativo: el inicio clásico mantiene sus estilos originales. */
+.inicio-nuevo {display:grid;gap:14px}
+.inicio-nuevo .inicio-nuevo-titulo {margin:4px 0 0;font-size:1.5rem}
+.inicio-nuevo-subtitulo {margin:0;color:#84909d;font-size:.8rem}
+.inicio-nuevo-resumen {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.inicio-nuevo-tarjeta {
+  min-width:0;padding:17px 15px;border-radius:32px;
+  background:rgba(255,255,255,.77);border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 8px 28px rgba(26,40,60,.045);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  color:inherit;text-align:left;font:inherit;
+}
+.inicio-nuevo-tarjeta--naranja {background:linear-gradient(140deg,rgba(255,245,237,.92),rgba(255,255,255,.74))}
+.inicio-nuevo-tarjeta--azul {background:linear-gradient(140deg,rgba(235,244,255,.94),rgba(255,255,255,.76))}
+.inicio-nuevo-tarjeta strong {display:block;font-size:clamp(1.2rem,5vw,1.65rem);margin:12px 0 5px;overflow-wrap:anywhere}
+.inicio-nuevo-tarjeta small {display:block;color:#7c8795;font-size:.7rem}
+.inicio-nuevo-label {display:flex;gap:8px;align-items:center;font-size:.85rem;font-weight:650}
+.inicio-nuevo-icono {display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:rgba(255,121,0,.12);color:#ff7900;font-size:1rem}
+.inicio-nuevo-panel {padding:19px 16px;border-radius:35px;background:rgba(255,255,255,.82);box-shadow:0 8px 24px rgba(26,40,60,.04)}
+.inicio-nuevo-panel h3 {font-size:.95rem;margin:0}
+.inicio-nuevo-categorias {display:flex;align-items:center;gap:17px;margin-top:18px}
+.inicio-nuevo-anillo {width:150px;height:150px;flex-shrink:0;border-radius:50%;display:grid;place-items:center}
+.inicio-nuevo-anillo-centro {width:104px;height:104px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-shadow:0 0 18px rgba(255,255,255,.6)}
+.inicio-nuevo-anillo-centro strong {font-size:1.1rem}
+.inicio-nuevo-anillo-centro small {font-size:.65rem;color:#7c8795;margin-top:3px}
+.inicio-nuevo-leyenda {display:grid;gap:9px;flex:1;min-width:0}
+.inicio-nuevo-leyenda-fila {display:flex;align-items:center;gap:6px;font-size:.72rem}
+.inicio-nuevo-leyenda-fila span:nth-child(2) {flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inicio-nuevo-punto {width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.inicio-nuevo-leyenda-fila strong {font-size:.7rem;font-weight:600}
+.inicio-nuevo-enlace {border:0;background:none;color:var(--balanceone-color,#ff7900);padding:6px 0;font:inherit;font-size:.78rem;font-weight:600}
+.inicio-nuevo-mini {display:grid;gap:7px;margin-top:12px}
+.inicio-nuevo-mini p {margin:0;font-size:.75rem;color:#7c8795}
+.inicio-nuevo-mini-fila {display:flex;justify-content:space-between;gap:7px;font-size:.76rem}
+.inicio-nuevo-mini-fila span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inicio-nuevo-detalles {border-radius:32px;background:rgba(255,255,255,.7);overflow:hidden}
+.inicio-nuevo-detalles > summary {list-style:none;cursor:pointer;padding:17px 19px;font-size:.86rem;font-weight:650}
+.inicio-nuevo-detalles > summary::-webkit-details-marker {display:none}
+.inicio-nuevo-detalles > summary::after {content:'⌄';float:right;color:#ff7900}
+.inicio-nuevo-detalles[open] > summary::after {content:'⌃'}
+.inicio-nuevo-clasico {padding:12px}
+.inicio-nuevo-clasico > .card {margin-bottom:12px}
+html.tema-oscuro .inicio-nuevo-tarjeta,
+html.tema-oscuro .inicio-nuevo-panel,
+html.tema-oscuro .inicio-nuevo-detalles {background:rgba(36,42,51,.9);border-color:rgba(255,255,255,.07);color:#f5f6f8}
+html.tema-oscuro .inicio-nuevo-anillo-centro {background:#252a33}
+html.tema-oscuro .inicio-nuevo-tarjeta--naranja {background:linear-gradient(140deg,#403129,#282c34)}
+html.tema-oscuro .inicio-nuevo-tarjeta--azul {background:linear-gradient(140deg,#273747,#282c34)}
+@media(max-width:390px){
+  .inicio-nuevo-categorias {gap:10px}
+  .inicio-nuevo-anillo {width:122px;height:122px}
+  .inicio-nuevo-anillo-centro {width:84px;height:84px}
+  .inicio-nuevo-anillo-centro strong {font-size:.9rem}
+  .inicio-nuevo-leyenda-fila {font-size:.65rem}
+}
+
 </style>
 </head>
 <body>
@@ -2421,7 +2477,7 @@ function go(p){
 
 function render(){
  aplicarIdiomaGeneral();
- if(page==="inicio")return inicio();
+ if(page==="inicio")return disenoInicioActual()==="nuevo" ? inicioNuevo() : inicio();
  if(page==="suscripciones")return suscripciones();
  if(page==="metasAhorro")return metasAhorro();
  if(page==="recordatorios")return recordatorios();
@@ -2990,6 +3046,162 @@ ${data.vehiculos.map(v => {
   `;
 }).join("")}
 `;
+}
+
+const CLAVE_DISENO_INICIO = "balanceone-diseno-inicio";
+
+function disenoInicioActual() {
+  try {
+    return localStorage.getItem(CLAVE_DISENO_INICIO) === "nuevo"
+      ? "nuevo" : "clasico";
+  } catch {
+    return "clasico";
+  }
+}
+
+function cambiarDisenoInicio(diseno) {
+  if (!["clasico", "nuevo"].includes(diseno)) return;
+  localStorage.setItem(CLAVE_DISENO_INICIO, diseno);
+}
+
+function inicioNuevo() {
+  // Mantener los formularios y acciones del inicio original accesibles.
+  inicio();
+  const avisos = avisosVencimiento();
+  const contenidoClasico = avisos
+    ? el().innerHTML.replace(avisos, "")
+    : el().innerHTML;
+  let cuentas = [];
+  try {
+    cuentas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
+    if (!Array.isArray(cuentas)) cuentas = [];
+  } catch { cuentas = []; }
+
+  const saldoCuentas = cuentas.reduce((total, cuenta) => {
+    const saldo = Number(cuenta.saldo);
+    return total + (Number.isFinite(saldo) ? saldo : 0);
+  }, 0);
+  const saldoTarjetas = data.tarjetas.reduce((total, tarjeta) => {
+    const saldo = Number(tarjeta.saldo);
+    return total + (Number.isFinite(saldo) ? saldo : 0);
+  }, 0);
+
+  const gastosMes = data.movimientos.filter(m =>
+    m.tipo === "gasto" && String(m.fecha).slice(0,7) === month()
+  );
+  const categorias = new Map();
+  for (const movimiento of gastosMes) {
+    const monto = Number(movimiento.monto);
+    if (!Number.isFinite(monto) || monto <= 0) continue;
+    const categoria = String(movimiento.categoria || textoApp("Otros", "Other"));
+    categorias.set(categoria, (categorias.get(categoria) || 0) + monto);
+  }
+  const totalGastos = [...categorias.values()].reduce((suma, valor) => suma + valor, 0);
+  const mayores = [...categorias].sort((a,b) => b[1] - a[1]);
+  const segmentos = mayores.slice(0, 4);
+  if (mayores.length > 4) {
+    segmentos.push([textoApp("Otros", "Other"), mayores.slice(4).reduce((suma, c) => suma + c[1], 0)]);
+  }
+  const colores = ["#ff8059", "#a996f7", "#ffca8f", "#57d9a4", "#7795ef"];
+  let porcentajeAcumulado = 0;
+  const tramos = segmentos.map(([nombre, monto], i) => {
+    const desde = porcentajeAcumulado;
+    porcentajeAcumulado += monto / totalGastos * 100;
+    return `${colores[i]} ${desde.toFixed(3)}% ${porcentajeAcumulado.toFixed(3)}%`;
+  });
+  const grafico = tramos.length
+    ? `conic-gradient(${tramos.join(",")})`
+    : "conic-gradient(rgba(130,140,155,.2) 0% 100%)";
+
+  const cobrosMes = suscripcionesDelMes(month());
+  const [anioActual, mesActual] = month().split("-").map(Number);
+  const mesSiguiente = new Date(Date.UTC(anioActual, mesActual, 1))
+    .toISOString().slice(0,7);
+  const suscripciones = cobrosMes.filter(s => s.categoria === "suscripcion");
+  const totalSuscripciones = suscripciones.reduce((total, s) => total + (Number(s.monto) || 0), 0);
+  const pendientes = [...cobrosMes, ...suscripcionesDelMes(mesSiguiente)]
+    .filter(s => s.fecha >= today()).slice(0, 2);
+
+  el().innerHTML = `
+    <section class="inicio-nuevo">
+      ${avisos}
+      <div>
+        <h2 class="inicio-nuevo-titulo">${textoApp("Mi resumen", "My overview")}</h2>
+        <p class="inicio-nuevo-subtitulo">${textoApp("Tus finanzas, a tu manera", "Your finances, your way")}</p>
+      </div>
+
+      <div class="inicio-nuevo-resumen">
+        <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--naranja"
+          onclick="go('tarjetas')">
+          <span class="inicio-nuevo-label"><span class="inicio-nuevo-icono">▤</span>${textoApp("Tarjetas", "Cards")}</span>
+          <strong>${money(saldoTarjetas)}</strong>
+          <small>${textoApp("Saldo pendiente", "Outstanding balance")}</small>
+        </button>
+        <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--azul"
+          onclick="document.getElementById('inicioNuevoDetalles').open=true;document.getElementById('cuentasInicio')?.scrollIntoView({behavior:'smooth',block:'center'})">
+          <span class="inicio-nuevo-label"><span class="inicio-nuevo-icono">⌂</span>${textoApp("Cuentas", "Accounts")}</span>
+          <strong>${money(saldoCuentas)}</strong>
+          <small>${textoApp("Saldo total", "Total balance")}</small>
+        </button>
+      </div>
+
+      <div class="inicio-nuevo-panel">
+        <div class="row">
+          <h3>${textoApp("Gastos por categoría", "Expenses by category")}</h3>
+          <button type="button" class="inicio-nuevo-enlace" onclick="go('movimientos')">
+            ${textoApp("Ver movimientos", "View transactions")} ›
+          </button>
+        </div>
+        <div class="inicio-nuevo-categorias">
+          <div class="inicio-nuevo-anillo" style="background:${grafico}">
+            <div class="inicio-nuevo-anillo-centro">
+              <strong>${money(totalGastos)}</strong>
+              <small>${textoApp("Este mes", "This month")}</small>
+            </div>
+          </div>
+          <div class="inicio-nuevo-leyenda">
+            ${segmentos.map(([nombre,monto],i) => `
+              <div class="inicio-nuevo-leyenda-fila">
+                <span class="inicio-nuevo-punto" style="background:${colores[i]}"></span>
+                <span title="${safe(nombre)}">${safe(nombre)}</span>
+                <strong>${Math.round(monto / totalGastos * 100)}%</strong>
+              </div>
+            `).join("") || `<p class="note">${textoApp("Sin gastos este mes", "No expenses this month")}</p>`}
+          </div>
+        </div>
+      </div>
+
+      <div class="inicio-nuevo-resumen">
+        <div class="inicio-nuevo-tarjeta">
+          <div class="inicio-nuevo-label"><span class="inicio-nuevo-icono">↻</span>${textoApp("Suscripciones", "Subscriptions")}</div>
+          <strong>${money(totalSuscripciones)}</strong>
+          <small>${textoApp("Programadas este mes", "Scheduled this month")}</small>
+          <button type="button" class="inicio-nuevo-enlace" onclick="go('suscripciones')">
+            ${textoApp("Ver todas", "View all")} ›
+          </button>
+        </div>
+        <div class="inicio-nuevo-tarjeta">
+          <div class="inicio-nuevo-label"><span class="inicio-nuevo-icono">▦</span>${textoApp("Próximos pagos", "Upcoming payments")}</div>
+          <div class="inicio-nuevo-mini">
+            ${pendientes.map(s => `
+              <div class="inicio-nuevo-mini-fila">
+                <span title="${safe(s.nombre)}">${safe(s.nombre)}</span>
+                <strong>${money(s.monto)}</strong>
+              </div>
+            `).join("") || `<p>${textoApp("Sin pagos programados", "No scheduled payments")}</p>`}
+          </div>
+          <button type="button" class="inicio-nuevo-enlace" onclick="go('movimientos')">
+            ${textoApp("Ver calendario", "View calendar")} ›
+          </button>
+        </div>
+      </div>
+
+      <details id="inicioNuevoDetalles" class="inicio-nuevo-detalles">
+        <summary>${textoApp("Ver todos mis datos y editar", "View all my data and edit")}</summary>
+        <div class="inicio-nuevo-clasico">${contenidoClasico}</div>
+      </details>
+    </section>
+  `;
 }
 
 function guardarMovimientoBanco(anterior, nuevo) {
@@ -5996,7 +6208,7 @@ function ajustes() {
     [
       "apariencia",
       textoApp("Apariencia", "Appearance"),
-      textoApp("Tema y tamaño del texto", "Theme and text size")
+      textoApp("Diseño de inicio, tema y texto", "Home layout, theme and text")
     ],
     [
       "avisos",
@@ -6070,6 +6282,16 @@ function abrirAjuste(tipo) {
     apariencia: {
       titulo: t("Apariencia", "Appearance"),
       contenido: `
+        <button type="button" class="ajustes-fila"
+          onclick="abrirOpcionApariencia('inicio')">
+          <span class="ajustes-icono" aria-hidden="true">⌂</span>
+          <span class="ajustes-texto">
+            <strong>${t("Diseño de inicio", "Home layout")}</strong>
+            <small>${t("Clásico o nuevo · Puedes cambiar cuando quieras", "Classic or new · Switch anytime")}</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+
                 <button type="button" class="ajustes-fila"
           onclick="abrirOpcionApariencia('tema')">
           <span class="ajustes-icono" aria-hidden="true">
@@ -7113,6 +7335,16 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false) {
 }
 function abrirOpcionApariencia(tipo) {
   const configuraciones = {
+    inicio: {
+      titulo: textoApp("Diseño de inicio", "Home layout"),
+      clave: CLAVE_DISENO_INICIO,
+      defecto: "clasico",
+      aplicar: cambiarDisenoInicio,
+      opciones: [
+        ["clasico", textoApp("Clásico · Mi inicio de siempre", "Classic · My original home")],
+        ["nuevo", textoApp("Nuevo · Tarjetas y gráficos", "New · Cards and charts")]
+      ]
+    },
             forma: {
       titulo: textoApp("Forma", "Shape"),
       clave: "balanceone-forma",
@@ -7215,6 +7447,15 @@ function abrirOpcionApariencia(tipo) {
   );
 
   if (!ventana) return;
+
+  if (tipo === "inicio") {
+    const botonVer = ventana.querySelector(".apariencia-listo");
+    botonVer.textContent = textoApp("Ver inicio elegido", "View selected home");
+    botonVer.onclick = () => {
+      ventana.close();
+      go("inicio");
+    };
+  }
 
     ventana.querySelectorAll("button[data-valor]").forEach(boton => {
     boton.onclick = () => {
