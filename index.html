@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.2.1 Beta</title>
+<title>Balance One 0.2.2 Beta</title>
 <link rel="apple-touch-icon" href="./balance-one.png.PNG">
 <link rel="icon" type="image/png" href="./balance-one.png.PNG">
 <style>
@@ -2038,7 +2038,7 @@ html.tema-oscuro .cal-dia-ventana {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.2.1 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.2.2 Beta</div>
 </header>
 <main id="content" style="padding-bottom: 130px;"></main>
 <div id="movVentanaFondo" class="hidden"
@@ -2311,8 +2311,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.2.1 Beta",
-      "Smart control of your finances · 0.2.1 Beta"
+      "Control inteligente de tus finanzas · 0.2.2 Beta",
+      "Smart control of your finances · 0.2.2 Beta"
     );
   }
 }
@@ -5761,7 +5761,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.2.1 Beta</p>
+      <p class="ajustes-version">Balance One · 0.2.2 Beta</p>
     </section>
   `;
 }
@@ -6045,7 +6045,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.2.1 Beta
+        ${textoApp("Versión", "Version")} 0.2.2 Beta
       </p>
     </section>
   `;
@@ -6241,7 +6241,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.2.1 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.2.2 Beta</p>
         </div>`
     }
   };
