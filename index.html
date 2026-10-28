@@ -2066,16 +2066,11 @@ html.tema-oscuro .cal-dia-ventana {
 .inicio-nuevo-mini p {margin:0;font-size:.75rem;color:#7c8795}
 .inicio-nuevo-mini-fila {display:flex;justify-content:space-between;gap:7px;font-size:.76rem}
 .inicio-nuevo-mini-fila span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.inicio-nuevo-detalles {border-radius:32px;background:rgba(255,255,255,.7);overflow:hidden}
-.inicio-nuevo-detalles > summary {list-style:none;cursor:pointer;padding:17px 19px;font-size:.86rem;font-weight:650}
-.inicio-nuevo-detalles > summary::-webkit-details-marker {display:none}
-.inicio-nuevo-detalles > summary::after {content:'⌄';float:right;color:#ff7900}
-.inicio-nuevo-detalles[open] > summary::after {content:'⌃'}
-.inicio-nuevo-clasico {padding:12px}
-.inicio-nuevo-clasico > .card {margin-bottom:12px}
+.inicio-nuevo-cuentas-acciones {display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.inicio-nuevo-cuentas-acciones button {padding:8px 12px;border:1px solid rgba(130,140,155,.2);border-radius:999px;background:rgba(130,140,155,.08);color:inherit;font:inherit;font-size:.8rem}
+.inicio-nuevo-cuentas-acciones button:last-child {color:#d44d56}
 html.tema-oscuro .inicio-nuevo-tarjeta,
-html.tema-oscuro .inicio-nuevo-panel,
-html.tema-oscuro .inicio-nuevo-detalles {background:rgba(36,42,51,.9);border-color:rgba(255,255,255,.07);color:#f5f6f8}
+html.tema-oscuro .inicio-nuevo-panel {background:rgba(36,42,51,.9);border-color:rgba(255,255,255,.07);color:#f5f6f8}
 html.tema-oscuro .inicio-nuevo-anillo-centro {background:#252a33}
 html.tema-oscuro .inicio-nuevo-tarjeta--naranja {background:linear-gradient(140deg,#403129,#282c34)}
 html.tema-oscuro .inicio-nuevo-tarjeta--azul {background:linear-gradient(140deg,#273747,#282c34)}
@@ -2485,6 +2480,7 @@ function render(){
  if(page==="pagosPendientes")return pagosPendientes();
  if(page==="movimientos")return movimientos();
  if(page==="historialMovimientos")return historialMovimientos();
+ if(page==="cuentas")return cuentasVistaNueva();
  if(page==="vehiculos")return vehiculos();
  if(page==="tarjetas")return tarjetas();
  if(page==="ajustes")return ajustes();
@@ -3065,12 +3061,8 @@ function cambiarDisenoInicio(diseno) {
 }
 
 function inicioNuevo() {
-  // Mantener los formularios y acciones del inicio original accesibles.
-  inicio();
+  // Inicio independiente: el inicio clásico se conserva en inicio().
   const avisos = avisosVencimiento();
-  const contenidoClasico = avisos
-    ? el().innerHTML.replace(avisos, "")
-    : el().innerHTML;
   let cuentas = [];
   try {
     cuentas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
@@ -3138,7 +3130,7 @@ function inicioNuevo() {
           <small>${textoApp("Saldo pendiente", "Outstanding balance")}</small>
         </button>
         <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--azul"
-          onclick="document.getElementById('inicioNuevoDetalles').open=true;document.getElementById('cuentasInicio')?.scrollIntoView({behavior:'smooth',block:'center'})">
+          onclick="go('cuentas')">
           <span class="inicio-nuevo-label"><span class="inicio-nuevo-icono">⌂</span>${textoApp("Cuentas", "Accounts")}</span>
           <strong>${money(saldoCuentas)}</strong>
           <small>${textoApp("Saldo total", "Total balance")}</small>
@@ -3196,10 +3188,52 @@ function inicioNuevo() {
         </div>
       </div>
 
-      <details id="inicioNuevoDetalles" class="inicio-nuevo-detalles">
-        <summary>${textoApp("Ver todos mis datos y editar", "View all my data and edit")}</summary>
-        <div class="inicio-nuevo-clasico">${contenidoClasico}</div>
-      </details>
+    </section>
+  `;
+}
+
+function cuentasVistaNueva() {
+  let cuentas = [];
+  try {
+    cuentas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
+    if (!Array.isArray(cuentas)) cuentas = [];
+  } catch { cuentas = []; }
+
+  el().innerHTML = `
+    <section class="inicio-nuevo">
+      <button type="button" class="inicio-nuevo-enlace" onclick="go('inicio')">
+        ‹ ${textoApp("Volver al inicio", "Back to home")}
+      </button>
+      <div class="row" style="align-items:flex-start">
+        <h2>${textoApp("Mis cuentas bancarias", "My bank accounts")}</h2>
+        <button type="button" class="inicio-nuevo-enlace" onclick="abrirNuevaCuenta()">
+          + ${textoApp("Agregar", "Add")}
+        </button>
+      </div>
+      ${cuentas.map(cuenta => `
+        <div class="inicio-nuevo-tarjeta" data-cuenta-id="${safe(String(cuenta.id))}">
+          <span class="inicio-nuevo-label">${safe(cuenta.nombre)}</span>
+          <strong>${money(cuenta.saldo)}</strong>
+          <small>${cuenta.tipo === "ahorro"
+            ? textoApp("Ahorros", "Savings")
+            : textoApp("Cheques", "Checking")}</small>
+          <div class="inicio-nuevo-cuentas-acciones">
+            <button type="button" onclick="abrirCuentaBanco(this.closest('[data-cuenta-id]').dataset.cuentaId)">
+              ${textoApp("Depositar o retirar", "Deposit or withdraw")}
+            </button>
+            <button type="button" onclick="editarCuentaBanco(this.closest('[data-cuenta-id]').dataset.cuentaId)">
+              ${textoApp("Editar", "Edit")}
+            </button>
+            <button type="button" onclick="eliminarCuentaBanco(this.closest('[data-cuenta-id]').dataset.cuentaId)">
+              ${textoApp("Eliminar", "Delete")}
+            </button>
+          </div>
+        </div>
+      `).join("") || `
+        <div class="inicio-nuevo-panel">
+          <p class="note">${textoApp("Agrega tu primera cuenta bancaria.", "Add your first bank account.")}</p>
+        </div>
+      `}
     </section>
   `;
 }
