@@ -2043,8 +2043,43 @@ html.tema-oscuro .cal-dia-ventana {
   backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);
   color:inherit;text-align:left;font:inherit;
 }
-.inicio-nuevo-tarjeta--naranja {background:linear-gradient(145deg,rgba(255,236,221,.78),rgba(255,255,255,.7))}
-.inicio-nuevo-tarjeta--azul {background:linear-gradient(145deg,rgba(227,241,255,.83),rgba(255,255,255,.7))}
+.inicio-nuevo-escena {position:relative;padding-top:22px;isolation:isolate;min-width:0}
+.inicio-nuevo-escena > .inicio-nuevo-tarjeta {position:relative;z-index:2;width:100%;min-height:157px}
+.inicio-nuevo-escena::before,
+.inicio-nuevo-escena::after {
+  content:"";position:absolute;pointer-events:none;z-index:1;
+  width:67px;height:138px;right:14px;top:0;
+  border-radius:24px 24px 27px 27px;
+  background:var(--inicio-cristal-uno);
+  box-shadow:inset 0 1px rgba(255,255,255,.55),0 4px 15px rgba(50,80,130,.06);
+  opacity:.83;transform:rotate(7deg);
+}
+.inicio-nuevo-escena::after {
+  right:-1px;top:23px;width:56px;height:121px;
+  transform:rotate(-5deg);background:var(--inicio-cristal-dos);
+}
+.inicio-nuevo-escena--naranja {
+  --inicio-cristal-uno:linear-gradient(180deg,rgba(255,153,123,.66),rgba(255,197,172,.25));
+  --inicio-cristal-dos:linear-gradient(180deg,rgba(255,195,162,.48),rgba(255,220,194,.2));
+}
+.inicio-nuevo-escena--azul {
+  --inicio-cristal-uno:linear-gradient(180deg,rgba(151,215,255,.7),rgba(172,223,255,.28));
+  --inicio-cristal-dos:linear-gradient(180deg,rgba(126,163,255,.59),rgba(179,172,255,.24));
+}
+.inicio-nuevo-tarjeta--naranja {
+  background:linear-gradient(145deg,rgba(255,247,242,.88),rgba(255,255,255,.77) 60%,rgba(255,235,226,.73));
+}
+.inicio-nuevo-tarjeta--azul {
+  background:linear-gradient(145deg,rgba(242,249,255,.86),rgba(255,255,255,.77) 60%,rgba(231,237,255,.72));
+}
+.inicio-nuevo-tarjeta--menta {
+  background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(238,251,245,.7));
+}
+.inicio-nuevo-tarjeta--lila {
+  background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(247,242,255,.72));
+}
+.inicio-nuevo-tarjeta--menta .inicio-nuevo-icono {background:rgba(56,185,138,.15);color:#16996c}
+.inicio-nuevo-tarjeta--lila .inicio-nuevo-icono {background:rgba(151,117,235,.15);color:#8b65cf}
 .inicio-nuevo-tarjeta strong {display:block;font-size:clamp(1.2rem,5vw,1.65rem);margin:12px 0 5px;overflow-wrap:anywhere}
 .inicio-nuevo-tarjeta small {display:block;color:#7c8795;font-size:.7rem}
 .inicio-nuevo-label {display:flex;gap:8px;align-items:center;font-size:.85rem;font-weight:650}
@@ -2086,9 +2121,17 @@ html.tema-oscuro .inicio-nuevo-panel {background:rgba(36,42,51,.9);border-color:
 html.tema-oscuro .inicio-nuevo-anillo-centro {background:#252a33}
 html.tema-oscuro .inicio-nuevo-tarjeta--naranja {background:linear-gradient(140deg,#403129,#282c34)}
 html.tema-oscuro .inicio-nuevo-tarjeta--azul {background:linear-gradient(140deg,#273747,#282c34)}
+html.tema-oscuro .inicio-nuevo-tarjeta--menta {background:linear-gradient(140deg,#254438,#282c34)}
+html.tema-oscuro .inicio-nuevo-tarjeta--lila {background:linear-gradient(140deg,#3b3150,#282c34)}
+html.tema-oscuro .inicio-nuevo-escena::before,
+html.tema-oscuro .inicio-nuevo-escena::after {opacity:.48}
 html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(32,36,43,.8);border-color:rgba(255,255,255,.15)}
 @media(max-width:390px){
   .inicio-nuevo-tarjeta {padding:16px 12px;border-radius:33px}
+  .inicio-nuevo-escena {padding-top:17px}
+  .inicio-nuevo-escena > .inicio-nuevo-tarjeta {min-height:149px}
+  .inicio-nuevo-escena::before {width:59px;height:120px}
+  .inicio-nuevo-escena::after {width:48px;height:108px}
   .inicio-nuevo-label {gap:6px;font-size:.77rem}
   .inicio-nuevo-icono {width:27px;height:27px;flex-shrink:0}
   .inicio-nuevo-categorias {gap:10px}
@@ -3142,18 +3185,22 @@ function inicioNuevo() {
       </div>
 
       <div class="inicio-nuevo-resumen">
-        <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--naranja"
-          onclick="go('tarjetas')">
-          <span class="inicio-nuevo-label"><span class="inicio-nuevo-icono">▤</span>${textoApp("Tarjetas", "Cards")}</span>
-          <strong>${money(saldoTarjetas)}</strong>
-          <small>${textoApp("Saldo pendiente", "Outstanding balance")}</small>
-        </button>
-        <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--azul"
-          onclick="go('cuentas')">
-          <span class="inicio-nuevo-label"><span class="inicio-nuevo-icono">⌂</span>${textoApp("Cuentas", "Accounts")}</span>
-          <strong>${money(saldoCuentas)}</strong>
-          <small>${textoApp("Saldo total", "Total balance")}</small>
-        </button>
+        <div class="inicio-nuevo-escena inicio-nuevo-escena--naranja">
+          <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--naranja"
+            onclick="go('tarjetas')">
+            <span class="inicio-nuevo-label"><span class="inicio-nuevo-icono">▤</span>${textoApp("Tarjetas", "Cards")}</span>
+            <strong>${money(saldoTarjetas)}</strong>
+            <small>${textoApp("Saldo pendiente", "Outstanding balance")}</small>
+          </button>
+        </div>
+        <div class="inicio-nuevo-escena inicio-nuevo-escena--azul">
+          <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--azul"
+            onclick="go('cuentas')">
+            <span class="inicio-nuevo-label"><span class="inicio-nuevo-icono">⌂</span>${textoApp("Cuentas", "Accounts")}</span>
+            <strong>${money(saldoCuentas)}</strong>
+            <small>${textoApp("Saldo total", "Total balance")}</small>
+          </button>
+        </div>
       </div>
 
       <div class="inicio-nuevo-panel">
@@ -3183,7 +3230,7 @@ function inicioNuevo() {
       </div>
 
       <div class="inicio-nuevo-resumen">
-        <div class="inicio-nuevo-tarjeta">
+        <div class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--menta">
           <div class="inicio-nuevo-label"><span class="inicio-nuevo-icono">↻</span>${textoApp("Suscripciones", "Subscriptions")}</div>
           <strong>${money(totalSuscripciones)}</strong>
           <small>${textoApp("Programadas este mes", "Scheduled this month")}</small>
@@ -3191,7 +3238,7 @@ function inicioNuevo() {
             ${textoApp("Ver todas", "View all")} ›
           </button>
         </div>
-        <div class="inicio-nuevo-tarjeta">
+        <div class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--lila">
           <div class="inicio-nuevo-label"><span class="inicio-nuevo-icono">▦</span>${textoApp("Próximos pagos", "Upcoming payments")}</div>
           <div class="inicio-nuevo-mini">
             ${pendientes.map(s => `
