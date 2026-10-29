@@ -519,11 +519,6 @@ overflow: hidden;
   width: 100%;
   height: 310px;
 }
-#amPaginas .amPagina button:last-child {
-  grid-column: 1 / -1;
-  width: calc(50% - 6px);
-  justify-self: center;
-}
 #amPaginas .amPagina button {
   display: flex;
   flex-direction: column;
@@ -2367,6 +2362,16 @@ html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(32,36,43,.8);border-co
   <path d="M17 14v4m-2-2h4"/>
 </svg>
     <span>Control de deudas</span>
+  </button>
+
+  <button data-herramienta="applePay" onclick="cerrarAmMenu();importarCompraApplePay()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2.5" y="6" width="19" height="14" rx="3"/>
+      <path d="M2.5 10h12"/>
+      <path d="M15 3c2.1 1.2 3.2 2.8 3.2 5s-1.1 3.8-3.2 5"/>
+      <path d="M18 1.5c2.7 1.7 4 3.9 4 6.5"/>
+    </svg>
+    <span>Apple Pay</span>
   </button>
 
 </div>
@@ -7378,13 +7383,15 @@ function activarOrdenHerramientas() {
     const orden = JSON.parse(localStorage.getItem(clave) || "[]");
     if (Array.isArray(orden)) {
       const vistos = new Set();
-      orden.forEach(nombre => {
-        const boton = disponibles.get(nombre);
-        if (boton && !vistos.has(nombre)) {
-          cuadricula.appendChild(boton);
-          vistos.add(nombre);
-        }
-      });
+      // Primero el orden elegido; las herramientas nuevas van al final.
+      [...orden, ...botones.map(boton => boton.dataset.herramienta)]
+        .forEach(nombre => {
+          const boton = disponibles.get(nombre);
+          if (boton && !vistos.has(nombre)) {
+            cuadricula.appendChild(boton);
+            vistos.add(nombre);
+          }
+        });
     }
   } catch {}
 
@@ -8661,7 +8668,8 @@ function traducirMenusVentana() {
     pagosPendientes: ["Pagos pendientes", "Upcoming payments"],
     metasAhorro: ["Metas de ahorro", "Savings goals"],
     calculadora: ["Calculadora", "Calculator"],
-    deudas: ["Control de deudas", "Debt management"]
+    deudas: ["Control de deudas", "Debt management"],
+    applePay: ["Apple Pay", "Apple Pay"]
   };
 
   document.querySelectorAll(
