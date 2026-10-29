@@ -537,6 +537,21 @@ overflow: hidden;
   flex-shrink: 0;
 }
 
+/* Ordenar herramientas manteniendo pulsado: sin cambiar su aspecto habitual. */
+#amPaginas .amPagina button {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#amPaginas .amPagina button.am-arrastrando {
+  border-color: var(--balanceone-color,#ff7900);
+  outline: 2px solid var(--balanceone-color,#ff7900);
+  outline-offset: -3px;
+  opacity: .72;
+  pointer-events: none;
+}
+
 #amMenuTirador,
 #amMenu h3 {
   grid-column: 1 / -1;
@@ -2309,7 +2324,7 @@ html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(32,36,43,.8);border-co
   <h3>Herramientas</h3>
 <div id="amPaginas">
 <div class="amPagina">
-<button onclick="cerrarAmMenu();go('suscripciones')">
+<button data-herramienta="suscripciones" onclick="cerrarAmMenu();go('suscripciones')">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
 <rect x="3" y="5" width="18" height="16" rx="2"/>
 <path d="M7 3v4M17 3v4M3 10h18"/>
@@ -2318,7 +2333,7 @@ html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(32,36,43,.8);border-co
 <span>Suscripciones</span>
   </button>
 
-  <button onclick="cerrarAmMenu();go('pagosPendientes')">
+  <button data-herramienta="pagosPendientes" onclick="cerrarAmMenu();go('pagosPendientes')">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
 <path d="M5 3h14v18l-3-2-4 2-4-2-3 2V3z"/>
 <path d="M9 8h6"/>
@@ -2327,7 +2342,7 @@ html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(32,36,43,.8);border-co
 <span>Pagos pendientes</span>
   </button>
 
-  <button onclick="cerrarAmMenu();go('metasAhorro')">
+  <button data-herramienta="metasAhorro" onclick="cerrarAmMenu();go('metasAhorro')">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
 <circle cx="12" cy="12" r="9"/>
 <circle cx="12" cy="12" r="5"/>
@@ -2336,7 +2351,7 @@ html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(32,36,43,.8);border-co
 <span>Metas de ahorro</span>
   </button>
 
-  <button onclick="cerrarAmMenu();go('calculadora')">
+  <button data-herramienta="calculadora" onclick="cerrarAmMenu();go('calculadora')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
   <rect x="5" y="2" width="14" height="20" rx="3"/>
   <path d="M8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"/>
@@ -2344,7 +2359,7 @@ html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(32,36,43,.8);border-co
     <span>Calculadora</span>
   </button>
 
-  <button onclick="cerrarAmMenu();go('deudas')">
+  <button data-herramienta="deudas" onclick="cerrarAmMenu();go('deudas')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
   <rect x="3" y="5" width="18" height="15" rx="3"/>
   <path d="M3 10h18"/>
@@ -7317,6 +7332,7 @@ function cerrarAmMenu() {
 }
 
 let inicioDeslizamientoY = 0;
+let ultimoArrastreHerramientas = 0;
 
 const barraAM = document.querySelector("nav");
 const menuAM = document.getElementById("amMenu");
@@ -7338,12 +7354,164 @@ if (barraAM && menuAM) {
   }, { passive: true });
 
   menuAM.addEventListener("touchend", e => {
+    // Arrastrar una herramienta no debe cerrar el menú por accidente.
+    if (Date.now() - ultimoArrastreHerramientas < 650) return;
     const distancia = e.changedTouches[0].clientY -
       inicioDeslizamientoY;
 
     if (distancia > 60) cerrarAmMenu();
   }, { passive: true });
 }
+
+function activarOrdenHerramientas() {
+  const cuadricula = document.querySelector("#amPaginas .amPagina");
+  if (!cuadricula) return;
+
+  const clave = "balanceone-orden-herramientas";
+  const botones = [...cuadricula.querySelectorAll("button[data-herramienta]")];
+  const disponibles = new Map(
+    botones.map(boton => [boton.dataset.herramienta, boton])
+  );
+
+  // Recuperar el orden guardado sin eliminar ninguna herramienta nueva.
+  try {
+    const orden = JSON.parse(localStorage.getItem(clave) || "[]");
+    if (Array.isArray(orden)) {
+      const vistos = new Set();
+      orden.forEach(nombre => {
+        const boton = disponibles.get(nombre);
+        if (boton && !vistos.has(nombre)) {
+          cuadricula.appendChild(boton);
+          vistos.add(nombre);
+        }
+      });
+    }
+  } catch {}
+
+  let pendiente = null;
+  let arrastrado = null;
+  let temporizador = null;
+  let modo = "";
+  let inicioX = 0;
+  let inicioY = 0;
+
+  const cancelarTemporizador = () => {
+    if (temporizador !== null) clearTimeout(temporizador);
+    temporizador = null;
+  };
+
+  function iniciar(boton, x, y, tipo) {
+    cancelarTemporizador();
+    if (arrastrado) arrastrado.classList.remove("am-arrastrando");
+    pendiente = boton;
+    arrastrado = null;
+    modo = tipo;
+    inicioX = x;
+    inicioY = y;
+    temporizador = setTimeout(() => {
+      temporizador = null;
+      if (!pendiente) return;
+      arrastrado = pendiente;
+      arrastrado.classList.add("am-arrastrando");
+      ultimoArrastreHerramientas = Date.now();
+    }, 450);
+  }
+
+  function mover(x, y, tipo) {
+    if (!pendiente || modo !== tipo) return;
+    if (!arrastrado) {
+      if (Math.hypot(x - inicioX, y - inicioY) > 10) {
+        cancelarTemporizador();
+        pendiente = null;
+      }
+      return;
+    }
+
+    const destino = document.elementFromPoint(x, y)
+      ?.closest("#amPaginas .amPagina button[data-herramienta]");
+    if (!destino || destino === arrastrado) return;
+
+    const elementos = [...cuadricula.children];
+    if (elementos.indexOf(arrastrado) < elementos.indexOf(destino)) {
+      destino.after(arrastrado);
+    } else {
+      destino.before(arrastrado);
+    }
+  }
+
+  function terminar(tipo) {
+    if (modo !== tipo || !pendiente) return;
+    cancelarTemporizador();
+    if (arrastrado) {
+      arrastrado.classList.remove("am-arrastrando");
+      ultimoArrastreHerramientas = Date.now();
+      try {
+        const orden = [...cuadricula.querySelectorAll("button[data-herramienta]")]
+          .map(boton => boton.dataset.herramienta);
+        localStorage.setItem(clave, JSON.stringify(orden));
+      } catch {
+        alert(textoApp(
+          "No se pudo guardar el nuevo orden.",
+          "Could not save the new order."
+        ));
+      }
+    }
+    pendiente = null;
+    arrastrado = null;
+    modo = "";
+  }
+
+  cuadricula.addEventListener("touchstart", evento => {
+    if (evento.touches.length !== 1) return;
+    const boton = evento.target.closest("button[data-herramienta]");
+    if (!boton) return;
+    const toque = evento.touches[0];
+    iniciar(boton, toque.clientX, toque.clientY, "tactil");
+  }, { passive: true });
+
+  cuadricula.addEventListener("touchmove", evento => {
+    if (modo !== "tactil" || !pendiente) return;
+    if (evento.touches.length !== 1) {
+      cancelarTemporizador();
+      pendiente = null;
+      return;
+    }
+    const toque = evento.touches[0];
+    if (arrastrado) evento.preventDefault();
+    mover(toque.clientX, toque.clientY, "tactil");
+  }, { passive: false });
+
+  cuadricula.addEventListener("touchend", () => terminar("tactil"));
+  cuadricula.addEventListener("touchcancel", () => terminar("tactil"));
+
+  cuadricula.addEventListener("pointerdown", evento => {
+    if (evento.pointerType === "touch" || evento.button !== 0) return;
+    const boton = evento.target.closest("button[data-herramienta]");
+    if (boton) iniciar(boton, evento.clientX, evento.clientY, "raton");
+  });
+
+  document.addEventListener("pointermove", evento => {
+    if (modo === "raton") mover(evento.clientX, evento.clientY, "raton");
+  });
+  document.addEventListener("pointerup", () => terminar("raton"));
+  document.addEventListener("pointercancel", () => terminar("raton"));
+
+  // Al soltar tras mantener pulsado, no ejecutar el botón como un toque normal.
+  cuadricula.addEventListener("click", evento => {
+    if (Date.now() - ultimoArrastreHerramientas < 650) {
+      evento.preventDefault();
+      evento.stopImmediatePropagation();
+    }
+  }, true);
+
+  cuadricula.addEventListener("contextmenu", evento => {
+    if (evento.target.closest("button[data-herramienta]")) {
+      evento.preventDefault();
+    }
+  });
+}
+
+activarOrdenHerramientas();
 let importeVentana = "";
 let focoAntesVentana = null;
 
@@ -8488,19 +8656,20 @@ function traducirMenusVentana() {
     opcion.textContent = textoApp(categoria[1], categoria[2]);
   });
 
-  const herramientas = [
-    ["Suscripciones", "Subscriptions"],
-    ["Pagos pendientes", "Upcoming payments"],
-    ["Metas de ahorro", "Savings goals"],
-    ["Calculadora", "Calculator"],
-    ["Control de deudas", "Debt management"]
-  ];
+  const herramientas = {
+    suscripciones: ["Suscripciones", "Subscriptions"],
+    pagosPendientes: ["Pagos pendientes", "Upcoming payments"],
+    metasAhorro: ["Metas de ahorro", "Savings goals"],
+    calculadora: ["Calculadora", "Calculator"],
+    deudas: ["Control de deudas", "Debt management"]
+  };
 
   document.querySelectorAll(
-    "#amPaginas button span"
-  ).forEach((elemento, i) => {
-    const nombre = herramientas[i];
-    if (nombre) elemento.textContent = textoApp(nombre[0], nombre[1]);
+    "#amPaginas button[data-herramienta]"
+  ).forEach(boton => {
+    const nombre = herramientas[boton.dataset.herramienta];
+    const texto = boton.querySelector("span");
+    if (nombre && texto) texto.textContent = textoApp(nombre[0], nombre[1]);
   });
 }
 function calcularSimulacion(tipo, v) {
