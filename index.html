@@ -5554,14 +5554,236 @@ function reportes(){
     </div>
   `;
 }
-function pagosPendientes(){
+let mesPagosPendientes = month();
+let filtroPagosPendientes = "pendientes";
+
+// Consulta los pagos existentes: nunca modifica saldos ni crea movimientos.
+// Los pagos de tarjetas y vehículos se agrupan por mes de registro. Si un
+// pago se adelantó a otro mes, el usuario debe comprobar el período manualmente.
+function obtenerPagosPendientesMes(mesElegido) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(mesElegido)) return [];
+  const [anio, mes] = mesElegido.split("-").map(Number);
+  const ultimoDia = new Date(anio, mes, 0).getDate();
+  const registrados = Array.isArray(data.pagos) ? data.pagos : [];
+  const hoy = today();
+  const eventos = [];
+
+  const fechaVencimiento = dia => {
+    const numero = Number(dia);
+    if (!Number.isInteger(numero) || numero < 1 || numero > 31) return null;
+    return mesElegido + "-" + String(Math.min(numero, ultimoDia)).padStart(2, "0");
+  };
+
+  const importeRegistrado = (tipo, cuentaId) => round(registrados
+    .filter(p => p.tipo === tipo && String(p.cuentaId) === String(cuentaId) &&
+      validDate(String(p.fecha)) && p.fecha.slice(0, 7) === mesElegido)
+    .reduce((total, p) => {
+      const importe = Number(p.monto);
+      return total + (Number.isFinite(importe) && importe > 0 ? importe : 0);
+    }, 0));
+
+  const estadoPago = (fecha, esperado, registrado) => {
+    if (Number.isFinite(esperado) && esperado > 0 && registrado >= esperado - 0.005) {
+      return "pagado";
+    }
+    if (registrado > 0) return "parcial";
+    return fecha < hoy ? "vencido" : fecha === hoy ? "hoy" : "pendiente";
+  };
+
+  for (const [tipo, lista] of [
+    ["vehiculo", Array.isArray(data.vehiculos) ? data.vehiculos : []],
+    ["tarjeta", Array.isArray(data.tarjetas) ? data.tarjetas : []]
+  ]) {
+    lista.forEach((item, indice) => {
+      const fecha = fechaVencimiento(item.vencimiento);
+      if (!fecha) return;
+      const abonado = importeRegistrado(tipo, item.id);
+      if (Number(item.saldo) <= 0 && abonado <= 0) return;
+      const importe = Number(tipo === "vehiculo" ? item.pago : item.pagoMinimo);
+      const esperado = Number.isFinite(importe) && importe > 0 ? round(importe) : null;
+      eventos.push({
+        tipo, indice, nombre:String(item.nombre || item.modelo || ""),
+        fecha, esperado, abonado,
+        estado:estadoPago(fecha, esperado, abonado)
+      });
+    });
+  }
+
+  for (const item of suscripcionesDelMes(mesElegido)) {
+    const importe = Number(item.monto);
+    eventos.push({
+      tipo:"suscripcion", nombre:String(item.nombre || ""), fecha:item.fecha,
+      esperado:Number.isFinite(importe) && importe > 0 ? round(importe) : null,
+      abonado:0, estado:"programado"
+    });
+  }
+
+  const prestamos = Array.isArray(data.prestamos) ? data.prestamos : [];
+  for (const cuota of prestamosDelMes(mesElegido)) {
+    const importe = Number(cuota.monto);
+    const esperado = Number.isFinite(importe) && importe > 0 ? round(importe) : null;
+    const abonado = Number.isFinite(Number(cuota.importePagado))
+      ? round(Math.max(0, Number(cuota.importePagado))) : 0;
+    eventos.push({
+      tipo:"prestamo", indice:prestamos.findIndex(p => String(p.id) === String(cuota.id)),
+      nombre:String(cuota.nombre || ""), fecha:cuota.fecha, esperado, abonado,
+      estado:cuota.pagada ? "pagado" : estadoPago(cuota.fecha, esperado, abonado)
+    });
+  }
+
+  return eventos.sort((a, b) => a.fecha.localeCompare(b.fecha) ||
+    a.nombre.localeCompare(b.nombre));
+}
+
+function cambiarMesPagosPendientes(paso) {
+  if (paso !== -1 && paso !== 1) return;
+  const [anio, mes] = mesPagosPendientes.split("-").map(Number);
+  const fecha = new Date(anio, mes - 1 + paso, 1, 12);
+  if (fecha.getFullYear() < 1000 || fecha.getFullYear() > 9999) return;
+  mesPagosPendientes = fecha.getFullYear() + "-" +
+    String(fecha.getMonth() + 1).padStart(2, "0");
+  pagosPendientes();
+}
+
+function filtrarPagosPendientes(filtro) {
+  if (filtro !== "todos" && filtro !== "pendientes") return;
+  filtroPagosPendientes = filtro;
+  pagosPendientes();
+}
+
+function abrirPagoPendiente(tipo, indice, fecha) {
+  if (tipo === "vehiculo" && data.vehiculos[indice]) {
+    go("vehiculos");
+    toggle("auto" + indice);
+    document.getElementById("auto" + indice)?.scrollIntoView({block:"center",behavior:"smooth"});
+  } else if (tipo === "tarjeta" && data.tarjetas[indice]) {
+    go("tarjetas");
+    toggle("detalleCredito" + indice);
+    toggle("tarjeta" + indice);
+    document.getElementById("tarjeta" + indice)?.scrollIntoView({block:"center",behavior:"smooth"});
+  } else if (tipo === "prestamo" && data.prestamos?.[indice] && validDate(fecha)) {
+    go("movimientos");
+    abrirDiaCalendario(fecha);
+  } else if (tipo === "suscripcion") {
+    go("suscripciones");
+  }
+}
+
+function pagosPendientes() {
+  const eventos = obtenerPagosPendientesMes(mesPagosPendientes);
+  const porAtender = eventos.filter(p => p.estado !== "pagado");
+  const registrados = eventos.filter(p => p.estado === "pagado");
+  const importeEstimado = round(porAtender.reduce((total, p) =>
+    total + (p.esperado === null ? 0 : Math.max(0, p.esperado - p.abonado)), 0));
+  const visibles = filtroPagosPendientes === "todos" ? eventos : porAtender;
+  const [anio, mes] = mesPagosPendientes.split("-").map(Number);
+  const mesTitulo = new Date(anio, mes - 1, 1, 12).toLocaleDateString(
+    idiomaActual() === "en" ? "en-US" : "es", {month:"long", year:"numeric"}
+  );
+  const nombres = {
+    vehiculo:textoApp("Vehículo", "Vehicle"),
+    tarjeta:textoApp("Tarjeta de crédito", "Credit card"),
+    suscripcion:textoApp("Suscripción o pago programado", "Scheduled payment"),
+    prestamo:textoApp("Cuota de préstamo", "Loan installment")
+  };
+  const iconos = {vehiculo:"🚘", tarjeta:"💳", suscripcion:"↻", prestamo:"💰"};
+  const estados = {
+    pagado:[textoApp("Registrado", "Recorded"), "#16835a", "rgba(22,131,90,.1)"],
+    parcial:[textoApp("Pago parcial", "Partial payment"), "#a36a10", "rgba(163,106,16,.1)"],
+    vencido:[textoApp("Fecha vencida", "Overdue date"), "#c54848", "rgba(197,72,72,.1)"],
+    hoy:[textoApp("Vence hoy", "Due today"), "#a36a10", "rgba(163,106,16,.1)"],
+    pendiente:[textoApp("Pendiente", "Upcoming"), "#6b7585", "rgba(130,140,155,.1)"],
+    programado:[textoApp("Programado · sin confirmar", "Scheduled · unconfirmed"), "#6b7585", "rgba(130,140,155,.1)"]
+  };
+
   el().innerHTML = `
-        <h2>${textoApp("Pagos pendientes", "Upcoming payments")}</h2>
-    <div class="card">
-            <h3>${textoApp("Mis pagos pendientes", "My upcoming payments")}</h3>
-            <p class="note">${textoApp("Aquí podrás consultar y organizar tus próximos pagos.", "Here you will be able to view and organize your upcoming payments.")}</p>
-    </div>
-  `;
+    <section class="pagos-pendientes-pantalla" style="padding-bottom:22px">
+      <h2>${textoApp("Pagos pendientes", "Upcoming payments")}</h2>
+      <p class="note">${textoApp(
+        "Consulta tus vencimientos y pagos registrados sin volver a descontar dinero.",
+        "Review due dates and recorded payments without charging your accounts again."
+      )}</p>
+      <div class="card" style="border-radius:30px;padding:18px;margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <button type="button" onclick="cambiarMesPagosPendientes(-1)"
+            aria-label="${textoApp("Mes anterior", "Previous month")}" style="border:0;border-radius:50%;width:36px;height:36px;background:rgba(130,140,155,.1);font:inherit">‹</button>
+          <strong style="text-transform:capitalize">${safe(mesTitulo)}</strong>
+          <button type="button" onclick="cambiarMesPagosPendientes(1)"
+            aria-label="${textoApp("Mes siguiente", "Next month")}" style="border:0;border-radius:50%;width:36px;height:36px;background:rgba(130,140,155,.1);font:inherit">›</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+          <div style="padding:14px;border-radius:24px;background:rgba(130,140,155,.08)">
+            <small class="label">${textoApp("Por revisar", "To review")}</small>
+            <strong style="display:block;font-size:1.35rem">${porAtender.length}</strong>
+          </div>
+          <div style="padding:14px;border-radius:24px;background:rgba(130,140,155,.08)">
+            <small class="label">${textoApp("Registrados", "Recorded")}</small>
+            <strong style="display:block;font-size:1.35rem">${registrados.length}</strong>
+          </div>
+        </div>
+        <p class="note" style="margin:12px 0 0">${textoApp("Estimado por atender: ", "Estimated outstanding: ")}
+          <strong>${money(importeEstimado)}</strong>
+        </p>
+        <p class="note" style="margin-bottom:0">${textoApp(
+          "Los estados de vehículos y tarjetas se estiman con los pagos registrados durante el mes. Verifica los anticipos y pagos de otros meses.",
+          "Card and vehicle status is estimated from payments recorded in this month. Check early or cross-month payments."
+        )}</p>
+      </div>
+      <div style="display:flex;gap:8px;margin:16px 0">
+        <button type="button" onclick="filtrarPagosPendientes('pendientes')"
+          aria-pressed="${filtroPagosPendientes === "pendientes"}"
+          style="border:0;border-radius:999px;padding:9px 15px;font:inherit;background:${filtroPagosPendientes === "pendientes" ? "rgba(255,121,0,.14)" : "rgba(130,140,155,.09)"};color:inherit">
+          ${textoApp("Por atender", "To review")}
+        </button>
+        <button type="button" onclick="filtrarPagosPendientes('todos')"
+          aria-pressed="${filtroPagosPendientes === "todos"}"
+          style="border:0;border-radius:999px;padding:9px 15px;font:inherit;background:${filtroPagosPendientes === "todos" ? "rgba(255,121,0,.14)" : "rgba(130,140,155,.09)"};color:inherit">
+          ${textoApp("Todos", "All")}
+        </button>
+      </div>
+      ${visibles.map(p => {
+        const [estado, color, fondo] = estados[p.estado];
+        const dia = new Date(p.fecha + "T12:00:00").toLocaleDateString(
+          idiomaActual() === "en" ? "en-US" : "es", {day:"numeric",month:"short"}
+        );
+        const accion = p.tipo === "prestamo"
+          ? textoApp("Ver cuota", "View installment")
+          : p.tipo === "suscripcion"
+            ? textoApp("Administrar", "Manage")
+            : p.estado === "pagado"
+              ? textoApp("Ver detalles", "View details")
+              : textoApp("Registrar pago", "Record payment");
+        return `
+          <div class="card" style="border-radius:28px;padding:15px;margin:10px 0">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span aria-hidden="true" style="display:grid;place-items:center;flex:0 0 40px;height:40px;border-radius:50%;background:rgba(130,140,155,.1)">${iconos[p.tipo]}</span>
+              <div style="flex:1;min-width:0">
+                <strong style="display:block;overflow-wrap:anywhere">${safe(p.nombre)}</strong>
+                <small class="label">${safe(nombres[p.tipo])} · ${safe(dia)}</small>
+              </div>
+              <strong style="font-size:.98rem;white-space:nowrap">${p.esperado === null
+                ? textoApp("Sin importe", "No amount") : money(p.esperado)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
+              <span style="border-radius:999px;padding:6px 11px;font-size:.72rem;font-weight:650;color:${color};background:${fondo}">${estado}</span>
+              ${p.abonado > 0 ? `<small class="label">${textoApp("Registrado: ", "Recorded: ")}${money(p.abonado)}</small>` : ""}
+            </div>
+            ${p.tipo === "suscripcion" ? `<p class="note" style="margin:9px 0 0">${textoApp(
+              "Esta programación no registra gastos ni confirma que hayas pagado.",
+              "This schedule does not record an expense or confirm payment."
+            )}</p>` : ""}
+            <button type="button" onclick="abrirPagoPendiente('${p.tipo}',${Number.isInteger(p.indice) ? p.indice : -1},'${p.fecha}')"
+              style="margin-top:12px;border:0;border-radius:999px;padding:10px 15px;background:rgba(130,140,155,.1);color:inherit;font:inherit;font-size:.82rem">
+              ${accion} ›
+            </button>
+          </div>`;
+      }).join("") || `<div class="card" style="border-radius:28px">
+        <p class="note">${filtroPagosPendientes === "todos"
+          ? textoApp("No hay vencimientos programados para este mes.", "No due dates scheduled this month.")
+          : textoApp("No hay pagos por revisar este mes.", "No payments to review this month.")}</p>
+        <button type="button" class="secondary" onclick="go('tarjetas')">${textoApp("Ver tarjetas", "View cards")}</button>
+      </div>`}
+    </section>`;
 }
      function exportarCopia(){
   try {
