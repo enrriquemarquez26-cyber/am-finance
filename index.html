@@ -442,12 +442,12 @@ html.tema-oscuro .banco-progreso {
 
 #amMenu {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  padding: 22px 18px 32px;
-  border-radius: 50px;
-  background: rgba(250,251,253,.78);
+  left: 8px;
+  right: 8px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  padding: 18px 8px 24px;
+  border-radius: 48px;
+  background: rgba(250,251,255,.82);
   color: #17212e;
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
@@ -459,49 +459,51 @@ html.tema-oscuro .banco-progreso {
   visibility: hidden;
   transition: transform .35s ease, visibility .35s;
   z-index: 9999;
-height: 430px;
+height: 450px;
 box-sizing: border-box;
 overflow: hidden;
 }
 
 #amMenuTirador {
-  width: 42px;
+  width: 40px;
   height: 5px;
   border-radius: 20px;
-  background: #9ca3af;
-  margin: 0 auto 20px;
+  background: #868f9f;
+  margin: 0 auto 14px;
 }
 
 #amMenu h3 {
   color: inherit;
-  margin: 0 0 16px;
-  font-size: 20px;
+  margin: 0 0 17px 12px;
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -.6px;
 }
 
 #amMenu button {
   width: 100%;
   min-width: 0;
   margin: 0;
-  padding: 18px 10px;
-  min-height: 95px;
+  padding: 13px 15px;
+  min-height: 104px;
   border-radius: 999px;
   text-align: center;
   white-space: normal;
   color: #17212e;
   font-size: 14px;
-  background: rgba(255,255,255,.42);
-  border: 1px solid rgba(255,255,255,.55);
+  background: rgba(255,255,255,.56);
+  border: 1px solid rgba(255,255,255,.88);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 4px 16px rgba(0,0,0,.04);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.84), 0 5px 16px rgba(40,54,82,.045);
 }
 
 #amMenu .amPagina {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 12px;
-  row-gap: 10px;
-  height: 310px;
+  column-gap: 8px;
+  row-gap: 12px;
+  height: 336px;
   align-content: start;
   box-sizing: border-box;
 }
@@ -509,7 +511,7 @@ overflow: hidden;
 #amPaginas {
   display: flex;
   width: 100%;
-  height: 310px;
+  height: 336px;
   overflow-x: hidden;
   overflow-y: hidden;
 }
@@ -517,19 +519,111 @@ overflow: hidden;
 #amPaginas .amPagina {
   flex: 0 0 100%;
   width: 100%;
-  height: 310px;
+  height: 336px;
 }
-#amPaginas .amPagina button {
+#amPaginas .amPagina button.am-herramienta {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 13px 12px 10px 16px;
+  text-align: left;
 }
 
 #amPaginas .amPagina button svg {
   display: block;
   flex-shrink: 0;
+}
+
+#amMenu #amMenuCerrar {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 7px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,.55);
+  border: 1px solid rgba(255,255,255,.85);
+  color: #111d32;
+  box-shadow: 0 2px 7px rgba(31,43,66,.05);
+}
+
+.am-herramienta-icono {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 50%;
+  color: #fff;
+  box-shadow: 0 4px 9px rgba(0,0,0,.14);
+}
+.am-herramienta-icono svg { width: 18px; height: 18px; }
+.am-icono--suscripciones { background: linear-gradient(145deg,#54c9ff,#0087f7); }
+.am-icono--pagos { background: linear-gradient(145deg,#ffaa54,#ff6a2e); }
+.am-icono--metas { background: linear-gradient(145deg,#65e6a4,#00bd5a); }
+.am-icono--calculadora { background: linear-gradient(145deg,#d45bff,#8e16eb); }
+.am-icono--deudas { background: linear-gradient(145deg,#ff6e88,#f3234d); }
+.am-icono--apple { background: linear-gradient(145deg,#55575d,#191b20); }
+
+.am-herramienta-flecha {
+  position: absolute;
+  top: 19px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #111d32;
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(255,255,255,.96);
+  box-shadow: 0 2px 7px rgba(24,42,69,.04);
+}
+.am-herramienta-flecha svg {width: 16px;height: 16px;}
+.am-herramienta-flecha::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-top: 2.4px solid currentColor;
+  border-right: 2.4px solid currentColor;
+  transform: rotate(45deg);
+  margin-left: -3px;
+}
+
+.am-herramienta-textos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  margin-top: 5px;
+}
+.am-herramienta-titulo {
+  color: #101d33;
+  font-size: 11.8px;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -.2px;
+}
+.am-herramienta-subtitulo {
+  color: #7a879c;
+  font-size: 10.8px;
+  font-weight: 400;
+  line-height: 1.19;
+  margin-top: 3px;
+  max-width: 140px;
+}
+
+@media (max-width: 360px) {
+  #amPaginas .amPagina button.am-herramienta {padding-left: 12px;}
+  .am-herramienta-titulo {font-size: 10.8px;}
+  .am-herramienta-subtitulo {font-size: 9.8px;}
 }
 
 /* Ordenar herramientas manteniendo pulsado: sin cambiar su aspecto habitual. */
@@ -1314,10 +1408,14 @@ html.tema-oscuro #amMenu {
 }
 
 html.tema-oscuro #amMenu button {
-  background: rgba(255,255,255,.07);
+  background: rgba(255,255,255,.11);
   color: #f5f6f8;
   border-color: rgba(255,255,255,.12);
 }
+html.tema-oscuro #amMenu .am-herramienta-titulo {color:#f4f5f8;}
+html.tema-oscuro #amMenu .am-herramienta-subtitulo {color:#bac3d0;}
+html.tema-oscuro #amMenu .am-herramienta-flecha {color:#121923;background:rgba(255,255,255,.86);}
+html.tema-oscuro #amMenu #amMenuCerrar {color:#f4f5f8;background:rgba(255,255,255,.15);}
 
 /* Paneles de vehículos */
 .vehiculo-panel {
@@ -2317,65 +2415,57 @@ html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(32,36,43,.8);border-co
 <div id="amMenu">
   <div id="amMenuTirador"></div>
   <h3>Herramientas</h3>
-<div id="amPaginas">
-<div class="amPagina">
-<button data-herramienta="suscripciones" onclick="cerrarAmMenu();go('suscripciones')">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
-<rect x="3" y="5" width="18" height="16" rx="2"/>
-<path d="M7 3v4M17 3v4M3 10h18"/>
-<path d="M8 15h3"/>
-</svg>
-<span>Suscripciones</span>
-  </button>
-
-  <button data-herramienta="pagosPendientes" onclick="cerrarAmMenu();go('pagosPendientes')">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
-<path d="M5 3h14v18l-3-2-4 2-4-2-3 2V3z"/>
-<path d="M9 8h6"/>
-<path d="M9 12h6"/>
-</svg>
-<span>Pagos pendientes</span>
-  </button>
-
-  <button data-herramienta="metasAhorro" onclick="cerrarAmMenu();go('metasAhorro')">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px">
-<circle cx="12" cy="12" r="9"/>
-<circle cx="12" cy="12" r="5"/>
-<circle cx="12" cy="12" r="1"/>
-</svg>
-<span>Metas de ahorro</span>
-  </button>
-
-  <button data-herramienta="calculadora" onclick="cerrarAmMenu();go('calculadora')">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="5" y="2" width="14" height="20" rx="3"/>
-  <path d="M8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"/>
-</svg>
-    <span>Calculadora</span>
-  </button>
-
-  <button data-herramienta="deudas" onclick="cerrarAmMenu();go('deudas')">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="3" y="5" width="18" height="15" rx="3"/>
-  <path d="M3 10h18"/>
-  <path d="M7 15h4"/>
-  <path d="M17 14v4m-2-2h4"/>
-</svg>
-    <span>Control de deudas</span>
-  </button>
-
-  <button data-herramienta="applePay" onclick="cerrarAmMenu();importarCompraApplePay()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="2.5" y="6" width="19" height="14" rx="3"/>
-      <path d="M2.5 10h12"/>
-      <path d="M15 3c2.1 1.2 3.2 2.8 3.2 5s-1.1 3.8-3.2 5"/>
-      <path d="M18 1.5c2.7 1.7 4 3.9 4 6.5"/>
+  <button type="button" id="amMenuCerrar" onclick="cerrarAmMenu()" aria-label="Cerrar herramientas">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+      <path d="M5 5l14 14M19 5L5 19"/>
     </svg>
-    <span>Apple Pay</span>
   </button>
-
-</div>
-</div>
+  <div id="amPaginas">
+    <div class="amPagina">
+      <button type="button" class="am-herramienta" data-herramienta="suscripciones" onclick="cerrarAmMenu();go('suscripciones')">
+        <span class="am-herramienta-icono am-icono--suscripciones" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 15h4"/></svg>
+        </span>
+        <span class="am-herramienta-flecha" aria-hidden="true"></span>
+        <span class="am-herramienta-textos"><strong class="am-herramienta-titulo">Suscripciones</strong><small class="am-herramienta-subtitulo">Administra tus suscripciones</small></span>
+      </button>
+      <button type="button" class="am-herramienta" data-herramienta="pagosPendientes" onclick="cerrarAmMenu();go('pagosPendientes')">
+        <span class="am-herramienta-icono am-icono--pagos" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-3-2-4 2-4-2-3 2V3zM9 8h6M9 12h6"/></svg>
+        </span>
+        <span class="am-herramienta-flecha" aria-hidden="true"></span>
+        <span class="am-herramienta-textos"><strong class="am-herramienta-titulo">Pagos pendientes</strong><small class="am-herramienta-subtitulo">No olvides tus pagos</small></span>
+      </button>
+      <button type="button" class="am-herramienta" data-herramienta="metasAhorro" onclick="cerrarAmMenu();go('metasAhorro')">
+        <span class="am-herramienta-icono am-icono--metas" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <span class="am-herramienta-flecha" aria-hidden="true"></span>
+        <span class="am-herramienta-textos"><strong class="am-herramienta-titulo">Metas de ahorro</strong><small class="am-herramienta-subtitulo">Alcanza tus objetivos</small></span>
+      </button>
+      <button type="button" class="am-herramienta" data-herramienta="calculadora" onclick="cerrarAmMenu();go('calculadora')">
+        <span class="am-herramienta-icono am-icono--calculadora" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"/></svg>
+        </span>
+        <span class="am-herramienta-flecha" aria-hidden="true"></span>
+        <span class="am-herramienta-textos"><strong class="am-herramienta-titulo">Calculadora</strong><small class="am-herramienta-subtitulo">Cálculos rápidos y útiles</small></span>
+      </button>
+      <button type="button" class="am-herramienta" data-herramienta="deudas" onclick="cerrarAmMenu();go('deudas')">
+        <span class="am-herramienta-icono am-icono--deudas" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 10h18M7 15h4M17 14v4m-2-2h4"/></svg>
+        </span>
+        <span class="am-herramienta-flecha" aria-hidden="true"></span>
+        <span class="am-herramienta-textos"><strong class="am-herramienta-titulo">Control de deudas</strong><small class="am-herramienta-subtitulo">Lleva el control de tus deudas</small></span>
+      </button>
+      <button type="button" class="am-herramienta" data-herramienta="applePay" onclick="cerrarAmMenu();importarCompraApplePay()">
+        <span class="am-herramienta-icono am-icono--apple" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.7 5.8c.8-.9 1.3-2.2 1.2-3.4-1.2.1-2.5.8-3.3 1.7-.8.9-1.4 2.1-1.2 3.3 1.3.1 2.5-.7 3.3-1.6zM20 12.5c0-2.6 2.2-3.9 2.3-4-1.2-1.7-3.1-2-3.8-2-1.6-.2-3.1.9-3.9.9-.9 0-2.1-.9-3.5-.9-1.8 0-3.5 1-4.4 2.6-1.8 3.2-.4 8 1.4 10.6.9 1.3 2 2.7 3.4 2.6 1.4 0 1.9-.9 3.5-.9s2.1.9 3.5.8c1.5 0 2.4-1.3 3.3-2.6.7-.9 1.2-2 1.5-3.1-1.3-.5-3.3-1.8-3.3-4z"/></svg>
+        </span>
+        <span class="am-herramienta-flecha" aria-hidden="true"></span>
+        <span class="am-herramienta-textos"><strong class="am-herramienta-titulo">Apple Pay</strong><small class="am-herramienta-subtitulo">Importa tus compras</small></span>
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -8632,6 +8722,10 @@ function traducirMenusVentana() {
   poner('#movVentanaTipo option[value="ingreso"]', "Ingreso", "Income");
   poner("#movVentanaForm .mov-guardar", "Guardar", "Save");
   poner("#amMenu h3", "Herramientas", "Tools");
+  const cerrarHerramientas = document.getElementById("amMenuCerrar");
+  if (cerrarHerramientas) cerrarHerramientas.setAttribute(
+    "aria-label", textoApp("Cerrar herramientas", "Close tools")
+  );
 
   const nota = document.getElementById("movVentanaNota");
   if (nota) nota.placeholder = textoApp("Agregar nota…", "Add a note…");
@@ -8671,13 +8765,24 @@ function traducirMenusVentana() {
     deudas: ["Control de deudas", "Debt management"],
     applePay: ["Apple Pay", "Apple Pay"]
   };
+  const descripciones = {
+    suscripciones: ["Administra tus suscripciones", "Manage your subscriptions"],
+    pagosPendientes: ["No olvides tus pagos", "Stay on top of payments"],
+    metasAhorro: ["Alcanza tus objetivos", "Reach your goals"],
+    calculadora: ["Cálculos rápidos y útiles", "Quick, useful calculations"],
+    deudas: ["Lleva el control de tus deudas", "Keep track of your debts"],
+    applePay: ["Importa tus compras", "Import your purchases"]
+  };
 
   document.querySelectorAll(
     "#amPaginas button[data-herramienta]"
   ).forEach(boton => {
     const nombre = herramientas[boton.dataset.herramienta];
-    const texto = boton.querySelector("span");
+    const detalle = descripciones[boton.dataset.herramienta];
+    const texto = boton.querySelector(".am-herramienta-titulo");
+    const subtitulo = boton.querySelector(".am-herramienta-subtitulo");
     if (nombre && texto) texto.textContent = textoApp(nombre[0], nombre[1]);
+    if (detalle && subtitulo) subtitulo.textContent = textoApp(detalle[0], detalle[1]);
   });
 }
 function calcularSimulacion(tipo, v) {
