@@ -113,6 +113,54 @@ nav button span {
 .item{border-bottom:1px solid #f0f1f3;padding:13px 0}
 .item:last-child{border:0}
 .note{font-size:0.75rem;color:#89939f;line-height:1.5}
+.avisos-vencimiento {
+  display:flex;gap:10px;overflow-x:auto;max-width:100%;
+  margin:-2px 0 25px;padding:4px 3px 8px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.avisos-vencimiento::-webkit-scrollbar {display:none}
+.aviso-vencimiento {
+  display:flex;align-items:center;gap:11px;flex:0 0 auto;
+  width:min(315px,100%);min-height:80px;
+  padding:10px 12px 10px 13px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.86);
+  background:linear-gradient(115deg,rgba(255,248,242,.79),rgba(255,238,226,.56));
+  box-shadow:inset 0 1px rgba(255,255,255,.93),0 9px 23px rgba(89,66,56,.07);
+  backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
+  color:inherit;font:inherit;text-align:left;
+}
+.aviso-vencimiento:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:3px}
+.aviso-vencimiento-icono {
+  display:grid;place-items:center;flex:0 0 48px;
+  width:48px;height:48px;border-radius:15px;
+  background:rgba(255,255,255,.9);
+  box-shadow:0 3px 10px rgba(30,40,60,.09),inset 0 1px 1px #fff;
+  color:#ff7900;
+}
+.aviso-vencimiento-icono img {width:29px;height:29px;object-fit:contain}
+.aviso-vencimiento-icono svg {width:24px;height:24px}
+.aviso-vencimiento-icono--apple {background:linear-gradient(135deg,#fff8f7,#f5f8ff 65%,#f5fff9)}
+.aviso-vencimiento-texto {display:grid;gap:5px;flex:1;min-width:0}
+.aviso-vencimiento-texto strong {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.9rem;font-weight:750}
+.aviso-vencimiento-texto small {color:#8b94a3;font-size:.79rem}
+.aviso-vencimiento-flecha {
+  position:relative;display:grid;place-items:center;flex:0 0 44px;
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,.43);
+  box-shadow:inset 0 1px rgba(255,255,255,.7);
+  font-size:1.55rem;font-weight:300;line-height:1;
+}
+.aviso-vencimiento-flecha::after {
+  content:"";position:absolute;right:0;top:0;width:11px;height:11px;
+  border:2px solid #fff;border-radius:50%;background:#ff7900;
+}
+html.tema-oscuro .aviso-vencimiento {
+  background:linear-gradient(115deg,rgba(58,47,43,.89),rgba(48,42,45,.87));
+  border-color:rgba(255,255,255,.12);
+}
+html.tema-oscuro .aviso-vencimiento-icono {background:#343840;color:#ff994c;box-shadow:none}
+html.tema-oscuro .aviso-vencimiento-texto small {color:#b7bec9}
+html.tema-oscuro .aviso-vencimiento-flecha {background:rgba(255,255,255,.08)}
 .payment{background:#f5f8f9;border-radius:13px;padding:14px;margin-top:12px}
 .hidden{display:none}
 .editbox{background:#f5f8f9;border-radius:13px;padding:14px;margin-top:12px}
@@ -2608,34 +2656,79 @@ return Math.round((fecha-hoy)/86400000);
 function avisosVencimiento() {
   const cuentas = [
     ...data.vehiculos.map(v => ({
-      ...v, tipo: textoApp("Vehículo", "Vehicle")
+      ...v, tipoAviso: "vehiculo",
+      tipo: textoApp("Vehículo", "Vehicle")
     })),
     ...data.tarjetas.map(t => ({
-      ...t, tipo: textoApp("Tarjeta", "Card")
+      ...t, tipoAviso: "tarjeta",
+      tipo: textoApp("Tarjeta", "Card")
     }))
   ];
 
-  return cuentas.map(c => {
+  const proximos = cuentas.map(c => {
     const dia = Number(c.vencimiento);
-    if (!Number.isInteger(dia) || dia < 1 || dia > 31) return "";
+    if (!Number.isInteger(dia) || dia < 1 || dia > 31) return null;
+    return {...c, faltan:diasParaVencer(dia)};
+  }).filter(c => c && c.faltan >= 0 && c.faltan <= 7)
+    .sort((a,b) => a.faltan - b.faltan);
 
-    const faltan = diasParaVencer(dia);
-    if (![7, 3, 0].includes(faltan)) return "";
+  if (!proximos.length) return "";
 
-    const mensaje = faltan === 0
-      ? textoApp("¡Tu pago vence hoy!", "Your payment is due today!")
-      : textoApp(
-          `Faltan ${faltan} días para tu próximo pago.`,
-          `Your next payment is due in ${faltan} days.`
-        );
+  const iconoTarjeta = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="2" y="5" width="20" height="14" rx="3"/>
+      <path d="M2 10h20M6 15h4"/>
+    </svg>`;
+  const iconoVehiculo = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 16H3V9l2-4h14l2 4v7h-2M5 16h14M5 16v3m14-3v3M3 10h18"/>
+      <circle cx="7" cy="13" r="1"/><circle cx="17" cy="13" r="1"/>
+    </svg>`;
 
-    return `
-      <div class="card">
-        <strong>🔔 ${safe(c.tipo)}: ${safe(c.nombre)}</strong>
-        <p>${mensaje}</p>
-      </div>
-    `;
-  }).join("");
+  return `<div class="avisos-vencimiento" role="region"
+    aria-label="${textoApp("Próximos vencimientos", "Upcoming due dates")}">
+    ${proximos.map(c => {
+      const nombre = String(c.nombre || c.modelo || c.tipo);
+      const nombreNormal = `${nombre} ${c.banco || ""}`.toLowerCase();
+      const marcas = [
+        ["apple", "apple.com"],
+        ["american express", "americanexpress.com"],
+        ["amex", "americanexpress.com"],
+        ["chase", "chase.com"],
+        ["capital one", "capitalone.com"],
+        ["citi", "citi.com"],
+        ["discover", "discover.com"],
+        ["bank of america", "bankofamerica.com"],
+        ["wells fargo", "wellsfargo.com"]
+      ];
+      const dominio = c.tipoAviso === "tarjeta"
+        ? marcas.find(([marca]) => nombreNormal.includes(marca))?.[1]
+        : null;
+      const icono = dominio
+        ? `<img src="https://www.google.com/s2/favicons?domain=${dominio}&sz=128"
+             alt="" onerror="this.style.display='none';this.nextElementSibling.hidden=false">
+           <span hidden>${iconoTarjeta}</span>`
+        : c.tipoAviso === "vehiculo" ? iconoVehiculo : iconoTarjeta;
+      const mensaje = c.faltan === 0
+        ? textoApp("Vence hoy", "Due today")
+        : c.faltan === 1
+          ? textoApp("Falta 1 día", "1 day left")
+          : textoApp(`Faltan ${c.faltan} días`, `${c.faltan} days left`);
+      const destino = c.tipoAviso === "vehiculo" ? "vehiculos" : "tarjetas";
+      return `<button type="button" class="aviso-vencimiento"
+        onclick="go('${destino}')"
+        aria-label="${safe(nombre)}. ${safe(mensaje)}. ${textoApp("Ver detalles", "View details")}">
+          <span class="aviso-vencimiento-icono ${dominio === "apple.com" ? "aviso-vencimiento-icono--apple" : ""}"
+            aria-hidden="true">${icono}</span>
+          <span class="aviso-vencimiento-texto">
+            <strong>${safe(nombre)}</strong><small>${safe(mensaje)}</small>
+          </span>
+          <span class="aviso-vencimiento-flecha" aria-hidden="true">›</span>
+        </button>`;
+    }).join("")}
+  </div>`;
 }
 function inicio(){
 
@@ -6512,8 +6605,8 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Pagos y recordatorios", "Payments and reminders")}</h3>
           <p class="note">${t(
-            "Los avisos de vencimiento se muestran dentro de la aplicación. Las notificaciones del dispositivo y sus controles todavía no están implementados.",
-            "Due-date reminders appear inside the app. Device notifications and their controls have not been implemented yet."
+            "Los avisos de tarjetas y vehículos aparecen en Inicio hasta 7 días antes del vencimiento. Tócalos para ver la sección correspondiente. Las notificaciones del dispositivo todavía no están disponibles.",
+            "Card and vehicle reminders appear on Home up to 7 days before they are due. Tap one to open the relevant section. Device notifications are not available yet."
           )}</p>
         </div>`
     },
