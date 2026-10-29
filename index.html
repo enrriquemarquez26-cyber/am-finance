@@ -6650,6 +6650,18 @@ function abrirAjuste(tipo) {
       titulo: t("Datos y copias", "Data and backups"),
       contenido: `
         <div class="card" style="border-radius:30px">
+          <h3>${t("Apple Pay y Atajos", "Apple Pay and Shortcuts")}</h3>
+          <p class="note">${t(
+            "Después de pagar, el Atajo copia la compra. Abre Balance One desde su icono y pulsa Importar compra para revisarla. No se envía al navegador Safari.",
+            "After paying, Shortcuts copies the purchase. Open Balance One from its Home Screen icon and tap Import purchase to review it. It is not sent to Safari."
+          )}</p>
+          <button class="primary" type="button" style="border-radius:999px"
+                  onclick="importarCompraApplePay()">
+            ${t("Importar compra", "Import purchase")}
+          </button>
+        </div>
+
+        <div class="card" style="border-radius:30px">
           <h3>${t("Guardar y exportar", "Save and export")}</h3>
           <p class="note">${t(
             "Descarga una copia de tus datos en formato JSON.",
@@ -6810,6 +6822,32 @@ function leerEnlaceApplePay(hash) {
   return {monto:round(importe), comercio, tarjeta, referencia};
 }
 
+// Texto simple que crea Atajos con la acción "Texto" y copia al portapapeles.
+// BALANCE_ONE_APPLE_PAY\nmonto=12.50\ncomercio=HEB\ntarjeta=Apple Card
+function leerTextoApplePay(contenido) {
+  const texto = String(contenido || "").trim();
+  const enlace = texto.indexOf("#applepay?");
+  if (enlace !== -1 && !texto.includes("\n")) {
+    return leerEnlaceApplePay(texto.slice(enlace));
+  }
+
+  const lineas = texto.replace(/\r/g, "").split("\n");
+  if (lineas.shift()?.trim().toUpperCase() !== "BALANCE_ONE_APPLE_PAY") {
+    return {error:true};
+  }
+
+  const parametros = new URLSearchParams();
+  for (const linea of lineas) {
+    if (!linea.trim()) continue;
+    const campo = /^(monto|comercio|tarjeta|id|moneda)\s*[:=]\s*(.*)$/i.exec(linea);
+    if (!campo) return {error:true};
+    const clave = campo[1].toLowerCase();
+    if (parametros.has(clave)) return {error:true};
+    parametros.set(clave, campo[2].trim());
+  }
+  return leerEnlaceApplePay("#applepay?" + parametros.toString());
+}
+
 function abrirImportacionApplePay(compra) {
   let cuentas = [];
   try {
@@ -6938,6 +6976,75 @@ function abrirImportacionApplePay(compra) {
     ventana.close();
     go("inicio");
     alert(textoApp("Compra registrada en Balance One.", "Purchase recorded in Balance One."));
+  };
+}
+
+// La aplicación añadida al Inicio tiene sus propios datos, separados de Safari.
+// Por eso el portapapeles se lee solamente tras el toque del usuario en esta app.
+async function importarCompraApplePay() {
+  let texto = "";
+  try {
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      texto = await navigator.clipboard.readText();
+    }
+  } catch {
+    // Algunos iPhone requieren pegar manualmente: mostramos el campo editable.
+  }
+
+  if (texto.trim().startsWith("BALANCE_ONE_APPLE_PAY")) {
+    const compra = leerTextoApplePay(texto);
+    if (compra && !compra.error) {
+      abrirImportacionApplePay(compra);
+      return;
+    }
+  }
+
+  const ventana = crearVentanaApariencia(
+    textoApp("Importar compra de Apple Pay", "Import Apple Pay purchase"),
+    `
+      <p class="note">${textoApp(
+        "Pega aquí el texto que copió Atajos. Si el iPhone permite leerlo automáticamente, se abrirá directamente la confirmación.",
+        "Paste the text copied by Shortcuts. If the iPhone allows clipboard access, the confirmation opens automatically."
+      )}</p>
+      <form id="formPegarApplePay">
+        <label for="textoApplePay">${textoApp("Información de la compra", "Purchase information")}</label>
+        <textarea id="textoApplePay" name="compra" rows="6" spellcheck="false"
+          style="width:100%;padding:12px;border:1px solid rgba(130,140,155,.25);border-radius:18px;font:inherit;resize:vertical"
+          placeholder="BALANCE_ONE_APPLE_PAY&#10;monto=12.50&#10;comercio=HEB&#10;tarjeta=Apple Card" required></textarea>
+        <button type="submit" class="primary">${textoApp("Revisar compra", "Review purchase")}</button>
+      </form>
+      <p class="note">${textoApp(
+        "Todavía no se descontará nada. Podrás elegir la cuenta antes de confirmar.",
+        "Nothing is deducted yet. You can choose the account before confirming."
+      )}</p>
+    `,
+    true
+  );
+  if (!ventana) return;
+
+  const cancelar = ventana.querySelector(".apariencia-listo");
+  cancelar.textContent = textoApp("Cancelar", "Cancel");
+  cancelar.style.background = "rgba(130,140,155,.14)";
+  cancelar.style.color = "inherit";
+
+  const formulario = ventana.querySelector("#formPegarApplePay");
+  if (texto.trim().startsWith("BALANCE_ONE_APPLE_PAY")) {
+    formulario.elements.compra.value = texto;
+  }
+  formulario.onsubmit = evento => {
+    evento.preventDefault();
+    const compra = leerTextoApplePay(formulario.elements.compra.value);
+    if (!compra || compra.error) {
+      alert(textoApp(
+        "No se reconoce la compra. Comprueba que el texto incluya BALANCE_ONE_APPLE_PAY, monto y comercio en USD.",
+        "Purchase not recognized. Make sure the text contains BALANCE_ONE_APPLE_PAY, amount and merchant in USD."
+      ));
+      return;
+    }
+    ventana.addEventListener("close", () => {
+      setTimeout(() => abrirImportacionApplePay(compra), 0);
+    }, {once:true});
+    ventana.close();
   };
 }
 
