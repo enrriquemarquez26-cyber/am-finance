@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.2.2 Beta</title>
+<title>Balance One 0.2.3 Beta</title>
 <link rel="apple-touch-icon" href="./balance-one.png.PNG">
 <link rel="icon" type="image/png" href="./balance-one.png.PNG">
 <style>
@@ -121,7 +121,7 @@ nav button span {
 .avisos-vencimiento::-webkit-scrollbar {display:none}
 .aviso-vencimiento {
   display:flex;align-items:center;gap:7px;flex:0 0 auto;
-  width:min(193px,100%);min-height:56px;
+  width:calc(50% - 3px);min-height:56px;
   padding:6px 8px;border-radius:999px;
   border:1px solid #e9ebf0;
   background:#fff;box-shadow:none;
@@ -135,8 +135,8 @@ nav button span {
   background:#fff;box-shadow:none;
   color:#ff7900;
 }
-.aviso-vencimiento-icono img {width:23px;height:23px;border-radius:50%;object-fit:contain}
-.aviso-vencimiento-icono svg {width:20px;height:20px}
+.aviso-vencimiento-icono img {width:26px;height:26px;border-radius:50%;object-fit:contain}
+.aviso-vencimiento-icono svg {width:23px;height:23px}
 .aviso-vencimiento-icono--apple {background:#fff}
 .aviso-vencimiento-texto {display:grid;gap:3px;flex:1;min-width:0}
 .aviso-vencimiento-texto strong {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.78rem;font-weight:750}
@@ -2217,7 +2217,7 @@ html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(32,36,43,.8);border-co
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.2.2 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.2.3 Beta</div>
 </header>
 <main id="content" style="padding-bottom: 130px;"></main>
 <div id="movVentanaFondo" class="hidden"
@@ -2490,8 +2490,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.2.2 Beta",
-      "Smart control of your finances · 0.2.2 Beta"
+      "Control inteligente de tus finanzas · 0.2.3 Beta",
+      "Smart control of your finances · 0.2.3 Beta"
     );
   }
 }
@@ -6187,7 +6187,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.2.2 Beta</p>
+      <p class="ajustes-version">Balance One · 0.2.3 Beta</p>
     </section>
   `;
 }
@@ -6471,7 +6471,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.2.2 Beta
+        ${textoApp("Versión", "Version")} 0.2.3 Beta
       </p>
     </section>
   `;
@@ -6677,7 +6677,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.2.2 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.2.3 Beta</p>
         </div>`
     }
   };
