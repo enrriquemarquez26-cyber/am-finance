@@ -1314,7 +1314,7 @@ html.tema-oscuro .tarjetas-pantalla select {
 .credito-fila {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  align-items: stretch;
+  align-items: center;
   background: #fff;
   border-radius: 26px;
   overflow: hidden;
@@ -1333,15 +1333,18 @@ html.tema-oscuro .tarjetas-pantalla select {
   background: linear-gradient(145deg, #24364d, #101a29);
 }
 
-/* Las fotos de los bancos y las elegidas por el usuario conservan su proporción. */
+/* El tamaño de la foto no depende de la altura del texto de la deuda. */
 .credito-visual--imagen {
   position: relative;
-  /* Separar el borde izquierdo sin recortar la foto ni alejarla de los datos. */
+  width: calc(100% - 7px);
+  aspect-ratio: 1.586;
+  min-height: 0;
+  align-self: center;
   margin-left: 7px;
-  margin-right: -7px;
+  margin-right: 0;
   padding: 0;
   overflow: hidden;
-  background: #f6f7fa;
+  background: transparent;
 }
 .credito-visual--imagen img {
   position: absolute;
@@ -1349,9 +1352,29 @@ html.tema-oscuro .tarjetas-pantalla select {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
 }
+.credito-visual--apple {
+  position: relative;
+  width: calc(100% - 7px);
+  aspect-ratio: 1.586;
+  min-height: 0;
+  align-self: center;
+  margin-left: 7px;
+  padding: 15px;
+  border: 1px solid #d6dce2;
+  border-radius: 21px;
+  background: linear-gradient(120deg,#f6f7f9 2%,#fff 48%,#e7eaee 100%);
+  color: #555b65;
+  box-shadow: inset 0 1px 1px #fff,0 1px 4px rgba(36,44,60,.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.credito-apple-logo {width: 32px;height: 32px;fill: currentColor;stroke: none;}
+.credito-apple-chip {position:absolute;right:14px;top:48%;width:37px;height:29px;fill:none;stroke:#999b9e;stroke-width:1.2;}
+.credito-apple-marca {font-size: .7rem;font-weight: 650;letter-spacing:.02em;}
 .credito-visual--imagen img[hidden] {display: none;}
 .credito-imagen-reserva {
   display: flex;
@@ -5069,10 +5092,9 @@ function imagenCredito(tarjeta) {
       "https://ecm.capitalone.com/WCM/card/products/venture-x-card-art/mobile.png"
    },
 
-  apple: {
-    applecard:
-      "https://www.apple.com/v/apple-card/n/images/overview/titanium_card__edutuqq7hsuq_large.jpg"
-  }
+  // Apple Card se dibuja individualmente para no usar una foto promocional
+  // que contiene varias tarjetas y nombres ajenos.
+  apple: {}
 };
 
   const claveBanco = banco === "amex"
@@ -5089,6 +5111,13 @@ function imagenMostradaCredito(tarjeta) {
     return personalizada;
   }
   return imagenCredito(tarjeta);
+}
+
+function mostrarAppleCardAutomatica(tarjeta) {
+  if (imagenMostradaCredito(tarjeta)) return false;
+  const banco = String(tarjeta?.banco || tarjeta?.nombre || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const modelo = String(tarjeta?.modelo || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  return (banco === "apple" || banco === "applecard") && (modelo === "applecard" || !modelo);
 }
 
 async function prepararImagenCredito(archivo) {
@@ -5251,6 +5280,18 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
       <span class="credito-modelo">${safe(t.modelo || textoApp("Tarjeta de crédito", "Credit card"))}</span>
       <span class="credito-final">${/^\d{4}$/.test(String(t.ultimos4 || "")) ? "•••• " + safe(t.ultimos4) : ""}</span>
     </div>
+  </div>
+` : mostrarAppleCardAutomatica(t) ? `
+  <div class="credito-visual credito-visual--apple" role="img"
+    aria-label="${textoApp("Apple Card plateada", "Silver Apple Card")}">
+    <svg class="credito-apple-logo" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.48 7.82 8.46 7.53c1.25.07 2.12.69 2.86.74.74.01 2.11-.81 3.56-.7 1.53.12 2.69.73 3.44 1.83-3.15 1.93-2.4 6.03.48 7.18-.55 1.42-1.27 2.82-2.35 3.7zM12.03 7.25C11.88 5.12 13.6 3.35 15.6 3.18c.23 2.15-1.96 4.12-3.57 4.07z"/>
+    </svg>
+    <svg class="credito-apple-chip" viewBox="0 0 40 30" aria-hidden="true">
+      <rect x="1" y="1" width="38" height="28" rx="6"/>
+      <path d="M14 1v28m12-28v28M1 10h12m-12 10h12m14-10h12m-12 10h12m-13-9-6 4 6 4m-12-8 6 4-6 4"/>
+    </svg>
+    <span class="credito-apple-marca">${safe(t.titular || data.perfil?.nombre || "Apple Card")}</span>
   </div>
 ` : `
   <div class="credito-visual">
