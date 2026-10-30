@@ -3071,6 +3071,24 @@ document.addEventListener("keydown", event => {
   if(event.key === "Escape") cerrarPanelAvisos();
 });
 
+// Si cambia el día mientras Balance One queda suspendida en el iPhone,
+// recalcular los recordatorios al regresar, sin modificar datos financieros.
+let fechaUltimaRevisionAvisos = today();
+function refrescarAvisosAlReanudar() {
+  const fechaActual = today();
+  if (fechaActual === fechaUltimaRevisionAvisos) return;
+  fechaUltimaRevisionAvisos = fechaActual;
+  if (page !== "inicio") return;
+  cerrarPanelAvisos();
+  render();
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refrescarAvisosAlReanudar();
+});
+window.addEventListener("pageshow", evento => {
+  if (evento.persisted) refrescarAvisosAlReanudar();
+});
+
 function avisosVencimiento() {
   const proximos = datosAvisosVencimiento();
   if (!proximos.length) {
