@@ -652,6 +652,12 @@ overflow: hidden;
   visibility: visible;
 }
 
+/* En Safari, acercar el panel al borde visible sin cubrir la barra del navegador.
+   Al abrir Balance One desde su icono, se conserva el margen del modo aplicación. */
+@media (display-mode: browser) and (max-width: 600px) {
+  #amMenu { bottom: 0; }
+}
+
 #amMenuFondo.abierto {
   opacity: 1;
   visibility: visible;
