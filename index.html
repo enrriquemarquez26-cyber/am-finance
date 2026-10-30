@@ -444,7 +444,7 @@ html.tema-oscuro .banco-progreso {
   position: fixed;
   left: 8px;
   right: 8px;
-  bottom: calc(16px + env(safe-area-inset-bottom));
+  bottom: calc(24px + env(safe-area-inset-bottom));
   padding: 18px 8px 24px;
   border-radius: 48px;
   background: rgba(250,251,255,.82);
@@ -474,8 +474,8 @@ overflow: hidden;
 
 #amMenu h3 {
   color: inherit;
-  margin: 0 0 31px 16px;
-  font-size: 22px;
+  margin: 0 0 18px 16px;
+  font-size: 20px;
   font-weight: 750;
   letter-spacing: -.6px;
 }
@@ -527,6 +527,7 @@ overflow: hidden;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
+  transform: scale(.97);
   gap: 0;
   padding: 14px 18px 14px 22px;
   text-align: left;
@@ -655,7 +656,7 @@ overflow: hidden;
 /* En Safari, acercar el panel al borde visible sin cubrir la barra del navegador.
    Al abrir Balance One desde su icono, se conserva el margen del modo aplicación. */
 @media (display-mode: browser) and (max-width: 600px) {
-  #amMenu { bottom: 10px; }
+  #amMenu { bottom: 18px; }
 }
 
 #amMenuFondo.abierto {
