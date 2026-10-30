@@ -238,7 +238,6 @@ html.tema-oscuro .aviso-icono-base--apple {color:#fff}
 .aviso-detalle-datos small {font-size:.68rem;color:#84909e}
 .aviso-detalle-importe {font-size:.75rem;font-weight:700;white-space:nowrap}
 .aviso-detalle-chevron {color:#8792a2;font-size:19px}
-.avisos-sin-aviso {margin:8px 10px 16px;color:#8390a0;font-size:.78rem}
 html.tema-oscuro .avisos-vencimiento,
 html.tema-oscuro .avisos-vencimiento.is-abierto {
   color:#f5f6f8;background:rgba(34,39,48,.97);
@@ -494,19 +493,6 @@ html.tema-claro .logo span {
   margin: 12px 0 0 50px;
 }
 
-.banco-card .banco-progreso {
-  height: 4px;
-  border-radius: 999px;
-  background: #e5e7eb;
-  overflow: hidden;
-}
-
-.banco-card .banco-progreso div {
-  height: 100%;
-  background: #42b883;
-  border-radius: inherit;
-}
-
 .banco-meta-texto {
   display: flex;
   justify-content: space-between;
@@ -522,10 +508,6 @@ html.tema-oscuro #cuentasInicio {
 
 html.tema-oscuro .banco-card {
   border-color: #343943;
-}
-
-html.tema-oscuro .banco-progreso {
-  background: #3a404a;
 }
 
 /* Menú flotante Balance One */
@@ -766,187 +748,16 @@ overflow: hidden;
 }
 
 /* Calculadora moderna Balance One */
-.amCalc {
-  padding: 8px 0 30px;
-}
-
-.amCalc h2 {
-  text-align: center;
-  font-size: 1.4375rem;
-  margin-bottom: 6px;
-}
-
-.amCalc > .note {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.amCalcTabs {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 7px;
-  margin-bottom: 22px;
-}
-
-.amCalcTabs button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  min-height: 68px;
-  padding: 9px 4px;
-  gap: 5px;
-  border-radius: 999px;
-  font-size: 12px;
-  background: #292d36;
-  color: white;
-  border: 1px solid #454b57;
-}
-
-.amCalcTabs button.activo {
-  background: #78869d;
-  font-weight: 700;
-}
-
-.amCalcCampos,
-.amCalcResultado {
-  border-radius: 28px;
-  padding: 22px;
-  margin-bottom: 20px;
-}
-
-.amCalcCampos input[type="range"] {
-  display: block;
-  width: 100%;
-  height: 8px;
-  margin: 8px 0 12px;
-  accent-color: #8798b7;
-  cursor: pointer;
-}
-
-.amCalcResultado h1 {
-  font-size: clamp(36px, 9vw, 54px);
-  margin: 8px 0 22px;
-  letter-spacing: -1px;
-}
-
-.amCalcTotales {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  border-top: 1px solid #7775;
-  padding-top: 18px;
-}
-
-.amCalcTotales div {
-  font-size: 12px;
-  min-width: 0;
-}
-
-.amCalcTotales strong {
-  display: block;
-  font-size: 15px;
-  margin-top: 8px;
-  overflow-wrap: anywhere;
-}
-
-.amCalc > button.primary {
-  width: 100%;
-  border-radius: 999px;
-  padding: 18px;
-  margin-bottom: 14px;
-}
-
-.amCalcAcciones {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.amCalcAcciones button {
-  padding: 17px 8px;
-  border-radius: 999px;
-  background: #292d36;
-  color: white;
-  border: 1px solid #454b57;
-}
 
 /* Diseño compacto de la calculadora */
 
-.amCalcCampos label {
-  display: inline-block;
-  position: relative;
-  width: 46%;
-  vertical-align: middle;
-  font-size: 13px;
-  font-weight: 500;
-  margin: 5px 0;
-}
-
-.amCalcCampos input[type="range"]::-webkit-slider-thumb {
-  width: 24px;
-  height: 24px;
-}
-
 /* Ajuste compacto de la calculadora */
-.amCalcCampos {
-  padding: 16px 18px;
-  position: relative;
-}
-
-.amCalcTabs button svg {
-  width: 19px;
-  height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 
 /* Símbolos dentro de los campos de la calculadora */
 
 /* Tamaños refinados de la calculadora */
 
-.amCalcCampos input[type="number"] {
-  display: inline-block;
-  vertical-align: middle;
-  text-align: center;
-  box-sizing: border-box;
-  width: 44%;
-  padding: 9px 12px;
-  margin: 5px 0;
-  font-size: 15px;
-  border-radius: 18px;
-}
-
-body:has(#content .amCalc) > header {
-  display: none;
-}
-
 /* Símbolos dentro de los campos */
-.amCalcInput {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 44%;
-}
-
-.amCalcInput span {
-  position: absolute;
-  left: 14px;
-  color: #7b8494;
-  font-size: 15px;
-  font-weight: 600;
-  pointer-events: none;
-}
-
-.amCalcInput input[type="number"] {
-  width: 100%;
-  box-sizing: border-box;
-  padding-left: 34px;
-}
 .balance-principal {
   border-radius: 36px;
   overflow: hidden;
@@ -1702,29 +1513,6 @@ html.tema-oscuro .credito-accion-copy small {color: #a4aebc;}
   overflow-wrap: anywhere;
 }
 
-.credito-uso {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.credito-barra {
-  flex: 1;
-  height: 6px;
-  background: #e5e7eb;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.credito-barra span {
-  display: block;
-  height: 100%;
-  background: #ff9800;
-  border-radius: inherit;
-}
-
-.credito-porcentaje,
 .credito-texto {
   font-size: .65rem;
 }
@@ -1753,10 +1541,6 @@ html.tema-oscuro .credito-accion-copy small {color: #a4aebc;}
 html.tema-oscuro .credito-fila,
 html.tema-oscuro .credito-resumen {
   background: #20242b;
-}
-
-html.tema-oscuro .credito-barra {
-  background: #3a404a;
 }
 
 html.tema-oscuro .credito-agregar {
@@ -3069,8 +2853,7 @@ function render(){
  if(page==="inicio")return disenoInicioActual()==="nuevo" ? inicioNuevo() : inicio();
  if(page==="suscripciones")return suscripciones();
  if(page==="metasAhorro")return metasAhorro();
- if(page==="recordatorios")return recordatorios();
- if(page==="reportes")return reportes();
+
  if(page==="pagosPendientes")return pagosPendientes();
  if(page==="movimientos")return movimientos();
  if(page==="historialMovimientos")return historialMovimientos();
@@ -3081,11 +2864,12 @@ function render(){
  if(page==="perfil")return perfil();
  if(page==="calculadora")return calculadora();
 if(page==="transferencias")return transferencias();
-if(page==="documentos")return documentos();
+
 if(page==="deudas")return deudas();
-if(page==="patrimonio")return patrimonio();
-if(page==="impuestos")return impuestos();
-return presupuestos();
+
+page="inicio";
+ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.id==="nav-inicio"));
+ return disenoInicioActual()==="nuevo" ? inicioNuevo() : inicio();
 }
 function diasParaVencer(dia){
 const hoy=new Date();
@@ -5976,16 +5760,6 @@ function pagarTarjeta(e, i) {
     alert(textoApp("Pago registrado y descontado de la cuenta elegida.", "Payment recorded and deducted from the selected account."));
 }
 
-function presupuestos(){
-  el().innerHTML=`
-        <h2>${textoApp("Presupuestos", "Budgets")}</h2>
-
-    <div class="card">
-    <h3>${textoApp("Mis presupuestos", "My budgets")}</h3>
-    <p class="note">${textoApp("Aquí podrás organizar tus presupuestos mensuales.", "Here you will be able to organize your monthly budgets.")}</p>
-</div>
-  `;
-}
 function resumenPreciosSuscripcion(registro) {
   const monto = Number(registro.monto);
   const mensual = Number(registro.precioMensual);
@@ -6210,25 +5984,6 @@ function metasAhorro(){
   `;
 }
 
-function recordatorios(){
-  el().innerHTML = `
-        <h2>${textoApp("Recordatorios", "Reminders")}</h2>
-    <div class="card">
-            <h3>${textoApp("Mis recordatorios", "My reminders")}</h3>
-            <p class="note">${textoApp("Aquí podrás consultar tus próximos recordatorios.", "Here you will be able to view your upcoming reminders.")}</p>
-    </div>
-  `;
-}
-
-function reportes(){
-  el().innerHTML = `
-        <h2>${textoApp("Reportes", "Reports")}</h2>
-    <div class="card">
-            <h3>${textoApp("Mis reportes", "My reports")}</h3>
-            <p class="note">${textoApp("Aquí podrás consultar los reportes de tus finanzas.", "Here you will be able to view your financial reports.")}</p>
-    </div>
-  `;
-}
 let mesPagosPendientes = month();
 let filtroPagosPendientes = "pendientes";
 
@@ -6658,71 +6413,6 @@ function calculadora() {
   `;
 }
 
-function sincronizarCalc(campo) {
-  document.getElementById("calc" + campo).value =
-    document.getElementById("calc" + campo + "Barra").value;
-  actualizarCalc();
-}
-
-function actualizarCalc() {
-  const valor = id => Number(document.getElementById(id).value) || 0;
-  const monto = Math.max(0, valor("calcMonto"));
-  const inicial = Math.min(monto, Math.max(0, valor("calcInicial")));
-  const tasa = Math.max(0, valor("calcTasa")) / 1200;
-  const meses = Math.max(1, Math.round(valor("calcPlazo")));
-  const capital = monto - inicial;
-  const mensual = tasa === 0
-    ? capital / meses
-    : capital * tasa / (1 - Math.pow(1 + tasa, -meses));
-  const total = mensual * meses;
-  const formato = money;
-
-  ["Monto", "Tasa", "Plazo", "Inicial"].forEach(campo => {
-    const barra = document.getElementById("calc" + campo + "Barra");
-    const numero = document.getElementById("calc" + campo);
-    barra.value = numero.value;
-  });
-
-  document.getElementById("calcMensual").textContent = formato(mensual);
-  document.getElementById("calcFinanciado").textContent = formato(capital);
-  document.getElementById("calcIntereses").textContent = formato(total - capital);
-  document.getElementById("calcTotal").textContent = formato(total);
-}
-
-function cambiarTipoCalc(tipo) {
-  if (tipo !== "prestamo") {
-    alert("Próximamente: " + tipo);
-    return;
-  }
-  calculadora();
-}
-
-function verAmortizacionCalc() {
-  document.getElementById("calcDetalle").innerHTML =
-    '<div class="card">La tabla de amortización se agregará próximamente.</div>';
-}
-
-function verGraficoCalc() {
-  document.getElementById("calcDetalle").innerHTML =
-    '<div class="card">El gráfico se agregará próximamente.</div>';
-}
-
-function guardarCalc() {
-  alert("La función Guardar se agregará próximamente.");
-}
-
-function mostrarHerramientaPendiente(es, en) {
-  el().innerHTML = `
-    <h2>${textoApp(es, en)}</h2>
-    <div class="card">
-      <p>${textoApp(
-        "Esta función estará disponible próximamente.",
-        "This feature is coming soon."
-      )}</p>
-    </div>
-  `;
-}
-
 function transferencias() {
   const [anio, mes] = mesCalendario.split("-").map(Number);
   const primero = new Date(anio, mes - 1, 1, 12);
@@ -6817,9 +6507,7 @@ function transferencias() {
      </section>
   `;
 }
-function documentos() {
-  mostrarHerramientaPendiente("Documentos", "Documents");
-}
+
 function deudas() {
   const lista = Array.isArray(data.prestamos)
     ? data.prestamos : [];
@@ -7033,12 +6721,8 @@ function verPrestamoCompacto(indice) {
     true
   );
 }
-function patrimonio() {
-  mostrarHerramientaPendiente("Patrimonio", "Net worth");
-}
-function impuestos() {
-  mostrarHerramientaPendiente("Impuestos", "Taxes");
-}
+
+
 function perfil() {
   const usuario = data.perfil || {};
 
