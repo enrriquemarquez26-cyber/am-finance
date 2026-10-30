@@ -1326,24 +1326,23 @@ html.tema-oscuro .tarjetas-pantalla select {
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
-  min-height: 140px;
-  padding: 15px 12px;
-  border-radius: 24px;
-  color: white;
-  background: linear-gradient(145deg, #24364d, #101a29);
-}
-
-/* El tamaño de la foto no depende de la altura del texto de la deuda. */
-.credito-visual--imagen {
-  position: relative;
   width: calc(100% - 7px);
   aspect-ratio: 1.586;
   min-height: 0;
   align-self: center;
   margin-left: 7px;
   margin-right: 0;
-  padding: 0;
+  padding: 15px 12px;
+  border-radius: 21px;
   overflow: hidden;
+  color: white;
+  background: linear-gradient(145deg, #24364d, #101a29);
+}
+
+/* Todas las tarjetas usan el mismo tamaño y margen que la primera. */
+.credito-visual--imagen {
+  position: relative;
+  padding: 0;
   background: transparent;
 }
 .credito-visual--imagen img {
@@ -1357,11 +1356,6 @@ html.tema-oscuro .tarjetas-pantalla select {
 }
 .credito-visual--apple {
   position: relative;
-  width: calc(100% - 7px);
-  aspect-ratio: 1.586;
-  min-height: 0;
-  align-self: center;
-  margin-left: 7px;
   padding: 15px;
   border: 1px solid #d6dce2;
   border-radius: 21px;
