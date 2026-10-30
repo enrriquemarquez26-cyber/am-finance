@@ -219,8 +219,8 @@ html.tema-oscuro .aviso-icono-base--apple {color:#fff}
 }
 .avisos-vencimiento.is-abierto .aviso-vencimiento-flecha::after {display:none}
 .avisos-vencimiento.is-abierto .aviso-vencimiento {min-height:58px;gap:9px;padding:9px 12px}
-.avisos-vencimiento.is-abierto .aviso-vencimiento > .aviso-vencimiento-icono {flex-basis:36px;width:36px;height:36px}
-.avisos-vencimiento.is-abierto .aviso-vencimiento > .aviso-vencimiento-icono img {inset:5px;width:26px;height:26px}
+/* Los logos aparecen solo en la cápsula cerrada; el encabezado abierto es texto limpio. */
+.avisos-vencimiento.is-abierto .aviso-vencimiento > .aviso-vencimiento-icono {display:none}
 .avisos-vencimiento.is-abierto .aviso-vencimiento-texto strong {font-size:.82rem}
 .avisos-vencimiento.is-abierto .aviso-vencimiento-texto small {font-size:.72rem}
 .avisos-vencimiento.is-abierto .aviso-vencimiento-flecha {flex-basis:29px;width:29px;height:29px;transform:rotate(90deg)}
