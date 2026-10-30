@@ -1374,6 +1374,194 @@ html.tema-oscuro .tarjetas-pantalla select {
   flex: 0 0 auto;
 }
 
+/* Opciones de las tarjetas: filas compactas que despliegan sus propios formularios. */
+.tarjeta-detalle.credito-detalle {
+  padding: 18px 15px 14px;
+  border: 1px solid rgba(214, 218, 226, .45);
+  box-shadow: 0 6px 22px rgba(28, 38, 59, .025);
+}
+.credito-detalle-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 2px 15px;
+}
+.credito-detalle-cabecera h3 {
+  margin: 3px 0 0;
+  font-size: 1.04rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.credito-detalle-sobretitulo {
+  color: #8a94a4;
+  font-size: .65rem;
+  font-weight: 650;
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+.credito-detalle-apr {
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  border: 1px solid #ebedf2;
+  border-radius: 999px;
+  background: #f7f8fa;
+  color: #636f7e;
+  font-size: .69rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.credito-acciones {display: grid;gap: 9px;}
+.credito-accion {
+  min-width: 0;
+  background: #f7f8fb;
+  border: 1px solid #edf0f4;
+  border-radius: 23px;
+}
+.credito-accion-boton {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-height: 65px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 23px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+.credito-accion-boton:focus-visible,
+.credito-eliminar:focus-visible,
+.credito-cargar-foto:focus-within {
+  outline: 2px solid #ff8a26;
+  outline-offset: 2px;
+}
+.credito-accion-icono {
+  display: grid;
+  place-items: center;
+  flex: 0 0 39px;
+  width: 39px;
+  height: 39px;
+  border-radius: 15px;
+  background: #e9e8fa;
+  color: #6961c8;
+}
+.credito-accion-icono svg {width: 20px;height: 20px;stroke-width: 1.8;}
+.credito-accion--fecha .credito-accion-icono {background: #fff0e3;color: #e98530;}
+.credito-accion--pago .credito-accion-icono {background: #e3f5ec;color: #25865e;}
+.credito-accion-copy {display: grid;gap: 3px;flex: 1;min-width: 0;}
+.credito-accion-copy strong {font-size: .81rem;font-weight: 710;line-height: 1.3;}
+.credito-accion-copy small {color: #8a94a2;font-size: .67rem;line-height: 1.25;}
+.credito-accion-flecha {
+  display: grid;
+  place-items: center;
+  flex: 0 0 27px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  color: #7d8898;
+  transition: transform .2s ease;
+}
+.credito-accion-flecha svg {width: 15px;height: 15px;}
+.credito-accion-boton[aria-expanded="true"] .credito-accion-flecha {transform: rotate(180deg);}
+.credito-accion .credito-form-panel {
+  margin: 0 9px 9px;
+  padding: 14px 11px 12px;
+  border-top: 1px solid #e5e8ee;
+  border-radius: 0 0 17px 17px;
+  background: transparent;
+}
+.credito-accion .credito-form-panel.hidden {display: none;}
+.credito-config-form,
+.credito-form-panel form {display: grid;gap: 11px;}
+.credito-form-campo {display: grid;gap: 6px;min-width: 0;}
+.tarjeta-detalle .credito-form-campo > label {
+  display: block;
+  margin: 0;
+  color: #657182;
+  font-size: .72rem;
+  font-weight: 650;
+}
+.tarjeta-detalle .credito-form-campo > input,
+.tarjeta-detalle .credito-form-campo > select {
+  height: 44px;
+  min-width: 0;
+  margin: 0;
+  padding: 9px 13px;
+  border: 1px solid #e2e5ed;
+  border-radius: 16px;
+  background: #fff;
+  font-size: .88rem;
+}
+.credito-form-doble {display: grid;grid-template-columns: minmax(0,1fr) minmax(0,1fr);gap: 10px;}
+.tarjeta-detalle .credito-form-panel .primary {
+  min-height: 44px;
+  margin: 3px 0 0;
+  border-radius: 16px;
+  font-size: .8rem;
+  font-weight: 700;
+}
+.credito-cargar-foto {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  min-width: 0;
+  min-height: 45px;
+  margin: 0 !important;
+  padding: 8px 10px;
+  border: 1px dashed #cbd2dd;
+  border-radius: 16px;
+  background: #fff;
+  cursor: pointer;
+}
+.credito-cargar-foto strong {flex: 0 0 auto;color: #ed790f;font-size: .73rem;}
+.credito-cargar-foto span {min-width: 0;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;color: #7b8594;font-size: .68rem;font-weight: 500;}
+.tarjetas-pantalla .credito-form-campo > .credito-input-archivo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.credito-form-campo:has(.credito-input-archivo:focus-visible) .credito-cargar-foto {outline: 2px solid #ff8a26;outline-offset: 2px;}
+.tarjeta-detalle .credito-foto-ayuda {margin: -3px 1px 0;font-size: .65rem;}
+.tarjeta-detalle .credito-restaurar-imagen {margin: 0;font-size: .7rem;}
+.tarjeta-detalle .credito-restaurar-imagen input {width: 18px;height: 18px;}
+.credito-eliminar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: #c55b65;
+  font: inherit;
+  font-size: .74rem;
+  font-weight: 650;
+}
+.credito-eliminar svg {width: 16px;height: 16px;stroke-width: 1.8;}
+html.tema-oscuro .tarjeta-detalle.credito-detalle {border-color: #373d48;}
+html.tema-oscuro .credito-accion {background: #292f39;border-color: #373f4b;}
+html.tema-oscuro .credito-detalle-apr {background: #292f39;color: #c2cad5;border-color: #373f4b;}
+html.tema-oscuro .credito-accion-flecha,
+html.tema-oscuro .credito-cargar-foto {background: #363e49;color: #d9dfe8;border-color: #515969;}
+html.tema-oscuro .credito-accion .credito-form-panel {border-color: #404753;}
+html.tema-oscuro .tarjeta-detalle .credito-form-campo > label {color: #b3bdca;}
+html.tema-oscuro .tarjeta-detalle .credito-form-campo > input,
+html.tema-oscuro .tarjeta-detalle .credito-form-campo > select {background: #333b46;color: #fff;border-color: #505b6b;}
+html.tema-oscuro .credito-accion-copy small {color: #a4aebc;}
+
 .credito-marca {
   font-size: .85rem;
   font-weight: 750;
@@ -4963,143 +5151,142 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
     </div>
   </button>
 
-  <div class="tarjeta-detalle hidden" id="detalleCredito${i}">
-    <strong>${safe(t.nombre)}</strong>
-    <p class="tarjetas-ayuda">APR: ${safe(t.apr)}%</p>
-<button type="button" class="secondary"
-  onclick="toggle('datosCredito${i}')">
-    ${textoApp("Configurar datos de la tarjeta", "Set up card details")}
-</button>
+  <div class="tarjeta-detalle credito-detalle hidden" id="detalleCredito${i}">
+    <div class="credito-detalle-cabecera">
+      <div>
+        <span class="credito-detalle-sobretitulo">${textoApp("Opciones de tarjeta", "Card options")}</span>
+        <h3>${safe(t.nombre)}</h3>
+      </div>
+      <span class="credito-detalle-apr">APR ${safe(t.apr)}%</span>
+    </div>
 
-<div class="payment hidden" id="datosCredito${i}">
-  <form class="tarjeta-formulario"
-    style="padding:0;background:transparent;margin:0"
-    onsubmit="guardarDatosTarjeta(event,${i})">
-<label for="bancoCredito${i}">${textoApp("Banco", "Bank")}</label>
-<select id="bancoCredito${i}" name="banco"
-  onchange="actualizarModelosCredito(${i})">
-    <option value="">${textoApp("Seleccionar banco", "Select bank")}</option>
+    <div class="credito-acciones">
+      <div class="credito-accion credito-accion--datos">
+        <button type="button" class="credito-accion-boton"
+          onclick="toggleCreditoPanel(this,'datosCredito${i}')"
+          aria-expanded="false" aria-controls="datosCredito${i}">
+          <span class="credito-accion-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M7 15h4"/></svg>
+          </span>
+          <span class="credito-accion-copy"><strong>${textoApp("Datos de la tarjeta", "Card details")}</strong><small>${textoApp("Banco, imagen y pago mínimo", "Bank, image and minimum")}</small></span>
+          <span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+        </button>
+        <div class="payment credito-form-panel hidden" id="datosCredito${i}">
+          <form class="tarjeta-formulario credito-config-form"
+            style="padding:0;background:transparent;margin:0"
+            onsubmit="guardarDatosTarjeta(event,${i})">
+            <div class="credito-form-campo">
+              <label for="bancoCredito${i}">${textoApp("Banco", "Bank")}</label>
+              <select id="bancoCredito${i}" name="banco" onchange="actualizarModelosCredito(${i})">
+                <option value="">${textoApp("Seleccionar banco", "Select bank")}</option>
+                ${["American Express", "Chase", "Capital One", "Citi", "Discover", "Bank of America", "Wells Fargo", "Apple", "Otro"].map(banco => `
+                  <option value="${banco}" ${t.banco === banco ? "selected" : ""}>${banco === "Otro" ? textoApp("Otro", "Other") : banco}</option>
+                `).join("")}
+              </select>
+            </div>
 
-  ${[
-    "American Express",
-    "Chase",
-    "Capital One",
-    "Citi",
-    "Discover",
-    "Bank of America",
-    "Wells Fargo",
-    "Apple",
-    "Otro"
-  ].map(banco => `
-    <option value="${banco}"
-      ${t.banco === banco ? "selected" : ""}>
-            ${banco === "Otro" ? textoApp("Otro", "Other") : banco}
-    </option>
-  `).join("")}
-</select>
+            <div class="credito-form-campo">
+              <label for="modeloCredito${i}">${textoApp("Modelo de tarjeta", "Card model")}</label>
+              <input id="modeloCredito${i}" name="modelo" list="modelosCredito${i}"
+                placeholder="${textoApp("Selecciona o escribe el modelo", "Select or enter the model")}" maxlength="60"
+                value="${safe(t.modelo || "")}">
+              <datalist id="modelosCredito${i}">
+                ${modelosCredito(t.banco).map(modelo => `<option value="${safe(modelo)}"></option>`).join("")}
+              </datalist>
+            </div>
 
-<label for="modeloCredito${i}"
-       style="display:block;margin:14px 0 6px">
-    ${textoApp("Modelo de tarjeta", "Card model")}
-</label>
+            <div class="credito-form-campo">
+              <label for="imagenCredito${i}">${textoApp("Imagen de la tarjeta", "Card image")}</label>
+              <input id="imagenCredito${i}" name="imagenCredito" type="file" accept="image/*"
+                class="credito-input-archivo" onchange="mostrarNombreImagenCredito(this,${i})">
+              <label class="credito-cargar-foto" for="imagenCredito${i}">
+                <strong>${textoApp("Elegir imagen", "Choose image")}</strong>
+                <span id="nombreImagenCredito${i}">${t.imagenPersonalizada ? textoApp("Foto personalizada actual", "Current custom photo") : textoApp("Sin imagen personalizada", "No custom image")}</span>
+              </label>
+              <small class="credito-foto-ayuda">${textoApp(
+                "La foto sustituye el diseño automático. Evita imágenes con número completo o CVV.",
+                "Your photo replaces the automatic design. Avoid images showing a full number or CVV."
+              )}</small>
+              ${t.imagenPersonalizada ? `
+                <label class="credito-restaurar-imagen">
+                  <input type="checkbox" name="restaurarImagen" value="1">
+                  ${textoApp("Usar de nuevo la imagen del banco", "Restore the bank's image")}
+                </label>
+              ` : ""}
+            </div>
 
-    <input id="modeloCredito${i}" name="modelo"
-  list="modelosCredito${i}"
-    placeholder="${textoApp("Selecciona o escribe el modelo", "Select or enter the model")}"
-  maxlength="60"
-  value="${safe(t.modelo || "")}">
-
-<datalist id="modelosCredito${i}">
-  ${modelosCredito(t.banco).map(modelo => `
-    <option value="${safe(modelo)}"></option>
-  `).join("")}
-</datalist>
-
-<label for="imagenCredito${i}">${textoApp("Imagen de la tarjeta", "Card image")}</label>
-<input id="imagenCredito${i}" name="imagenCredito"
-  type="file" accept="image/*">
-<small class="credito-foto-ayuda">${textoApp(
-  "Si eliges una foto, reemplazará la imagen o el diseño automático de la tarjeta. Usa una imagen sin número completo ni código CVV.",
-  "A selected photo replaces the card's automatic artwork or design. Use an image without a full card number or CVV."
-)}</small>
-${t.imagenPersonalizada ? `
-  <label class="credito-restaurar-imagen">
-    <input type="checkbox" name="restaurarImagen" value="1">
-    ${textoApp("Volver a la imagen automática del banco", "Restore automatic bank artwork")}
-  </label>
-` : ""}
-
-        <label for="digitosCredito${i}">${textoApp("Últimos cuatro dígitos", "Last four digits")}</label>
-    <input id="digitosCredito${i}" name="ultimos4"
-      type="text" inputmode="numeric"
-      pattern="[0-9]{4}" maxlength="4"
-            placeholder="${textoApp("Ej. 1234", "e.g. 1234")}"
-      value="${safe(t.ultimos4 || "")}">
-
-        <label for="minimoCredito${i}">${textoApp("Pago mínimo ($)", "Minimum payment ($)")}</label>
-    <input id="minimoCredito${i}" name="pagoMinimo"
-      type="number" min="0" step="0.01"
-      placeholder="0.00"
-      value="${safe(t.pagoMinimo ?? "")}">
-
-    <button class="primary" type="submit">
-            ${textoApp("Guardar datos", "Save details")}
-    </button>
-  </form>
-</div>
-
-    <button type="button" class="secondary"
-      onclick="toggle('venceTarjeta${i}')">
-            ${textoApp("Configurar vencimiento", "Set due date")}
-    </button>
-
-      <div class="payment hidden" id="venceTarjeta${i}">
-        <form onsubmit="guardarVencimiento(event,'tarjeta',${i})">
-                    <label class="label">${textoApp("Día de vencimiento mensual", "Monthly payment due day")}</label>
-
-          <select name="dia" required>
-            ${Array.from({length:31},(_,j)=>`
-              <option value="${j+1}"
-                ${Number(t.vencimiento)===j+1?"selected":""}>
-                                ${textoApp("Día", "Day")} ${j+1}
-              </option>
-            `).join("")}
-          </select>
-
-                    <button class="primary">${textoApp("Guardar vencimiento", "Save due date")}</button>
-        </form>
+            <div class="credito-form-doble">
+              <div class="credito-form-campo">
+                <label for="digitosCredito${i}">${textoApp("Últimos 4 dígitos", "Last 4 digits")}</label>
+                <input id="digitosCredito${i}" name="ultimos4" type="text" inputmode="numeric"
+                  pattern="[0-9]{4}" maxlength="4" placeholder="1234" value="${safe(t.ultimos4 || "")}">
+              </div>
+              <div class="credito-form-campo">
+                <label for="minimoCredito${i}">${textoApp("Pago mínimo ($)", "Minimum payment ($)")}</label>
+                <input id="minimoCredito${i}" name="pagoMinimo" type="number" min="0" step="0.01"
+                  placeholder="0.00" value="${safe(t.pagoMinimo ?? "")}">
+              </div>
+            </div>
+            <button class="primary" type="submit">${textoApp("Guardar datos", "Save details")}</button>
+          </form>
+        </div>
       </div>
 
-      <button type="button" class="secondary"
-        onclick="toggle('tarjeta${i}')">
-                ${textoApp("Registrar pago", "Record payment")}
-      </button>
-
-      <div class="payment hidden" id="tarjeta${i}">
-        <form onsubmit="pagarTarjeta(event,${i})">
-         <label for="cuentaPagoTarjeta${i}" class="label">
-    ${textoApp("Cuenta de origen", "Source account")}
-</label>
-
-<select id="cuentaPagoTarjeta${i}" name="bancoId" required>
-  ${opcionesCuentasPago()}
-</select>
-                      <label class="label">${textoApp("Cantidad pagada ($)", "Amount paid ($)")}</label>
-          <input name="monto" type="number"
-            min="0.01" step="0.01"
-            placeholder="0.00" required>
-                    <button class="primary">${textoApp("Confirmar pago", "Confirm payment")}</button>
-        </form>
+      <div class="credito-accion credito-accion--fecha">
+        <button type="button" class="credito-accion-boton"
+          onclick="toggleCreditoPanel(this,'venceTarjeta${i}')"
+          aria-expanded="false" aria-controls="venceTarjeta${i}">
+          <span class="credito-accion-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18M8 15h3"/></svg>
+          </span>
+          <span class="credito-accion-copy"><strong>${textoApp("Vencimiento", "Due date")}</strong><small>${t.vencimiento ? textoApp("Cada mes, día ", "Every month, day ") + safe(t.vencimiento) : textoApp("Configurar fecha de pago", "Set payment date")}</small></span>
+          <span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+        </button>
+        <div class="payment credito-form-panel hidden" id="venceTarjeta${i}">
+          <form onsubmit="guardarVencimiento(event,'tarjeta',${i})">
+            <div class="credito-form-campo">
+              <label for="diaCredito${i}">${textoApp("Día de vencimiento mensual", "Monthly payment due day")}</label>
+              <select id="diaCredito${i}" name="dia" required>
+                ${Array.from({length:31},(_,j)=>`<option value="${j+1}" ${Number(t.vencimiento)===j+1?"selected":""}>${textoApp("Día", "Day")} ${j+1}</option>`).join("")}
+              </select>
+            </div>
+            <button class="primary" type="submit">${textoApp("Guardar vencimiento", "Save due date")}</button>
+          </form>
+        </div>
       </div>
-          <button type="button"
-        onclick="eliminarTarjetaCredito(${i})"
-        style="width:100%;margin-top:14px;padding:13px;
-        border-radius:999px;border:1px solid rgba(212,77,86,.3);
-        background:rgba(212,77,86,.1);color:#d44d56;
-        font:inherit;font-weight:600">
-        ${textoApp("Eliminar tarjeta", "Delete card")}
-      </button>
-   </div>
+
+      <div class="credito-accion credito-accion--pago">
+        <button type="button" class="credito-accion-boton"
+          onclick="toggleCreditoPanel(this,'tarjeta${i}')"
+          aria-expanded="false" aria-controls="tarjeta${i}">
+          <span class="credito-accion-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M7 15h6M17 14v4m-2-2h4"/></svg>
+          </span>
+          <span class="credito-accion-copy"><strong>${textoApp("Registrar pago", "Record payment")}</strong><small>${textoApp("Descontar desde una cuenta", "Deduct from an account")}</small></span>
+          <span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+        </button>
+        <div class="payment credito-form-panel hidden" id="tarjeta${i}">
+          <form onsubmit="pagarTarjeta(event,${i})">
+            <div class="credito-form-campo">
+              <label for="cuentaPagoTarjeta${i}">${textoApp("Cuenta de origen", "Source account")}</label>
+              <select id="cuentaPagoTarjeta${i}" name="bancoId" required>${opcionesCuentasPago()}</select>
+            </div>
+            <div class="credito-form-campo">
+              <label for="montoPagoTarjeta${i}">${textoApp("Cantidad pagada ($)", "Amount paid ($)")}</label>
+              <input id="montoPagoTarjeta${i}" name="monto" type="number"
+                min="0.01" step="0.01" placeholder="0.00" required>
+            </div>
+            <button class="primary" type="submit">${textoApp("Confirmar pago", "Confirm payment")}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="credito-eliminar" onclick="eliminarTarjetaCredito(${i})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 3h4M6 7l1 14h10l1-14M10 11v6M14 11v6"/></svg>
+      ${textoApp("Eliminar tarjeta", "Delete card")}
+    </button>
+  </div>
   `).join("")}
 
   ${data.tarjetas.length === 0 ? `
@@ -5245,6 +5432,29 @@ alert(textoApp("Vencimiento guardado: día "+dia+" de cada mes.", "Due date save
 function toggle(ident){
  const element=document.getElementById(ident);
  if(element)element.classList.toggle("hidden");
+}
+
+function toggleCreditoPanel(boton, ident) {
+  const panel = document.getElementById(ident);
+  if (!panel) return;
+  const abrir = panel.classList.contains("hidden");
+  const detalle = boton.closest(".credito-detalle");
+  if (abrir && detalle) {
+    detalle.querySelectorAll('.credito-accion-boton[aria-expanded="true"]').forEach(otro => {
+      if (otro === boton) return;
+      const anterior = document.getElementById(otro.getAttribute("aria-controls"));
+      if (anterior) anterior.classList.add("hidden");
+      otro.setAttribute("aria-expanded", "false");
+    });
+  }
+  panel.classList.toggle("hidden", !abrir);
+  boton.setAttribute("aria-expanded", String(abrir));
+}
+
+function mostrarNombreImagenCredito(entrada, indice) {
+  const etiqueta = document.getElementById(`nombreImagenCredito${indice}`);
+  if (!etiqueta) return;
+  etiqueta.textContent = entrada.files?.[0]?.name || textoApp("Sin imagen seleccionada", "No image selected");
 }
 
 function pagarAuto(e, i) {
