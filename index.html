@@ -261,6 +261,58 @@ html.tema-oscuro .aviso-detalle-datos small {color:#b4becb}
 html.tema-oscuro .aviso-vencimiento-flecha,
 html.tema-oscuro .aviso-detalle {background:rgba(255,255,255,.075)}
 html.tema-oscuro .aviso-detalle {border-color:rgba(255,255,255,.07)}
+/* Balance One · modelo de ventana Liquid Glass aprobado.
+   La forma cambia SOLO al expandir; la cápsula cerrada y los datos no se modifican.
+   No se añade pestaña superior, tirador, adorno circular ni logos en el título. */
+.avisos-vencimiento.is-abierto {
+  width:min(385px,calc(100vw - 30px));
+  border-radius:46px;
+  border:1px solid rgba(255,255,255,.78);
+  background:linear-gradient(150deg,rgba(248,249,253,.87),rgba(229,233,241,.79));
+  backdrop-filter:blur(28px) saturate(145%);
+  -webkit-backdrop-filter:blur(28px) saturate(145%);
+  box-shadow:0 18px 46px rgba(15,24,43,.21),inset 0 1px 0 rgba(255,255,255,.8);
+  padding:11px 11px 13px;
+}
+.avisos-vencimiento.is-abierto > .aviso-vencimiento {
+  min-height:64px;
+  padding:10px 14px 9px;
+  border-radius:34px;
+}
+.avisos-vencimiento.is-abierto .aviso-vencimiento-texto strong {font-size:.87rem}
+.avisos-vencimiento.is-abierto .aviso-vencimiento-texto small {font-size:.71rem}
+.avisos-vencimiento.is-abierto .aviso-vencimiento-flecha {
+  background:rgba(255,255,255,.73);
+  border:1px solid rgba(255,255,255,.72);
+}
+.avisos-vencimiento.is-abierto .aviso-lista {padding:1px 5px 5px}
+.avisos-vencimiento.is-abierto .aviso-detalle {
+  min-height:65px;
+  margin-top:8px;
+  padding:10px 11px;
+  border-radius:30px;
+  border:1px solid rgba(255,255,255,.78);
+  background:rgba(255,255,255,.64);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 1px 5px rgba(50,65,92,.035);
+}
+html.tema-oscuro .avisos-vencimiento.is-abierto {
+  background:linear-gradient(150deg,rgba(52,58,70,.91),rgba(31,36,47,.86));
+  border-color:rgba(255,255,255,.18);
+  box-shadow:0 18px 46px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.08);
+}
+html.tema-oscuro .avisos-vencimiento.is-abierto .aviso-detalle {
+  background:rgba(255,255,255,.095);
+  border-color:rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+html.tema-oscuro .avisos-vencimiento.is-abierto .aviso-vencimiento-flecha {
+  background:rgba(255,255,255,.12);
+  border-color:rgba(255,255,255,.12);
+}
+@media (max-width:359px) {
+  .avisos-vencimiento.is-abierto {border-radius:37px;padding:8px}
+  .avisos-vencimiento.is-abierto .aviso-detalle {border-radius:25px}
+}
 @media (prefers-reduced-motion:reduce) {
   .avisos-vencimiento,.aviso-detalles {transition:none}
 }
