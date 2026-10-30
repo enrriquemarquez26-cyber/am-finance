@@ -63,6 +63,12 @@ nav button {
   padding: 7px 2px;
 }
 
+/* Burbuja ovalada visible para la pestaña seleccionada, en ambos temas. */
+nav button.active {
+  background: rgba(155,165,185,.26);
+  box-shadow: inset 0 0 0 1px rgba(145,155,175,.12);
+}
+
 /* Barra adaptable a modo claro y oscuro */
 @media (prefers-color-scheme: light) {
   nav {
@@ -164,11 +170,12 @@ nav button span {
   border:1.5px solid #fff;border-radius:50%;background:#ff7900;
 }
 html.tema-oscuro .aviso-vencimiento {
-  background:#fff;border-color:#e9ebf0;color:#17212e;
+  background:rgba(38,43,52,.94);border-color:#424a57;color:#f5f6f8;
 }
-html.tema-oscuro .aviso-vencimiento-icono {background:#fff;color:#ff7900;box-shadow:none}
-html.tema-oscuro .aviso-vencimiento-texto small {color:#8b94a3}
-html.tema-oscuro .aviso-vencimiento-flecha {background:#f5f6f8}
+html.tema-oscuro .aviso-vencimiento-icono {background:#353c47;color:#ff9a45;box-shadow:none}
+html.tema-oscuro .aviso-vencimiento-icono--apple {background:#353c47}
+html.tema-oscuro .aviso-vencimiento-texto small {color:#b4becb}
+html.tema-oscuro .aviso-vencimiento-flecha {background:rgba(255,255,255,.11);color:#f5f6f8}
 .payment{background:#f5f8f9;border-radius:13px;padding:14px;margin-top:12px}
 .hidden{display:none}
 .editbox{background:#f5f8f9;border-radius:13px;padding:14px;margin-top:12px}
@@ -252,6 +259,8 @@ html.tema-oscuro nav button {
 
 html.tema-oscuro nav button.active {
   color: #F28C28;
+  background: rgba(205,214,230,.19);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
 }
 
 html.tema-oscuro .logo span {
@@ -311,6 +320,7 @@ html.tema-claro nav button {
 
 html.tema-claro nav button.active {
   color: #F28C28;
+  background: rgba(155,165,185,.26);
 }
 
 html.tema-claro .logo span {
@@ -1595,6 +1605,28 @@ html.tema-oscuro .credito-accion-copy small {color: #a4aebc;}
   font-weight: 750;
   overflow-wrap: anywhere;
 }
+.credito-interes-aviso {
+  margin: -2px 0 8px;
+  padding: 7px 8px;
+  border-radius: 12px;
+  background: #fff4e9;
+  color: #a9571d;
+  font-size: .63rem;
+  line-height: 1.35;
+}
+.credito-interes-detalle {
+  padding: 11px 12px;
+  border-radius: 16px;
+  background: #fff6ee;
+  color: #8b531f;
+  font-size: .73rem;
+  line-height: 1.5;
+}
+.credito-interes-detalle strong {display: block;font-size: .78rem;}
+.credito-interes-detalle small {display: block;margin-top: 4px;color: #936b4b;}
+html.tema-oscuro .credito-interes-aviso,
+html.tema-oscuro .credito-interes-detalle {background: #443124;color: #ffd8b8;}
+html.tema-oscuro .credito-interes-detalle small {color: #e2b595;}
 
 .credito-uso {
   display: flex;
@@ -2289,6 +2321,85 @@ html.tema-oscuro .apariencia-ventana {
   color: #f5f6f8;
 }
 
+/* El formulario de suscripciones conserva la hoja flotante compacta en iPhone. */
+.apariencia-ventana--suscripciones {
+  width: calc(100% - 24px);
+  padding: 17px 17px 15px;
+  border-radius: 32px;
+  bottom: 10px;
+}
+.apariencia-ventana--suscripciones h2 {
+  margin: 4px 0 13px;
+  font-size: 1.06rem;
+}
+.apariencia-ventana--suscripciones .apariencia-tirador {margin-bottom: 12px;}
+.apariencia-ventana--suscripciones .suscripcion-calendario-form {
+  display: grid;
+  gap: 10px;
+}
+.apariencia-ventana--suscripciones .suscripcion-campo {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: .72rem;
+  font-weight: 650;
+}
+.apariencia-ventana--suscripciones .suscripcion-campo input,
+.apariencia-ventana--suscripciones .suscripcion-campo select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border-radius: 16px;
+  font-size: .85rem;
+}
+.apariencia-ventana--suscripciones .suscripcion-campo input[type="date"] {
+  color: inherit;
+  background: #fff;
+  font-size: 16px;
+}
+.apariencia-ventana--suscripciones .suscripcion-precios {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  min-width: 0;
+}
+.apariencia-ventana--suscripciones .suscripcion-precios > * {min-width: 0;}
+.apariencia-ventana--suscripciones .suscripcion-ayuda {
+  margin: 0;
+  font-size: .67rem;
+  line-height: 1.35;
+}
+.apariencia-ventana--suscripciones .suscripcion-guardar {
+  min-height: 44px;
+  padding: 10px 14px;
+  margin-top: 3px;
+  border-radius: 999px;
+  background: var(--balanceone-color, #ff7900);
+  font-size: .79rem;
+  font-weight: 700;
+}
+.apariencia-ventana--suscripciones .apariencia-listo {
+  min-height: 42px;
+  margin-top: 9px;
+  border: 1px solid rgba(130, 140, 155, .24);
+  background: rgba(255, 255, 255, .78);
+  color: #4a5666;
+  font-size: .78rem;
+  font-weight: 650;
+}
+html.tema-oscuro .apariencia-ventana--suscripciones .apariencia-listo {
+  background: rgba(255, 255, 255, .1);
+  color: #f3f5f9;
+}
+html.tema-oscuro .apariencia-ventana--suscripciones .suscripcion-campo input[type="date"] {
+  background: #333b46;
+}
+
 @keyframes aparienciaSubir {
   from { transform: translateY(50px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -2518,7 +2629,7 @@ html.inicio-nuevo-activo nav {
 html.inicio-nuevo-activo nav button {padding:6px 2px;gap:3px}
 html.inicio-nuevo-activo nav button svg {width:30px;height:30px}
 html.inicio-nuevo-activo nav button span {font-size:9px}
-html.inicio-nuevo-activo nav button.active {background:rgba(255,121,0,.11);color:var(--balanceone-color,#ff7900);padding-left:5px;padding-right:5px}
+html.inicio-nuevo-activo nav button.active {background:rgba(155,165,185,.26);color:var(--balanceone-color,#ff7900);padding-left:5px;padding-right:5px}
 html.tema-oscuro .inicio-nuevo-tarjeta,
 html.tema-oscuro .inicio-nuevo-panel {background:rgba(36,42,51,.9);border-color:rgba(255,255,255,.07);color:#f5f6f8}
 html.tema-oscuro .inicio-nuevo-anillo-centro {background:#252a33}
@@ -2531,6 +2642,7 @@ html.tema-oscuro .inicio-nuevo-escena::after {opacity:.48}
 html.tema-oscuro .inicio-nuevo-escena > .inicio-nuevo-tarjeta::before,
 html.tema-oscuro .inicio-nuevo-escena > .inicio-nuevo-tarjeta::after {opacity:.46}
 html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(30,32,38,.78);border-color:rgba(255,255,255,.14)}
+html.tema-oscuro.inicio-nuevo-activo nav button.active {background:rgba(205,214,230,.19);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 @media(max-width:390px){
   .inicio-nuevo-tarjeta {padding:16px 12px;border-radius:33px}
   .inicio-nuevo-escena {padding-top:29px}
@@ -2839,6 +2951,41 @@ function validDate(s){
    fecha.toISOString().slice(0,10)===s;
 }
 
+// Proyección orientativa: no sustituye el interés real del estado de cuenta.
+function vencimientoTarjetaEnMes(dia, fecha = today()) {
+  const numero = Number(dia);
+  if (!validDate(fecha) || !Number.isInteger(numero) || numero < 1 || numero > 31) return "";
+  const [anio, mes] = fecha.slice(0, 7).split("-").map(Number);
+  const ultimo = new Date(Date.UTC(anio, mes, 0)).getUTCDate();
+  return `${fecha.slice(0, 7)}-${String(Math.min(numero, ultimo)).padStart(2, "0")}`;
+}
+
+function proximoVencimientoTarjeta(dia, fecha = today(), incluirHoy = true) {
+  const esteMes = vencimientoTarjetaEnMes(dia, fecha);
+  if (!esteMes || esteMes > fecha || (incluirHoy && esteMes === fecha)) return esteMes;
+  const [anio, mes] = fecha.slice(0, 7).split("-").map(Number);
+  const siguienteMes = new Date(Date.UTC(anio, mes, 1)).toISOString().slice(0, 10);
+  return vencimientoTarjetaEnMes(dia, siguienteMes);
+}
+
+function estimarInteresTarjeta(tarjeta, fecha = today()) {
+  const saldo = Number(tarjeta?.saldo);
+  const apr = Number(tarjeta?.apr);
+  const base = validDate(tarjeta?.fechaBaseInteres)
+    ? tarjeta.fechaBaseInteres
+    : vencimientoTarjetaEnMes(tarjeta?.vencimiento, fecha);
+  const vacio = {dias: 0, interes: 0, saldoEstimado: Number.isFinite(saldo) ? saldo : 0, fechaBase: base};
+  if (!validDate(fecha) || !base || fecha <= base ||
+      !Number.isFinite(saldo) || saldo <= 0 ||
+      !Number.isFinite(apr) || apr <= 0 || apr > 300) return vacio;
+
+  const dias = Math.min(3650, Math.round((
+    Date.parse(fecha + "T12:00:00Z") - Date.parse(base + "T12:00:00Z")
+  ) / 86400000));
+  const interes = round(saldo * (Math.pow(1 + apr / 36500, dias) - 1));
+  return {dias, interes, saldoEstimado: round(saldo + interes), fechaBase: base};
+}
+
 // Añade identificadores a los registros antiguos sin borrarlos.
 let changed=false;
 for(const group of ["movimientos","vehiculos","tarjetas","pagos"]){
@@ -2858,6 +3005,13 @@ for(const p of data.pagos){
    changed=true;
   }
  }
+}
+// No se modifica el saldo real: solo se fija la referencia para la estimación.
+for (const tarjeta of data.tarjetas) {
+  if (!validDate(tarjeta.fechaBaseInteres)) {
+    const inicial = vencimientoTarjetaEnMes(tarjeta.vencimiento);
+    if (inicial) {tarjeta.fechaBaseInteres = inicial; changed = true;}
+  }
 }
 if(changed)save();
 
@@ -5080,7 +5234,9 @@ function tarjetas(){
     </form>
   </div>
 
- ${data.tarjetas.map((t,i)=>`
+ ${data.tarjetas.map((t,i)=>{
+    const interes = estimarInteresTarjeta(t);
+    return `
   <button type="button" class="credito-fila"
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
     onclick="toggle('detalleCredito${i}')"
@@ -5113,12 +5269,17 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
 `}
 
     <div class="credito-datos">
-            <div class="credito-etiqueta">${textoApp("Deuda actual", "Current debt")}</div>
-      <div class="credito-deuda">${money(t.saldo)}</div>
+            <div class="credito-etiqueta">${interes.interes > 0
+              ? textoApp("Deuda estimada", "Estimated debt")
+              : textoApp("Deuda actual", "Current debt")}</div>
+      <div class="credito-deuda">${money(interes.saldoEstimado)}</div>
+      ${interes.interes > 0 ? `<div class="credito-interes-aviso">${textoApp(
+        "Incluye aprox. ", "Includes approx. "
+      )}${money(interes.interes)}${textoApp(" de interés (", " of interest (")}${interes.dias}${textoApp(" días)", " days)")}</div>` : ""}
 
               ${barraProgreso(
           Number(t.limite) > 0
-            ? Number(t.saldo) / Number(t.limite) * 100
+            ? interes.saldoEstimado / Number(t.limite) * 100
             : 0
         )}
 
@@ -5159,6 +5320,16 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
       </div>
       <span class="credito-detalle-apr">APR ${safe(t.apr)}%</span>
     </div>
+
+    ${interes.interes > 0 ? `<div class="credito-interes-detalle" style="margin-bottom:11px">
+      <strong>${textoApp("Interés estimado desde el vencimiento", "Estimated interest since due date")}: +${money(interes.interes)}</strong>
+      ${textoApp("Saldo registrado", "Recorded balance")}: ${money(t.saldo)} ·
+      ${textoApp("Proyección", "Projection")}: ${money(interes.saldoEstimado)}
+      <small>${textoApp(
+        "Cálculo orientativo con APR diario; el banco puede cobrar otro importe o empezar antes. No se suma al saldo guardado para evitar duplicarlo.",
+        "Daily APR estimate; the bank may charge a different amount or start earlier. Not posted to your saved balance to avoid double-counting."
+      )}</small>
+    </div>` : ""}
 
     <div class="credito-acciones">
       <div class="credito-accion credito-accion--datos">
@@ -5287,7 +5458,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
       ${textoApp("Eliminar tarjeta", "Delete card")}
     </button>
   </div>
-  `).join("")}
+  `;}).join("")}
 
   ${data.tarjetas.length === 0 ? `
     <div class="tarjetas-vacio">
@@ -5304,11 +5475,13 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
 ${data.tarjetas.length > 0 ? `
   <div class="credito-resumen">
     <div>
-            <span class="credito-etiqueta">${textoApp("Deuda total", "Total debt")}</span>
+            <span class="credito-etiqueta">${data.tarjetas.some(t => estimarInteresTarjeta(t).interes > 0)
+              ? textoApp("Deuda total estimada", "Estimated total debt")
+              : textoApp("Deuda total", "Total debt")}</span>
       <strong>${
         money(data.tarjetas.reduce(
           (total, tarjeta) =>
-            total + (Number(tarjeta.saldo) || 0),
+            total + estimarInteresTarjeta(tarjeta).saldoEstimado,
           0
         ))
       }</strong>
@@ -5336,7 +5509,8 @@ ${data.tarjetas.length > 0 ? `
    saldo:round(f.get("saldo")),
    limite:round(f.get("limite")),
    apr:Number(f.get("apr")),
-vencimiento:Number(f.get("vencimiento"))
+vencimiento:Number(f.get("vencimiento")),
+fechaBaseInteres:vencimientoTarjetaEnMes(Number(f.get("vencimiento")))
   });
   save();render();
  };
@@ -5424,6 +5598,7 @@ return;
 }
 
 cuenta.vencimiento=dia;
+if (tipo === "tarjeta") cuenta.fechaBaseInteres = vencimientoTarjetaEnMes(dia);
 save();
 render();
 
@@ -5619,7 +5794,16 @@ function guardarPagoTarjetaBanco(anterior, nuevo) {
     if (nuevo) pagos.push(nuevo);
 
     const tarjetas = data.tarjetas.map(t =>
-      t.id === tarjeta.id ? {...t, saldo: deudaTarjeta} : t
+      t.id === tarjeta.id
+        ? {
+          ...t,
+          saldo: deudaTarjeta,
+          // Al liquidar la deuda, el próximo vencimiento inicia el nuevo cálculo.
+          ...(deudaTarjeta === 0
+            ? {fechaBaseInteres: proximoVencimientoTarjeta(t.vencimiento, today(), false)}
+            : {})
+        }
+        : t
     );
 
     const datosNuevos = {...data, tarjetas, pagos};
@@ -8894,7 +9078,7 @@ function aplicarColorPrincipal(color) {
     #formAuto .primary,
     .vehiculo-panel .payment .primary,
     .banco-dialogo .primary,
-    .apariencia-ventana .apariencia-listo {
+    .apariencia-ventana:not(.apariencia-ventana--suscripciones) .apariencia-listo {
       background: ${color} !important;
       color: #fff !important;
     }
@@ -10359,50 +10543,51 @@ function abrirFormularioSuscripcionCalendario(indice = null) {
   const opcion = (valor, etiqueta, seleccionado) =>
     `<option value="${valor}" ${seleccionado === valor ? "selected" : ""}>${etiqueta}</option>`;
   const campo = (nombre, titulo, tipo, valor, extra = "") => `
-    <label style="display:grid;gap:5px;font-size:.75rem;font-weight:650">
+    <label class="suscripcion-campo">
       ${titulo}
       <input name="${nombre}" type="${tipo}" value="${safe(valor)}" ${extra}
-        style="box-sizing:border-box;width:100%;margin:0;border-radius:17px;padding:11px">
+        >
     </label>`;
 
   const ventana = crearVentanaApariencia(
     registro ? textoApp("Editar suscripción", "Edit subscription")
       : textoApp("Agregar suscripción", "Add subscription"),
-    `<form id="formSuscripcionCalendario" style="display:grid;gap:13px">
+    `<form id="formSuscripcionCalendario" class="suscripcion-calendario-form">
       ${campo("nombre", textoApp("Servicio o pago", "Service or payment"), "text", actual.nombre || "", 'maxlength="80" required')}
-      <label style="display:grid;gap:5px;font-size:.75rem;font-weight:650">
+      <label class="suscripcion-campo">
         ${textoApp("Tipo de pago", "Payment type")}
-        <select name="categoria" style="margin:0;border-radius:17px">
+        <select name="categoria">
           ${opcion("suscripcion", textoApp("Suscripción", "Subscription"), actual.categoria || "suscripcion")}
           ${opcion("renta", textoApp("Renta", "Rent"), actual.categoria)}
           ${opcion("prestamo", textoApp("Préstamo personal", "Personal loan"), actual.categoria)}
           ${opcion("cuotas", textoApp("Compras a cuotas", "Installments"), actual.categoria)}
         </select>
       </label>
-      <label style="display:grid;gap:5px;font-size:.75rem;font-weight:650">
+      <label class="suscripcion-campo">
         ${textoApp("Frecuencia de cobro", "Billing frequency")}
-        <select name="frecuencia" style="margin:0;border-radius:17px">
+        <select name="frecuencia">
           ${opcion("mensual", textoApp("Mensual", "Monthly"), actual.frecuencia || "mensual")}
           ${opcion("anual", textoApp("Anual", "Yearly"), actual.frecuencia)}
           ${opcion("cada14dias", textoApp("Cada 14 días", "Every 14 days"), actual.frecuencia)}
         </select>
       </label>
-      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+      <div class="suscripcion-precios">
         ${campo("precioMensual", textoApp("Precio mensual ($)", "Monthly price ($)"), "number", actual.precioMensual ?? (actual.frecuencia !== "anual" ? actual.monto ?? "" : ""), 'min="0.01" step="0.01" placeholder="0.00"')}
         ${campo("precioAnual", textoApp("Precio anual ($)", "Yearly price ($)"), "number", actual.precioAnual ?? (actual.frecuencia === "anual" ? actual.monto ?? "" : ""), 'min="0.01" step="0.01" placeholder="0.00"')}
       </div>
-      <p class="note" style="margin:0">${textoApp(
+      <p class="note suscripcion-ayuda">${textoApp(
         "Rellena el precio del período que pagas. El otro es opcional. Cada 14 días usa el primer precio por cobro.",
         "Enter the price for your billing period. The other is optional. For every 14 days, the first price is per charge."
       )}</p>
       ${campo("inicio", textoApp("Primer cobro", "First charge"), "date", actual.inicio || today(), "required")}
       ${campo("fin", textoApp("Último cobro (si aplica)", "Last charge (if applicable)"), "date", actual.fin || "")}
-      <button type="submit" class="primary" style="border-radius:999px;background:var(--balanceone-color,#ff7900)">
+      <button type="submit" class="primary suscripcion-guardar">
         ${textoApp("Guardar suscripción", "Save subscription")}
       </button>
     </form>`, true
   );
   if (!ventana) return;
+  ventana.classList.add("apariencia-ventana--suscripciones");
   const form = ventana.querySelector("#formSuscripcionCalendario");
   form.onsubmit = event => {
     event.preventDefault();
