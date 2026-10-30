@@ -5706,6 +5706,86 @@ function presupuestos(){
 </div>
   `;
 }
+function resumenPreciosSuscripcion(registro) {
+  const monto = Number(registro.monto);
+  const mensual = Number(registro.precioMensual);
+  const anual = Number(registro.precioAnual);
+  const tieneMensual = registro.precioMensual != null && Number.isFinite(mensual) && mensual > 0;
+  const tieneAnual = registro.precioAnual != null && Number.isFinite(anual) && anual > 0;
+  const frecuencia = registro.frecuencia || "mensual";
+  const mes = tieneMensual ? money(mensual)
+    : frecuencia === "anual" && Number.isFinite(monto) ? "≈" + money(monto / 12)
+    : Number.isFinite(monto) ? money(monto) : "—";
+  const anio = tieneAnual ? money(anual)
+    : Number.isFinite(monto) ? "≈" + money(monto * (frecuencia === "cada14dias" ? 26 : frecuencia === "anual" ? 1 : 12)) : "—";
+  const etiqueta = frecuencia === "cada14dias"
+    ? textoApp("Cada 14 días", "Every 14 days") : textoApp("Mes", "Month");
+  return `${etiqueta}: ${mes} · ${textoApp("Año", "Year")}: ${anio}`;
+}
+
+function guardarSuscripcionFormulario(form, indice = null) {
+  if (form.dataset.guardado === "si") return false;
+
+  const campos = new FormData(form);
+  const nombre = String(campos.get("nombre") || "").trim();
+  const frecuencia = String(campos.get("frecuencia") || "mensual");
+  const categoria = String(campos.get("categoria") || "");
+  const precioMensualTexto = String(campos.get("precioMensual") || "").trim();
+  const precioAnualTexto = String(campos.get("precioAnual") || "").trim();
+  const precioMensual = precioMensualTexto ? round(precioMensualTexto) : null;
+  const precioAnual = precioAnualTexto ? round(precioAnualTexto) : null;
+  const monto = frecuencia === "anual" ? precioAnual : precioMensual;
+  const inicio = String(campos.get("inicio") || "");
+  const fin = String(campos.get("fin") || "");
+
+  if (!nombre || !validDate(inicio) || !validAmount(monto) ||
+      (precioMensual !== null && !validAmount(precioMensual)) ||
+      (precioAnual !== null && !validAmount(precioAnual)) ||
+      !["mensual", "cada14dias", "anual"].includes(frecuencia) ||
+      !["suscripcion", "renta", "prestamo", "cuotas"].includes(categoria)) {
+    alert(textoApp(
+      "Revisa el nombre, la fecha y el precio del período que vas a pagar.",
+      "Check the name, date and price for the selected billing period."
+    ));
+    return false;
+  }
+  if (fin && (!validDate(fin) || fin < inicio)) {
+    alert(textoApp(
+      "El último cobro debe ser igual o posterior al primero.",
+      "The last charge must be on or after the first."
+    ));
+    return false;
+  }
+  if (["prestamo", "cuotas"].includes(categoria) && !fin) {
+    alert(textoApp("Indica la fecha del último cobro.", "Enter the last charge date."));
+    return false;
+  }
+
+  const lista = Array.isArray(data.suscripciones) ? data.suscripciones : [];
+  const anterior = Number.isInteger(indice) && indice >= 0 ? lista[indice] : null;
+  if (indice !== null && !anterior) return false;
+  const nueva = {
+    ...(anterior || {}), id:anterior ? anterior.id : id(),
+    nombre, monto, precioMensual, precioAnual, inicio, categoria, fin, frecuencia
+  };
+  const nuevaLista = anterior
+    ? lista.map((registro, i) => i === indice ? nueva : registro)
+    : [...lista, nueva];
+  const nuevosDatos = {...data, suscripciones:nuevaLista};
+
+  try {
+    localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
+  } catch {
+    alert(textoApp("No se pudo guardar. No se hicieron cambios.",
+      "Could not save. No changes were made."));
+    return false;
+  }
+  form.dataset.guardado = "si";
+  data = nuevosDatos;
+  render();
+  return true;
+}
+
  function suscripciones() {
   const lista = Array.isArray(data.suscripciones)
     ? data.suscripciones : [];
@@ -5727,6 +5807,9 @@ function presupuestos(){
   </option>
   <option value="cada14dias">
     ${textoApp("Cada dos semanas · 14 días", "Every two weeks · 14 days")}
+  </option>
+  <option value="anual">
+    ${textoApp("Anual · cada 12 meses", "Yearly · every 12 months")}
   </option>
 </select>
       <label for="tipoPagoProgramado">
@@ -5752,9 +5835,16 @@ function presupuestos(){
         <input name="nombre" maxlength="80" required
           placeholder="Netflix, Spotify…">
 
-        <label>${textoApp("Importe por cobro ($)", "Amount per charge ($)")}</label>
-        <input name="monto" type="number"
-          min="0.01" step="0.01" required>
+        <label for="precioMensualProgramado">${textoApp("Precio mensual ($)", "Monthly price ($)")}</label>
+        <input id="precioMensualProgramado" name="precioMensual" type="number"
+          min="0.01" step="0.01" placeholder="0.00">
+        <label for="precioAnualProgramado">${textoApp("Precio anual ($)", "Yearly price ($)")}</label>
+        <input id="precioAnualProgramado" name="precioAnual" type="number"
+          min="0.01" step="0.01" placeholder="0.00">
+        <p class="note">${textoApp(
+          "Puedes indicar ambos precios para compararlos. Solo se programará el cobro del período seleccionado. Si eliges cada 14 días, usa el primer importe como precio por cobro.",
+          "You may enter both prices to compare. Only the selected billing period is scheduled. For every 14 days, use the first amount as the per-charge price."
+        )}</p>
 
         <label>${textoApp("Primer cobro", "First charge")}</label>
         <input name="inicio" type="date" value="${today()}" required>
@@ -5802,6 +5892,9 @@ function presupuestos(){
               ${textoApp("Primer cobro · Día ", "First charge · Day ")}
               ${Number(String(s.inicio).slice(8,10))}
             </small>
+            <small style="display:block;color:#84909d">
+              ${resumenPreciosSuscripcion(s)}
+            </small>
           </span>
 
           <strong>${money(s.monto)}</strong>
@@ -5824,71 +5917,7 @@ function presupuestos(){
 
   form.onsubmit = event => {
     event.preventDefault();
-    if (form.dataset.guardado === "si") return;
-
-    const campos = new FormData(form);
-    const nombre = String(campos.get("nombre") || "").trim();
-    const monto = round(campos.get("monto"));
-    const inicio = String(campos.get("inicio"));
-
-    if (!nombre || !validAmount(monto) || !validDate(inicio)) {
-      alert(textoApp(
-        "Revisa el nombre, importe y fecha.",
-        "Check the name, amount and date."
-      ));
-      return;
-    }
-
-    const tiposPermitidos = [
-  "suscripcion", "renta", "prestamo", "cuotas"
-];
-
-const categoria = String(campos.get("categoria"));
-if (!tiposPermitidos.includes(categoria)) return;
-
-const fin = String(campos.get("fin") || "");
-
-if (fin && (!validDate(fin) || fin < inicio)) {
-  alert(textoApp(
-    "El último cobro debe ser igual o posterior al primero.",
-    "The last charge must be on or after the first."
-  ));
-  return;
-}
-
-if (["prestamo", "cuotas"].includes(categoria) && !fin) {
-  alert(textoApp(
-    "Indica la fecha del último cobro.",
-    "Enter the last charge date."
-  ));
-  return;
-}
-
-const frecuencia = String(campos.get("frecuencia") || "mensual");
-
-if (!["mensual", "cada14dias"].includes(frecuencia)) return;
-
-const nueva = {
-  id:id(), nombre, monto, inicio, categoria, fin, frecuencia
-};
-    const nuevosDatos = {
-      ...data,
-      suscripciones:[...lista, nueva]
-    };
-
-    try {
-      localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
-    } catch {
-      alert(textoApp(
-        "No se pudo guardar. No se hicieron cambios.",
-        "Could not save. No changes were made."
-      ));
-      return;
-    }
-
-    form.dataset.guardado = "si";
-    data = nuevosDatos;
-    render();
+    guardarSuscripcionFormulario(form);
   };
 }
 function metasAhorro(){
@@ -10163,7 +10192,12 @@ function suscripcionesDelMes(
     const limite = s.fin && s.fin < finMes ? s.fin : finMes;
     if (s.inicio > limite || limite < inicioMes) continue;
 
-    if (s.frecuencia === "cada14dias") {
+    if (s.frecuencia === "anual") {
+      const [anioInicio, mesInicio, diaInicio] = s.inicio.split("-").map(Number);
+      if (anio < anioInicio || mes !== mesInicio) continue;
+      const fecha = mesElegido + "-" + String(Math.min(diaInicio, ultimo)).padStart(2, "0");
+      if (fecha >= s.inicio && fecha <= limite) eventos.push({...s, fecha});
+    } else if (s.frecuencia === "cada14dias") {
       const convertir = fecha => {
         const [a,m,d] = fecha.split("-").map(Number);
         return Date.UTC(a,m-1,d);
@@ -10236,6 +10270,9 @@ function bloqueSuscripcionesCalendario(fecha) {
               ${textoApp("Día ", "Day ")}
               ${Number(s.fecha.slice(8,10))}
             </small>
+            <small style="display:block;color:#84909d;font-size:.69rem;margin-top:3px">
+              ${resumenPreciosSuscripcion(s)}
+            </small>
           </span>
 
           <strong>${money(s.monto)}</strong>
@@ -10258,17 +10295,133 @@ function bloqueSuscripcionesCalendario(fecha) {
 
 function abrirSuscripcionesDesdeCalendario() {
   const ventana = document.querySelector(".cal-dia-ventana");
+  if (ventana) {
+    ventana.addEventListener("close", () => {
+      setTimeout(mostrarGestionSuscripcionesCalendario, 0);
+    }, {once:true});
+    ventana.close();
+    return;
+  }
+  mostrarGestionSuscripcionesCalendario();
+}
 
-  if (!ventana) {
-    go("suscripciones");
+function mostrarGestionSuscripcionesCalendario() {
+  const lista = Array.isArray(data.suscripciones) ? data.suscripciones : [];
+  crearVentanaApariencia(
+    textoApp("Suscripciones y pagos fijos", "Subscriptions and fixed payments"),
+    `<div style="display:grid;gap:10px">
+      ${lista.map((registro, indice) => `
+        <div style="display:flex;align-items:center;gap:9px;padding:12px;
+          border-radius:22px;background:rgba(130,140,155,.08)">
+          <span aria-hidden="true" style="position:relative;width:32px;height:32px;
+            flex:0 0 32px;display:grid;place-items:center">↻${imagenCompania(registro.nombre)}</span>
+          <span style="flex:1;min-width:0;overflow-wrap:anywhere">
+            <strong style="font-size:.8rem">${safe(registro.nombre)}</strong>
+            <small style="display:block;color:#84909d;font-size:.68rem">${resumenPreciosSuscripcion(registro)}</small>
+          </span>
+          <button type="button" aria-label="${textoApp("Editar", "Edit")} ${safe(registro.nombre)}"
+            onclick="abrirFormularioSuscripcionCalendario(${indice})"
+            style="border:0;background:#fff;color:#e98530;padding:8px 10px;border-radius:999px;font:inherit;font-size:.72rem">
+            ${textoApp("Editar", "Edit")}
+          </button>
+          <button type="button" aria-label="${textoApp("Eliminar", "Delete")} ${safe(registro.nombre)}"
+            onclick="eliminarSuscripcionCalendario(${indice})"
+            style="border:0;background:rgba(212,77,86,.09);color:#c4535c;padding:8px;border-radius:999px;font:inherit;font-size:.72rem">×</button>
+        </div>
+      `).join("") || `<p class="note">${textoApp("Todavía no hay suscripciones registradas.", "No subscriptions added yet.")}</p>`}
+      <button type="button" class="primary"
+        style="border-radius:999px;background:var(--balanceone-color,#ff7900)"
+        onclick="abrirFormularioSuscripcionCalendario()">
+        + ${textoApp("Agregar suscripción", "Add subscription")}
+      </button>
+      <p class="note" style="margin:0">${textoApp(
+        "Los cobros son recordatorios: no descuentan dinero de tus cuentas automáticamente.",
+        "Scheduled charges are reminders; they do not deduct money from your accounts automatically."
+      )}</p>
+    </div>`, true
+  );
+}
+
+function abrirFormularioSuscripcionCalendario(indice = null) {
+  const abierta = document.querySelector(".apariencia-ventana");
+  if (abierta) {
+    abierta.addEventListener("close", () => {
+      setTimeout(() => abrirFormularioSuscripcionCalendario(indice), 0);
+    }, {once:true});
+    abierta.close();
     return;
   }
 
-  ventana.addEventListener("close", () => {
-    setTimeout(() => go("suscripciones"), 0);
-  }, {once:true});
+  const lista = Array.isArray(data.suscripciones) ? data.suscripciones : [];
+  const registro = Number.isInteger(indice) ? lista[indice] : null;
+  if (indice !== null && !registro) return;
+  const actual = registro || {};
+  const opcion = (valor, etiqueta, seleccionado) =>
+    `<option value="${valor}" ${seleccionado === valor ? "selected" : ""}>${etiqueta}</option>`;
+  const campo = (nombre, titulo, tipo, valor, extra = "") => `
+    <label style="display:grid;gap:5px;font-size:.75rem;font-weight:650">
+      ${titulo}
+      <input name="${nombre}" type="${tipo}" value="${safe(valor)}" ${extra}
+        style="box-sizing:border-box;width:100%;margin:0;border-radius:17px;padding:11px">
+    </label>`;
 
-  ventana.close();
+  const ventana = crearVentanaApariencia(
+    registro ? textoApp("Editar suscripción", "Edit subscription")
+      : textoApp("Agregar suscripción", "Add subscription"),
+    `<form id="formSuscripcionCalendario" style="display:grid;gap:13px">
+      ${campo("nombre", textoApp("Servicio o pago", "Service or payment"), "text", actual.nombre || "", 'maxlength="80" required')}
+      <label style="display:grid;gap:5px;font-size:.75rem;font-weight:650">
+        ${textoApp("Tipo de pago", "Payment type")}
+        <select name="categoria" style="margin:0;border-radius:17px">
+          ${opcion("suscripcion", textoApp("Suscripción", "Subscription"), actual.categoria || "suscripcion")}
+          ${opcion("renta", textoApp("Renta", "Rent"), actual.categoria)}
+          ${opcion("prestamo", textoApp("Préstamo personal", "Personal loan"), actual.categoria)}
+          ${opcion("cuotas", textoApp("Compras a cuotas", "Installments"), actual.categoria)}
+        </select>
+      </label>
+      <label style="display:grid;gap:5px;font-size:.75rem;font-weight:650">
+        ${textoApp("Frecuencia de cobro", "Billing frequency")}
+        <select name="frecuencia" style="margin:0;border-radius:17px">
+          ${opcion("mensual", textoApp("Mensual", "Monthly"), actual.frecuencia || "mensual")}
+          ${opcion("anual", textoApp("Anual", "Yearly"), actual.frecuencia)}
+          ${opcion("cada14dias", textoApp("Cada 14 días", "Every 14 days"), actual.frecuencia)}
+        </select>
+      </label>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+        ${campo("precioMensual", textoApp("Precio mensual ($)", "Monthly price ($)"), "number", actual.precioMensual ?? (actual.frecuencia !== "anual" ? actual.monto ?? "" : ""), 'min="0.01" step="0.01" placeholder="0.00"')}
+        ${campo("precioAnual", textoApp("Precio anual ($)", "Yearly price ($)"), "number", actual.precioAnual ?? (actual.frecuencia === "anual" ? actual.monto ?? "" : ""), 'min="0.01" step="0.01" placeholder="0.00"')}
+      </div>
+      <p class="note" style="margin:0">${textoApp(
+        "Rellena el precio del período que pagas. El otro es opcional. Cada 14 días usa el primer precio por cobro.",
+        "Enter the price for your billing period. The other is optional. For every 14 days, the first price is per charge."
+      )}</p>
+      ${campo("inicio", textoApp("Primer cobro", "First charge"), "date", actual.inicio || today(), "required")}
+      ${campo("fin", textoApp("Último cobro (si aplica)", "Last charge (if applicable)"), "date", actual.fin || "")}
+      <button type="submit" class="primary" style="border-radius:999px;background:var(--balanceone-color,#ff7900)">
+        ${textoApp("Guardar suscripción", "Save subscription")}
+      </button>
+    </form>`, true
+  );
+  if (!ventana) return;
+  const form = ventana.querySelector("#formSuscripcionCalendario");
+  form.onsubmit = event => {
+    event.preventDefault();
+    if (guardarSuscripcionFormulario(form, indice)) ventana.close();
+  };
+}
+
+function eliminarSuscripcionCalendario(indice) {
+  const antes = Array.isArray(data.suscripciones) ? data.suscripciones.length : 0;
+  eliminarRegistroProgramado("suscripcion", indice);
+  if (data.suscripciones?.length !== antes) {
+    const ventana = document.querySelector(".apariencia-ventana");
+    if (ventana) {
+      ventana.addEventListener("close", () => {
+        setTimeout(mostrarGestionSuscripcionesCalendario, 0);
+      }, {once:true});
+      ventana.close();
+    }
+  }
 }
 
 function conectarSuscripcionesDia(ventana, fecha) {
