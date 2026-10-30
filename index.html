@@ -155,6 +155,16 @@ nav button span {
   overflow:hidden;
   transition:width .28s ease,border-radius .28s ease,box-shadow .28s ease;
 }
+/* Estado sin vencimientos: la cápsula permanece visible sin iconos ni punto naranja. */
+.avisos-vencimiento--vacio:not(.is-abierto) .aviso-vencimiento {justify-content:center}
+.avisos-vencimiento--vacio:not(.is-abierto) .aviso-vencimiento-texto {
+  flex:0 1 auto;text-align:center;
+}
+.aviso-lista--vacia {
+  padding:18px 14px 22px;
+  text-align:center;color:#84909e;font-size:.82rem;
+}
+html.tema-oscuro .aviso-lista--vacia {color:#b4becb}
 .avisos-vencimiento.is-abierto {
   z-index:1011;
   width:min(385px,calc(100vw - 38px));
@@ -3011,7 +3021,25 @@ document.addEventListener("keydown", event => {
 
 function avisosVencimiento() {
   const proximos = datosAvisosVencimiento();
-  if(!proximos.length) return "";
+  if (!proximos.length) {
+    return `<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>
+    <div class="avisos-ancla"><section id="avisosUnificados"
+      class="avisos-vencimiento avisos-vencimiento--vacio"
+      aria-label="${textoApp("Notificaciones","Notifications")}">
+      <button type="button" class="aviso-vencimiento" aria-expanded="false"
+        aria-controls="avisosUnificadosLista" onclick="abrirPanelAvisos()">
+        <span class="aviso-vencimiento-texto"><strong>
+          <span class="avisos-cerrado">${textoApp("Todo al día","All caught up")}</span>
+          <span class="avisos-abierto">${textoApp("Notificaciones","Notifications")}</span>
+        </strong></span>
+      </button>
+      <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">
+        <div class="aviso-lista aviso-lista--vacia">
+          ${textoApp("No tienes avisos pendientes","You have no pending reminders")}
+        </div>
+      </div>
+    </section></div>`;
+  }
   const principal = proximos.find(c => /apple card/i.test(c.nombre)) || proximos[0];
   const restantes = proximos.filter(c=>c!==principal);
   return `<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>
