@@ -1628,28 +1628,6 @@ html.tema-oscuro .credito-accion-copy small {color: #a4aebc;}
   font-weight: 750;
   overflow-wrap: anywhere;
 }
-.credito-interes-aviso {
-  margin: -2px 0 8px;
-  padding: 7px 8px;
-  border-radius: 12px;
-  background: #fff4e9;
-  color: #a9571d;
-  font-size: .63rem;
-  line-height: 1.35;
-}
-.credito-interes-detalle {
-  padding: 11px 12px;
-  border-radius: 16px;
-  background: #fff6ee;
-  color: #8b531f;
-  font-size: .73rem;
-  line-height: 1.5;
-}
-.credito-interes-detalle strong {display: block;font-size: .78rem;}
-.credito-interes-detalle small {display: block;margin-top: 4px;color: #936b4b;}
-html.tema-oscuro .credito-interes-aviso,
-html.tema-oscuro .credito-interes-detalle {background: #443124;color: #ffd8b8;}
-html.tema-oscuro .credito-interes-detalle small {color: #e2b595;}
 
 .credito-uso {
   display: flex;
@@ -2974,41 +2952,6 @@ function validDate(s){
    fecha.toISOString().slice(0,10)===s;
 }
 
-// Proyección orientativa: no sustituye el interés real del estado de cuenta.
-function vencimientoTarjetaEnMes(dia, fecha = today()) {
-  const numero = Number(dia);
-  if (!validDate(fecha) || !Number.isInteger(numero) || numero < 1 || numero > 31) return "";
-  const [anio, mes] = fecha.slice(0, 7).split("-").map(Number);
-  const ultimo = new Date(Date.UTC(anio, mes, 0)).getUTCDate();
-  return `${fecha.slice(0, 7)}-${String(Math.min(numero, ultimo)).padStart(2, "0")}`;
-}
-
-function proximoVencimientoTarjeta(dia, fecha = today(), incluirHoy = true) {
-  const esteMes = vencimientoTarjetaEnMes(dia, fecha);
-  if (!esteMes || esteMes > fecha || (incluirHoy && esteMes === fecha)) return esteMes;
-  const [anio, mes] = fecha.slice(0, 7).split("-").map(Number);
-  const siguienteMes = new Date(Date.UTC(anio, mes, 1)).toISOString().slice(0, 10);
-  return vencimientoTarjetaEnMes(dia, siguienteMes);
-}
-
-function estimarInteresTarjeta(tarjeta, fecha = today()) {
-  const saldo = Number(tarjeta?.saldo);
-  const apr = Number(tarjeta?.apr);
-  const base = validDate(tarjeta?.fechaBaseInteres)
-    ? tarjeta.fechaBaseInteres
-    : vencimientoTarjetaEnMes(tarjeta?.vencimiento, fecha);
-  const vacio = {dias: 0, interes: 0, saldoEstimado: Number.isFinite(saldo) ? saldo : 0, fechaBase: base};
-  if (!validDate(fecha) || !base || fecha <= base ||
-      !Number.isFinite(saldo) || saldo <= 0 ||
-      !Number.isFinite(apr) || apr <= 0 || apr > 300) return vacio;
-
-  const dias = Math.min(3650, Math.round((
-    Date.parse(fecha + "T12:00:00Z") - Date.parse(base + "T12:00:00Z")
-  ) / 86400000));
-  const interes = round(saldo * (Math.pow(1 + apr / 36500, dias) - 1));
-  return {dias, interes, saldoEstimado: round(saldo + interes), fechaBase: base};
-}
-
 // Añade identificadores a los registros antiguos sin borrarlos.
 let changed=false;
 for(const group of ["movimientos","vehiculos","tarjetas","pagos"]){
@@ -3028,13 +2971,6 @@ for(const p of data.pagos){
    changed=true;
   }
  }
-}
-// No se modifica el saldo real: solo se fija la referencia para la estimación.
-for (const tarjeta of data.tarjetas) {
-  if (!validDate(tarjeta.fechaBaseInteres)) {
-    const inicial = vencimientoTarjetaEnMes(tarjeta.vencimiento);
-    if (inicial) {tarjeta.fechaBaseInteres = inicial; changed = true;}
-  }
 }
 if(changed)save();
 
@@ -5263,9 +5199,7 @@ function tarjetas(){
     </form>
   </div>
 
- ${data.tarjetas.map((t,i)=>{
-    const interes = estimarInteresTarjeta(t);
-    return `
+ ${data.tarjetas.map((t,i)=>`
   <button type="button" class="credito-fila"
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
     onclick="toggle('detalleCredito${i}')"
@@ -5310,17 +5244,12 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
 `}
 
     <div class="credito-datos">
-            <div class="credito-etiqueta">${interes.interes > 0
-              ? textoApp("Deuda estimada", "Estimated debt")
-              : textoApp("Deuda actual", "Current debt")}</div>
-      <div class="credito-deuda">${money(interes.saldoEstimado)}</div>
-      ${interes.interes > 0 ? `<div class="credito-interes-aviso">${textoApp(
-        "Incluye aprox. ", "Includes approx. "
-      )}${money(interes.interes)}${textoApp(" de interés (", " of interest (")}${interes.dias}${textoApp(" días)", " days)")}</div>` : ""}
+            <div class="credito-etiqueta">${textoApp("Deuda actual", "Current debt")}</div>
+      <div class="credito-deuda">${money(t.saldo)}</div>
 
               ${barraProgreso(
           Number(t.limite) > 0
-            ? interes.saldoEstimado / Number(t.limite) * 100
+            ? Number(t.saldo) / Number(t.limite) * 100
             : 0
         )}
 
@@ -5362,15 +5291,6 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
       <span class="credito-detalle-apr">APR ${safe(t.apr)}%</span>
     </div>
 
-    ${interes.interes > 0 ? `<div class="credito-interes-detalle" style="margin-bottom:11px">
-      <strong>${textoApp("Interés estimado desde el vencimiento", "Estimated interest since due date")}: +${money(interes.interes)}</strong>
-      ${textoApp("Saldo registrado", "Recorded balance")}: ${money(t.saldo)} ·
-      ${textoApp("Proyección", "Projection")}: ${money(interes.saldoEstimado)}
-      <small>${textoApp(
-        "Cálculo orientativo con APR diario; el banco puede cobrar otro importe o empezar antes. No se suma al saldo guardado para evitar duplicarlo.",
-        "Daily APR estimate; the bank may charge a different amount or start earlier. Not posted to your saved balance to avoid double-counting."
-      )}</small>
-    </div>` : ""}
 
     <div class="credito-acciones">
       <div class="credito-accion credito-accion--datos">
@@ -5499,7 +5419,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
       ${textoApp("Eliminar tarjeta", "Delete card")}
     </button>
   </div>
-  `;}).join("")}
+  `).join("")}
 
   ${data.tarjetas.length === 0 ? `
     <div class="tarjetas-vacio">
@@ -5516,13 +5436,11 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
 ${data.tarjetas.length > 0 ? `
   <div class="credito-resumen">
     <div>
-            <span class="credito-etiqueta">${data.tarjetas.some(t => estimarInteresTarjeta(t).interes > 0)
-              ? textoApp("Deuda total estimada", "Estimated total debt")
-              : textoApp("Deuda total", "Total debt")}</span>
+            <span class="credito-etiqueta">${textoApp("Deuda total", "Total debt")}</span>
       <strong>${
         money(data.tarjetas.reduce(
           (total, tarjeta) =>
-            total + estimarInteresTarjeta(tarjeta).saldoEstimado,
+            total + (Number(tarjeta.saldo) || 0),
           0
         ))
       }</strong>
@@ -5550,8 +5468,7 @@ ${data.tarjetas.length > 0 ? `
    saldo:round(f.get("saldo")),
    limite:round(f.get("limite")),
    apr:Number(f.get("apr")),
-vencimiento:Number(f.get("vencimiento")),
-fechaBaseInteres:vencimientoTarjetaEnMes(Number(f.get("vencimiento")))
+vencimiento:Number(f.get("vencimiento"))
   });
   save();render();
  };
@@ -5639,7 +5556,6 @@ return;
 }
 
 cuenta.vencimiento=dia;
-if (tipo === "tarjeta") cuenta.fechaBaseInteres = vencimientoTarjetaEnMes(dia);
 save();
 render();
 
@@ -5835,16 +5751,7 @@ function guardarPagoTarjetaBanco(anterior, nuevo) {
     if (nuevo) pagos.push(nuevo);
 
     const tarjetas = data.tarjetas.map(t =>
-      t.id === tarjeta.id
-        ? {
-          ...t,
-          saldo: deudaTarjeta,
-          // Al liquidar la deuda, el próximo vencimiento inicia el nuevo cálculo.
-          ...(deudaTarjeta === 0
-            ? {fechaBaseInteres: proximoVencimientoTarjeta(t.vencimiento, today(), false)}
-            : {})
-        }
-        : t
+      t.id === tarjeta.id ? {...t, saldo: deudaTarjeta} : t
     );
 
     const datosNuevos = {...data, tarjetas, pagos};
