@@ -131,51 +131,122 @@ nav button span {
 .item{border-bottom:1px solid #f0f1f3;padding:13px 0}
 .item:last-child{border:0}
 .note{font-size:0.75rem;color:#89939f;line-height:1.5}
+/* Balance One: una única cápsula de notificaciones que se expande en sí misma. */
+.avisos-fondo {
+  position:fixed;
+  inset:0;
+  z-index:1010;
+  background:rgba(17,23,36,.28);
+  backdrop-filter:blur(13px);
+  -webkit-backdrop-filter:blur(13px);
+}
+.avisos-ancla {position:relative;height:60px;margin:0 0 25px 3px}
 .avisos-vencimiento {
-  display:flex;gap:10px;overflow-x:auto;max-width:100%;
-  margin:-2px 0 25px;padding:4px 3px 8px;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  position:absolute;left:0;top:0;
+  z-index:1;
+  width:min(285px,72vw);
+  max-width:100%;
+  margin:0;
+  border:1px solid rgba(175,183,195,.23);
+  border-radius:30px;
+  background:rgba(255,255,255,.94);
+  color:#17212e;
+  box-shadow:0 3px 12px rgba(20,30,50,.035);
+  overflow:hidden;
+  transition:width .28s ease,border-radius .28s ease,box-shadow .28s ease;
 }
-.avisos-vencimiento::-webkit-scrollbar {display:none}
+.avisos-vencimiento.is-abierto {
+  z-index:1011;
+  width:min(385px,calc(100vw - 38px));
+  border-radius:34px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 18px 42px rgba(14,20,36,.21);
+}
 .aviso-vencimiento {
-  display:flex;align-items:center;gap:7px;flex:0 0 auto;
-  width:calc(50% - 3px);min-height:56px;
-  padding:6px 8px;border-radius:999px;
-  border:1px solid #e9ebf0;
-  background:#fff;box-shadow:none;
-  backdrop-filter:none;-webkit-backdrop-filter:none;
-  color:#17212e;font:inherit;text-align:left;
+  display:flex;align-items:center;gap:8px;width:100%;min-height:58px;
+  padding:7px 10px;border:0;border-radius:inherit;
+  background:transparent;box-shadow:none;
+  color:inherit;font:inherit;text-align:left;
 }
-.aviso-vencimiento:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:3px}
+.aviso-vencimiento:focus-visible,
+.aviso-detalle:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:-3px}
 .aviso-vencimiento-icono {
   display:grid;place-items:center;flex:0 0 36px;
   width:36px;height:36px;border-radius:50%;
-  background:#fff;box-shadow:none;
-  color:#ff7900;
+  background:rgba(135,145,160,.09);color:#ff7900;
+  position:relative;overflow:hidden;
 }
-.aviso-vencimiento-icono img {width:26px;height:26px;border-radius:50%;object-fit:contain}
-.aviso-vencimiento-icono svg {width:23px;height:23px}
+.aviso-vencimiento-icono img {position:absolute;inset:5px;width:26px;height:26px;border-radius:50%;object-fit:contain;opacity:0;transition:opacity .15s ease}
+.aviso-icono-base {display:grid;place-items:center;width:100%;height:100%;font-weight:750;font-size:19px}
+.aviso-icono-base--apple {color:#1d222a}
+html.tema-oscuro .aviso-icono-base--apple {color:#fff}
+.aviso-vencimiento-icono svg {width:22px;height:22px}
 .aviso-vencimiento-icono--apple {background:#fff}
+.aviso-miniaturas {display:flex;align-items:center;flex-shrink:0;padding-left:1px}
+.aviso-miniaturas .aviso-miniatura {
+  display:grid;place-items:center;width:23px;height:23px;
+  margin-left:-10px;border-radius:50%;border:2px solid #fff;position:relative;
+  background:#eef2f9;color:#277cd7;overflow:hidden;
+}
+.aviso-miniaturas .aviso-miniatura:first-child {margin-left:0}
+.aviso-miniatura img {position:absolute;inset:1px;width:17px;height:17px;object-fit:contain;border-radius:50%;opacity:0}
+.aviso-miniatura svg {width:15px;height:15px}
+.aviso-miniatura--mas {font-size:10px;font-weight:700}
 .aviso-vencimiento-texto {display:grid;gap:3px;flex:1;min-width:0}
-.aviso-vencimiento-texto strong {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.78rem;font-weight:750}
-.aviso-vencimiento-texto small {color:#8b94a3;font-size:.69rem}
+.aviso-vencimiento-texto strong {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.79rem;font-weight:750}
+.aviso-vencimiento-texto small {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8792a2;font-size:.7rem}
 .aviso-vencimiento-flecha {
-  position:relative;display:grid;place-items:center;flex:0 0 32px;
-  width:32px;height:32px;border-radius:50%;
-  background:#f5f6f8;box-shadow:none;
-  font-size:1.25rem;font-weight:300;line-height:1;
+  position:relative;display:grid;place-items:center;flex:0 0 29px;
+  width:29px;height:29px;border-radius:50%;
+  background:rgba(145,153,166,.1);font-size:1.25rem;line-height:1;
 }
 .aviso-vencimiento-flecha::after {
-  content:"";position:absolute;right:0;top:0;width:9px;height:9px;
-  border:1.5px solid #fff;border-radius:50%;background:#ff7900;
+  content:"";position:absolute;right:0;top:0;width:8px;height:8px;
+  border:1px solid #fff;border-radius:50%;background:#ff7900;
 }
-html.tema-oscuro .aviso-vencimiento {
-  background:rgba(38,43,52,.94);border-color:#424a57;color:#f5f6f8;
+.avisos-vencimiento.is-abierto .aviso-vencimiento-flecha::after {display:none}
+.avisos-vencimiento.is-abierto .aviso-vencimiento-flecha {transform:rotate(90deg)}
+ .avisos-abierto {display:none}
+.avisos-vencimiento.is-abierto .avisos-cerrado {display:none}
+.avisos-vencimiento.is-abierto .avisos-abierto {display:inline}
+.avisos-vencimiento.is-abierto .aviso-miniaturas {display:none}
+.aviso-detalles {max-height:0;opacity:0;visibility:hidden;overflow:hidden;pointer-events:none;
+  transition:max-height .29s ease,opacity .20s ease,visibility .2s ease}
+.avisos-vencimiento.is-abierto .aviso-detalles {
+  max-height:min(62vh,510px);opacity:1;visibility:visible;pointer-events:auto;
 }
-html.tema-oscuro .aviso-vencimiento-icono {background:#353c47;color:#ff9a45;box-shadow:none}
-html.tema-oscuro .aviso-vencimiento-icono--apple {background:#353c47}
-html.tema-oscuro .aviso-vencimiento-texto small {color:#b4becb}
-html.tema-oscuro .aviso-vencimiento-flecha {background:rgba(255,255,255,.11);color:#f5f6f8}
+.aviso-lista {overflow-y:auto;max-height:min(58vh,468px);padding:0 9px 11px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.aviso-detalle {
+  width:100%;display:flex;align-items:center;gap:9px;
+  padding:10px 9px;margin-top:7px;border:1px solid rgba(149,161,181,.12);
+  border-radius:22px;background:rgba(147,158,176,.07);
+  color:inherit;text-align:left;font:inherit;min-height:61px;
+}
+.aviso-detalle .aviso-vencimiento-icono {flex-basis:34px;width:34px;height:34px}
+.aviso-detalle .aviso-vencimiento-icono img {width:25px;height:25px}
+.aviso-detalle-datos {display:grid;gap:3px;min-width:0;flex:1}
+.aviso-detalle-datos strong {font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aviso-detalle-datos small {font-size:.68rem;color:#84909e}
+.aviso-detalle-importe {font-size:.75rem;font-weight:700;white-space:nowrap}
+.aviso-detalle-chevron {color:#8792a2;font-size:19px}
+.avisos-sin-aviso {margin:8px 10px 16px;color:#8390a0;font-size:.78rem}
+html.tema-oscuro .avisos-vencimiento,
+html.tema-oscuro .avisos-vencimiento.is-abierto {
+  color:#f5f6f8;background:rgba(34,39,48,.97);
+  border-color:rgba(225,230,240,.17);
+}
+html.tema-oscuro .aviso-vencimiento-icono {background:#353d49;color:#ff9a45}
+html.tema-oscuro .aviso-vencimiento-icono--apple {background:#343b45}
+html.tema-oscuro .aviso-miniatura {border-color:#2b3039;background:#45505f}
+html.tema-oscuro .aviso-vencimiento-texto small,
+html.tema-oscuro .aviso-detalle-datos small {color:#b4becb}
+html.tema-oscuro .aviso-vencimiento-flecha,
+html.tema-oscuro .aviso-detalle {background:rgba(255,255,255,.075)}
+html.tema-oscuro .aviso-detalle {border-color:rgba(255,255,255,.07)}
+@media (prefers-reduced-motion:reduce) {
+  .avisos-vencimiento,.aviso-detalles {transition:none}
+}
 .payment{background:#f5f8f9;border-radius:13px;padding:14px;margin-top:12px}
 .hidden{display:none}
 .editbox{background:#f5f8f9;border-radius:13px;padding:14px;margin-top:12px}
@@ -2972,6 +3043,7 @@ let page="inicio";
 let openEdit=null;
 
 function go(p){
+ cerrarPanelAvisos();
  page=p;
  openEdit=null;
  document.querySelectorAll("nav button").forEach(b=>
@@ -3032,82 +3104,156 @@ hoy.getFullYear(),hoy.getMonth()+2,0
 return Math.round((fecha-hoy)/86400000);
 }
 
-function avisosVencimiento() {
-  const cuentas = [
-    ...data.vehiculos.map(v => ({
-      ...v, tipoAviso: "vehiculo",
-      tipo: textoApp("Vehículo", "Vehicle")
-    })),
+function datosAvisosVencimiento() {
+  // Los avisos usan los vencimientos reales guardados en el dispositivo.
+  // Ningún importe se descuenta ni se marca como pagado al abrir este panel.
+  const cobros = [
     ...data.tarjetas.map(t => ({
-      ...t, tipoAviso: "tarjeta",
-      tipo: textoApp("Tarjeta", "Card")
+      nombre:String(t.nombre || t.modelo || t.banco || textoApp("Tarjeta", "Card")),
+      banco:String(t.banco || ""), tipoAviso:"tarjeta",
+      faltan:diasParaVencer(Number(t.vencimiento)),
+      valido:Number.isInteger(Number(t.vencimiento)) && Number(t.vencimiento)>=1 && Number(t.vencimiento)<=31,
+      importe:Number(t.pagoMinimo)>0 ? Number(t.pagoMinimo) : null,
+      destino:"tarjetas"
+    })),
+    ...data.vehiculos.map(v => ({
+      nombre:String(v.nombre || v.modelo || textoApp("Vehículo", "Vehicle")),
+      tipoAviso:"vehiculo",faltan:diasParaVencer(Number(v.vencimiento)),
+      valido:Number.isInteger(Number(v.vencimiento)) && Number(v.vencimiento)>=1 && Number(v.vencimiento)<=31,
+      importe:Number(v.pago)>0 ? Number(v.pago) : null,
+      destino:"vehiculos"
     }))
+  ].filter(c => c.valido && c.faltan >= 0 && c.faltan <= 7);
+
+  // Las suscripciones son recordatorios previstos; no son cargos confirmados.
+  const hoy = today();
+  const comienzo = new Date(hoy + "T12:00:00");
+  for (let i=0;i<2;i++) {
+    const mes = new Date(comienzo.getFullYear(),comienzo.getMonth()+i,1);
+    const clave = `${mes.getFullYear()}-${String(mes.getMonth()+1).padStart(2,"0")}`;
+    for(const s of suscripcionesDelMes(clave)) {
+      const fecha = new Date(s.fecha + "T12:00:00");
+      const faltan = Math.round((fecha-comienzo)/86400000);
+      if(faltan < 0 || faltan > 14) continue;
+      cobros.push({
+        nombre:String(s.nombre || textoApp("Suscripción", "Subscription")),
+        tipoAviso:"suscripcion",faltan,importe:Number(s.monto)>0?Number(s.monto):null,
+        destino:"suscripciones"
+      });
+    }
+  }
+  return cobros.sort((a,b) => a.faltan-b.faltan || a.nombre.localeCompare(b.nombre));
+}
+
+function iconoAvisoVencimiento(c) {
+  const nombre = `${c.nombre} ${c.banco || ""}`.toLowerCase();
+  const marcas = [
+    ["apple","apple.com"],["american express","americanexpress.com"],
+    ["amex","americanexpress.com"],["chase","chase.com"],
+    ["capital one","capitalone.com"],["citi","citi.com"],
+    ["discover","discover.com"],["bank of america","bankofamerica.com"],
+    ["wells fargo","wellsfargo.com"],["netflix","netflix.com"],
+    ["spotify","spotify.com"],["icloud","apple.com"]
   ];
+  const dominio = c.tipoAviso === "vehiculo" ? null
+    : marcas.find(([marca]) => nombre.includes(marca))?.[1];
+  const dibujo = c.tipoAviso === "vehiculo"
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 16H3V9l2-4h14l2 4v7h-2M5 16h14M5 16v3m14-3v3M3 10h18"/>
+        <circle cx="7" cy="13" r="1"/><circle cx="17" cy="13" r="1"/>
+      </svg>`
+    : c.tipoAviso === "suscripcion"
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 7v5h-5M4 17v-5h5M6 9a7 7 0 0 1 12-2l2 5M4 12l2 5a7 7 0 0 0 12-2"/>
+        </svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/>
+        </svg>`;
+  if(!dominio) return dibujo;
+  const respaldo = dominio === "apple.com"
+    ? `<svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true">
+       <path d="M17.1 12.6c.06-1.7 1.4-2.55 1.5-2.62-.78-1.1-1.98-1.24-2.4-1.26-1.04-.11-2.07.62-2.6.62-.53 0-1.36-.6-2.23-.58-1.15.02-2.23.69-2.82 1.73-1.25 2.2-.33 5.43.89 7.2.61.87 1.27 1.87 2.13 1.83.81-.04 1.12-.52 2.09-.52.97 0 1.26.52 2.13.5.88-.02 1.44-.8 2.02-1.65.65-.96.93-1.88.94-1.94-.02-.01-1.79-.69-1.81-2.71zM15.62 7.67c.48-.61.82-1.45.73-2.29-.7.05-1.55.48-2.04 1.08-.45.53-.85 1.39-.74 2.2.79.06 1.56-.4 2.05-.99z"/>
+      </svg>`
+    : dominio === "chase.com" ? `<strong style="color:#1375ca">C</strong>`
+    : dominio === "netflix.com" ? `<strong style="color:#e50914">N</strong>`
+    : dominio === "spotify.com" ? `<strong style="color:#1db954">●</strong>`
+    : dibujo;
+  // El respaldo se ve inmediatamente, incluso si no se cargan los iconos externos.
+  return `<span class="aviso-icono-base ${dominio === "apple.com" ? "aviso-icono-base--apple" : ""}">${respaldo}</span>
+    <img src="https://www.google.com/s2/favicons?domain=${dominio}&sz=128"
+     alt="" onload="this.style.opacity='1'" onerror="this.remove()">`;
+}
 
-  const proximos = cuentas.map(c => {
-    const dia = Number(c.vencimiento);
-    if (!Number.isInteger(dia) || dia < 1 || dia > 31) return null;
-    return {...c, faltan:diasParaVencer(dia)};
-  }).filter(c => c && c.faltan >= 0 && c.faltan <= 7)
-    .sort((a,b) => a.faltan - b.faltan);
+function textoPlazoAviso(faltan) {
+  return faltan===0 ? textoApp("Vence hoy","Due today")
+    : faltan===1 ? textoApp("Falta 1 día","1 day left")
+    : textoApp(`Faltan ${faltan} días`,`${faltan} days left`);
+}
 
-  if (!proximos.length) return "";
+function abrirPanelAvisos() {
+  const panel = document.getElementById("avisosUnificados");
+  if (!panel) return;
+  const abierto = !panel.classList.contains("is-abierto");
+  panel.classList.toggle("is-abierto",abierto);
+  panel.querySelector(".aviso-vencimiento")?.setAttribute("aria-expanded",String(abierto));
+  panel.querySelector(".aviso-detalles")?.setAttribute("aria-hidden",String(!abierto));
+  const fondo=document.getElementById("avisosFondo");
+  if(fondo) fondo.hidden=!abierto;
+  document.body.style.overflow=abierto?"hidden":"";
+}
+function cerrarPanelAvisos() {
+  const panel=document.getElementById("avisosUnificados");
+  if(panel?.classList.contains("is-abierto")) abrirPanelAvisos();
+  document.body.style.overflow="";
+}
+function irDesdeAviso(destino) {
+  cerrarPanelAvisos();
+  if(["tarjetas","vehiculos","suscripciones"].includes(destino)) go(destino);
+}
+document.addEventListener("keydown", event => {
+  if(event.key === "Escape") cerrarPanelAvisos();
+});
 
-  const iconoTarjeta = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <rect x="2" y="5" width="20" height="14" rx="3"/>
-      <path d="M2 10h20M6 15h4"/>
-    </svg>`;
-  const iconoVehiculo = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M5 16H3V9l2-4h14l2 4v7h-2M5 16h14M5 16v3m14-3v3M3 10h18"/>
-      <circle cx="7" cy="13" r="1"/><circle cx="17" cy="13" r="1"/>
-    </svg>`;
-
-  return `<div class="avisos-vencimiento" role="region"
-    aria-label="${textoApp("Próximos vencimientos", "Upcoming due dates")}">
-    ${proximos.map(c => {
-      const nombre = String(c.nombre || c.modelo || c.tipo);
-      const nombreNormal = `${nombre} ${c.banco || ""}`.toLowerCase();
-      const marcas = [
-        ["apple", "apple.com"],
-        ["american express", "americanexpress.com"],
-        ["amex", "americanexpress.com"],
-        ["chase", "chase.com"],
-        ["capital one", "capitalone.com"],
-        ["citi", "citi.com"],
-        ["discover", "discover.com"],
-        ["bank of america", "bankofamerica.com"],
-        ["wells fargo", "wellsfargo.com"]
-      ];
-      const dominio = c.tipoAviso === "tarjeta"
-        ? marcas.find(([marca]) => nombreNormal.includes(marca))?.[1]
-        : null;
-      const icono = dominio
-        ? `<img src="https://www.google.com/s2/favicons?domain=${dominio}&sz=128"
-             alt="" onerror="this.style.display='none';this.nextElementSibling.hidden=false">
-           <span hidden>${iconoTarjeta}</span>`
-        : c.tipoAviso === "vehiculo" ? iconoVehiculo : iconoTarjeta;
-      const mensaje = c.faltan === 0
-        ? textoApp("Vence hoy", "Due today")
-        : c.faltan === 1
-          ? textoApp("Falta 1 día", "1 day left")
-          : textoApp(`Faltan ${c.faltan} días`, `${c.faltan} days left`);
-      const destino = c.tipoAviso === "vehiculo" ? "vehiculos" : "tarjetas";
-      return `<button type="button" class="aviso-vencimiento"
-        onclick="go('${destino}')"
-        aria-label="${safe(nombre)}. ${safe(mensaje)}. ${textoApp("Ver detalles", "View details")}">
-          <span class="aviso-vencimiento-icono ${dominio === "apple.com" ? "aviso-vencimiento-icono--apple" : ""}"
-            aria-hidden="true">${icono}</span>
-          <span class="aviso-vencimiento-texto">
-            <strong>${safe(nombre)}</strong><small>${safe(mensaje)}</small>
-          </span>
-          <span class="aviso-vencimiento-flecha" aria-hidden="true">›</span>
-        </button>`;
-    }).join("")}
-  </div>`;
+function avisosVencimiento() {
+  const proximos = datosAvisosVencimiento();
+  if(!proximos.length) return "";
+  const principal = proximos.find(c => /apple card/i.test(c.nombre)) || proximos[0];
+  const restantes = proximos.filter(c=>c!==principal);
+  return `<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>
+  <div class="avisos-ancla"><section id="avisosUnificados" class="avisos-vencimiento"
+    aria-label="${textoApp("Notificaciones", "Notifications")}">
+    <button type="button" class="aviso-vencimiento" aria-expanded="false"
+      aria-controls="avisosUnificadosLista" onclick="abrirPanelAvisos()">
+      <span class="aviso-vencimiento-icono ${/apple/i.test(principal.nombre)?"aviso-vencimiento-icono--apple":""}"
+        aria-hidden="true">${iconoAvisoVencimiento(principal)}</span>
+      <span class="aviso-miniaturas" aria-hidden="true">
+        ${restantes.slice(0,3).map(c=>`<span class="aviso-miniatura">${iconoAvisoVencimiento(c)}</span>`).join("")}
+        ${restantes.length>3?`<span class="aviso-miniatura aviso-miniatura--mas">+${restantes.length-3}</span>`:""}
+      </span>
+      <span class="aviso-vencimiento-texto">
+        <strong><span class="avisos-cerrado">${safe(principal.nombre)}</span><span class="avisos-abierto">${textoApp("Notificaciones","Notifications")}</span></strong>
+        <small><span class="avisos-cerrado">${safe(textoPlazoAviso(principal.faltan))}</span>
+        <span class="avisos-abierto">${textoApp(`${proximos.length} avisos próximos`,`${proximos.length} upcoming alerts`)}</span></small>
+      </span>
+      <span class="aviso-vencimiento-flecha" aria-hidden="true">›</span>
+    </button>
+    <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">
+      <div class="aviso-lista">
+        ${proximos.map(c=>`
+          <button type="button" class="aviso-detalle" onclick="irDesdeAviso('${c.destino}')"
+            aria-label="${safe(c.nombre)}. ${safe(textoPlazoAviso(c.faltan))}">
+            <span class="aviso-vencimiento-icono" aria-hidden="true">${iconoAvisoVencimiento(c)}</span>
+            <span class="aviso-detalle-datos"><strong>${safe(c.nombre)}</strong>
+              <small>${safe(textoPlazoAviso(c.faltan))}</small></span>
+            ${c.importe!==null?`<span class="aviso-detalle-importe">${money(c.importe)}</span>`:""}
+            <span class="aviso-detalle-chevron" aria-hidden="true">›</span>
+          </button>`).join("")}
+      </div>
+    </div>
+  </section></div>`;
 }
 function inicio(){
 
