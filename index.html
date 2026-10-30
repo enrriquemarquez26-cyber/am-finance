@@ -1323,6 +1323,54 @@ html.tema-oscuro .tarjetas-pantalla select {
   background: linear-gradient(145deg, #24364d, #101a29);
 }
 
+/* Las fotos de los bancos y las elegidas por el usuario conservan su proporción. */
+.credito-visual--imagen {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  background: #f6f7fa;
+}
+.credito-visual--imagen img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+.credito-visual--imagen img[hidden] {display: none;}
+.credito-imagen-reserva {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  min-height: 140px;
+  padding: 15px 12px;
+  background: linear-gradient(145deg, #24364d, #101a29);
+}
+.credito-imagen-reserva[hidden] {display: none;}
+.credito-foto-ayuda {
+  display: block;
+  margin: -4px 0 12px;
+  color: #84909d;
+  font-size: .72rem;
+  line-height: 1.4;
+}
+.credito-restaurar-imagen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0 16px;
+  color: inherit;
+  font-size: .8rem;
+}
+.credito-restaurar-imagen input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
 .credito-marca {
   font-size: .85rem;
   font-weight: 750;
@@ -4688,6 +4736,52 @@ function imagenCredito(tarjeta) {
 
   return imagenes[claveBanco]?.[modelo] || "";
 }
+
+function imagenMostradaCredito(tarjeta) {
+  const personalizada = tarjeta?.imagenPersonalizada;
+  if (typeof personalizada === "string" &&
+      /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(personalizada)) {
+    return personalizada;
+  }
+  return imagenCredito(tarjeta);
+}
+
+async function prepararImagenCredito(archivo) {
+  if (!archivo || !archivo.size) return "";
+  if (!String(archivo.type || "").startsWith("image/")) {
+    throw new Error(textoApp("Selecciona una imagen válida.", "Select a valid image."));
+  }
+  if (archivo.size > 15 * 1024 * 1024) {
+    throw new Error(textoApp("La imagen debe pesar menos de 15 MB.", "The image must be smaller than 15 MB."));
+  }
+
+  const url = URL.createObjectURL(archivo);
+  try {
+    const imagen = await new Promise((resolve, reject) => {
+      const elemento = new Image();
+      elemento.onload = () => resolve(elemento);
+      elemento.onerror = () => reject(new Error(textoApp(
+        "No se pudo abrir esta imagen.", "Could not open this image."
+      )));
+      elemento.src = url;
+    });
+    const mayorLado = Math.max(imagen.naturalWidth, imagen.naturalHeight);
+    if (!mayorLado) throw new Error(textoApp("Imagen vacía.", "Empty image."));
+    const escala = Math.min(1, 900 / mayorLado);
+    const lienzo = document.createElement("canvas");
+    lienzo.width = Math.max(1, Math.round(imagen.naturalWidth * escala));
+    lienzo.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
+    const contexto = lienzo.getContext("2d");
+    if (!contexto) throw new Error(textoApp("No se pudo preparar la imagen.", "Could not process the image."));
+    contexto.fillStyle = "#ffffff";
+    contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+    contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+    return lienzo.toDataURL("image/jpeg", 0.78);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 function modelosCredito(banco) {
   const catalogo = {
     "American Express": [
@@ -4800,29 +4894,16 @@ function tarjetas(){
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
     onclick="toggle('detalleCredito${i}')"
 aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombre)}">
-    ${imagenCredito(t) ? `
-  <div class="credito-visual"
-    style="padding:0;background:transparent;justify-content:center">
-
-    <div style="${
-  imagenCredito(t).includes("apple.com/")
-    ? "width:100%;aspect-ratio:397/250;overflow:hidden;border-radius:18px"
-    : "width:100%"
-}">
-  <img src="${safe(imagenCredito(t))}"
-    alt="${safe(t.banco || t.nombre)} ${safe(t.modelo || "")}"
-    style="${
-      imagenCredito(t).includes("apple.com/")
-        ? "display:block;width:100%;height:100%;object-fit:cover;object-position:top"
-        : "display:block;width:100%;height:auto;border-radius:18px"
-    }"
-    onerror="this.style.display='none';this.nextElementSibling.hidden=false">
-
-  <span hidden
-    style="padding:16px;color:#84909d;font-size:.75rem">
-        ${textoApp("No se pudo cargar la imagen de la tarjeta.", "Could not load the card image.")}
-  </span>
-</div>
+    ${imagenMostradaCredito(t) ? `
+  <div class="credito-visual credito-visual--imagen">
+    <img src="${safe(imagenMostradaCredito(t))}"
+      alt="${safe(t.banco || t.nombre)} ${safe(t.modelo || "")}" loading="lazy"
+      onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+    <div class="credito-imagen-reserva" hidden>
+      <span class="credito-marca">${safe(t.nombre)}</span>
+      <span class="credito-modelo">${safe(t.modelo || textoApp("Tarjeta de crédito", "Credit card"))}</span>
+      <span class="credito-final">${/^\d{4}$/.test(String(t.ultimos4 || "")) ? "•••• " + safe(t.ultimos4) : ""}</span>
+    </div>
   </div>
 ` : `
   <div class="credito-visual">
@@ -4930,6 +5011,20 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
     <option value="${safe(modelo)}"></option>
   `).join("")}
 </datalist>
+
+<label for="imagenCredito${i}">${textoApp("Imagen de la tarjeta", "Card image")}</label>
+<input id="imagenCredito${i}" name="imagenCredito"
+  type="file" accept="image/*">
+<small class="credito-foto-ayuda">${textoApp(
+  "Si eliges una foto, reemplazará la imagen o el diseño automático de la tarjeta. Usa una imagen sin número completo ni código CVV.",
+  "A selected photo replaces the card's automatic artwork or design. Use an image without a full card number or CVV."
+)}</small>
+${t.imagenPersonalizada ? `
+  <label class="credito-restaurar-imagen">
+    <input type="checkbox" name="restaurarImagen" value="1">
+    ${textoApp("Volver a la imagen automática del banco", "Restore automatic bank artwork")}
+  </label>
+` : ""}
 
         <label for="digitosCredito${i}">${textoApp("Últimos cuatro dígitos", "Last four digits")}</label>
     <input id="digitosCredito${i}" name="ultimos4"
@@ -5056,7 +5151,7 @@ vencimiento:Number(f.get("vencimiento"))
   save();render();
  };
 }
-function guardarDatosTarjeta(event, indice) {
+async function guardarDatosTarjeta(event, indice) {
   event.preventDefault();
 
   const tarjeta = data.tarjetas[indice];
@@ -5067,6 +5162,8 @@ function guardarDatosTarjeta(event, indice) {
   const ultimos4 = String(campos.get("ultimos4") || "").trim();
   const entrada = String(campos.get("pagoMinimo") || "").trim();
   const pagoMinimo = entrada === "" ? null : Number(entrada);
+  const archivo = campos.get("imagenCredito");
+  const restaurarImagen = campos.get("restaurarImagen") === "1";
 
   if (ultimos4 && !/^\d{4}$/.test(ultimos4)) {
         alert(textoApp("Introduce únicamente los últimos cuatro dígitos.", "Enter only the last four digits."));
@@ -5081,21 +5178,40 @@ function guardarDatosTarjeta(event, indice) {
     return;
   }
 
-  data.tarjetas[indice] = {
-    ...tarjeta,
-    banco: String(campos.get("banco") || "").trim(),
-    modelo,
-    ultimos4,
-    pagoMinimo: pagoMinimo === null ? null : round(pagoMinimo)
-  };
+  const boton = event.submitter || event.target.querySelector('button[type="submit"]');
+  if (boton) boton.disabled = true;
+  try {
+    let imagenPersonalizada = restaurarImagen ? "" : (tarjeta.imagenPersonalizada || "");
+    if (archivo && typeof archivo.size === "number" && archivo.size > 0) {
+      imagenPersonalizada = await prepararImagenCredito(archivo);
+    }
 
-  if (!save()) {
-    data.tarjetas[indice] = tarjeta;
-    return;
-  }
+    const indiceVigente = data.tarjetas.findIndex(t => t.id === tarjeta.id);
+    if (indiceVigente < 0) return;
+    const anterior = data.tarjetas[indiceVigente];
+    const actualizado = {
+      ...anterior,
+      banco: String(campos.get("banco") || "").trim(),
+      modelo,
+      ultimos4,
+      pagoMinimo: pagoMinimo === null ? null : round(pagoMinimo)
+    };
+    if (imagenPersonalizada) actualizado.imagenPersonalizada = imagenPersonalizada;
+    else delete actualizado.imagenPersonalizada;
 
-  render();
+    data.tarjetas[indiceVigente] = actualizado;
+    if (!save()) {
+      data.tarjetas[indiceVigente] = anterior;
+      return;
+    }
+
+    render();
     alert(textoApp("Datos de la tarjeta guardados.", "Card details saved."));
+  } catch (error) {
+    alert(error.message || textoApp("No se pudo cambiar la imagen.", "Could not change the image."));
+  } finally {
+    if (boton) boton.disabled = false;
+  }
 }
 
 function guardarVencimiento(e,tipo,i){
