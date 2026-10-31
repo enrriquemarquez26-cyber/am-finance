@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.2.5 Beta</title>
+<title>Balance One 0.2.6 Beta</title>
 <link rel="apple-touch-icon" href="./balance-one.png.PNG">
 <link rel="icon" type="image/png" href="./balance-one.png.PNG">
 <style>
@@ -313,6 +313,28 @@ html.tema-oscuro .avisos-vencimiento.is-abierto .aviso-vencimiento-flecha {
   .avisos-vencimiento.is-abierto {border-radius:37px;padding:8px}
   .avisos-vencimiento.is-abierto .aviso-detalle {border-radius:25px}
 }
+/* Recordatorios pagados: acciones accesibles sin cambiar el tamaño de la barrita cerrada. */
+.avisos-vencimiento.is-abierto .aviso-detalle {display:block}
+.aviso-detalle-abrir {display:flex;align-items:center;gap:9px;width:100%;padding:0;
+  border:0;background:transparent;box-shadow:none;text-align:left;color:inherit;font:inherit;min-width:0}
+.aviso-detalle-abrir .aviso-detalle-datos {flex:1}
+.aviso-detalle-acciones {display:flex;justify-content:flex-end;margin:4px 2px 0 0}
+.aviso-accion-pago {font:inherit;font-size:.7rem;font-weight:750;border-radius:999px;
+  border:1px solid rgba(25,133,91,.17);padding:5px 11px;color:#157d59;
+  background:rgba(27,160,108,.095);line-height:1.35;cursor:pointer}
+.aviso-accion--deshacer {color:#6e7887;border-color:rgba(125,135,153,.21);
+  background:rgba(135,146,162,.10)}
+.aviso-estado-registrado {font-size:.68rem;color:#157d59;font-weight:650}
+.aviso-detalle--pagado {opacity:.83}
+.aviso-pagados-titulo {font-size:.71rem;color:#658172;font-weight:750;
+  margin:12px 8px 3px}
+.aviso-nota-pagos {font-size:.64rem;line-height:1.4;color:#8895a5;
+  margin:10px 8px 5px;text-align:center}
+html.tema-oscuro .aviso-accion-pago,html.tema-oscuro .aviso-estado-registrado {color:#81d5ae}
+html.tema-oscuro .aviso-accion--deshacer {color:#c2ccd8}
+html.tema-oscuro .aviso-nota-pagos {color:#aab6c4}
+.aviso-accion-pago:focus-visible,.aviso-detalle-abrir:focus-visible {
+  outline:2px solid var(--balanceone-color,#ff7900);outline-offset:1px}
 @media (prefers-reduced-motion:reduce) {
   .avisos-vencimiento,.aviso-detalles {transition:none}
 }
@@ -2585,7 +2607,7 @@ html.tema-oscuro.inicio-nuevo-activo nav button.active {background:rgba(205,214,
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.2.5 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.2.6 Beta</div>
 </header>
 <main id="content" style="padding-bottom: 130px;"></main>
 <div id="movVentanaFondo" class="hidden"
@@ -2798,8 +2820,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.2.5 Beta",
-      "Smart control of your finances · 0.2.5 Beta"
+      "Control inteligente de tus finanzas · 0.2.6 Beta",
+      "Smart control of your finances · 0.2.6 Beta"
     );
   }
 }
@@ -2958,28 +2980,65 @@ hoy.getFullYear(),hoy.getMonth()+2,0
 return Math.round((fecha-hoy)/86400000);
 }
 
-function datosAvisosVencimiento() {
-  // Los avisos usan los vencimientos reales guardados en el dispositivo.
-  // Ningún importe se descuenta ni se marca como pagado al abrir este panel.
+// 0.2.6 Beta: los estados de recordatorios se guardan con los demás datos
+// para que las copias de seguridad existentes los incluyan.
+// No constituyen una transacción financiera ni descuentan saldos.
+function claveAviso(tipo, identificador, fecha) {
+  return `${tipo}:${String(identificador)}:${fecha}`;
+}
+function fechaLocalAviso(fecha) {
+  return `${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,"0")}-${String(fecha.getDate()).padStart(2,"0")}`;
+}
+function siguienteFechaAviso(faltan) {
+  const fecha = new Date();
+  fecha.setHours(12,0,0,0);
+  fecha.setDate(fecha.getDate()+faltan);
+  return fechaLocalAviso(fecha);
+}
+function recordatoriosMarcados() {
+  return Array.isArray(data.recordatoriosPagados) ? data.recordatoriosPagados : [];
+}
+function registradoEnPeriodo(tipo, cuentaId, fecha, importe) {
+  if (!Number.isFinite(importe) || importe <= 0) return false;
+  const mes = fecha.slice(0,7);
+  const abonado = (Array.isArray(data.pagos) ? data.pagos : [])
+    .filter(p => p.tipo === tipo && String(p.cuentaId) === String(cuentaId) &&
+      validDate(String(p.fecha)) && p.fecha.slice(0,7) === mes)
+    .reduce((total,p) => total + (Number(p.monto)>0 ? Number(p.monto) : 0),0);
+  return round(abonado) >= round(importe) - 0.005;
+}
+function datosAvisosVencimiento(incluirPagados = false) {
+  const marcados = new Set(recordatoriosMarcados().map(r => r.clave));
   const cobros = [
-    ...data.tarjetas.map(t => ({
-      nombre:String(t.nombre || t.modelo || t.banco || textoApp("Tarjeta", "Card")),
-      banco:String(t.banco || ""), tipoAviso:"tarjeta",
-      faltan:diasParaVencer(Number(t.vencimiento)),
-      valido:Number.isInteger(Number(t.vencimiento)) && Number(t.vencimiento)>=1 && Number(t.vencimiento)<=31,
-      importe:Number(t.pagoMinimo)>0 ? Number(t.pagoMinimo) : null,
-      destino:"tarjetas"
-    })),
-    ...data.vehiculos.map(v => ({
-      nombre:String(v.nombre || v.modelo || textoApp("Vehículo", "Vehicle")),
-      tipoAviso:"vehiculo",faltan:diasParaVencer(Number(v.vencimiento)),
-      valido:Number.isInteger(Number(v.vencimiento)) && Number(v.vencimiento)>=1 && Number(v.vencimiento)<=31,
-      importe:Number(v.pago)>0 ? Number(v.pago) : null,
-      destino:"vehiculos"
-    }))
+    ...data.tarjetas.map(t => {
+      const faltan = diasParaVencer(Number(t.vencimiento));
+      const valido = Number.isInteger(Number(t.vencimiento)) && Number(t.vencimiento)>=1 && Number(t.vencimiento)<=31;
+      const fecha = valido ? siguienteFechaAviso(faltan) : "";
+      const importe = Number(t.pagoMinimo)>0 ? Number(t.pagoMinimo) : null;
+      return {
+        nombre:String(t.nombre || t.modelo || t.banco || textoApp("Tarjeta", "Card")),
+        banco:String(t.banco || ""), tipoAviso:"tarjeta", identificador:t.id,
+        faltan, valido, fecha, importe, destino:"tarjetas",
+        clave:claveAviso("tarjeta",t.id,fecha),
+        pagoRegistrado:registradoEnPeriodo("tarjeta",t.id,fecha,importe)
+      };
+    }),
+    ...data.vehiculos.map(v => {
+      const faltan = diasParaVencer(Number(v.vencimiento));
+      const valido = Number.isInteger(Number(v.vencimiento)) && Number(v.vencimiento)>=1 && Number(v.vencimiento)<=31;
+      const fecha = valido ? siguienteFechaAviso(faltan) : "";
+      const importe = Number(v.pago)>0 ? Number(v.pago) : null;
+      return {
+        nombre:String(v.nombre || v.modelo || textoApp("Vehículo", "Vehicle")),
+        tipoAviso:"vehiculo", identificador:v.id,
+        faltan, valido, fecha, importe, destino:"vehiculos",
+        clave:claveAviso("vehiculo",v.id,fecha),
+        pagoRegistrado:registradoEnPeriodo("vehiculo",v.id,fecha,importe)
+      };
+    })
   ].filter(c => c.valido && c.faltan >= 0 && c.faltan <= 7);
 
-  // Las suscripciones son recordatorios previstos; no son cargos confirmados.
+  // Las suscripciones se muestran como cobros previstos, no cargos confirmados.
   const hoy = today();
   const comienzo = new Date(hoy + "T12:00:00");
   for (let i=0;i<2;i++) {
@@ -2989,15 +3048,52 @@ function datosAvisosVencimiento() {
       const fecha = new Date(s.fecha + "T12:00:00");
       const faltan = Math.round((fecha-comienzo)/86400000);
       if(faltan < 0 || faltan > 14) continue;
+      // Los registros nuevos poseen id; la clave alternativa preserva los antiguos.
+      const identificador = s.id || `${s.nombre}|${s.inicio}|${s.frecuencia}|${s.categoria||""}`;
       cobros.push({
         nombre:String(s.nombre || textoApp("Suscripción", "Subscription")),
-        tipoAviso:"suscripcion",faltan,importe:Number(s.monto)>0?Number(s.monto):null,
-        destino:"suscripciones"
+        tipoAviso:"suscripcion", identificador, faltan, fecha:s.fecha,
+        importe:Number(s.monto)>0?Number(s.monto):null, destino:"suscripciones",
+        clave:claveAviso("suscripcion",identificador,s.fecha), pagoRegistrado:false
       });
     }
   }
-  return cobros.sort((a,b) => a.faltan-b.faltan || a.nombre.localeCompare(b.nombre));
+  const todos = cobros.map(c => ({
+    ...c, marcado:marcados.has(c.clave),
+    pagado:marcados.has(c.clave) || c.pagoRegistrado
+  })).sort((a,b) => a.faltan-b.faltan || a.nombre.localeCompare(b.nombre));
+  return incluirPagados ? todos : todos.filter(c=>!c.pagado);
 }
+function guardarEstadoRecordatorio(clave, pagado) {
+  const disponible = datosAvisosVencimiento(true).find(c=>c.clave===clave);
+  if (!disponible || (disponible.pagoRegistrado && !pagado)) return;
+  const anterior = recordatoriosMarcados();
+  if (pagado && anterior.some(r=>r.clave===clave)) return;
+  if (!pagado && !anterior.some(r=>r.clave===clave)) return;
+  if (pagado && !confirm(textoApp(
+    `¿Marcar «${disponible.nombre}» como pagado?\n\nEsto solo confirma el recordatorio. No registra un pago ni modifica saldos.`,
+    `Mark “${disponible.nombre}” as paid?\n\nThis only confirms the reminder. No payment is recorded and balances will not change.`
+  ))) return;
+  const nuevos = pagado
+    ? [...anterior,{clave,fechaMarcado:today()}]
+    : anterior.filter(r=>r.clave!==clave);
+  const nuevosDatos = {...data,recordatoriosPagados:nuevos};
+  try {
+    localStorage.setItem(KEY,JSON.stringify(nuevosDatos));
+  } catch(e) {
+    alert(textoApp("No se pudo guardar el recordatorio. No se hicieron cambios.",
+      "Could not save this reminder. No changes were made."));
+    return;
+  }
+  data=nuevosDatos;
+  if(page==="inicio") {
+    // Conservar la ventana abierta después de marcar o deshacer.
+    render();
+    abrirPanelAvisos();
+  }
+}
+function marcarAvisoPagado(clave) { guardarEstadoRecordatorio(clave,true); }
+function deshacerAvisoPagado(clave) { guardarEstadoRecordatorio(clave,false); }
 
 function iconoAvisoVencimiento(c) {
   const nombre = `${c.nombre} ${c.banco || ""}`.toLowerCase();
@@ -3089,11 +3185,44 @@ window.addEventListener("pageshow", evento => {
   if (evento.persisted) refrescarAvisosAlReanudar();
 });
 
+function tarjetaRecordatorio(c, pagado) {
+  const apertura = `irDesdeAviso('${c.destino}')`;
+  return `<div class="aviso-detalle ${pagado ? "aviso-detalle--pagado" : ""}">
+    <button type="button" class="aviso-detalle-abrir" onclick="${apertura}"
+      aria-label="${safe(c.nombre)}. ${safe(textoPlazoAviso(c.faltan))}">
+      <span class="aviso-vencimiento-icono" aria-hidden="true">${iconoAvisoVencimiento(c)}</span>
+      <span class="aviso-detalle-datos"><strong>${safe(c.nombre)}</strong>
+        <small>${pagado ? textoApp(c.pagoRegistrado ? "Pago registrado" : "Marcado como pagado",
+          c.pagoRegistrado ? "Payment recorded" : "Marked as paid") : safe(textoPlazoAviso(c.faltan))}</small></span>
+      ${c.importe!==null?`<span class="aviso-detalle-importe">${money(c.importe)}</span>`:""}
+      <span class="aviso-detalle-chevron" aria-hidden="true">›</span>
+    </button>
+    <div class="aviso-detalle-acciones">
+      ${pagado ? (c.marcado
+        ? `<button class="aviso-accion-pago aviso-accion--deshacer" type="button"
+             data-aviso-clave="${safe(c.clave)}" onclick="deshacerAvisoPagado(this.dataset.avisoClave)">
+             ${textoApp("Deshacer", "Undo")}</button>`
+        : `<span class="aviso-estado-registrado">✓ ${textoApp("Pago registrado", "Payment recorded")}</span>`)
+        : `<button class="aviso-accion-pago" type="button"
+             data-aviso-clave="${safe(c.clave)}" onclick="marcarAvisoPagado(this.dataset.avisoClave)">
+             ✓ ${textoApp("Marcar pagado", "Mark as paid")}</button>`}
+    </div>
+  </div>`;
+}
 function avisosVencimiento() {
-  const proximos = datosAvisosVencimiento();
-  if (!proximos.length) {
-    return `<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>
-    <div class="avisos-ancla"><section id="avisosUnificados"
+  const todos=datosAvisosVencimiento(true);
+  const proximos=todos.filter(c=>!c.pagado);
+  const pagados=todos.filter(c=>c.pagado);
+  const contenido=`<div class="aviso-lista">
+    ${proximos.map(c=>tarjetaRecordatorio(c,false)).join("") || `<div class="aviso-lista--vacia">${textoApp("No tienes avisos pendientes","You have no pending reminders")}</div>`}
+    ${pagados.length?`<div class="aviso-pagados-titulo">✓ ${textoApp("Marcados como pagados", "Marked as paid")}</div>
+      ${pagados.map(c=>tarjetaRecordatorio(c,true)).join("")}`:""}
+    <p class="aviso-nota-pagos">${textoApp("Marcar pagado solo confirma el recordatorio; no descuenta dinero ni registra transacciones.",
+      "Mark as paid only confirms the reminder; it does not deduct money or record transactions.")}</p>
+  </div>`;
+  const fondo=`<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>`;
+  if(!proximos.length) {
+    return `${fondo}<div class="avisos-ancla"><section id="avisosUnificados"
       class="avisos-vencimiento avisos-vencimiento--vacio"
       aria-label="${textoApp("Notificaciones","Notifications")}">
       <button type="button" class="aviso-vencimiento" aria-expanded="false"
@@ -3103,17 +3232,12 @@ function avisosVencimiento() {
           <span class="avisos-abierto">${textoApp("Notificaciones","Notifications")}</span>
         </strong></span>
       </button>
-      <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">
-        <div class="aviso-lista aviso-lista--vacia">
-          ${textoApp("No tienes avisos pendientes","You have no pending reminders")}
-        </div>
-      </div>
+      <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
     </section></div>`;
   }
   const principal = proximos.find(c => /apple card/i.test(c.nombre)) || proximos[0];
   const restantes = proximos.filter(c=>c!==principal);
-  return `<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>
-  <div class="avisos-ancla"><section id="avisosUnificados" class="avisos-vencimiento"
+  return `${fondo}<div class="avisos-ancla"><section id="avisosUnificados" class="avisos-vencimiento"
     aria-label="${textoApp("Notificaciones", "Notifications")}">
     <button type="button" class="aviso-vencimiento" aria-expanded="false"
       aria-controls="avisosUnificadosLista" onclick="abrirPanelAvisos()">
@@ -3130,19 +3254,7 @@ function avisosVencimiento() {
       </span>
       <span class="aviso-vencimiento-flecha" aria-hidden="true">›</span>
     </button>
-    <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">
-      <div class="aviso-lista">
-        ${proximos.map(c=>`
-          <button type="button" class="aviso-detalle" onclick="irDesdeAviso('${c.destino}')"
-            aria-label="${safe(c.nombre)}. ${safe(textoPlazoAviso(c.faltan))}">
-            <span class="aviso-vencimiento-icono" aria-hidden="true">${iconoAvisoVencimiento(c)}</span>
-            <span class="aviso-detalle-datos"><strong>${safe(c.nombre)}</strong>
-              <small>${safe(textoPlazoAviso(c.faltan))}</small></span>
-            ${c.importe!==null?`<span class="aviso-detalle-importe">${money(c.importe)}</span>`:""}
-            <span class="aviso-detalle-chevron" aria-hidden="true">›</span>
-          </button>`).join("")}
-      </div>
-    </div>
+    <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
   </section></div>`;
 }
 function inicio(){
@@ -6905,7 +7017,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.2.5 Beta</p>
+      <p class="ajustes-version">Balance One · 0.2.6 Beta</p>
     </section>
   `;
 }
@@ -7189,7 +7301,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.2.5 Beta
+        ${textoApp("Versión", "Version")} 0.2.6 Beta
       </p>
     </section>
   `;
@@ -7407,7 +7519,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.2.5 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.2.6 Beta</p>
         </div>`
     }
   };
