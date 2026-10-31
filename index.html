@@ -2834,6 +2834,169 @@ html.tema-oscuro .mov28 #movCalendario .cal-controles .cal-mes {border-color:rgb
  .mov28 #movCalendario .cal-cuadricula .cal-dia {min-height:55px}
 }
 </style>
+<style id="balanceone-calendario-tarjetas-028">
+/* Calendario real (pestaña Calendario y Movimientos): casillas independientes,
+   sin la cuadrícula de bordes compartidos. No toca datos ni otros módulos. */
+.cal-fin-028 {padding-bottom:115px}
+.cal-fin-028 .cal-controles {gap:9px;margin:0 0 13px}
+.cal-fin-028 .cal-controles .cal-mes {
+  min-width:0;margin:0!important;padding:7px 8px!important;
+  background:rgba(255,255,255,.87);
+  border:1px solid rgba(137,149,165,.14);
+  border-radius:32px!important;
+  box-shadow:0 3px 10px rgba(30,45,70,.025)
+}
+.cal-fin-028 .cal-controles .cal-mes strong {
+  font-size:.84rem!important;letter-spacing:-.015em
+}
+.cal-fin-028 .cal-controles .cal-mes button {
+  display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;
+  padding:0;background:rgba(131,144,163,.08)
+}
+.cal-fin-028 .cal-controles > button {
+  background:rgba(134,146,161,.09);min-width:52px;padding:10px 12px;
+  font-size:.79rem;font-weight:650
+}
+.cal-fin-028 .cal-grid-panel {
+  padding:13px 10px 15px!important;
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(137,149,165,.10);
+  border-radius:36px!important;
+  box-shadow:0 7px 23px rgba(27,40,60,.035);
+  overflow:visible!important
+}
+.cal-fin-028 .cal-cuadricula {gap:6px 5px;align-items:stretch}
+.cal-fin-028 .cal-semana {
+  padding:6px 0 7px;font-size:.62rem;font-weight:700;color:#8793a3
+}
+.cal-fin-028 .cal-dia {
+  box-sizing:border-box;display:flex;flex-direction:column;align-items:center;
+  justify-content:flex-start;min-width:0;min-height:76px;
+  margin:0;padding:8px 1px 5px;
+  border:1px solid rgba(136,147,165,.13);
+  border-radius:17px;background:rgba(137,149,165,.075);
+  color:inherit;text-align:center;font:inherit;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
+  overflow:hidden;gap:3px;
+  -webkit-tap-highlight-color:transparent
+}
+.cal-fin-028 .cal-dia strong {font-size:.78rem;font-weight:760;line-height:1.1}
+.cal-fin-028 .cal-dia--movimientos {
+  background:rgba(255,255,255,.84);
+  border-color:rgba(136,147,165,.18)
+}
+.cal-fin-028 .cal-dia-logos {min-height:0;max-width:100%}
+.cal-fin-028 .cal-dia-logos > span {margin-top:1px!important;gap:0!important;max-width:100%}
+.cal-fin-028 .cal-dia-logos > span > span {
+  width:17px!important;height:17px!important;flex:0 0 17px!important;
+  font-size:10px!important
+}
+.cal-fin-028 .cal-dia-logos > span > span img {width:100%!important;height:100%!important}
+.cal-fin-028 .cal-dia-importe {
+  display:block;max-width:100%;min-height:0;padding:0 1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:clamp(.43rem,1.75vw,.6rem);font-weight:700;
+  line-height:1.15;letter-spacing:-.045em
+}
+.cal-fin-028 .cal-dia-importe--gasto {color:#d44d56}
+.cal-fin-028 .cal-dia-importe--ingreso {color:#13865b}
+.cal-fin-028 .cal-dia.cal-hoy {border-color:rgba(255,136,32,.6);background:rgba(255,137,40,.09)}
+.cal-fin-028 .cal-dia.cal-hoy strong {color:var(--balanceone-color,#ff7900)}
+.cal-fin-028 .cal-dia[aria-pressed="true"] {
+  border-color:var(--balanceone-color,#ff7900);
+  background:rgba(255,133,34,.13);
+  box-shadow:inset 0 0 0 1px var(--balanceone-color,#ff7900)
+}
+.cal-fin-028 .cal-dia:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
+.cal-fin-028 > p.note {font-size:.71rem;margin:11px 4px 12px}
+/* Cuotas de tarjetas y vehículos en filas, coherentes con Últimas transacciones. */
+.cal-fin-028 .cal-pagos-mes {margin-top:16px;border-radius:35px;padding:17px 14px}
+.cal-fin-028 .cal-pagos-mes h3 {font-size:1.03rem;margin:0 3px 5px}
+.cal-fin-028 .cal-pagos-mes > p.note {font-size:.7rem;line-height:1.45;margin:0 3px 12px}
+.cal-fin-028 .cal-pagos-lista {display:grid;gap:8px}
+.cal-fin-028 .cal-pago-fila {
+  width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) auto 10px;
+  align-items:center;gap:9px;min-height:66px;padding:10px 11px;
+  border:1px solid rgba(135,148,169,.12);border-radius:27px;
+  background:rgba(134,148,168,.07);color:inherit;text-align:left;font:inherit;
+  -webkit-tap-highlight-color:transparent
+}
+.cal-fin-028 .cal-pago-icono {
+  position:relative;display:grid;place-items:center;width:34px;height:34px;
+  border-radius:50%;background:rgba(130,140,155,.10);font-size:18px;overflow:hidden
+}
+.cal-fin-028 .cal-pago-info {min-width:0;display:grid;gap:4px}
+.cal-fin-028 .cal-pago-info strong {font-size:.79rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal-fin-028 .cal-pago-info small {font-size:.68rem;color:#8793a3}
+.cal-fin-028 .cal-pago-monto {font-size:.78rem;font-weight:750;white-space:nowrap;color:var(--balanceone-color,#ff7900)}
+.cal-fin-028 .cal-pago-chevron {font-size:1.15rem;color:#8793a3}
+html.tema-oscuro .cal-fin-028 .cal-controles .cal-mes,
+html.tema-oscuro .cal-fin-028 .cal-grid-panel {background:rgba(33,38,46,.90);border-color:rgba(176,190,207,.12)}
+html.tema-oscuro .cal-fin-028 .cal-dia {
+  background:rgba(255,255,255,.047);border-color:rgba(192,202,215,.09);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035)
+}
+html.tema-oscuro .cal-fin-028 .cal-dia--movimientos {background:rgba(255,255,255,.092);border-color:rgba(192,202,215,.16)}
+html.tema-oscuro .cal-fin-028 .cal-dia.cal-hoy {background:rgba(255,133,34,.14);border-color:rgba(255,147,51,.48)}
+html.tema-oscuro .cal-fin-028 .cal-dia[aria-pressed="true"] {background:rgba(255,130,34,.17);border-color:var(--balanceone-color,#ff7900)}
+html.tema-oscuro .cal-fin-028 .cal-pago-fila {background:rgba(255,255,255,.055);border-color:rgba(192,202,215,.09)}
+html.tema-oscuro .cal-fin-028 .cal-pago-info small {color:#b1bbc9}
+@media(max-width:359px){
+  .cal-fin-028 .cal-grid-panel {padding:10px 7px 12px!important}
+  .cal-fin-028 .cal-cuadricula {gap:4px 3px}
+  .cal-fin-028 .cal-dia {min-height:70px;padding:7px 0 4px;border-radius:14px}
+  .cal-fin-028 .cal-dia-logos > span > span {width:15px!important;height:15px!important;flex-basis:15px!important}
+  .cal-fin-028 .cal-pago-fila {grid-template-columns:30px minmax(0,1fr) auto 8px;padding:9px 8px;gap:7px}
+  .cal-fin-028 .cal-pago-icono {width:30px;height:30px}
+}
+/* Resumen directo bajo la cuadrícula: importes completos, sin textos diminutos en cada día. */
+.cal-fin-028 .cal-dia-puntos {display:flex;gap:4px;align-items:center;justify-content:center;margin-top:auto;min-height:7px}
+.cal-fin-028 .cal-dia-puntos i {display:block;width:5px;height:5px;border-radius:100%;flex:0 0 5px}
+.cal-fin-028 .cal-punto-gasto {background:#de5964}
+.cal-fin-028 .cal-punto-ingreso {background:#19a371}
+.cal-fin-028 .cal-dia-importe {display:none}
+.cal-fin-028 .cal-movs-panel {margin-top:15px;padding:17px 13px;border-radius:34px}
+.cal-fin-028 .cal-movs-cabecera {display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 3px 12px}
+.cal-fin-028 .cal-movs-cabecera h3 {font-size:1.02rem;margin:0}
+.cal-fin-028 .cal-movs-cabecera button {
+  border:0;background:transparent;color:var(--balanceone-color,#ff7900);
+  padding:5px 0;font:inherit;font-size:.72rem;white-space:nowrap
+}
+.cal-fin-028 .cal-movs-lista {display:grid;gap:7px}
+.cal-fin-028 .cal-mov-fila {
+  width:100%;min-height:64px;padding:9px 9px;
+  display:grid;grid-template-columns:33px minmax(0,1fr) auto 9px;
+  align-items:center;gap:9px;border:1px solid rgba(130,140,155,.09);
+  border-radius:26px;background:rgba(135,148,166,.06);
+  color:inherit;text-align:left;font:inherit
+}
+.cal-fin-028 .cal-mov-logo {
+  position:relative;display:grid;place-items:center;width:33px;height:33px;
+  border-radius:50%;background:rgba(130,140,155,.09);font-size:1rem
+}
+.cal-fin-028 .cal-mov-info {display:grid;gap:4px;min-width:0}
+.cal-fin-028 .cal-mov-info strong {font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-fin-028 .cal-mov-info small {font-size:.62rem;color:#8793a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-fin-028 .cal-mov-derecha {display:grid;gap:4px;justify-items:end;white-space:nowrap}
+.cal-fin-028 .cal-mov-derecha strong {font-size:.76rem}
+.cal-fin-028 .cal-mov-etiqueta {font-size:.56rem;border-radius:999px;padding:2px 7px}
+.cal-fin-028 .cal-mov-entrada {color:#13865b}
+.cal-fin-028 .cal-mov-salida {color:#d44d56}
+.cal-fin-028 .cal-mov-etiqueta.cal-mov-entrada {background:rgba(19,134,91,.1)}
+.cal-fin-028 .cal-mov-etiqueta.cal-mov-salida {background:rgba(212,77,86,.1)}
+html.tema-oscuro .cal-fin-028 .cal-mov-fila {background:rgba(255,255,255,.05);border-color:rgba(200,208,220,.08)}
+html.tema-oscuro .cal-fin-028 .cal-mov-info small {color:#b1bbc9}
+@media(min-width:600px){
+ .cal-fin-028 .cal-dia-puntos {display:none}
+ .cal-fin-028 .cal-dia-importe {display:block}
+}
+@media(max-width:359px){
+ .cal-fin-028 .cal-mov-fila {gap:6px;grid-template-columns:28px minmax(0,1fr) auto 8px;padding:9px 7px}
+ .cal-fin-028 .cal-mov-logo {width:28px;height:28px}
+ .cal-fin-028 .cal-mov-info strong,.cal-fin-028 .cal-mov-derecha strong {font-size:.71rem}
+ .cal-fin-028 .cal-movs-cabecera h3 {font-size:.9rem}
+}
+</style>
 <style id="estilo-movimientos-calendario-unificados">
 
 /* Movimientos del día: mismo lenguaje visual que Últimas transacciones. */
@@ -7207,30 +7370,29 @@ function transferencias() {
    
        return `
       <button type="button"
-        class="cal-dia ${fecha === today() ? "cal-hoy" : ""}"
+        class="cal-dia ${fecha === today() ? "cal-hoy" : ""} ${resumen.gastos > 0 || resumen.ingresos > 0 ? "cal-dia--movimientos" : ""}"
         aria-pressed="${fecha === diaCalendario}"
         aria-label="${fecha}"
+        title="${fecha} · ${textoApp("Gastos", "Expenses")}: ${money(resumen.gastos)} · ${textoApp("Ingresos", "Income")}: ${money(resumen.ingresos)}"
         onclick="abrirDiaCalendario('${fecha}')">
         <strong>${numero}</strong>
-       ${iconosDiaCalendario(fecha)}
-
+        <span class="cal-dia-logos">${iconosDiaCalendario(fecha)}</span>
+        <span class="cal-dia-puntos" aria-hidden="true">
+          ${resumen.gastos > 0 ? `<i class="cal-punto-gasto"></i>` : ""}
+          ${resumen.ingresos > 0 ? `<i class="cal-punto-ingreso"></i>` : ""}
+        </span>
         ${resumen.gastos > 0 ? `
-          <small style="color:#d44d56">
-            −${money(resumen.gastos)}
-          </small>
+          <small class="cal-dia-importe cal-dia-importe--gasto">−${money(resumen.gastos)}</small>
         ` : ""}
-
         ${resumen.ingresos > 0 ? `
-          <small style="color:#13865b">
-            +${money(resumen.ingresos)}
-          </small>
+          <small class="cal-dia-importe cal-dia-importe--ingreso">+${money(resumen.ingresos)}</small>
         ` : ""}
       </button>
     `;
   }).join("");
 
   (document.getElementById("movCalendario") || el()).innerHTML = `
-    <section>
+    <section class="cal-fin-028">
       <h2>${textoApp("Calendario financiero", "Financial calendar")}</h2>
 
       <div class="cal-controles">
@@ -7253,7 +7415,7 @@ function transferencias() {
         </button>
       </div>
 
-      <div class="card" style="padding:10px;overflow:hidden">
+      <div class="card cal-grid-panel" style="padding:10px;overflow:hidden">
         <div class="cal-cuadricula">
           ${semana.map(nombre => `
             <span class="cal-semana">${nombre}</span>
@@ -7271,6 +7433,7 @@ function transferencias() {
         )}
       </p>
    
+    ${movimientosRecientesDelCalendario()}
     ${pagosMesCalendario()}
     ${bloqueSuscripcionesCalendario()}
     ${bloqueCuotasCalendario()}
@@ -10864,6 +11027,58 @@ function historialMovimientos() {
     boton.classList.toggle("active", boton.id === "nav-transferencias");
   });
 }
+/* Resumen del mes: mismo patrón compacto de Últimas transacciones de Inicio.
+   Es solo una vista de movimientos existentes. No registra operaciones ni modifica saldos. */
+function movimientosRecientesDelCalendario() {
+  let cuentas=[];
+  try {
+    const guardadas=JSON.parse(localStorage.getItem("amfinance-cuentas-banco")||"[]");
+    if(Array.isArray(guardadas)) cuentas=guardadas;
+  } catch {}
+  const eventos=[
+    ...data.movimientos.map(m=>({...m,bancoRef:m.cuentaId,esPago:false})),
+    ...data.pagos.map(p=>({...p,tipo:"gasto",bancoRef:p.bancoId,esPago:true,
+      nombre:textoApp("Pago: ","Payment: ")+p.nombre}))
+  ].filter(m=>validDate(String(m.fecha)) && String(m.fecha).startsWith(mesCalendario+"-"))
+   .sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)))
+   .slice(0,5);
+  if(!eventos.length) return "";
+  return `
+    <section class="card cal-movs-panel">
+      <div class="cal-movs-cabecera">
+        <h3>${textoApp("Movimientos del mes","Transactions this month")}</h3>
+        <button type="button" onclick="go('historialMovimientos')">${textoApp("Ver historial","View history")} ›</button>
+      </div>
+      <div class="cal-movs-lista">
+        ${eventos.map(m=>{
+          const ingreso=m.tipo==="ingreso";
+          const cuenta=m.bancoRef==null?null:cuentas.find(c=>String(c.id)===String(m.bancoRef));
+          const fecha=validDate(String(m.fecha))
+            ?new Date(m.fecha+"T12:00:00").toLocaleDateString(
+              idiomaActual()==="en"?"en-US":"es",{day:"numeric",month:"short"})
+            :String(m.fecha||"");
+          const detalle=[fecha,cuenta?.nombre||""].filter(Boolean).join(" · ");
+          return `
+          <button type="button" class="cal-mov-fila" onclick="abrirDiaCalendario('${m.fecha}')">
+            <span class="cal-mov-logo" aria-hidden="true">
+              ${ingreso?"↗":"↙"}${imagenCompania(m.nombre)}
+            </span>
+            <span class="cal-mov-info">
+              <strong>${safe(m.nombre)}</strong>
+              <small>${safe(detalle)}</small>
+            </span>
+            <span class="cal-mov-derecha">
+              <small class="cal-mov-etiqueta ${ingreso?"cal-mov-entrada":"cal-mov-salida"}">${m.esPago
+                ?textoApp("Pago","Payment")
+                :ingreso?textoApp("Ingreso","Income"):textoApp("Gasto","Expense")}</small>
+              <strong class="${ingreso?"cal-mov-entrada":"cal-mov-salida"}">${ingreso?"+":"−"}${money(m.monto)}</strong>
+            </span>
+            <span class="cal-pago-chevron" aria-hidden="true">›</span>
+          </button>`;
+        }).join("")}
+      </div>
+    </section>`;
+}
 function pagosMesCalendario() {
   const [anio, mes] = mesCalendario.split("-").map(Number);
   const ultimoDia = new Date(anio, mes, 0, 12).getDate();
@@ -10896,7 +11111,7 @@ function pagosMesCalendario() {
   })).sort((a, b) => a.dia - b.dia);
 
   return `
-    <div class="card" style="margin-top:20px">
+    <div class="card cal-pagos-mes">
       <h3>${textoApp("Pagos del mes", "Monthly payments")}</h3>
 
       <p class="note">
@@ -10906,52 +11121,34 @@ function pagosMesCalendario() {
         )}
       </p>
 
-      <div style="display:flex;gap:12px;overflow-x:auto;padding:8px 0">
+      <div class="cal-pagos-lista">
         ${pagos.map(p => {
           const configurado = p.monto !== null &&
             p.monto !== undefined &&
             p.monto !== "" &&
             Number.isFinite(Number(p.monto)) &&
             Number(p.monto) > 0;
-
           return `
-            <button type="button" onclick="go('${p.destino}')"
-              style="flex:0 0 130px;padding:14px 10px;
-              border:0;border-radius:24px;
-              background:rgba(130,140,155,.08);
-              color:inherit;font:inherit;text-align:center">
-
-              <span aria-hidden="true"
-                style="position:relative;display:grid;
-                place-items:center;width:40px;height:40px;
-                margin:0 auto 8px">
+            <button type="button" class="cal-pago-fila" onclick="go('${p.destino}')">
+              <span class="cal-pago-icono" aria-hidden="true">
                 ${p.destino === "vehiculos" ? "🚘" : "💳"}
                 ${imagenCompania(p.nombre)}
               </span>
-
-              <strong style="display:block;overflow-wrap:anywhere">
-                ${safe(p.nombre)}
-              </strong>
-
-              <small style="display:block;margin:6px 0">
-                ${p.tipo} · ${textoApp("Día ", "Day ")}${p.dia}
-              </small>
-
-              <strong style="display:block;
-                color:var(--balanceone-color,#ff7900)">
-                ${configurado
-                  ? money(p.monto)
-                  : textoApp("Sin importe", "Amount not set")}
-              </strong>
+              <span class="cal-pago-info">
+                <strong>${safe(p.nombre)}</strong>
+                <small>${p.tipo} · ${textoApp("Día ", "Day ")}${p.dia}</small>
+              </span>
+              <strong class="cal-pago-monto">${configurado
+                ? money(p.monto)
+                : textoApp("Sin importe", "Amount not set")}</strong>
+              <span class="cal-pago-chevron" aria-hidden="true">›</span>
             </button>
           `;
         }).join("") || `
-          <p class="note">
-            ${textoApp(
-              "No hay vencimientos configurados. Agrégalos en Tarjetas o Vehículos.",
-              "No due dates configured. Set them in Cards or Vehicles."
-            )}
-          </p>
+          <p class="note">${textoApp(
+            "No hay vencimientos configurados. Agrégalos en Tarjetas o Vehículos.",
+            "No due dates configured. Set them in Cards or Vehicles."
+          )}</p>
         `}
       </div>
     </div>
