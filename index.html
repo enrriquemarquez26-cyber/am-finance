@@ -2834,6 +2834,115 @@ html.tema-oscuro .mov28 #movCalendario .cal-controles .cal-mes {border-color:rgb
  .mov28 #movCalendario .cal-cuadricula .cal-dia {min-height:55px}
 }
 </style>
+<style id="estilo-movimientos-calendario-unificados">
+
+/* Movimientos del día: mismo lenguaje visual que Últimas transacciones. */
+.cal-dia-ventana .cal-dia-transaccion {
+  min-width:0;
+  margin:7px 0;
+  overflow:hidden;
+  border:1px solid rgba(130,140,155,.08);
+  border-radius:27px;
+  background:rgba(130,140,155,.065);
+}
+.cal-dia-ventana .cal-dia-transaccion-principal {
+  display:flex;
+  align-items:center;
+  min-height:64px;
+  gap:9px;
+  padding:9px 11px;
+}
+.cal-dia-ventana .cal-dia-transaccion-icono {
+  position:relative;
+  display:grid;
+  place-items:center;
+  width:32px;
+  height:32px;
+  flex:0 0 32px;
+  font-size:1.15rem;
+  border-radius:50%;
+}
+.cal-dia-ventana .cal-dia-transaccion-datos {
+  display:block;
+  flex:1;
+  min-width:0;
+}
+.cal-dia-ventana .cal-dia-transaccion-datos strong {
+  display:block;
+  font-size:.82rem;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.cal-dia-ventana .cal-dia-transaccion-datos small {
+  display:block;
+  margin-top:3px;
+  font-size:.65rem;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.cal-dia-ventana .cal-dia-transaccion-importe {
+  display:flex;
+  flex:0 0 auto;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+}
+.cal-dia-ventana .cal-dia-transaccion-tipo {
+  font-size:.58rem;
+  line-height:1.3;
+  padding:2px 7px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+.cal-dia-ventana .cal-dia-transaccion-importe strong {
+  font-size:.82rem;
+  white-space:nowrap;
+}
+.cal-dia-ventana .cal-dia-transaccion-opciones {
+  display:grid;
+  place-items:center;
+  flex:0 0 27px;
+  width:27px;
+  height:30px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:inherit;
+  opacity:.7;
+  font:700 19px/1 system-ui,sans-serif;
+  cursor:pointer;
+}
+.cal-dia-ventana .cal-dia-transaccion-opciones[aria-expanded="true"] {
+  background:rgba(130,140,155,.12);
+  opacity:1;
+}
+.cal-dia-ventana .cal-dia-transaccion-acciones {
+  display:flex;
+  gap:8px;
+  width:100%;
+  padding:0 11px 10px;
+}
+.cal-dia-ventana .cal-dia-transaccion-acciones[hidden] {display:none!important}
+.cal-dia-ventana .cal-dia-transaccion-editor {
+  width:100%;
+  min-width:0;
+  padding:0 11px 11px;
+}
+html.tema-oscuro .cal-dia-ventana .cal-dia-transaccion {
+  background:rgba(255,255,255,.065);
+  border-color:rgba(255,255,255,.045);
+}
+@media(max-width:359px) {
+  .cal-dia-ventana .cal-dia-contenido {padding-inline:12px}
+  .cal-dia-ventana .cal-dia-transaccion-principal {gap:6px;padding-inline:8px}
+  .cal-dia-ventana .cal-dia-transaccion-opciones {flex-basis:23px;width:23px}
+  .cal-dia-ventana .cal-dia-transaccion-importe strong {font-size:.75rem}
+}
+
+</style>
 </head>
 <body>
 <header>
@@ -10354,33 +10463,43 @@ function abrirDiaCalendario(fecha) {
       ? textoApp("Pago", "Payment")
       : ingreso ? textoApp("Ingreso", "Income")
       : textoApp("Gasto", "Expense");
+    const tipoCuenta = cuenta
+      ? (cuenta.tipo === "ahorro"
+        ? textoApp("Ahorros", "Savings")
+        : textoApp("Cheques", "Checking"))
+      : "";
+    const detalle = [cuenta?.nombre, tipoCuenta].filter(Boolean).join(" · ") || etiqueta;
+    const color = ingreso ? "#13865b" : "#d44d56";
 
+    // Igualar los movimientos del día a «Últimas transacciones» de Inicio.
+    // Las opciones de editar y eliminar siguen disponibles en el botón de tres puntos.
     return `
-      <div data-registro-dia
-  style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;
-        margin:8px 0;padding:12px;border-radius:24px;
-        background:rgba(130,140,155,.08)">
-        <span aria-hidden="true"
-          style="position:relative;display:grid;place-items:center;
-          width:32px;height:32px;flex-shrink:0;
-          color:${ingreso ? "#13865b" : "#d44d56"}">
-          ${ingreso ? "↗" : "↙"}
-          ${imagenCompania(registro.nombre)}
-        </span>
-
-        <span style="flex:1;min-width:0">
-          <strong style="display:block;overflow-wrap:anywhere">
-            ${safe(registro.nombre)}
-          </strong>
-          <span class="label" style="font-size:.72rem">
-            ${etiqueta}${cuenta ? " · " + safe(cuenta.nombre) : ""}
+      <div data-registro-dia class="cal-dia-transaccion">
+        <div class="cal-dia-transaccion-principal">
+          <span class="cal-dia-transaccion-icono" aria-hidden="true"
+            style="color:${color}">
+            ${ingreso ? "↗" : "↙"}
+            ${imagenCompania(registro.nombre)}
           </span>
-        </span>
-
-        <strong style="flex-shrink:0;font-size:.85rem;
-          color:${ingreso ? "#13865b" : "#d44d56"}">
-          ${ingreso ? "+" : "−"}${money(registro.monto)}
-        </strong>
+          <span class="cal-dia-transaccion-datos">
+            <strong title="${safe(registro.nombre)}">${safe(registro.nombre)}</strong>
+            <small class="label" title="${safe(detalle)}">${safe(detalle)}</small>
+          </span>
+          <span class="cal-dia-transaccion-importe">
+            <small class="cal-dia-transaccion-tipo"
+              style="color:${registro.origenCalendario === "pago" ? "inherit" : color};
+                background:${registro.origenCalendario === "pago"
+                  ? "rgba(130,140,155,.12)"
+                  : ingreso ? "rgba(19,134,91,.1)" : "rgba(212,77,86,.1)"}">
+              ${etiqueta}
+            </small>
+            <strong style="color:${color}">${ingreso ? "+" : "−"}${money(registro.monto)}</strong>
+          </span>
+          <button type="button" class="cal-dia-transaccion-opciones"
+            data-acciones-dia-toggle aria-expanded="false"
+            aria-label="${textoApp("Opciones de", "Options for")} ${safe(registro.nombre)}"
+            title="${textoApp("Editar o eliminar", "Edit or delete")}">···</button>
+        </div>
       </div>
     `;
   }).join("");
@@ -10644,8 +10763,15 @@ function conectarAccionesDia(ventana, fecha, registros) {
     const ident = registro.id;
     const acciones = document.createElement("div");
 
-    acciones.style.cssText =
-      "display:flex;gap:8px;width:100%;margin-top:10px";
+    acciones.className = "cal-dia-transaccion-acciones";
+    acciones.hidden = true;
+    const mostrarAcciones = fila.querySelector("[data-acciones-dia-toggle]");
+    if (mostrarAcciones) {
+      mostrarAcciones.onclick = () => {
+        acciones.hidden = !acciones.hidden;
+        mostrarAcciones.setAttribute("aria-expanded", String(!acciones.hidden));
+      };
+    }
 
     function crearBoton(es, en, color) {
       const boton = document.createElement("button");
@@ -10676,7 +10802,7 @@ function conectarAccionesDia(ventana, fecha, registros) {
       if (!original) return;
 
       const caja = document.createElement("div");
-      caja.style.width = "100%";
+      caja.className = "cal-dia-transaccion-editor";
       caja.innerHTML = editor({...original, origen});
       fila.appendChild(caja);
       acciones.hidden = true;
