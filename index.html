@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.2.6 Beta</title>
+<title>Balance One 0.2.7 Beta</title>
 <link rel="apple-touch-icon" href="./balance-one.png.PNG">
 <link rel="icon" type="image/png" href="./balance-one.png.PNG">
 <style>
@@ -2708,6 +2708,22 @@ html.tema-oscuro .datos-v2-btn--restaurar {background:rgba(255,255,255,.08);bord
   .datos-v2-icono {width:38px;height:38px;flex-basis:38px;border-radius:14px}
 }
 
+/* Confirmar el respaldo, sin alterar el diseño de las tres tarjetas. */
+.datos-v2-confirmacion {
+  margin-top:12px;padding:12px;border-radius:20px;
+  background:rgba(35,122,205,.07);border:1px solid rgba(35,122,205,.13);
+}
+.datos-v2-confirmacion strong {font-size:.78rem}
+.datos-v2-confirmacion p {margin:6px 0 10px;font-size:.7rem;line-height:1.5;color:#7b8795}
+.datos-v2-confirmacion-botones {display:flex;gap:8px;flex-wrap:wrap}
+.datos-v2-confirmacion-botones button {
+  padding:9px 12px;border-radius:999px;font:inherit;font-size:.73rem;font-weight:700;
+  cursor:pointer;min-height:38px;
+}
+.datos-v2-confirmar {background:#1675dd;color:white;border:0}
+.datos-v2-posponer {background:rgba(127,142,162,.1);color:inherit;border:1px solid rgba(127,142,162,.15)}
+html.tema-oscuro .datos-v2-confirmacion {background:rgba(58,133,218,.12);border-color:rgba(128,171,223,.14)}
+html.tema-oscuro .datos-v2-confirmacion p {color:#b4becb}
 </style>
 </head>
 <body>
@@ -2715,7 +2731,7 @@ html.tema-oscuro .datos-v2-btn--restaurar {background:rgba(255,255,255,.08);bord
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.2.6 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.2.7 Beta</div>
 </header>
 <main id="content" style="padding-bottom: 130px;"></main>
 <div id="movVentanaFondo" class="hidden"
@@ -2928,8 +2944,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.2.6 Beta",
-      "Smart control of your finances · 0.2.6 Beta"
+      "Control inteligente de tus finanzas · 0.2.7 Beta",
+      "Smart control of your finances · 0.2.7 Beta"
     );
   }
 }
@@ -3088,7 +3104,7 @@ hoy.getFullYear(),hoy.getMonth()+2,0
 return Math.round((fecha-hoy)/86400000);
 }
 
-// 0.2.6 Beta: los estados de recordatorios se guardan con los demás datos
+// 0.2.7 Beta: los estados de recordatorios se guardan con los demás datos
 // para que las copias de seguridad existentes los incluyan.
 // No constituyen una transacción financiera ni descuentan saldos.
 function claveAviso(tipo, identificador, fecha) {
@@ -3115,7 +3131,7 @@ function registradoEnPeriodo(tipo, cuentaId, fecha, importe) {
     .reduce((total,p) => total + (Number(p.monto)>0 ? Number(p.monto) : 0),0);
   return round(abonado) >= round(importe) - 0.005;
 }
-// 0.2.6 Beta · Configuración de notificaciones internas, incluida en las copias de datos.
+// 0.2.7 Beta · Configuración de notificaciones internas, incluida en las copias de datos.
 const OPCIONES_DIAS_AVISOS = [1,3,5,7,10,15];
 const TIPOS_AVISOS = ["tarjeta","vehiculo","prestamo","suscripcion"];
 function preferenciasAvisos() {
@@ -6682,8 +6698,14 @@ const CLAVES_PREFERENCIAS_RESPALDO = Object.freeze([
   "balanceone-listas",
   "balanceone-orden-herramientas"
 ]);
-const CLAVE_ULTIMA_COPIA = "balanceone-ultima-copia-preparada";
+// Separar la descarga iniciada de la copia que el usuario realmente guardó.
+// El identificador antiguo era no verificado: no se considera una copia confirmada.
+const CLAVE_ULTIMA_COPIA_ANTERIOR = "balanceone-ultima-copia-preparada";
+const CLAVE_ULTIMA_COPIA = "balanceone-ultima-copia-confirmada";
+const CLAVE_COPIA_PENDIENTE = "balanceone-copia-descargada-pendiente";
 const DIAS_ENTRE_COPIAS = 30;
+const DURACION_CONFIRMACION_COPIA_MS = 24*60*60*1000;
+let descargaCopiaPendienteEnMemoria = 0;
 function ultimaCopiaPreparada() {
   try {
     const valor=localStorage.getItem(CLAVE_ULTIMA_COPIA);
@@ -6703,11 +6725,11 @@ function estadoCopiaSeguridadHTML() {
     day:"numeric",month:"short",year:"numeric"
   }) : "";
   const descripcion=necesitaGuardarCopia()
-    ? (fecha ? textoApp("Han pasado 30 días desde la última copia preparada. Te recomendamos guardar una nueva.",
-      "It has been 30 days since your last prepared backup. We recommend saving a new one.")
-      : textoApp("Aún no has preparado una copia en este dispositivo. Guarda una para proteger tus datos.",
-        "You haven't prepared a backup on this device yet. Save one to protect your data."))
-    : textoApp("Última copia preparada: "+textoFecha+".","Last backup prepared: "+textoFecha+".");
+    ? (fecha ? textoApp("Han pasado 30 días desde la última copia confirmada. Te recomendamos guardar una nueva.",
+      "It has been 30 days since your last confirmed backup. We recommend saving a new one.")
+      : textoApp("Aún no has confirmado una copia guardada en este dispositivo.",
+        "No saved backup has been confirmed on this device yet."))
+    : textoApp("Última copia confirmada: "+textoFecha+".","Last confirmed backup: "+textoFecha+".");
   return `<p class="note" style="margin:12px 0 0;padding:12px 14px;border-radius:18px;
     background:rgba(135,145,160,.09);line-height:1.5">${descripcion}</p>`;
 }
@@ -6715,6 +6737,52 @@ function preferenciasParaRespaldo() {
   return Object.fromEntries(CLAVES_PREFERENCIAS_RESPALDO.map(clave=>[
     clave,localStorage.getItem(clave)
   ]));
+}
+
+// Safari no informa si una descarga termina en Archivos.
+// Se muestra una solicitud de confirmación, nunca una fecha automática.
+function copiaPendienteDeConfirmar() {
+  let fecha=descargaCopiaPendienteEnMemoria;
+  try { fecha=Math.max(fecha,Number(sessionStorage.getItem(CLAVE_COPIA_PENDIENTE))||0); }
+  catch { /* Sesión sin almacenamiento: funciona mientras la página está abierta. */ }
+  return fecha>0 && fecha<=Date.now() && (Date.now()-fecha)<DURACION_CONFIRMACION_COPIA_MS;
+}
+function limpiarCopiaPendiente() {
+  descargaCopiaPendienteEnMemoria=0;
+  try { sessionStorage.removeItem(CLAVE_COPIA_PENDIENTE); } catch {}
+}
+function mensajeConfirmarCopiaHTML() {
+  if(!copiaPendienteDeConfirmar()) return "";
+  return `<div class="datos-v2-confirmacion" role="status">
+    <strong>${textoApp("¿Guardaste el archivo?","Did you save the file?")}</strong>
+    <p>${textoApp("Comprueba que Balance-One-Respaldo.json esté en Archivos o en un lugar seguro antes de confirmar.",
+      "Check that Balance-One-Respaldo.json is in Files or another safe location before confirming.")}</p>
+    <div class="datos-v2-confirmacion-botones">
+      <button type="button" class="datos-v2-confirmar" onclick="confirmarCopiaGuardada()">${textoApp("Sí, ya lo guardé","Yes, I saved it")}</button>
+      <button type="button" class="datos-v2-posponer" onclick="posponerConfirmacionCopia()">${textoApp("Todavía no","Not yet")}</button>
+    </div>
+  </div>`;
+}
+function actualizarEstadoCopiaSeguridad() {
+  const estado=document.getElementById("estadoCopiaSeguridad");
+  if(estado) estado.innerHTML=estadoCopiaSeguridadHTML();
+  const confirmacion=document.getElementById("confirmacionCopiaSeguridad");
+  if(confirmacion) confirmacion.innerHTML=mensajeConfirmarCopiaHTML();
+}
+function confirmarCopiaGuardada() {
+  if(!copiaPendienteDeConfirmar()) return;
+  try {
+    localStorage.setItem(CLAVE_ULTIMA_COPIA,new Date().toISOString());
+  } catch {
+    alert(textoApp("No se pudo registrar la fecha del respaldo.","Could not save the backup date."));
+    return;
+  }
+  limpiarCopiaPendiente();
+  actualizarEstadoCopiaSeguridad();
+}
+function posponerConfirmacionCopia() {
+  limpiarCopiaPendiente();
+  actualizarEstadoCopiaSeguridad();
 }
 
 function exportarCopia(){
@@ -6753,12 +6821,11 @@ const respaldo = {
     enlace.click();
     enlace.remove();
 
-    // El navegador inicia la descarga: no se puede comprobar si el usuario la guardó.
-    try {
-      localStorage.setItem(CLAVE_ULTIMA_COPIA,new Date().toISOString());
-    } catch { /* La descarga todavía puede completarse sin este recordatorio. */ }
-    const estado=document.getElementById("estadoCopiaSeguridad");
-    if(estado) estado.innerHTML=estadoCopiaSeguridadHTML();
+    // La descarga puede iniciarse sin haberse guardado: pedir confirmación explícita.
+    descargaCopiaPendienteEnMemoria=Date.now();
+    try { sessionStorage.setItem(CLAVE_COPIA_PENDIENTE,String(descargaCopiaPendienteEnMemoria)); }
+    catch { /* La confirmación en pantalla sigue disponible. */ }
+    actualizarEstadoCopiaSeguridad();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   } catch(error) {
         alert(textoApp("No se pudo crear la copia de seguridad.", "Could not create the backup."));
@@ -6822,8 +6889,9 @@ async function restaurarCopia(event){
       cambios[claveBanco]=JSON.stringify(respaldo.cuentasBanco);
     }
     for(const [clave,valor] of Object.entries(preferencias)) cambios[clave]=valor;
-    // Una restauración requiere preparar un nuevo respaldo del estado restaurado.
+    // Tras restaurar, no afirmar que se ha guardado una copia del estado actual.
     cambios[CLAVE_ULTIMA_COPIA]=null;
+    cambios[CLAVE_ULTIMA_COPIA_ANTERIOR]=null;
     const anteriores=Object.fromEntries(Object.keys(cambios).map(clave=>[
       clave,localStorage.getItem(clave)
     ]));
@@ -6841,6 +6909,7 @@ async function restaurarCopia(event){
       }
       throw error;
     }
+    limpiarCopiaPendiente();
     alert(textoApp("Copia restaurada correctamente.","Backup restored successfully."));
     location.reload();
   } catch(error) {
@@ -7333,7 +7402,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.2.6 Beta</p>
+      <p class="ajustes-version">Balance One · 0.2.7 Beta</p>
     </section>
   `;
 }
@@ -7619,7 +7688,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.2.6 Beta
+        ${textoApp("Versión", "Version")} 0.2.7 Beta
       </p>
     </section>
   `;
@@ -7792,6 +7861,7 @@ function abrirAjuste(tipo) {
               "Descarga un archivo JSON. Guárdalo en Archivos o en un lugar privado y seguro.",
               "Downloads a JSON file. Keep it in Files or another private, secure place."
             )}</p>
+            <div id="confirmacionCopiaSeguridad">${mensajeConfirmarCopiaHTML()}</div>
           </section>
 
           <section class="datos-v2-card" aria-label="${t("Restaurar copia","Restore backup")}">
@@ -7865,7 +7935,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.2.6 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.2.7 Beta</p>
         </div>`
     }
   };
