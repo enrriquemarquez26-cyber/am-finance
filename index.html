@@ -314,17 +314,23 @@ html.tema-oscuro .avisos-vencimiento.is-abierto .aviso-vencimiento-flecha {
   .avisos-vencimiento.is-abierto .aviso-detalle {border-radius:25px}
 }
 /* Recordatorios pagados: acciones accesibles sin cambiar el tamaño de la barrita cerrada. */
-.avisos-vencimiento.is-abierto .aviso-detalle {display:block}
-.aviso-detalle-abrir {display:flex;align-items:center;gap:9px;width:100%;padding:0;
-  border:0;background:transparent;box-shadow:none;text-align:left;color:inherit;font:inherit;min-width:0}
-.aviso-detalle-abrir .aviso-detalle-datos {flex:1}
-.aviso-detalle-acciones {display:flex;justify-content:flex-end;margin:4px 2px 0 0}
-.aviso-accion-pago {font:inherit;font-size:.7rem;font-weight:750;border-radius:999px;
-  border:1px solid rgba(25,133,91,.17);padding:5px 11px;color:#157d59;
-  background:rgba(27,160,108,.095);line-height:1.35;cursor:pointer}
+/* Las acciones de pago viven en la misma fila: no aumentan la altura del aviso. */
+.avisos-vencimiento.is-abierto .aviso-detalle {
+  display:flex;align-items:center;gap:5px;min-height:59px;
+}
+.aviso-detalle-abrir {display:flex;align-items:center;gap:7px;flex:1;min-width:0;width:auto;padding:0;
+  border:0;background:transparent;box-shadow:none;text-align:left;color:inherit;font:inherit}
+.aviso-detalle-abrir .aviso-detalle-datos {flex:1;min-width:0}
+.aviso-detalle-abrir .aviso-detalle-importe {font-size:.71rem}
+.aviso-detalle-acciones {display:flex;align-items:center;justify-content:center;
+  margin:0;flex:0 0 28px;min-width:28px}
+.aviso-accion-pago {display:grid;place-items:center;width:28px;height:28px;padding:0;
+  font:inherit;font-size:16px;font-weight:750;line-height:1;border-radius:50%;
+  border:1px solid rgba(25,133,91,.17);color:#157d59;
+  background:rgba(27,160,108,.095);cursor:pointer}
 .aviso-accion--deshacer {color:#6e7887;border-color:rgba(125,135,153,.21);
   background:rgba(135,146,162,.10)}
-.aviso-estado-registrado {font-size:.68rem;color:#157d59;font-weight:650}
+.aviso-estado-registrado {font-size:16px;color:#157d59;font-weight:650}
 .aviso-detalle--pagado {opacity:.83}
 .aviso-pagados-titulo {font-size:.71rem;color:#658172;font-weight:750;
   margin:12px 8px 3px}
@@ -3200,12 +3206,14 @@ function tarjetaRecordatorio(c, pagado) {
     <div class="aviso-detalle-acciones">
       ${pagado ? (c.marcado
         ? `<button class="aviso-accion-pago aviso-accion--deshacer" type="button"
+             aria-label="${textoApp("Deshacer pago marcado", "Undo marked payment")}" title="${textoApp("Deshacer", "Undo")}" 
              data-aviso-clave="${safe(c.clave)}" onclick="deshacerAvisoPagado(this.dataset.avisoClave)">
-             ${textoApp("Deshacer", "Undo")}</button>`
-        : `<span class="aviso-estado-registrado">✓ ${textoApp("Pago registrado", "Payment recorded")}</span>`)
+             <span aria-hidden="true">↶</span></button>`
+        : `<span class="aviso-estado-registrado" role="img" aria-label="${textoApp("Pago registrado", "Payment recorded")}">✓</span>`)
         : `<button class="aviso-accion-pago" type="button"
+             aria-label="${textoApp("Marcar como pagado", "Mark as paid")}: ${safe(c.nombre)}" title="${textoApp("Marcar pagado", "Mark as paid")}" 
              data-aviso-clave="${safe(c.clave)}" onclick="marcarAvisoPagado(this.dataset.avisoClave)">
-             ✓ ${textoApp("Marcar pagado", "Mark as paid")}</button>`}
+             <span aria-hidden="true">✓</span></button>`}
     </div>
   </div>`;
 }
