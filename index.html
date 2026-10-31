@@ -3268,7 +3268,7 @@ html.tema-oscuro .cal-fin-028 .cal-cuadricula .cal-dia[aria-pressed="true"] {
     <span>Inicio</span>
   </button>
 
-  <button onclick="go('transferencias')" id="nav-transferencias">
+  <button onclick="go('movimientos')" id="nav-transferencias">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
       <rect x="3" y="5" width="18" height="16" rx="3"/>
@@ -3510,8 +3510,10 @@ function go(p){
  cerrarPanelAvisos();
  page=p;
  openEdit=null;
+ const pestañaActiva = (p === "movimientos" || p === "historialMovimientos")
+   ? "transferencias" : p;
  document.querySelectorAll("nav button").forEach(b=>
-  b.classList.toggle("active",b.id==="nav-"+p)
+  b.classList.toggle("active",b.id==="nav-"+pestañaActiva)
  );
  render();
  window.scrollTo(0,0);
