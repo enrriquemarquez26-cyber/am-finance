@@ -7044,6 +7044,28 @@ function pagosPendientes() {
     </section>`;
 }
 
+// Respaldos completos: lista cerrada de preferencias de esta aplicación.
+// La fecha de copia es información LOCAL, no se incluye en los archivos.
+const CLAVES_PREFERENCIAS_RESPALDO = Object.freeze([
+  "balanceone-idioma",
+  "balanceone-formato-importes",
+  "balanceone-diseno-inicio",
+  "balanceone-tamano-texto",
+  "amfinance-tema",
+  "balanceone-progreso",
+  "balanceone-color",
+  "balanceone-forma",
+  "balanceone-listas",
+  "balanceone-orden-herramientas"
+]);
+// Separar la descarga iniciada de la copia que el usuario realmente guardó.
+// El identificador antiguo era no verificado: no se considera una copia confirmada.
+const CLAVE_ULTIMA_COPIA_ANTERIOR = "balanceone-ultima-copia-preparada";
+const CLAVE_ULTIMA_COPIA = "balanceone-ultima-copia-confirmada";
+const CLAVE_COPIA_PENDIENTE = "balanceone-copia-descargada-pendiente";
+const DIAS_ENTRE_COPIAS = 30;
+const DURACION_CONFIRMACION_COPIA_MS = 24*60*60*1000;
+let descargaCopiaPendienteEnMemoria = 0;
 function ultimaCopiaPreparada() {
   try {
     const valor=localStorage.getItem(CLAVE_ULTIMA_COPIA);
