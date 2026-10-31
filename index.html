@@ -155,7 +155,7 @@ nav button span {
   overflow:hidden;
   transition:width .28s ease,border-radius .28s ease,box-shadow .28s ease;
 }
-/* Estado sin vencimientos: la cápsula permanece visible sin iconos ni punto naranja. */
+/* Si tampoco hace falta respaldo, la cápsula permanece como Todo al día. */
 .avisos-vencimiento--vacio:not(.is-abierto) .aviso-vencimiento {justify-content:center}
 .avisos-vencimiento--vacio:not(.is-abierto) .aviso-vencimiento-texto {
   flex:0 1 auto;text-align:center;
@@ -363,6 +363,10 @@ html.tema-oscuro .ajuste-aviso-tipo-info small {color:#aab6c4}
 .aviso-nota-pagos {font-size:.64rem;line-height:1.4;color:#8895a5;
   margin:10px 8px 5px;text-align:center}
 html.tema-oscuro .aviso-accion-pago,html.tema-oscuro .aviso-estado-registrado {color:#81d5ae}
+/* El respaldo usa la misma fila compacta, sin botón de marcar como pagado. */
+.aviso-detalle--respaldo .aviso-detalle-abrir {min-height:40px}
+.aviso-detalle--respaldo .aviso-vencimiento-icono {color:#ee8c26}
+html.tema-oscuro .aviso-detalle--respaldo .aviso-vencimiento-icono {color:#ffb86e}
 html.tema-oscuro .aviso-accion--deshacer {color:#c2ccd8}
 html.tema-oscuro .aviso-nota-pagos {color:#aab6c4}
 .aviso-accion-pago:focus-visible,.aviso-detalle-abrir:focus-visible {
@@ -3227,6 +3231,12 @@ function marcarAvisoPagado(clave) { guardarEstadoRecordatorio(clave,true); }
 function deshacerAvisoPagado(clave) { guardarEstadoRecordatorio(clave,false); }
 
 function iconoAvisoVencimiento(c) {
+  if(c.tipoAviso === "respaldo") return `<svg viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+    stroke-linejoin="round" aria-hidden="true">
+    <path d="M6 3h9l4 4v14H6zM15 3v5h4"/>
+    <path d="M12 18v-8m0 0-3 3m3-3 3 3"/>
+  </svg>`;
   const nombre = `${c.nombre} ${c.banco || ""}`.toLowerCase();
   const marcas = [
     ["apple","apple.com"],["american express","americanexpress.com"],
@@ -3294,6 +3304,12 @@ function irDesdeAviso(destino) {
   cerrarPanelAvisos();
   if(["tarjetas","vehiculos","suscripciones","pagosPendientes"].includes(destino)) go(destino);
 }
+// El aviso de respaldo abre la opción que ya existe en Ajustes.
+function abrirDatosYCopiasDesdeAviso() {
+  cerrarPanelAvisos();
+  go("ajustes");
+  abrirAjuste("datos");
+}
 document.addEventListener("keydown", event => {
   if(event.key === "Escape") cerrarPanelAvisos();
 });
@@ -3317,6 +3333,15 @@ window.addEventListener("pageshow", evento => {
 });
 
 function tarjetaRecordatorio(c, pagado) {
+  if(c.tipoAviso === "respaldo") return `<div class="aviso-detalle aviso-detalle--respaldo">
+    <button type="button" class="aviso-detalle-abrir" onclick="abrirDatosYCopiasDesdeAviso()"
+      aria-label="${safe(c.nombre)}. ${safe(c.descripcion)}">
+      <span class="aviso-vencimiento-icono" aria-hidden="true">${iconoAvisoVencimiento(c)}</span>
+      <span class="aviso-detalle-datos"><strong>${safe(c.nombre)}</strong>
+        <small>${safe(c.descripcion)}</small></span>
+      <span class="aviso-detalle-chevron" aria-hidden="true">›</span>
+    </button>
+  </div>`;
   const apertura = `irDesdeAviso('${c.destino}')`;
   return `<div class="aviso-detalle ${pagado ? "aviso-detalle--pagado" : ""}">
     <button type="button" class="aviso-detalle-abrir" onclick="${apertura}"
@@ -3344,14 +3369,24 @@ function tarjetaRecordatorio(c, pagado) {
 }
 function avisosVencimiento() {
   const todos=datosAvisosVencimiento(true);
-  const proximos=todos.filter(c=>!c.pagado);
+  const pagosProximos=todos.filter(c=>!c.pagado);
+  const respaldoPendiente=necesitaGuardarCopia() ? {
+    nombre:textoApp("Copia de seguridad","Backup"),
+    descripcion:ultimaCopiaPreparada()
+      ? textoApp("Hace 30 días que no guardas una copia","Time to save a new backup")
+      : textoApp("Guarda tu primera copia","Save your first backup"),
+    tipoAviso:"respaldo", destino:"datos", importe:null, faltan:0
+  } : null;
+  // Un único menú para vencimientos financieros y recordatorios de respaldo.
+  // Si también hay pagos, conservar el principal financiero que el usuario conoce.
+  const proximos=respaldoPendiente ? [...pagosProximos,respaldoPendiente] : pagosProximos;
   const pagados=todos.filter(c=>c.pagado);
   const contenido=`<div class="aviso-lista">
     ${proximos.map(c=>tarjetaRecordatorio(c,false)).join("") || `<div class="aviso-lista--vacia">${textoApp("No tienes avisos pendientes","You have no pending reminders")}</div>`}
     ${pagados.length?`<div class="aviso-pagados-titulo">✓ ${textoApp("Marcados como pagados", "Marked as paid")}</div>
       ${pagados.map(c=>tarjetaRecordatorio(c,true)).join("")}`:""}
-    <p class="aviso-nota-pagos">${textoApp("Marcar pagado solo confirma el recordatorio; no descuenta dinero ni registra transacciones.",
-      "Mark as paid only confirms the reminder; it does not deduct money or record transactions.")}</p>
+    ${todos.length ? `<p class="aviso-nota-pagos">${textoApp("Marcar pagado solo confirma el recordatorio; no descuenta dinero ni registra transacciones.",
+      "Mark as paid only confirms the reminder; it does not deduct money or record transactions.")}</p>` : ""}
   </div>`;
   const fondo=`<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>`;
   if(!proximos.length) {
@@ -3376,14 +3411,17 @@ function avisosVencimiento() {
       aria-controls="avisosUnificadosLista" onclick="abrirPanelAvisos()">
       <span class="aviso-vencimiento-icono ${/apple/i.test(principal.nombre)?"aviso-vencimiento-icono--apple":""}"
         aria-hidden="true">${iconoAvisoVencimiento(principal)}</span>
-      <span class="aviso-miniaturas" aria-hidden="true">
+      ${restantes.length ? `<span class="aviso-miniaturas" aria-hidden="true">
         ${restantes.slice(0,3).map(c=>`<span class="aviso-miniatura">${iconoAvisoVencimiento(c)}</span>`).join("")}
         ${restantes.length>3?`<span class="aviso-miniatura aviso-miniatura--mas">+${restantes.length-3}</span>`:""}
-      </span>
+      </span>` : ""}
       <span class="aviso-vencimiento-texto">
-        <strong><span class="avisos-cerrado">${safe(principal.nombre)}</span><span class="avisos-abierto">${textoApp("Notificaciones","Notifications")}</span></strong>
-        <small><span class="avisos-cerrado">${safe(textoPlazoAviso(principal.faltan))}</span>
-        <span class="avisos-abierto">${textoApp(`${proximos.length} avisos próximos`,`${proximos.length} upcoming alerts`)}</span></small>
+        <strong><span class="avisos-cerrado">${safe(principal.tipoAviso === "respaldo"
+          ? textoApp("Guardar copia","Save backup") : principal.nombre)}</span><span class="avisos-abierto">${textoApp("Notificaciones","Notifications")}</span></strong>
+        <small><span class="avisos-cerrado">${safe(principal.tipoAviso === "respaldo"
+          ? textoApp("Copia pendiente","Backup due") : textoPlazoAviso(principal.faltan))}</span>
+        <span class="avisos-abierto">${textoApp(`${proximos.length} ${proximos.length===1 ? "aviso pendiente" : "avisos pendientes"}`,
+          `${proximos.length} pending ${proximos.length===1 ? "alert" : "alerts"}`)}</span></small>
       </span>
       <span class="aviso-vencimiento-flecha" aria-hidden="true">›</span>
     </button>
@@ -6558,7 +6596,56 @@ function pagosPendientes() {
       </div>`}
     </section>`;
 }
-     function exportarCopia(){
+     // Respaldos completos: lista cerrada de preferencias de esta aplicación.
+// La fecha de copia es información LOCAL, no se incluye en los archivos.
+const CLAVES_PREFERENCIAS_RESPALDO = Object.freeze([
+  "balanceone-idioma",
+  "balanceone-formato-importes",
+  "balanceone-diseno-inicio",
+  "balanceone-tamano-texto",
+  "amfinance-tema",
+  "balanceone-progreso",
+  "balanceone-color",
+  "balanceone-forma",
+  "balanceone-listas",
+  "balanceone-orden-herramientas"
+]);
+const CLAVE_ULTIMA_COPIA = "balanceone-ultima-copia-preparada";
+const DIAS_ENTRE_COPIAS = 30;
+function ultimaCopiaPreparada() {
+  try {
+    const valor=localStorage.getItem(CLAVE_ULTIMA_COPIA);
+    if (!valor) return null;
+    const fecha=new Date(valor);
+    return Number.isFinite(fecha.getTime()) && fecha.getTime()<=Date.now()
+      ? fecha : null;
+  } catch { return null; }
+}
+function necesitaGuardarCopia() {
+  const fecha=ultimaCopiaPreparada();
+  return !fecha || Date.now()-fecha.getTime()>=DIAS_ENTRE_COPIAS*86400000;
+}
+function estadoCopiaSeguridadHTML() {
+  const fecha=ultimaCopiaPreparada();
+  const textoFecha=fecha ? fecha.toLocaleDateString(idiomaActual()==="en" ? "en-US" : "es-US",{
+    day:"numeric",month:"short",year:"numeric"
+  }) : "";
+  const descripcion=necesitaGuardarCopia()
+    ? (fecha ? textoApp("Han pasado 30 días desde la última copia preparada. Te recomendamos guardar una nueva.",
+      "It has been 30 days since your last prepared backup. We recommend saving a new one.")
+      : textoApp("Aún no has preparado una copia en este dispositivo. Guarda una para proteger tus datos.",
+        "You haven't prepared a backup on this device yet. Save one to protect your data."))
+    : textoApp("Última copia preparada: "+textoFecha+".","Last backup prepared: "+textoFecha+".");
+  return `<p class="note" style="margin:12px 0 0;padding:12px 14px;border-radius:18px;
+    background:rgba(135,145,160,.09);line-height:1.5">${descripcion}</p>`;
+}
+function preferenciasParaRespaldo() {
+  return Object.fromEntries(CLAVES_PREFERENCIAS_RESPALDO.map(clave=>[
+    clave,localStorage.getItem(clave)
+  ]));
+}
+
+function exportarCopia(){
   try {
     const cuentasBanco = JSON.parse(
   localStorage.getItem("amfinance-cuentas-banco") || "[]"
@@ -6570,10 +6657,11 @@ if (!Array.isArray(cuentasBanco)) {
 
 const respaldo = {
   aplicacion: "Balance One",
-  version: 1,
+  version: 2,
   fecha: new Date().toISOString(),
   datos: data,
-  cuentasBanco: cuentasBanco
+  cuentasBanco: cuentasBanco,
+  preferencias: preferenciasParaRespaldo()
 };
 
     const contenido = JSON.stringify(respaldo, null, 2);
@@ -6593,79 +6681,93 @@ const respaldo = {
     enlace.click();
     enlace.remove();
 
+    // El navegador inicia la descarga: no se puede comprobar si el usuario la guardó.
+    try {
+      localStorage.setItem(CLAVE_ULTIMA_COPIA,new Date().toISOString());
+    } catch { /* La descarga todavía puede completarse sin este recordatorio. */ }
+    const estado=document.getElementById("estadoCopiaSeguridad");
+    if(estado) estado.innerHTML=estadoCopiaSeguridadHTML();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   } catch(error) {
         alert(textoApp("No se pudo crear la copia de seguridad.", "Could not create the backup."));
   }
 }
 async function restaurarCopia(event){
-  const archivo = event.target.files[0];
+  const archivo=event.target.files?.[0];
   if(!archivo) return;
-
   try {
-    const texto = await archivo.text();
-    const respaldo = JSON.parse(texto);
-
-    if(
-      respaldo.aplicacion !== "Balance One" ||
-      respaldo.version !== 1 ||
-      !respaldo.datos ||
-      !Array.isArray(respaldo.datos.movimientos) ||
-      !Array.isArray(respaldo.datos.pagos) ||
-      !Array.isArray(respaldo.datos.vehiculos) ||
-      !Array.isArray(respaldo.datos.tarjetas)
-    ){
-            alert(textoApp("Este archivo no es una copia válida de Balance One.", "This file is not a valid Balance One backup."));
+    const respaldo=JSON.parse(await archivo.text());
+    const valido=respaldo && respaldo.aplicacion==="Balance One" &&
+      [1,2].includes(respaldo.version) && respaldo.datos &&
+      Array.isArray(respaldo.datos.movimientos) &&
+      Array.isArray(respaldo.datos.pagos) &&
+      Array.isArray(respaldo.datos.vehiculos) &&
+      Array.isArray(respaldo.datos.tarjetas) &&
+      (respaldo.cuentasBanco===undefined || Array.isArray(respaldo.cuentasBanco));
+    if(!valido) {
+      alert(textoApp("Este archivo no es una copia válida de Balance One.",
+        "This file is not a valid Balance One backup."));
       return;
     }
 
-    if(!confirm(
-            textoApp("¿Restaurar esta copia? Se reemplazarán los datos actuales de Balance One.", "Restore this backup? Your current Balance One data will be replaced.")
-    )) return;
-
-    if (
-  respaldo.cuentasBanco !== undefined &&
-  !Array.isArray(respaldo.cuentasBanco)
-) {
-    alert(textoApp("Las cuentas bancarias del respaldo no son válidas.", "The bank accounts in the backup are invalid."));
-  return;
-}
-
-const claveBanco = "amfinance-cuentas-banco";
-const anteriores = [
-  [KEY, localStorage.getItem(KEY)],
-  [claveBanco, localStorage.getItem(claveBanco)]
-];
-
-try {
-  localStorage.setItem(
-    KEY,
-    JSON.stringify(respaldo.datos)
-  );
-
-  if (Array.isArray(respaldo.cuentasBanco)) {
-    localStorage.setItem(
-      claveBanco,
-      JSON.stringify(respaldo.cuentasBanco)
-    );
-  }
-} catch (error) {
-  for (const [clave, valor] of anteriores) {
-    if (valor === null) {
-      localStorage.removeItem(clave);
-    } else {
-      localStorage.setItem(clave, valor);
+    // Los respaldos antiguos (versión 1) no tienen preferencias.
+    // Solo restauramos claves autorizadas y validamos los valores antes de escribir.
+    let preferencias={};
+    if(respaldo.version===2) {
+      if(!respaldo.preferencias || typeof respaldo.preferencias!=="object" ||
+         Array.isArray(respaldo.preferencias)) {
+        alert(textoApp("Las preferencias del respaldo no son válidas.",
+          "Backup preferences are invalid."));
+        return;
+      }
+      for(const clave of CLAVES_PREFERENCIAS_RESPALDO) {
+        if(!Object.prototype.hasOwnProperty.call(respaldo.preferencias,clave)) continue;
+        const valor=respaldo.preferencias[clave];
+        if(valor!==null && (typeof valor!=="string" || valor.length>20000)) {
+          alert(textoApp("Las preferencias del respaldo no son válidas.",
+            "Backup preferences are invalid."));
+          return;
+        }
+        preferencias[clave]=valor;
+      }
     }
-  }
-  throw error;
-}
-        alert(textoApp("Copia restaurada correctamente.", "Backup restored successfully."));
-    location.reload();
+    if(!confirm(textoApp(
+      "¿Restaurar esta copia? Se reemplazarán los datos actuales de Balance One.",
+      "Restore this backup? Your current Balance One data will be replaced."
+    ))) return;
 
+    const claveBanco="amfinance-cuentas-banco";
+    const cambios={ [KEY]:JSON.stringify(respaldo.datos) };
+    if(Array.isArray(respaldo.cuentasBanco)) {
+      cambios[claveBanco]=JSON.stringify(respaldo.cuentasBanco);
+    }
+    for(const [clave,valor] of Object.entries(preferencias)) cambios[clave]=valor;
+    // Una restauración requiere preparar un nuevo respaldo del estado restaurado.
+    cambios[CLAVE_ULTIMA_COPIA]=null;
+    const anteriores=Object.fromEntries(Object.keys(cambios).map(clave=>[
+      clave,localStorage.getItem(clave)
+    ]));
+    try {
+      for(const [clave,valor] of Object.entries(cambios)) {
+        if(valor===null) localStorage.removeItem(clave);
+        else localStorage.setItem(clave,valor);
+      }
+    } catch(error) {
+      for(const [clave,valor] of Object.entries(anteriores)) {
+        try {
+          if(valor===null) localStorage.removeItem(clave);
+          else localStorage.setItem(clave,valor);
+        } catch { /* Intento de restauración del estado previo. */ }
+      }
+      throw error;
+    }
+    alert(textoApp("Copia restaurada correctamente.","Backup restored successfully."));
+    location.reload();
   } catch(error) {
-        alert(textoApp("No se pudo restaurar la copia de seguridad.", "Could not restore the backup."));
+    alert(textoApp("No se pudo restaurar la copia de seguridad.",
+      "Could not restore the backup."));
   } finally {
-    event.target.value = "";
+    event.target.value="";
   }
 }
 
@@ -7395,7 +7497,9 @@ function ajustes() {
     [
       "datos",
       textoApp("Datos y copias", "Data and backups"),
-      textoApp("Guardar, restaurar y exportar", "Save, restore and export")
+      necesitaGuardarCopia()
+        ? textoApp("Conviene guardar una copia", "Time to save a backup")
+        : textoApp("Guardar, restaurar y exportar", "Save, restore and export")
     ],
     [
       "privacidad",
@@ -7581,10 +7685,11 @@ function abrirAjuste(tipo) {
         <div class="card" style="border-radius:30px">
           <h3>${t("Guardar y exportar", "Save and export")}</h3>
           <p class="note">${t(
-            "Descarga una copia de tus datos en formato JSON.",
-            "Download a backup of your data in JSON format."
+            "Incluye finanzas, bancos, tarjetas, recordatorios y tus ajustes. El archivo se guarda manualmente en tu dispositivo; no se sube a la nube.",
+            "Includes finances, banks, cards, reminders and preferences. Save the file manually on your device; it is not uploaded to the cloud."
           )}</p>
-          <button class="primary" style="border-radius:999px"
+          <div id="estadoCopiaSeguridad">${estadoCopiaSeguridadHTML()}</div>
+          <button class="primary" style="border-radius:999px;margin-top:12px"
                   onclick="exportarCopia()">
             ${t("Guardar copia", "Save backup")}
           </button>
@@ -7593,8 +7698,8 @@ function abrirAjuste(tipo) {
         <div class="card" style="border-radius:30px">
           <h3>${t("Restaurar copia", "Restore backup")}</h3>
           <label class="note" for="archivoCopia">${t(
-            "Selecciona una copia de Balance One.",
-            "Select a Balance One backup."
+            "Selecciona un respaldo de Balance One. Se admiten también los respaldos anteriores.",
+            "Select a Balance One backup. Older backups are also supported."
           )}</label>
           <input id="archivoCopia" type="file"
                  accept=".json,application/json"
