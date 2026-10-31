@@ -2724,6 +2724,54 @@ html.tema-oscuro .datos-v2-btn--restaurar {background:rgba(255,255,255,.08);bord
 .datos-v2-posponer {background:rgba(127,142,162,.1);color:inherit;border:1px solid rgba(127,142,162,.15)}
 html.tema-oscuro .datos-v2-confirmacion {background:rgba(58,133,218,.12);border-color:rgba(128,171,223,.14)}
 html.tema-oscuro .datos-v2-confirmacion p {color:#b4becb}
+/* Balance One 0.2.8: pagos pendientes — rediseño visual aislado. */
+.pagos-pendientes-pantalla.pp28 {padding-bottom:27px;max-width:610px;margin:0 auto}
+.pp28 .pp28-heading {margin:1px 2px 16px}
+.pp28 .pp28-heading h2 {font-size:1.32rem;letter-spacing:-.035em;margin:0 0 4px;font-weight:770}
+.pp28 .pp28-heading p {font-size:.76rem;line-height:1.4;margin:0;color:#858f9f}
+.pp28 .pp28-overview {border:1px solid rgba(129,145,162,.12);border-radius:35px;background:rgba(255,255,255,.91);padding:13px 15px 15px;box-shadow:0 5px 19px rgba(20,29,45,.027)}
+.pp28 .pp28-month {display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 1px 12px}
+.pp28 .pp28-month strong {font-size:.88rem;font-weight:720;letter-spacing:-.01em}
+.pp28 .pp28-month button {height:34px;width:34px;flex:0 0 34px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(135,145,163,.09);color:inherit;font:inherit;font-size:21px;line-height:1}
+.pp28 .pp28-stats {display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pp28 .pp28-stat {border-radius:23px;background:rgba(125,139,161,.065);padding:12px 15px;min-width:0}
+.pp28 .pp28-stat small {display:block;font-size:.68rem;font-weight:560;color:#8b96a5;margin-bottom:5px}
+.pp28 .pp28-stat strong {display:block;font-size:1.28rem;line-height:1;font-weight:760;letter-spacing:-.025em}
+.pp28 .pp28-estimate {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 4px 0}
+.pp28 .pp28-estimate span {font-size:.72rem;color:#8792a0}
+.pp28 .pp28-estimate strong {font-size:.9rem;white-space:nowrap;font-weight:760}
+.pp28 .pp28-filters {display:flex;gap:7px;margin:16px 2px 12px;align-items:center}
+.pp28 .pp28-filter {font:inherit;font-size:.74rem;font-weight:660;color:inherit;border:0;border-radius:999px;padding:9px 15px;background:rgba(130,140,155,.09)}
+.pp28 .pp28-filter[aria-pressed="true"] {background:rgba(255,132,35,.13);color:#c16b1e}
+.pp28 .pp28-list {display:grid;gap:9px}
+.pp28 .pp28-item {width:100%;display:flex;align-items:center;gap:10px;text-align:left;min-width:0;min-height:72px;padding:11px 12px;border-radius:32px;border:1px solid rgba(135,149,166,.105);background:rgba(255,255,255,.91);box-shadow:0 3px 12px rgba(18,30,50,.02);color:inherit;font:inherit;transition:transform .14s ease,background .14s ease}
+.pp28 .pp28-item:active {transform:scale(.992)}
+.pp28 .pp28-date {flex:0 0 43px;width:43px;min-width:43px;height:45px;border-radius:17px;background:rgba(129,144,163,.08);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1px}
+.pp28 .pp28-date strong {font-size:1.03rem;line-height:1;font-weight:750;font-variant-numeric:tabular-nums}
+.pp28 .pp28-date small {font-size:.55rem;text-transform:uppercase;font-weight:690;color:#8792a0;letter-spacing:.045em}
+.pp28 .pp28-info {display:flex;flex:1;flex-direction:column;gap:3px;min-width:0}
+.pp28 .pp28-name {font-size:.79rem;font-weight:730;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp28 .pp28-category {font-size:.64rem;color:#8792a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp28 .pp28-status {display:flex;align-items:center;gap:4px;font-size:.64rem;font-weight:610;color:var(--pp-status,#768395);line-height:1.15;white-space:nowrap}
+.pp28 .pp28-status::before {content:"";width:5px;height:5px;flex-shrink:0;border-radius:50%;background:currentColor}
+.pp28 .pp28-state-label {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp28 .pp28-status em {font-style:normal;font-weight:470;color:#8792a0;overflow:hidden;text-overflow:ellipsis}
+.pp28 .pp28-amount {min-width:0;max-width:37%;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.pp28 .pp28-amount strong {font-size:.83rem;line-height:1.2;letter-spacing:-.02em;white-space:nowrap;font-weight:740}
+.pp28 .pp28-amount small {font-size:.59rem;color:#9ba3af;white-space:nowrap}
+.pp28 .pp28-chevron {font-size:20px;font-weight:350;color:#aab2bf;line-height:1;flex:0 0 9px;text-align:right}
+.pp28 .pp28-note {padding:0 5px;margin:14px 0 0;font-size:.67rem;color:#929baa;line-height:1.45}
+.pp28 .pp28-empty {border-radius:30px;background:rgba(255,255,255,.91);padding:23px 16px;text-align:center}
+.pp28 .pp28-empty p {font-size:.78rem;color:#8792a0;margin:4px 0 12px}
+.pp28 .pp28-empty button {border:0;border-radius:999px;padding:10px 17px;color:inherit;background:rgba(130,140,155,.11);font:inherit;font-size:.78rem}
+.pp28 .pp28-item:focus-visible,.pp28 button:focus-visible {outline:2px solid #ed913a;outline-offset:3px}
+html.tema-oscuro .pp28 .pp28-heading p,html.tema-oscuro .pp28 .pp28-estimate span,html.tema-oscuro .pp28 .pp28-category,html.tema-oscuro .pp28 .pp28-note,html.tema-oscuro .pp28 .pp28-date small {color:#a7b1bf}
+html.tema-oscuro .pp28 .pp28-overview,html.tema-oscuro .pp28 .pp28-item,html.tema-oscuro .pp28 .pp28-empty {background:rgba(43,49,60,.79);border-color:rgba(245,247,251,.075);box-shadow:none}
+html.tema-oscuro .pp28 .pp28-stat,html.tema-oscuro .pp28 .pp28-date,html.tema-oscuro .pp28 .pp28-month button,html.tema-oscuro .pp28 .pp28-filter {background:rgba(255,255,255,.065)}
+html.tema-oscuro .pp28 .pp28-filter[aria-pressed="true"] {background:rgba(255,140,45,.16);color:#ffb26a}
+html.tema-oscuro .pp28 .pp28-stat small,html.tema-oscuro .pp28 .pp28-status em,html.tema-oscuro .pp28 .pp28-amount small {color:#a7b1bf}
+@media(max-width:360px){.pp28 .pp28-item {gap:8px;padding:10px}.pp28 .pp28-date {width:39px;min-width:39px;flex-basis:39px}.pp28 .pp28-name{font-size:.75rem}.pp28 .pp28-amount strong{font-size:.78rem}.pp28 .pp28-status{font-size:.6rem}}
+@media(prefers-reduced-motion:reduce){.pp28 .pp28-item{transition:none}}
 </style>
 </head>
 <body>
@@ -6579,133 +6627,97 @@ function pagosPendientes() {
   const mesTitulo = new Date(anio, mes - 1, 1, 12).toLocaleDateString(
     idiomaActual() === "en" ? "en-US" : "es", {month:"long", year:"numeric"}
   );
+  const mesFormateado = mesTitulo.charAt(0).toLocaleUpperCase() + mesTitulo.slice(1);
   const nombres = {
     vehiculo:textoApp("Vehículo", "Vehicle"),
     tarjeta:textoApp("Tarjeta de crédito", "Credit card"),
     suscripcion:textoApp("Suscripción o pago programado", "Scheduled payment"),
     prestamo:textoApp("Cuota de préstamo", "Loan installment")
   };
-  const iconos = {vehiculo:"🚘", tarjeta:"💳", suscripcion:"↻", prestamo:"💰"};
   const estados = {
-    pagado:[textoApp("Registrado", "Recorded"), "#16835a", "rgba(22,131,90,.1)"],
-    parcial:[textoApp("Pago parcial", "Partial payment"), "#a36a10", "rgba(163,106,16,.1)"],
-    vencido:[textoApp("Fecha vencida", "Overdue date"), "#c54848", "rgba(197,72,72,.1)"],
-    hoy:[textoApp("Vence hoy", "Due today"), "#a36a10", "rgba(163,106,16,.1)"],
-    pendiente:[textoApp("Pendiente", "Upcoming"), "#6b7585", "rgba(130,140,155,.1)"],
-    programado:[textoApp("Programado · sin confirmar", "Scheduled · unconfirmed"), "#6b7585", "rgba(130,140,155,.1)"]
+    pagado:[textoApp("Registrado", "Recorded"), "#16835a"],
+    parcial:[textoApp("Pago parcial", "Partial payment"), "#b27a29"],
+    vencido:[textoApp("Fecha vencida", "Overdue date"), "#c54848"],
+    hoy:[textoApp("Vence hoy", "Due today"), "#b27a29"],
+    pendiente:[textoApp("Pendiente", "Upcoming"), "#7f8a9b"],
+    programado:[textoApp("Programado · sin confirmar", "Scheduled · unconfirmed"), "#7f8a9b"]
   };
 
   el().innerHTML = `
-    <section class="pagos-pendientes-pantalla" style="padding-bottom:22px">
-      <h2>${textoApp("Pagos pendientes", "Upcoming payments")}</h2>
-      <p class="note">${textoApp(
-        "Consulta tus vencimientos y pagos registrados sin volver a descontar dinero.",
-        "Review due dates and recorded payments without charging your accounts again."
-      )}</p>
-      <div class="card" style="border-radius:30px;padding:18px;margin-top:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+    <section class="pagos-pendientes-pantalla pp28">
+      <div class="pp28-heading">
+        <h2>${textoApp("Pagos pendientes", "Upcoming payments")}</h2>
+        <p>${textoApp("Tus vencimientos, organizados en un solo lugar", "Your upcoming payments in one place")}</p>
+      </div>
+      <div class="pp28-overview">
+        <div class="pp28-month">
           <button type="button" onclick="cambiarMesPagosPendientes(-1)"
-            aria-label="${textoApp("Mes anterior", "Previous month")}" style="border:0;border-radius:50%;width:36px;height:36px;background:rgba(130,140,155,.1);font:inherit">‹</button>
-          <strong style="text-transform:capitalize">${safe(mesTitulo)}</strong>
+            aria-label="${textoApp("Mes anterior", "Previous month")}">‹</button>
+          <strong>${safe(mesFormateado)}</strong>
           <button type="button" onclick="cambiarMesPagosPendientes(1)"
-            aria-label="${textoApp("Mes siguiente", "Next month")}" style="border:0;border-radius:50%;width:36px;height:36px;background:rgba(130,140,155,.1);font:inherit">›</button>
+            aria-label="${textoApp("Mes siguiente", "Next month")}">›</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
-          <div style="padding:14px;border-radius:24px;background:rgba(130,140,155,.08)">
-            <small class="label">${textoApp("Por revisar", "To review")}</small>
-            <strong style="display:block;font-size:1.35rem">${porAtender.length}</strong>
+        <div class="pp28-stats">
+          <div class="pp28-stat">
+            <small>${textoApp("Por atender", "To review")}</small>
+            <strong>${porAtender.length}</strong>
           </div>
-          <div style="padding:14px;border-radius:24px;background:rgba(130,140,155,.08)">
-            <small class="label">${textoApp("Registrados", "Recorded")}</small>
-            <strong style="display:block;font-size:1.35rem">${registrados.length}</strong>
+          <div class="pp28-stat">
+            <small>${textoApp("Registrados", "Recorded")}</small>
+            <strong>${registrados.length}</strong>
           </div>
         </div>
-        <p class="note" style="margin:12px 0 0">${textoApp("Estimado por atender: ", "Estimated outstanding: ")}
+        <div class="pp28-estimate">
+          <span>${textoApp("Estimado por atender", "Estimated outstanding")}</span>
           <strong>${money(importeEstimado)}</strong>
-        </p>
-        <p class="note" style="margin-bottom:0">${textoApp(
-          "Los estados de vehículos y tarjetas se estiman con los pagos registrados durante el mes. Verifica los anticipos y pagos de otros meses.",
-          "Card and vehicle status is estimated from payments recorded in this month. Check early or cross-month payments."
-        )}</p>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;margin:16px 0">
-        <button type="button" onclick="filtrarPagosPendientes('pendientes')"
-          aria-pressed="${filtroPagosPendientes === "pendientes"}"
-          style="border:0;border-radius:999px;padding:9px 15px;font:inherit;background:${filtroPagosPendientes === "pendientes" ? "rgba(255,121,0,.14)" : "rgba(130,140,155,.09)"};color:inherit">
-          ${textoApp("Por atender", "To review")}
-        </button>
-        <button type="button" onclick="filtrarPagosPendientes('todos')"
-          aria-pressed="${filtroPagosPendientes === "todos"}"
-          style="border:0;border-radius:999px;padding:9px 15px;font:inherit;background:${filtroPagosPendientes === "todos" ? "rgba(255,121,0,.14)" : "rgba(130,140,155,.09)"};color:inherit">
-          ${textoApp("Todos", "All")}
-        </button>
+      <div class="pp28-filters" aria-label="${textoApp("Filtrar pagos", "Filter payments")}">
+        <button type="button" class="pp28-filter" onclick="filtrarPagosPendientes('pendientes')"
+          aria-pressed="${filtroPagosPendientes === "pendientes"}">${textoApp("Por atender", "To review")} · ${porAtender.length}</button>
+        <button type="button" class="pp28-filter" onclick="filtrarPagosPendientes('todos')"
+          aria-pressed="${filtroPagosPendientes === "todos"}">${textoApp("Todos", "All")} · ${eventos.length}</button>
       </div>
-      ${visibles.map(p => {
-        const [estado, color, fondo] = estados[p.estado];
-        const dia = new Date(p.fecha + "T12:00:00").toLocaleDateString(
-          idiomaActual() === "en" ? "en-US" : "es", {day:"numeric",month:"short"}
-        );
-        const accion = p.tipo === "prestamo"
-          ? textoApp("Ver cuota", "View installment")
-          : p.tipo === "suscripcion"
-            ? textoApp("Administrar", "Manage")
-            : p.estado === "pagado"
-              ? textoApp("Ver detalles", "View details")
-              : textoApp("Registrar pago", "Record payment");
-        return `
-          <div class="card" style="border-radius:28px;padding:15px;margin:10px 0">
-            <div style="display:flex;align-items:center;gap:12px">
-              <span aria-hidden="true" style="display:grid;place-items:center;flex:0 0 40px;height:40px;border-radius:50%;background:rgba(130,140,155,.1)">${iconos[p.tipo]}</span>
-              <div style="flex:1;min-width:0">
-                <strong style="display:block;overflow-wrap:anywhere">${safe(p.nombre)}</strong>
-                <small class="label">${safe(nombres[p.tipo])} · ${safe(dia)}</small>
-              </div>
-              <strong style="font-size:.98rem;white-space:nowrap">${p.esperado === null
-                ? textoApp("Sin importe", "No amount") : money(p.esperado)}</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
-              <span style="border-radius:999px;padding:6px 11px;font-size:.72rem;font-weight:650;color:${color};background:${fondo}">${estado}</span>
-              ${p.abonado > 0 ? `<small class="label">${textoApp("Registrado: ", "Recorded: ")}${money(p.abonado)}</small>` : ""}
-            </div>
-            ${p.tipo === "suscripcion" ? `<p class="note" style="margin:9px 0 0">${textoApp(
-              "Esta programación no registra gastos ni confirma que hayas pagado.",
-              "This schedule does not record an expense or confirm payment."
-            )}</p>` : ""}
-            <button type="button" onclick="abrirPagoPendiente('${p.tipo}',${Number.isInteger(p.indice) ? p.indice : -1},'${p.fecha}')"
-              style="margin-top:12px;border:0;border-radius:999px;padding:10px 15px;background:rgba(130,140,155,.1);color:inherit;font:inherit;font-size:.82rem">
-              ${accion} ›
-            </button>
-          </div>`;
-      }).join("") || `<div class="card" style="border-radius:28px">
-        <p class="note">${filtroPagosPendientes === "todos"
-          ? textoApp("No hay vencimientos programados para este mes.", "No due dates scheduled this month.")
-          : textoApp("No hay pagos por revisar este mes.", "No payments to review this month.")}</p>
-        <button type="button" class="secondary" onclick="go('tarjetas')">${textoApp("Ver tarjetas", "View cards")}</button>
-      </div>`}
+      <div class="pp28-list">
+        ${visibles.map(p => {
+          const [estado, color] = estados[p.estado] || estados.pendiente;
+          const fecha = new Date(p.fecha + "T12:00:00");
+          const dia = fecha.toLocaleDateString(idiomaActual() === "en" ? "en-US" : "es", {day:"2-digit"});
+          const mesCorto = fecha.toLocaleDateString(idiomaActual() === "en" ? "en-US" : "es", {month:"short"}).replace(".", "");
+          const accion = p.tipo === "prestamo" ? textoApp("Ver cuota", "View installment")
+            : p.tipo === "suscripcion" ? textoApp("Administrar", "Manage")
+            : p.estado === "pagado" ? textoApp("Ver detalles", "View details")
+            : textoApp("Registrar pago", "Record payment");
+          const etiquetaImporte = p.esperado === null ? textoApp("Sin importe", "No amount") : money(p.esperado);
+          return `
+          <button type="button" class="pp28-item"
+            aria-label="${safe(p.nombre)}. ${safe(estado)}. ${safe(etiquetaImporte)}. ${safe(accion)}"
+            onclick="abrirPagoPendiente('${p.tipo}',${Number.isInteger(p.indice) ? p.indice : -1},'${p.fecha}')">
+            <span class="pp28-date" aria-hidden="true"><strong>${safe(dia)}</strong><small>${safe(mesCorto)}</small></span>
+            <span class="pp28-info">
+              <strong class="pp28-name">${safe(p.nombre)}</strong>
+              <span class="pp28-category">${safe(nombres[p.tipo])}</span>
+              <span class="pp28-status" style="--pp-status:${color}">
+                <span class="pp28-state-label">${safe(estado)}</span>${p.abonado > 0 ? `<em> · ${textoApp("Abonado", "Paid")}: ${money(p.abonado)}</em>` : ""}
+              </span>
+            </span>
+            <span class="pp28-amount"><strong>${etiquetaImporte}</strong><small>${safe(accion)}</small></span>
+            <span class="pp28-chevron" aria-hidden="true">›</span>
+          </button>`;
+        }).join("") || `<div class="pp28-empty">
+          <p>${filtroPagosPendientes === "todos"
+            ? textoApp("No hay vencimientos programados para este mes.", "No due dates scheduled this month.")
+            : textoApp("No hay pagos por revisar este mes.", "No payments to review this month.")}</p>
+          <button type="button" onclick="go('tarjetas')">${textoApp("Ver tarjetas", "View cards")}</button>
+        </div>`}
+      </div>
+      <p class="pp28-note">${textoApp(
+        "Los estados son estimados según los registros del mes. Los cobros programados no confirman un pago ni descuentan dinero.",
+        "Statuses are estimated from this month's records. Scheduled charges do not confirm or deduct a payment."
+      )}</p>
     </section>`;
 }
-     // Respaldos completos: lista cerrada de preferencias de esta aplicación.
-// La fecha de copia es información LOCAL, no se incluye en los archivos.
-const CLAVES_PREFERENCIAS_RESPALDO = Object.freeze([
-  "balanceone-idioma",
-  "balanceone-formato-importes",
-  "balanceone-diseno-inicio",
-  "balanceone-tamano-texto",
-  "amfinance-tema",
-  "balanceone-progreso",
-  "balanceone-color",
-  "balanceone-forma",
-  "balanceone-listas",
-  "balanceone-orden-herramientas"
-]);
-// Separar la descarga iniciada de la copia que el usuario realmente guardó.
-// El identificador antiguo era no verificado: no se considera una copia confirmada.
-const CLAVE_ULTIMA_COPIA_ANTERIOR = "balanceone-ultima-copia-preparada";
-const CLAVE_ULTIMA_COPIA = "balanceone-ultima-copia-confirmada";
-const CLAVE_COPIA_PENDIENTE = "balanceone-copia-descargada-pendiente";
-const DIAS_ENTRE_COPIAS = 30;
-const DURACION_CONFIRMACION_COPIA_MS = 24*60*60*1000;
-let descargaCopiaPendienteEnMemoria = 0;
+
 function ultimaCopiaPreparada() {
   try {
     const valor=localStorage.getItem(CLAVE_ULTIMA_COPIA);
