@@ -313,6 +313,32 @@ html.tema-oscuro .avisos-vencimiento.is-abierto .aviso-vencimiento-flecha {
   .avisos-vencimiento.is-abierto {border-radius:37px;padding:8px}
   .avisos-vencimiento.is-abierto .aviso-detalle {border-radius:25px}
 }
+/* Ajustes → Notificaciones inteligentes · estilos locales, sin afectar Inicio. */
+.ajuste-avisos .ajuste-avisos-card {border-radius:25px;padding:17px;margin-bottom:12px}
+.ajuste-avisos .ajuste-avisos-card h3 {font-size:.94rem;margin:0 0 8px}
+.ajuste-avisos .note {margin:0 0 13px;line-height:1.5}
+.ajuste-avisos-dias {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ajuste-aviso-dia {border:1px solid rgba(145,155,170,.16);background:rgba(140,152,172,.08);
+  border-radius:999px;padding:11px 3px;font:inherit;font-size:.78rem;font-weight:650;color:inherit}
+.ajuste-aviso-dia.seleccionado {background:rgba(255,132,32,.13);border-color:rgba(255,132,32,.35);color:#b65d09}
+.ajuste-aviso-dia:focus-visible,.ajuste-aviso-tipo:focus-visible {outline:2px solid #ff7900;outline-offset:3px}
+.ajuste-aviso-tipo {width:100%;margin:0;padding:12px 0;display:flex;align-items:center;justify-content:space-between;
+  gap:10px;border:0;border-bottom:1px solid rgba(140,151,168,.11);background:transparent;font:inherit;color:inherit;text-align:left}
+.ajuste-aviso-tipo:last-child {border-bottom:0;padding-bottom:1px}
+.ajuste-aviso-tipo-info {display:grid;gap:4px;flex:1;min-width:0}
+.ajuste-aviso-tipo-info strong {font-size:.84rem}
+.ajuste-aviso-tipo-info small {font-size:.70rem;color:#8692a0}
+.ajuste-aviso-switch {display:flex;align-items:center;width:44px;height:27px;border-radius:999px;padding:3px;flex:0 0 44px;
+  background:rgba(134,142,154,.33);transition:background .16s ease}
+.ajuste-aviso-switch > span {display:block;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);
+  transition:transform .16s ease}
+.ajuste-aviso-switch.activo {background:#26ae79}
+.ajuste-aviso-switch.activo > span {transform:translateX(17px)}
+.ajuste-avisos .ajuste-aviso-ayuda {padding:4px 10px 18px;color:#8894a1}
+html.tema-oscuro .ajuste-aviso-dia {border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.065)}
+html.tema-oscuro .ajuste-aviso-dia.seleccionado {background:rgba(255,132,32,.18);color:#ffc58d;border-color:rgba(255,132,32,.44)}
+html.tema-oscuro .ajuste-aviso-tipo {border-color:rgba(255,255,255,.09)}
+html.tema-oscuro .ajuste-aviso-tipo-info small {color:#aab6c4}
 /* Recordatorios pagados: acciones accesibles sin cambiar el tamaño de la barrita cerrada. */
 /* Las acciones de pago viven en la misma fila: no aumentan la altura del aviso. */
 .avisos-vencimiento.is-abierto .aviso-detalle {
@@ -3013,7 +3039,84 @@ function registradoEnPeriodo(tipo, cuentaId, fecha, importe) {
     .reduce((total,p) => total + (Number(p.monto)>0 ? Number(p.monto) : 0),0);
   return round(abonado) >= round(importe) - 0.005;
 }
+// 0.2.6 Beta · Configuración de notificaciones internas, incluida en las copias de datos.
+const OPCIONES_DIAS_AVISOS = [1,3,5,7,10,15];
+const TIPOS_AVISOS = ["tarjeta","vehiculo","prestamo","suscripcion"];
+function preferenciasAvisos() {
+  const anteriores = data.preferenciasAvisos && typeof data.preferenciasAvisos === "object"
+    ? data.preferenciasAvisos : {};
+  const dias = Number(anteriores.dias);
+  const tipos = anteriores.tipos && typeof anteriores.tipos === "object"
+    ? anteriores.tipos : {};
+  return {
+    dias: OPCIONES_DIAS_AVISOS.includes(dias) ? dias : 7,
+    tipos: Object.fromEntries(TIPOS_AVISOS.map(tipo=>[tipo,tipos[tipo] !== false]))
+  };
+}
+function guardarPreferenciasAvisos(cambios) {
+  const anteriores = preferenciasAvisos();
+  const siguientes = {...anteriores,...cambios,
+    tipos:{...anteriores.tipos,...(cambios.tipos || {})}};
+  if (!OPCIONES_DIAS_AVISOS.includes(siguientes.dias)) return;
+  const nuevosDatos = {...data, preferenciasAvisos:siguientes};
+  try {
+    localStorage.setItem(KEY,JSON.stringify(nuevosDatos));
+  } catch(e) {
+    alert(textoApp("No se pudieron guardar las notificaciones. Inténtalo de nuevo.",
+      "Could not save notification settings. Please try again."));
+    return;
+  }
+  data=nuevosDatos;
+  abrirAjuste("avisos");
+}
+function cambiarDiasAvisos(dias) {
+  const numero=Number(dias);
+  if (!OPCIONES_DIAS_AVISOS.includes(numero)) return;
+  guardarPreferenciasAvisos({dias:numero});
+}
+function alternarTipoAvisos(tipo) {
+  if (!TIPOS_AVISOS.includes(tipo)) return;
+  const actual=preferenciasAvisos();
+  guardarPreferenciasAvisos({tipos:{[tipo]:!actual.tipos[tipo]}});
+}
+function interfazPreferenciasAvisos() {
+  const t=textoApp;
+  const preferencias=preferenciasAvisos();
+  const titulos={
+    tarjeta:[t("Tarjetas de crédito","Credit cards"),t("Pagos mínimos y fechas límite","Minimum payments and due dates")],
+    vehiculo:[t("Vehículos","Vehicles"),t("Cuotas de tus vehículos","Vehicle installments")],
+    prestamo:[t("Préstamos","Loans"),t("Cuotas de préstamos programadas","Scheduled loan installments")],
+    suscripcion:[t("Suscripciones","Subscriptions"),t("Renovaciones y cobros previstos","Renewals and planned charges")]
+  };
+  return `<div class="ajuste-avisos">
+    <section class="card ajuste-avisos-card">
+      <h3>${t("Avisar con anticipación","Remind me in advance")}</h3>
+      <p class="note">${t("Muestra los próximos vencimientos en Inicio desde los días que elijas.",
+        "Show upcoming due dates on Home starting this many days in advance.")}</p>
+      <div class="ajuste-avisos-dias" role="group" aria-label="${t("Días de anticipación","Days in advance")}">
+        ${OPCIONES_DIAS_AVISOS.map(d=>`<button type="button" class="ajuste-aviso-dia ${d===preferencias.dias?"seleccionado":""}"
+          aria-pressed="${d===preferencias.dias}" onclick="cambiarDiasAvisos(${d})">${d} ${d===1?t("día","day"):t("días","days")}</button>`).join("")}
+      </div>
+    </section>
+    <section class="card ajuste-avisos-card">
+      <h3>${t("Tipos de avisos","Reminder categories")}</h3>
+      <p class="note">${t("Activa únicamente los recordatorios que deseas ver.",
+        "Enable only the reminders you want to see.")}</p>
+      ${TIPOS_AVISOS.map(tipo=>`<button type="button" class="ajuste-aviso-tipo"
+        role="switch" aria-checked="${preferencias.tipos[tipo]}"
+        onclick="alternarTipoAvisos('${tipo}')">
+        <span class="ajuste-aviso-tipo-info"><strong>${titulos[tipo][0]}</strong><small>${titulos[tipo][1]}</small></span>
+        <span class="ajuste-aviso-switch ${preferencias.tipos[tipo]?"activo":""}" aria-hidden="true"><span></span></span>
+      </button>`).join("")}
+    </section>
+    <p class="note ajuste-aviso-ayuda">${t(
+      "Esta configuración afecta los avisos dentro de Balance One. Los pagos reales, saldos y fechas guardadas no se modifican. Las notificaciones en la pantalla bloqueada del iPhone aún no están disponibles.",
+      "These settings affect reminders inside Balance One. Recorded payments, balances and due dates are unchanged. iPhone lock-screen notifications are not yet available."
+    )}</p>
+  </div>`;
+}
 function datosAvisosVencimiento(incluirPagados = false) {
+  const preferencias = preferenciasAvisos();
   const marcados = new Set(recordatoriosMarcados().map(r => r.clave));
   const cobros = [
     ...data.tarjetas.map(t => {
@@ -3042,7 +3145,7 @@ function datosAvisosVencimiento(incluirPagados = false) {
         pagoRegistrado:registradoEnPeriodo("vehiculo",v.id,fecha,importe)
       };
     })
-  ].filter(c => c.valido && c.faltan >= 0 && c.faltan <= 7);
+  ].filter(c => c.valido && c.faltan >= 0 && c.faltan <= preferencias.dias);
 
   // Las suscripciones se muestran como cobros previstos, no cargos confirmados.
   const hoy = today();
@@ -3053,7 +3156,7 @@ function datosAvisosVencimiento(incluirPagados = false) {
     for(const s of suscripcionesDelMes(clave)) {
       const fecha = new Date(s.fecha + "T12:00:00");
       const faltan = Math.round((fecha-comienzo)/86400000);
-      if(faltan < 0 || faltan > 14) continue;
+      if(faltan < 0 || faltan > preferencias.dias) continue;
       // Los registros nuevos poseen id; la clave alternativa preserva los antiguos.
       const identificador = s.id || `${s.nombre}|${s.inicio}|${s.frecuencia}|${s.categoria||""}`;
       cobros.push({
@@ -3064,7 +3167,29 @@ function datosAvisosVencimiento(incluirPagados = false) {
       });
     }
   }
-  const todos = cobros.map(c => ({
+  // Las cuotas de préstamos utilizan su calendario existente; no se crean cargos nuevos.
+  if (preferencias.tipos.prestamo) {
+    for (let i=0;i<2;i++) {
+      const mes = new Date(comienzo.getFullYear(),comienzo.getMonth()+i,1);
+      const periodo = `${mes.getFullYear()}-${String(mes.getMonth()+1).padStart(2,"0")}`;
+      for (const cuota of prestamosDelMes(periodo)) {
+        if (!validDate(String(cuota.fecha))) continue;
+        const fecha = new Date(cuota.fecha+"T12:00:00");
+        const faltan = Math.round((fecha-comienzo)/86400000);
+        if (faltan < 0 || faltan > preferencias.dias) continue;
+        const importe = Number(cuota.monto)>0 ? Number(cuota.monto) : null;
+        const registrado = Number(cuota.importePagado)||0;
+        cobros.push({
+          nombre:String(cuota.nombre || textoApp("Préstamo", "Loan")),
+          tipoAviso:"prestamo", identificador:cuota.id, faltan, fecha:cuota.fecha,
+          importe,destino:"pagosPendientes",
+          clave:claveAviso("prestamo",cuota.id,cuota.fecha),
+          pagoRegistrado:Boolean(cuota.pagada) || (importe!==null && registrado>=importe-0.005)
+        });
+      }
+    }
+  }
+  const todos = cobros.filter(c => preferencias.tipos[c.tipoAviso]).map(c => ({
     ...c, marcado:marcados.has(c.clave),
     pagado:marcados.has(c.clave) || c.pagoRegistrado
   })).sort((a,b) => a.faltan-b.faltan || a.nombre.localeCompare(b.nombre));
@@ -3167,7 +3292,7 @@ function cerrarPanelAvisos() {
 }
 function irDesdeAviso(destino) {
   cerrarPanelAvisos();
-  if(["tarjetas","vehiculos","suscripciones"].includes(destino)) go(destino);
+  if(["tarjetas","vehiculos","suscripciones","pagosPendientes"].includes(destino)) go(destino);
 }
 document.addEventListener("keydown", event => {
   if(event.key === "Escape") cerrarPanelAvisos();
@@ -7435,14 +7560,7 @@ function abrirAjuste(tipo) {
 
     avisos: {
       titulo: t("Notificaciones", "Notifications"),
-      contenido: `
-        <div class="card">
-          <h3>${t("Pagos y recordatorios", "Payments and reminders")}</h3>
-          <p class="note">${t(
-            "Los avisos de tarjetas y vehículos aparecen en Inicio hasta 7 días antes del vencimiento. Tócalos para ver la sección correspondiente. Las notificaciones del dispositivo todavía no están disponibles.",
-            "Card and vehicle reminders appear on Home up to 7 days before they are due. Tap one to open the relevant section. Device notifications are not available yet."
-          )}</p>
-        </div>`
+      contenido: interfazPreferenciasAvisos()
     },
 
     datos: {
