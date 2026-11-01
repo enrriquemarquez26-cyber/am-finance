@@ -4107,31 +4107,43 @@ function avisosVencimiento() {
   </section></div>`;
 }
 function resumenCategoriasInicio(datos, mes) {
-  const totales = {renta:0, supermercado:0, restaurantes:0, otros:0};
-  const categorias = {
-    renta:"renta", rent:"renta", alquiler:"renta",
-    supermercado:"supermercado", supermercados:"supermercado", groceries:"supermercado",
-    restaurante:"restaurantes", restaurantes:"restaurantes", restaurants:"restaurantes"
-  };
+  const normalizar = valor => String(valor || "").normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  const alias = new Map([
+    ["rent", "renta"], ["alquiler", "renta"],
+    ["supermercados", "supermercado"], ["groceries", "supermercado"],
+    ["restaurante", "restaurantes"], ["restaurants", "restaurantes"],
+    ["other", "otros"]
+  ]);
+  const totales = new Map();
   const agregar = (registro, pago) => {
     const fecha = String(registro.fecha || "").slice(0,10);
     const monto = Number(registro.monto);
     if ((!pago && registro.tipo !== "gasto") || !validDate(fecha) ||
         fecha.slice(0,7) !== mes || !Number.isFinite(monto) || monto <= 0) return;
-    const categoria = String(registro.categoria || "").normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-    const clave = Object.prototype.hasOwnProperty.call(categorias, categoria)
-      ? categorias[categoria] : "otros";
-    totales[clave] += Math.round(monto * 100);
+    const original = String(registro.categoria || "").trim();
+    const normalizada = normalizar(original);
+    const clave = alias.get(normalizada) || normalizada || "otros";
+    const grupo = totales.get(clave) || {clave, nombre:original, centavos:0};
+    grupo.centavos += Math.round(monto * 100);
+    totales.set(clave, grupo);
   };
   (datos.movimientos || []).forEach(m => agregar(m, false));
   (datos.pagos || []).forEach(p => agregar(p, true));
-  const totalCentavos = Object.values(totales).reduce((suma, valor) => suma + valor, 0);
+  const totalCentavos = [...totales.values()].reduce((suma, c) => suma + c.centavos, 0);
+  const ordenadas = [...totales.values()].filter(c => c.centavos > 0)
+    .sort((a,b) => b.centavos - a.centavos || a.clave.localeCompare(b.clave));
+  const principales = ordenadas.filter(c => c.clave !== "otros").slice(0,3);
+  const incluidas = new Set(principales.map(c => c.clave));
+  const otros = ordenadas.filter(c => !incluidas.has(c.clave))
+    .reduce((suma,c) => suma + c.centavos, 0);
+  if (otros) principales.push({clave:"otros", nombre:"Otros", centavos:otros});
+  principales.sort((a,b) => b.centavos - a.centavos || a.clave.localeCompare(b.clave));
   return {
-    total: totalCentavos / 100,
-    categorias: Object.entries(totales).map(([clave, centavos]) => ({
-      clave, monto:centavos / 100,
-      porcentaje:totalCentavos ? centavos / totalCentavos * 100 : 0
+    total:totalCentavos / 100,
+    categorias:principales.map(c => ({
+      clave:c.clave, nombre:c.nombre, monto:c.centavos / 100,
+      porcentaje:totalCentavos ? c.centavos / totalCentavos * 100 : 0
     }))
   };
 }
@@ -4142,15 +4154,23 @@ function graficoCategoriasInicio() {
     renta:[textoApp("Renta", "Rent"), "#9c83ed"],
     supermercado:[textoApp("Supermercado", "Groceries"), "#ffae65"],
     restaurantes:[textoApp("Restaurantes", "Restaurants"), "#5ccbb9"],
+    alimentacion:[textoApp("Alimentación", "Food"), "#e6ad54"],
+    transporte:[textoApp("Transporte", "Transport"), "#719ce1"],
+    compras:[textoApp("Compras", "Shopping"), "#d58cc4"],
+    hogar:[textoApp("Hogar", "Home"), "#8caa75"],
+    salud:[textoApp("Salud", "Health"), "#e18b94"],
+    trabajo:[textoApp("Trabajo", "Work"), "#7f91b0"],
     otros:[textoApp("Otros", "Other"), "#a8b1c0"]
   };
+  const detalle = categoria => Object.prototype.hasOwnProperty.call(detalles, categoria.clave)
+    ? detalles[categoria.clave] : [categoria.nombre, "#9988bb"];
   let acumulado = 0;
   const segmentos = resumen.categorias.map(categoria => {
     const desplazamiento = -acumulado;
     acumulado += categoria.porcentaje;
     if (!categoria.porcentaje) return "";
     return `<circle cx="50" cy="50" r="41" pathLength="100"
-      fill="none" stroke="${detalles[categoria.clave][1]}" stroke-width="12"
+      fill="none" stroke="${detalle(categoria)[1]}" stroke-width="12"
       stroke-dasharray="${categoria.porcentaje} ${100 - categoria.porcentaje}"
       stroke-dashoffset="${desplazamiento}" transform="rotate(-90 50 50)"/>`;
   }).join("");
@@ -4177,8 +4197,8 @@ function graficoCategoriasInicio() {
       <ul class="inicio-categorias-leyenda">
         ${resumen.categorias.map(categoria => `
           <li>
-            <i aria-hidden="true" style="background:${detalles[categoria.clave][1]}"></i>
-            <span>${detalles[categoria.clave][0]}<small>${categoria.porcentaje.toLocaleString(idiomaActual() === "en" ? "en-US" : "es", {maximumFractionDigits:1})}%</small></span>
+            <i aria-hidden="true" style="background:${detalle(categoria)[1]}"></i>
+            <span>${safe(detalle(categoria)[0])}<small>${categoria.porcentaje.toLocaleString(idiomaActual() === "en" ? "en-US" : "es", {maximumFractionDigits:1})}%</small></span>
             <strong>${money(categoria.monto)}</strong>
           </li>
         `).join("")}
@@ -4186,7 +4206,7 @@ function graficoCategoriasInicio() {
     </div>
     <p class="inicio-categorias-nota">${resumen.total === 0
       ? textoApp("Todavía no hay gastos este mes.", "No expenses this month yet.")
-      : textoApp("Incluye pagos. Los gastos sin categoría específica se muestran en Otros.", "Includes payments. Expenses without a specific category appear under Other.")}</p>`;
+      : textoApp("Categorías con más gastos del mes. Incluye pagos; el resto se agrupa en Otros.", "Top spending categories this month. Includes payments; the rest is grouped under Other.")}</p>`;
 }
 
 function actualizarIndicadoresTransacciones(carrusel) {
@@ -13279,6 +13299,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
