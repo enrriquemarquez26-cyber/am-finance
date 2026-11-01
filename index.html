@@ -4227,23 +4227,13 @@ ${autos + tarjetas + prestamos > 0 ? `
     </div>
   </div>
 ` : ""}
-<button type="button" class="card inicio-capsula"
-  onclick="go('movimientos')"
-  style="display:block;width:100%;padding:16px;
-  border-radius:36px;text-align:left;color:inherit;
-  font:inherit;margin-bottom:16px">
-
-  <span style="display:flex;justify-content:space-between;
-    align-items:center;gap:10px;margin-bottom:12px">
-    <strong style="font-size:.95rem">
-      ${textoApp("Últimas transacciones", "Recent transactions")}
-    </strong>
-    <span style="color:var(--balanceone-color,#ff7900);
-      font-size:.7rem;white-space:nowrap">
-      ${textoApp("Ver todas", "View all")} ›
-    </span>
-  </span>
-
+<section class="card inicio-capsula cal-fin-028 inicio-transacciones"
+  style="padding:17px 13px;margin-bottom:16px">
+  <div class="cal-movs-cabecera">
+    <h3>${textoApp("Últimas transacciones", "Recent transactions")}</h3>
+    <button type="button" onclick="go('movimientos')">${textoApp("Ver todas", "View all")} ›</button>
+  </div>
+  <div class="cal-movs-lista">
   ${[
     ...data.movimientos.map(m => ({
       ...m,
@@ -4291,58 +4281,29 @@ ${autos + tarjetas + prestamos > 0 ? `
          : textoApp("Gasto", "Expense");
 
      return `
-              <span class="transaccion-resumen"
-         style="display:flex;align-items:center;
-         gap:10px;padding:9px 11px;margin-top:6px;
-         border-radius:28px;background:rgba(130,140,155,.07)">
-
-         <span aria-hidden="true"
-           style="position:relative;display:grid;place-items:center;
-           width:32px;height:32px;flex-shrink:0;
-           border-radius:50%;font-size:1.2rem;color:${color}">
-           ${ingreso ? "↗" : "↙"}
-           ${imagenCompania(m.nombre)}
+       <button type="button" class="cal-mov-fila transaccion-resumen" onclick="go('movimientos')">
+         <span class="cal-mov-logo" aria-hidden="true">
+           ${ingreso ? "↗" : "↙"}${imagenCompania(m.nombre)}
          </span>
-
-         <span style="flex:1;min-width:0">
-           <strong style="display:block;font-size:.82rem;
-             white-space:nowrap;overflow:hidden;
-             text-overflow:ellipsis">
-             ${safe(m.nombre)}
-           </strong>
-           <span class="label" title="${safe(detalle)}"
-             style="display:block;margin-top:3px;font-size:.65rem;
-             white-space:nowrap;overflow:hidden;
-             text-overflow:ellipsis">
-             ${safe(detalle)}
-           </span>
+         <span class="cal-mov-info">
+           <strong title="${safe(m.nombre)}">${safe(m.nombre)}</strong>
+           <small title="${safe(detalle)}">${safe(detalle)}</small>
          </span>
-
-         <span style="display:flex;flex-direction:column;
-           align-items:flex-end;gap:4px;flex-shrink:0">
-           <span style="padding:2px 7px;border-radius:999px;
-             font-size:.58rem;
-             background:${m.esPago
-               ? "rgba(130,140,155,.12)"
-               : ingreso
-                 ? "rgba(19,134,91,.1)"
-                 : "rgba(212,77,86,.1)"};
-             color:${m.esPago ? "inherit" : color}">
-             ${etiqueta}
-           </span>
-           <strong style="font-size:.82rem;
-             white-space:nowrap;color:${color}">
-             ${ingreso ? "+" : "−"}${money(m.monto)}
-           </strong>
+         <span class="cal-mov-derecha">
+           <small class="cal-mov-etiqueta ${ingreso ? "cal-mov-entrada" : "cal-mov-salida"}"
+             ${m.esPago ? 'style="background:rgba(130,140,155,.12);color:inherit"' : ""}>${etiqueta}</small>
+           <strong class="${ingreso ? "cal-mov-entrada" : "cal-mov-salida"}">${ingreso ? "+" : "−"}${money(m.monto)}</strong>
          </span>
-       </span>
+         <span class="cal-pago-chevron" aria-hidden="true">›</span>
+       </button>
      `;
    }).join("") || `
      <span class="note">
        ${textoApp("Todavía no hay transacciones.", "No transactions yet.")}
      </span>
    `}
-</button>
+  </div>
+</section>
 
 <div id="cuentasInicio" class="inicio-capsula">
   <div class="cuentas-cabecera">
@@ -13149,6 +13110,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
