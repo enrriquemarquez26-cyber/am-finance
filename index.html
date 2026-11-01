@@ -4923,7 +4923,7 @@ function movimientos(){
 <div class="mov-pantalla mov28">
     <div data-cabecera-mov class="mov28-cabecera">
       <div class="mov28-titulo">
-        <h2>${textoApp("Movimientos", "Transactions")}</h2>
+        <h2>${textoApp("Calendario financiero", "Financial calendar")}</h2>
         <p>${textoApp("Tu calendario financiero", "Your financial calendar")}</p>
       </div>
       <button type="button" class="mov28-enlace" onclick="go('historialMovimientos')">
@@ -7578,7 +7578,7 @@ function transferencias() {
 
   (document.getElementById("movCalendario") || el()).innerHTML = `
     <section class="cal-fin-028">
-      <h2>${textoApp("Calendario financiero", "Financial calendar")}</h2>
+      ${document.getElementById("movCalendario") ? "" : `<h2>${textoApp("Calendario financiero", "Financial calendar")}</h2>`}
 
       <div class="cal-controles">
         <div class="card cal-mes" style="margin:0;padding:8px">
@@ -13088,6 +13088,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
