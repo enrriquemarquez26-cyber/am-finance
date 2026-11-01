@@ -3397,6 +3397,12 @@ html.tema-oscuro .inicio-transacciones .inicio-categorias-nota {color:#b4becb}
           <option>Renta</option>
       <option>Supermercado</option>
       <option>Restaurantes</option>
+      <option>Gasolina</option>
+      <option>Servicios</option>
+      <option>Entretenimiento</option>
+      <option>Seguros</option>
+      <option>Educación</option>
+      <option>Suscripciones</option>
     </select>
 
     <label class="label" for="movVentanaCuenta">Cuenta</label>
@@ -4133,15 +4139,9 @@ function resumenCategoriasInicio(datos, mes) {
   const totalCentavos = [...totales.values()].reduce((suma, c) => suma + c.centavos, 0);
   const ordenadas = [...totales.values()].filter(c => c.centavos > 0)
     .sort((a,b) => b.centavos - a.centavos || a.clave.localeCompare(b.clave));
-  const principales = ordenadas.filter(c => c.clave !== "otros").slice(0,3);
-  const incluidas = new Set(principales.map(c => c.clave));
-  const otros = ordenadas.filter(c => !incluidas.has(c.clave))
-    .reduce((suma,c) => suma + c.centavos, 0);
-  if (otros) principales.push({clave:"otros", nombre:"Otros", centavos:otros});
-  principales.sort((a,b) => b.centavos - a.centavos || a.clave.localeCompare(b.clave));
   return {
     total:totalCentavos / 100,
-    categorias:principales.map(c => ({
+    categorias:ordenadas.map(c => ({
       clave:c.clave, nombre:c.nombre, monto:c.centavos / 100,
       porcentaje:totalCentavos ? c.centavos / totalCentavos * 100 : 0
     }))
@@ -4160,6 +4160,12 @@ function graficoCategoriasInicio() {
     hogar:[textoApp("Hogar", "Home"), "#8caa75"],
     salud:[textoApp("Salud", "Health"), "#e18b94"],
     trabajo:[textoApp("Trabajo", "Work"), "#7f91b0"],
+    gasolina:[textoApp("Gasolina", "Fuel"), "#679cad"],
+    servicios:[textoApp("Servicios", "Utilities"), "#c4a45f"],
+    entretenimiento:[textoApp("Entretenimiento", "Entertainment"), "#b783bc"],
+    seguros:[textoApp("Seguros", "Insurance"), "#739e86"],
+    educacion:[textoApp("Educación", "Education"), "#b89b7e"],
+    suscripciones:[textoApp("Suscripciones", "Subscriptions"), "#838cc6"],
     otros:[textoApp("Otros", "Other"), "#a8b1c0"]
   };
   const detalle = categoria => Object.prototype.hasOwnProperty.call(detalles, categoria.clave)
@@ -4195,7 +4201,7 @@ function graficoCategoriasInicio() {
         </div>
       </div>
       <ul class="inicio-categorias-leyenda">
-        ${resumen.categorias.map(categoria => `
+        ${resumen.categorias.slice(0,4).map(categoria => `
           <li>
             <i aria-hidden="true" style="background:${detalle(categoria)[1]}"></i>
             <span>${safe(detalle(categoria)[0])}<small>${categoria.porcentaje.toLocaleString(idiomaActual() === "en" ? "en-US" : "es", {maximumFractionDigits:1})}%</small></span>
@@ -4206,7 +4212,7 @@ function graficoCategoriasInicio() {
     </div>
     <p class="inicio-categorias-nota">${resumen.total === 0
       ? textoApp("Todavía no hay gastos este mes.", "No expenses this month yet.")
-      : textoApp("Categorías con más gastos del mes. Incluye pagos; el resto se agrupa en Otros.", "Top spending categories this month. Includes payments; the rest is grouped under Other.")}</p>`;
+      : textoApp("Las cuatro categorías con más gastos. El gráfico incluye todos los gastos y pagos del mes.", "Your four highest spending categories. The chart includes all expenses and payments this month.")}</p>`;
 }
 
 function actualizarIndicadoresTransacciones(carrusel) {
@@ -10447,7 +10453,13 @@ function traducirMenusVentana() {
     ["Otros", "Otros", "Other"],
     ["Renta", "Renta", "Rent"],
     ["Supermercado", "Supermercado", "Groceries"],
-    ["Restaurantes", "Restaurantes", "Restaurants"]
+    ["Restaurantes", "Restaurantes", "Restaurants"],
+    ["Gasolina", "Gasolina", "Fuel"],
+    ["Servicios", "Servicios", "Utilities"],
+    ["Entretenimiento", "Entretenimiento", "Entertainment"],
+    ["Seguros", "Seguros", "Insurance"],
+    ["Educación", "Educación", "Education"],
+    ["Suscripciones", "Suscripciones", "Subscriptions"]
   ];
 
   document.querySelectorAll(
