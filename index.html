@@ -1030,6 +1030,11 @@ html.tema-oscuro .mov-tipos button.activo {
 html.tema-oscuro #movCuenta {
   color-scheme: dark;
 }
+/* Encabezados diarios del historial. */
+.hist-dia-titulo {margin:22px 4px 9px;font-size:.82rem;font-weight:650;line-height:1.4;color:inherit}
+.hist-dia-titulo:first-child {margin-top:12px}
+.hist-dia-titulo[hidden] {display:none!important}
+
 /* Nuevo historial */
 .hist-cabecera {
   display: flex;
@@ -5004,7 +5009,21 @@ function movimientos(){
 
   <div id="histLista">
     ${items.map((m,i)=>`
+      ${i === 0 || String(items[i-1].fecha) !== String(m.fecha) ? `
+        <h4 class="hist-dia-titulo" data-hist-dia="${safe(m.fecha)}">${safe(
+          validDate(String(m.fecha))
+            ? (() => {
+                const titulo = new Date(m.fecha + "T12:00:00").toLocaleDateString(
+                  idiomaActual() === "en" ? "en-US" : "es",
+                  {weekday:"long", day:"numeric", month:"long", year:"numeric"}
+                );
+                return titulo.charAt(0).toLocaleUpperCase() + titulo.slice(1);
+              })()
+            : textoApp("Fecha no disponible", "Date unavailable")
+        )}</h4>
+      ` : ""}
       <div class="hist-registro"
+        data-hist-fecha="${safe(m.fecha)}"
         data-hist-tipo="${m.tipo}"
         data-hist-nombre="${safe(m.nombre)}">
 
@@ -5106,6 +5125,12 @@ function filtrarHistorial() {
     registro.hidden = !(coincideTipo && coincideTexto);
 
     if (!registro.hidden) visibles++;
+  });
+
+  document.querySelectorAll("[data-hist-dia]").forEach(titulo => {
+    titulo.hidden = !Array.from(registrosHistorial).some(registro =>
+      !registro.hidden && registro.dataset.histFecha === titulo.dataset.histDia
+    );
   });
 
   avisoHistorial.hidden = visibles > 0;
@@ -12923,3 +12948,4 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
