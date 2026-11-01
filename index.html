@@ -3293,6 +3293,47 @@ html.tema-oscuro .cuenta-nueva-error {color:#ff9ca7}
 .logo-compania-cargado > svg {visibility:hidden}
 .logo-compania-cargado > .compania-logo {visibility:visible}
 </style>
+<style id="inicio-transacciones-carrusel">
+.inicio-transacciones {min-width:0}
+.inicio-transacciones .inicio-transacciones-carrusel {display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;border-radius:22px}
+.inicio-transacciones .inicio-transacciones-carrusel::-webkit-scrollbar {display:none}
+.inicio-transacciones .inicio-transacciones-pagina {flex:0 0 100%;width:100%;min-width:0;box-sizing:border-box;scroll-snap-align:start;scroll-snap-stop:always;padding:6px 2px 2px}
+.inicio-transacciones .inicio-transacciones-carrusel:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
+.inicio-transacciones .inicio-transacciones-indicadores {display:flex;gap:3px;justify-content:center;margin-top:10px}
+.inicio-transacciones .inicio-transacciones-indicadores button {display:grid;place-items:center;width:30px;height:28px;padding:0;border:0;border-radius:999px;background:transparent;cursor:pointer}
+.inicio-transacciones .inicio-transacciones-indicadores button::after {content:"";display:block;width:6px;height:6px;border-radius:999px;background:#b9c0cc;transition:width .15s ease}
+.inicio-transacciones .inicio-transacciones-indicadores button[aria-pressed="true"]::after {width:18px;background:var(--balanceone-color,#ff7900)}
+.inicio-transacciones .inicio-transacciones-indicadores button:focus-visible {outline:2px solid var(--balanceone-color,#ff7900)}
+.inicio-transacciones .inicio-categorias-titulo {display:grid;gap:3px;margin:5px 5px 14px}
+.inicio-transacciones .inicio-categorias-titulo strong {font-size:.84rem}
+.inicio-transacciones .inicio-categorias-titulo > span {font-size:.65rem;color:#84909d;text-transform:capitalize}
+.inicio-transacciones .inicio-categorias-grafico {display:flex;align-items:center;gap:15px;min-width:0;padding:0 4px}
+.inicio-transacciones .inicio-categorias-anillo {position:relative;flex:0 0 clamp(108px,30vw,150px);width:clamp(108px,30vw,150px);aspect-ratio:1}
+.inicio-transacciones .inicio-categorias-anillo > svg {display:block;width:100%;height:100%}
+.inicio-transacciones .inicio-categorias-total {position:absolute;inset:27% 18%;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:4px;pointer-events:none}
+.inicio-transacciones .inicio-categorias-total span {font-size:.6rem;color:#84909d}
+.inicio-transacciones .inicio-categorias-total strong {font-size:clamp(.7rem,2.8vw,1rem);line-height:1.25;overflow-wrap:anywhere}
+.inicio-transacciones .inicio-categorias-leyenda {flex:1;min-width:0;list-style:none;padding:0;margin:0;display:grid;gap:13px}
+.inicio-transacciones .inicio-categorias-leyenda li {display:grid;grid-template-columns:7px minmax(0,1fr) auto;gap:6px;align-items:center;min-width:0}
+.inicio-transacciones .inicio-categorias-leyenda i {width:7px;height:7px;border-radius:50%}
+.inicio-transacciones .inicio-categorias-leyenda span {font-size:.7rem;min-width:0;overflow-wrap:anywhere}
+.inicio-transacciones .inicio-categorias-leyenda small {display:block;font-size:.6rem;color:#84909d;margin-top:3px}
+.inicio-transacciones .inicio-categorias-leyenda strong {font-size:.72rem;overflow-wrap:anywhere;max-width:95px;text-align:right;font-variant-numeric:tabular-nums}
+.inicio-transacciones .inicio-categorias-nota {font-size:.6rem;color:#84909d;margin:13px 5px 2px;line-height:1.45}
+html.tema-oscuro .inicio-transacciones .inicio-categorias-titulo > span,
+html.tema-oscuro .inicio-transacciones .inicio-categorias-total span,
+html.tema-oscuro .inicio-transacciones .inicio-categorias-leyenda small,
+html.tema-oscuro .inicio-transacciones .inicio-categorias-nota {color:#b4becb}
+@media(max-width:359px){
+ .inicio-transacciones .inicio-categorias-grafico {gap:8px;padding:0}
+ .inicio-transacciones .inicio-categorias-anillo {flex-basis:104px;width:104px}
+ .inicio-transacciones .inicio-categorias-leyenda {gap:10px}
+ .inicio-transacciones .inicio-categorias-leyenda span {font-size:.63rem}
+ .inicio-transacciones .inicio-categorias-leyenda strong {font-size:.65rem;max-width:70px}
+}
+@media(prefers-reduced-motion:reduce){.inicio-transacciones .inicio-transacciones-indicadores button::after{transition:none}}
+
+</style>
 </head>
 <body>
 <header>
@@ -3353,6 +3394,9 @@ html.tema-oscuro .cuenta-nueva-error {color:#ff9ca7}
       <option>Salud</option>
       <option>Trabajo</option>
       <option>Otros</option>
+          <option>Renta</option>
+      <option>Supermercado</option>
+      <option>Restaurantes</option>
     </select>
 
     <label class="label" for="movVentanaCuenta">Cuenta</label>
@@ -4062,6 +4106,104 @@ function avisosVencimiento() {
     <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
   </section></div>`;
 }
+function resumenCategoriasInicio(datos, mes) {
+  const totales = {renta:0, supermercado:0, restaurantes:0, otros:0};
+  const categorias = {
+    renta:"renta", rent:"renta", alquiler:"renta",
+    supermercado:"supermercado", supermercados:"supermercado", groceries:"supermercado",
+    restaurante:"restaurantes", restaurantes:"restaurantes", restaurants:"restaurantes"
+  };
+  const agregar = (registro, pago) => {
+    const fecha = String(registro.fecha || "").slice(0,10);
+    const monto = Number(registro.monto);
+    if ((!pago && registro.tipo !== "gasto") || !validDate(fecha) ||
+        fecha.slice(0,7) !== mes || !Number.isFinite(monto) || monto <= 0) return;
+    const categoria = String(registro.categoria || "").normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+    const clave = Object.prototype.hasOwnProperty.call(categorias, categoria)
+      ? categorias[categoria] : "otros";
+    totales[clave] += Math.round(monto * 100);
+  };
+  (datos.movimientos || []).forEach(m => agregar(m, false));
+  (datos.pagos || []).forEach(p => agregar(p, true));
+  const totalCentavos = Object.values(totales).reduce((suma, valor) => suma + valor, 0);
+  return {
+    total: totalCentavos / 100,
+    categorias: Object.entries(totales).map(([clave, centavos]) => ({
+      clave, monto:centavos / 100,
+      porcentaje:totalCentavos ? centavos / totalCentavos * 100 : 0
+    }))
+  };
+}
+
+function graficoCategoriasInicio() {
+  const resumen = resumenCategoriasInicio(data, month());
+  const detalles = {
+    renta:[textoApp("Renta", "Rent"), "#9c83ed"],
+    supermercado:[textoApp("Supermercado", "Groceries"), "#ffae65"],
+    restaurantes:[textoApp("Restaurantes", "Restaurants"), "#5ccbb9"],
+    otros:[textoApp("Otros", "Other"), "#a8b1c0"]
+  };
+  let acumulado = 0;
+  const segmentos = resumen.categorias.map(categoria => {
+    const desplazamiento = -acumulado;
+    acumulado += categoria.porcentaje;
+    if (!categoria.porcentaje) return "";
+    return `<circle cx="50" cy="50" r="41" pathLength="100"
+      fill="none" stroke="${detalles[categoria.clave][1]}" stroke-width="12"
+      stroke-dasharray="${categoria.porcentaje} ${100 - categoria.porcentaje}"
+      stroke-dashoffset="${desplazamiento}" transform="rotate(-90 50 50)"/>`;
+  }).join("");
+  const mes = new Date(month() + "-01T12:00:00").toLocaleDateString(
+    idiomaActual() === "en" ? "en-US" : "es", {month:"long",year:"numeric"}
+  );
+  return `
+    <div class="inicio-categorias-titulo">
+      <strong>${textoApp("Gastos por categoría", "Expenses by category")}</strong>
+      <span>${safe(mes)}</span>
+    </div>
+    <div class="inicio-categorias-grafico">
+      <div class="inicio-categorias-anillo">
+        <svg viewBox="0 0 100 100" role="img"
+          aria-label="${safe(textoApp("Gastos del mes: ", "Monthly expenses: ") + money(resumen.total))}">
+          <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(130,140,155,.13)" stroke-width="12"/>
+          ${segmentos}
+        </svg>
+        <div class="inicio-categorias-total" aria-hidden="true">
+          <span>${textoApp("Gastos", "Expenses")}</span>
+          <strong>${money(resumen.total)}</strong>
+        </div>
+      </div>
+      <ul class="inicio-categorias-leyenda">
+        ${resumen.categorias.map(categoria => `
+          <li>
+            <i aria-hidden="true" style="background:${detalles[categoria.clave][1]}"></i>
+            <span>${detalles[categoria.clave][0]}<small>${categoria.porcentaje.toLocaleString(idiomaActual() === "en" ? "en-US" : "es", {maximumFractionDigits:1})}%</small></span>
+            <strong>${money(categoria.monto)}</strong>
+          </li>
+        `).join("")}
+      </ul>
+    </div>
+    <p class="inicio-categorias-nota">${resumen.total === 0
+      ? textoApp("Todavía no hay gastos este mes.", "No expenses this month yet.")
+      : textoApp("Incluye pagos. Los gastos sin categoría específica se muestran en Otros.", "Includes payments. Expenses without a specific category appear under Other.")}</p>`;
+}
+
+function actualizarIndicadoresTransacciones(carrusel) {
+  if (!carrusel.clientWidth) return;
+  const pagina = Math.max(0, Math.min(1, Math.round(carrusel.scrollLeft / carrusel.clientWidth)));
+  carrusel.closest(".inicio-transacciones").querySelectorAll("[data-vista-transacciones]")
+    .forEach((boton, indice) => boton.setAttribute("aria-pressed", String(indice === pagina)));
+}
+
+function irVistaTransacciones(pagina) {
+  if (pagina !== 0 && pagina !== 1) return;
+  const carrusel = document.getElementById("inicioTransaccionesCarrusel");
+  if (!carrusel) return;
+  carrusel.scrollTo({left:pagina * carrusel.clientWidth,
+    behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+}
+
 function inicio(){
 
 let cuentasBanco = [];
@@ -4233,7 +4375,14 @@ ${autos + tarjetas + prestamos > 0 ? `
     <h3>${textoApp("Últimas transacciones", "Recent transactions")}</h3>
     <button type="button" onclick="go('movimientos')">${textoApp("Ver todas", "View all")} ›</button>
   </div>
-  <div class="cal-movs-lista">
+  <div id="inicioTransaccionesCarrusel" class="inicio-transacciones-carrusel"
+    role="region" aria-roledescription="${textoApp('carrusel','carousel')}"
+    aria-label="${textoApp('Transacciones y gastos por categoría','Transactions and expenses by category')}"
+    tabindex="0" onscroll="actualizarIndicadoresTransacciones(this)"
+    onkeydown="if(event.target === this &amp;&amp; (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {event.preventDefault();irVistaTransacciones(event.key === 'ArrowRight' ? 1 : 0)}">
+    <article class="inicio-transacciones-pagina" role="group"
+      aria-label="${textoApp('1 de 2: Últimas transacciones','1 of 2: Recent transactions')}">
+      <div class="cal-movs-lista">
   ${[
     ...data.movimientos.map(m => ({
       ...m,
@@ -4302,6 +4451,23 @@ ${autos + tarjetas + prestamos > 0 ? `
        ${textoApp("Todavía no hay transacciones.", "No transactions yet.")}
      </span>
    `}
+        </div>
+    </article>
+    <article class="inicio-transacciones-pagina" role="group"
+      aria-label="${textoApp('2 de 2: Gastos por categoría','2 of 2: Expenses by category')}">
+      ${graficoCategoriasInicio()}
+    </article>
+  </div>
+  <div class="inicio-transacciones-indicadores" role="group"
+    aria-label="${textoApp('Cambiar vista del widget','Change widget view')}">
+    <button type="button" data-vista-transacciones="0" aria-pressed="true"
+      aria-controls="inicioTransaccionesCarrusel"
+      aria-label="${textoApp('Ver últimas transacciones','Show recent transactions')}"
+      onclick="irVistaTransacciones(0)"></button>
+    <button type="button" data-vista-transacciones="1" aria-pressed="false"
+      aria-controls="inicioTransaccionesCarrusel"
+      aria-label="${textoApp('Ver gastos por categoría','Show expenses by category')}"
+      onclick="irVistaTransacciones(1)"></button>
   </div>
 </section>
 
@@ -10258,7 +10424,10 @@ function traducirMenusVentana() {
     ["Hogar", "Hogar", "Home"],
     ["Salud", "Salud", "Health"],
     ["Trabajo", "Trabajo", "Work"],
-    ["Otros", "Otros", "Other"]
+    ["Otros", "Otros", "Other"],
+    ["Renta", "Renta", "Rent"],
+    ["Supermercado", "Supermercado", "Groceries"],
+    ["Restaurantes", "Restaurantes", "Restaurants"]
   ];
 
   document.querySelectorAll(
@@ -13110,6 +13279,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
