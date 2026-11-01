@@ -3287,6 +3287,12 @@ html.tema-oscuro .cuenta-nueva-error {color:#ff9ca7}
 @media(max-width:359px){.apariencia-ventana.cuenta-nueva{padding:17px}.cuenta-nueva-form{gap:12px}.cuenta-nueva-importes{gap:8px}}
 
 </style>
+<style id="logos-companias-sin-superposicion">
+/* El símbolo genérico queda visible solo mientras no haya un logo cargado. */
+.logo-compania-cargado {font-size:0!important}
+.logo-compania-cargado > svg {visibility:hidden}
+.logo-compania-cargado > .compania-logo {visibility:visible}
+</style>
 </head>
 <body>
 <header>
@@ -4080,7 +4086,8 @@ const tarjetasBanco = tipo => cuentasBanco
 const banco = String(c.nombre || "").toLowerCase();
 
     const logoBanco = "https://www.google.com/s2/favicons?domain=" +
-  (banco.includes("chase") ? "chase.com" :
+  (banco.includes("apple") ? "apple.com" :
+  banco.includes("chase") ? "chase.com" :
   banco.includes("bank of america") ? "bankofamerica.com" :
   banco.includes("wells fargo") ? "wellsfargo.com" :
   banco.includes("citi") ? "citi.com" :
@@ -9663,9 +9670,15 @@ function imagenCompania(nombre) {
   const texto = String(nombre || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[‐‑‒–—]/g, "-")
+    .replace(/\s+/g, " ");
 
   const companias = [
+    ["7-eleven", "7-eleven.com"],
+    ["7 eleven", "7-eleven.com"],
+    ["7eleven", "7-eleven.com"],
+    ["seven eleven", "7-eleven.com"],
     ["h-e-b", "heb.com"],
     ["h e b", "heb.com"],
     ["heb", "heb.com"],
@@ -9726,7 +9739,9 @@ function imagenCompania(nombre) {
   return `
     <img src="https://www.google.com/s2/favicons?domain=${compania[1]}&sz=128"
       alt="" loading="lazy" referrerpolicy="no-referrer"
-      onerror="this.remove()"
+      class="compania-logo"
+      onload="this.parentElement.classList.add('logo-compania-cargado')"
+      onerror="this.parentElement.classList.remove('logo-compania-cargado');this.remove()"
       style="position:absolute;inset:0;width:100%;height:100%;
       box-sizing:border-box;object-fit:contain;background:transparent;
       padding:0;border-radius:50%">
@@ -13134,6 +13149,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
