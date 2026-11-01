@@ -3299,10 +3299,10 @@ html.tema-oscuro .cuenta-nueva-error {color:#ff9ca7}
 .inicio-transacciones .inicio-transacciones-carrusel::-webkit-scrollbar {display:none}
 .inicio-transacciones .inicio-transacciones-pagina {flex:0 0 100%;width:100%;min-width:0;box-sizing:border-box;scroll-snap-align:start;scroll-snap-stop:always;padding:6px 2px 2px}
 .inicio-transacciones .inicio-transacciones-carrusel:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
-.inicio-transacciones .inicio-transacciones-indicadores {display:flex;gap:3px;justify-content:center;margin-top:10px}
-.inicio-transacciones .inicio-transacciones-indicadores button {display:grid;place-items:center;width:30px;height:28px;padding:0;border:0;border-radius:999px;background:transparent;cursor:pointer}
-.inicio-transacciones .inicio-transacciones-indicadores button::after {content:"";display:block;width:6px;height:6px;border-radius:999px;background:#b9c0cc;transition:width .15s ease}
-.inicio-transacciones .inicio-transacciones-indicadores button[aria-pressed="true"]::after {width:18px;background:var(--balanceone-color,#ff7900)}
+.inicio-transacciones .inicio-transacciones-indicadores {display:flex;gap:2px;justify-content:center;margin-top:0}
+.inicio-transacciones .inicio-transacciones-indicadores button {display:grid;place-items:center;width:26px;height:24px;padding:0;border:0;border-radius:999px;background:transparent;cursor:pointer}
+.inicio-transacciones .inicio-transacciones-indicadores button::after {content:"";display:block;width:4px;height:4px;border-radius:999px;background:#b9c0cc;transition:width .15s ease}
+.inicio-transacciones .inicio-transacciones-indicadores button[aria-pressed="true"]::after {width:12px;background:var(--balanceone-color,#ff7900)}
 .inicio-transacciones .inicio-transacciones-indicadores button:focus-visible {outline:2px solid var(--balanceone-color,#ff7900)}
 .inicio-transacciones .inicio-categorias-titulo {display:grid;gap:3px;margin:5px 5px 14px}
 .inicio-transacciones .inicio-categorias-titulo strong {font-size:.84rem}
@@ -4370,7 +4370,7 @@ ${autos + tarjetas + prestamos > 0 ? `
   </div>
 ` : ""}
 <section class="card inicio-capsula cal-fin-028 inicio-transacciones"
-  style="padding:17px 13px;margin-bottom:16px">
+  style="padding:17px 13px 10px;margin-bottom:16px">
   <div class="cal-movs-cabecera">
     <h3>${textoApp("Últimas transacciones", "Recent transactions")}</h3>
     <button type="button" onclick="go('movimientos')">${textoApp("Ver todas", "View all")} ›</button>
@@ -13279,6 +13279,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
