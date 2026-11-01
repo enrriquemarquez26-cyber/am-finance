@@ -3235,6 +3235,42 @@ html.tema-oscuro .cal-fin-028 .cal-cuadricula .cal-dia[aria-pressed="true"] {
   border-radius:36px !important;
 }
 </style>
+<style id="calendario-periodos-integrados">
+.cal-fin-028 .cal-periodo {margin-top:12px}
+.cal-fin-028 .cal-periodo-selector {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;padding:3px;border-radius:999px;background:rgba(130,140,155,.11)}
+.cal-fin-028 .cal-periodo-selector button {display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:36px;border:0;border-radius:999px;background:transparent;color:inherit;font:inherit;font-size:.76rem;font-weight:650;padding:7px 3px}
+.cal-fin-028 .cal-periodo-selector svg {width:17px;height:17px;flex:0 0 17px}
+.cal-fin-028 .cal-periodo-selector button[aria-pressed="true"] {color:#fff;background:var(--balanceone-color,#ff7900)}
+.cal-fin-028 .cal-periodo-selector button:focus-visible,.cal-fin-028 .cal-periodo-rango button:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
+.cal-fin-028 .cal-periodo-fechas {margin:9px 0;color:#7c8795;text-align:center;font-size:.65rem;line-height:1.4}
+.cal-fin-028 .cal-periodo-totales {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cal-fin-028 .cal-periodo-total {display:flex;align-items:center;gap:8px;min-width:0;padding:12px 10px;border-radius:25px}
+.cal-fin-028 .cal-periodo-total--ingreso {background:rgba(26,180,106,.075);color:#13865b}
+.cal-fin-028 .cal-periodo-total--gasto {background:rgba(222,71,93,.065);color:#d44d56}
+.cal-fin-028 .cal-periodo-total > div {min-width:0}
+.cal-fin-028 .cal-periodo-total > div > span {display:block;font-size:.72rem;font-weight:650;margin-bottom:3px}
+.cal-fin-028 .cal-periodo-total strong {display:block;font-size:clamp(.95rem,4.5vw,1.35rem);font-weight:800;line-height:1.2;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.cal-fin-028 .cal-periodo-icono {display:grid;place-items:center;width:32px;height:32px;flex:0 0 32px;border-radius:50%;background:rgba(26,180,106,.09)}
+.cal-fin-028 .cal-periodo-total--gasto .cal-periodo-icono {background:rgba(222,71,93,.08)}
+.cal-fin-028 .cal-periodo-icono svg {width:23px;height:23px}
+.cal-fin-028 .cal-periodo-ayuda {margin:8px 3px 0;color:#7c8795;font-size:.6rem;line-height:1.5;text-align:center}
+.cal-fin-028 .cal-periodo-rango {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 2px 0}
+.cal-fin-028 .cal-periodo-rango label {min-width:0;font-size:.7rem;color:inherit}
+.cal-fin-028 .cal-periodo-rango input {display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;margin:5px 0 0;padding:10px 7px;font-size:16px;border-radius:16px;-webkit-appearance:none;appearance:none}
+.cal-fin-028 .cal-periodo-rango button {grid-column:1/-1;border:0;border-radius:999px;padding:10px;background:var(--balanceone-color,#ff7900);color:white;font:inherit;font-size:.78rem}
+html.tema-oscuro .cal-fin-028 .cal-periodo-selector {background:rgba(255,255,255,.08)}
+html.tema-oscuro .cal-fin-028 .cal-periodo-fechas,html.tema-oscuro .cal-fin-028 .cal-periodo-ayuda {color:#b4becb}
+html.tema-oscuro .cal-fin-028 .cal-periodo-total--ingreso {color:#80dcb0;background:rgba(26,180,106,.12)}
+html.tema-oscuro .cal-fin-028 .cal-periodo-total--gasto {color:#ff9ca7;background:rgba(222,71,93,.12)}
+@media(max-width:359px) {
+ .cal-fin-028 .cal-periodo-selector button {font-size:.67rem;gap:3px}
+ .cal-fin-028 .cal-periodo-selector svg {width:14px;height:14px;flex-basis:14px}
+ .cal-fin-028 .cal-periodo-total {gap:5px;padding:10px 7px}
+ .cal-fin-028 .cal-periodo-icono {width:25px;height:25px;flex-basis:25px}
+ .cal-fin-028 .cal-periodo-icono svg {width:19px;height:19px}
+}
+
+</style>
 </head>
 <body>
 <header>
@@ -7573,6 +7609,7 @@ function transferencias() {
           ${'<span aria-hidden="true"></span>'.repeat(espacios)}
           ${dias}
         </div>
+        ${bloquePeriodoCalendario()}
       </div>
 
       <p class="note">
@@ -10685,6 +10722,131 @@ function eliminarTarjetaCredito(indice) {
 let mesCalendario = month();
 let diaCalendario = today();
 
+let periodoCalendario = "mes";
+let rangoCalendarioInicio = "";
+let rangoCalendarioFin = "";
+
+function limitesPeriodoCalendario(modo, mes, dia, inicio, fin) {
+  const [anio, numeroMes] = mes.split("-").map(Number);
+  const ultimo = new Date(Date.UTC(anio, numeroMes, 0)).getUTCDate();
+  const inicioMes = mes + "-01";
+  const finMes = mes + "-" + String(ultimo).padStart(2, "0");
+  if (modo === "rango" && validDate(inicio) && validDate(fin) && inicio <= fin) {
+    return {desde:inicio, hasta:fin};
+  }
+  if (modo === "7" || modo === "15") {
+    const hasta = validDate(dia) && dia.slice(0,7) === mes ? dia : finMes;
+    const fecha = new Date(hasta + "T12:00:00Z");
+    fecha.setUTCDate(fecha.getUTCDate() - (Number(modo) - 1));
+    return {desde:fecha.toISOString().slice(0,10), hasta};
+  }
+  return {desde:inicioMes, hasta:finMes};
+}
+
+function sumarPeriodoCalendario(datos, desde, hasta) {
+  let ingresos = 0;
+  let gastos = 0;
+  const agregar = (registro, pago) => {
+    const fecha = String(registro.fecha || "").slice(0,10);
+    const monto = Number(registro.monto);
+    if (!validDate(fecha) || fecha < desde || fecha > hasta ||
+        !Number.isFinite(monto) || monto <= 0) return;
+    if (!pago && registro.tipo === "ingreso") ingresos += monto;
+    else gastos += monto;
+  };
+  (datos.movimientos || []).forEach(m => agregar(m, false));
+  (datos.pagos || []).forEach(p => agregar(p, true));
+  return {ingresos:round(ingresos), gastos:round(gastos)};
+}
+
+function cambiarPeriodoCalendario(periodo) {
+  if (!["7", "15", "mes", "rango"].includes(periodo)) return;
+  periodoCalendario = periodo;
+  transferencias();
+  document.querySelector('[data-periodo-cal="' + periodo + '"]')
+    ?.focus({preventScroll:true});
+}
+
+function aplicarRangoCalendario(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const inicio = form.elements.desde.value;
+  const fin = form.elements.hasta.value;
+  const campoFin = form.elements.hasta;
+  campoFin.setCustomValidity("");
+  if (!validDate(inicio) || !validDate(fin) || inicio > fin) {
+    campoFin.setCustomValidity(textoApp(
+      "La fecha final debe ser igual o posterior a la inicial.",
+      "The end date must be on or after the start date."
+    ));
+    campoFin.reportValidity();
+    return;
+  }
+  rangoCalendarioInicio = inicio;
+  rangoCalendarioFin = fin;
+  periodoCalendario = "rango";
+  transferencias();
+  document.querySelector('[data-periodo-cal="rango"]')?.focus({preventScroll:true});
+}
+
+function bloquePeriodoCalendario() {
+  const limites = limitesPeriodoCalendario(periodoCalendario,
+    mesCalendario, diaCalendario, rangoCalendarioInicio, rangoCalendarioFin);
+  const totales = sumarPeriodoCalendario(data, limites.desde, limites.hasta);
+  const fechaCorta = fecha => new Date(fecha + "T12:00:00").toLocaleDateString(
+    idiomaActual() === "en" ? "en-US" : "es",
+    {day:"numeric", month:"short", year:"numeric"}
+  );
+  const iconoCalendario = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4m8-4v4M4 10h16"/></svg>';
+  const flecha = entrada => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    (entrada ? '<path d="M6 18 18 6M6 6h12v12"/>' : '<path d="M12 4v16m-6-6 6 6 6-6"/>') + '</svg>';
+  return `
+    <div class="cal-periodo">
+      <div class="cal-periodo-selector" role="group"
+        aria-label="${textoApp("Período del resumen", "Summary period")}">
+        ${[["7",textoApp("7 días","7 days")], ["15",textoApp("15 días","15 days")],
+          ["mes",textoApp("Mes","Month")], ["rango",textoApp("Rango","Range")]].map(([valor, etiqueta]) => `
+          <button type="button" data-periodo-cal="${valor}"
+            aria-pressed="${periodoCalendario === valor}"
+            onclick="cambiarPeriodoCalendario('${valor}')">
+            ${valor === "7" || valor === "rango" ? iconoCalendario : ""}
+            <span>${etiqueta}</span>
+          </button>
+        `).join("")}
+      </div>
+      ${periodoCalendario === "rango" ? `
+        <form class="cal-periodo-rango" onsubmit="aplicarRangoCalendario(event)">
+          <label>${textoApp("Desde","From")}
+            <input type="date" name="desde" required value="${limites.desde}"
+              oninput="this.form.elements.hasta.setCustomValidity('')">
+          </label>
+          <label>${textoApp("Hasta","To")}
+            <input type="date" name="hasta" required value="${limites.hasta}"
+              oninput="this.setCustomValidity('')">
+          </label>
+          <button type="submit">${textoApp("Aplicar","Apply")}</button>
+        </form>
+      ` : ""}
+      <div class="cal-periodo-resultados" aria-live="polite" aria-atomic="true">
+        <p class="cal-periodo-fechas">${safe(fechaCorta(limites.desde))} – ${safe(fechaCorta(limites.hasta))}</p>
+        <div class="cal-periodo-totales">
+          <div class="cal-periodo-total cal-periodo-total--ingreso">
+            <span class="cal-periodo-icono">${flecha(true)}</span>
+            <div><span>${textoApp("Ingresos","Income")}</span><strong>${money(totales.ingresos)}</strong></div>
+          </div>
+          <div class="cal-periodo-total cal-periodo-total--gasto">
+            <span class="cal-periodo-icono">${flecha(false)}</span>
+            <div><span>${textoApp("Gastos","Expenses")}</span><strong>${totales.gastos > 0 ? "−" : ""}${money(totales.gastos)}</strong></div>
+          </div>
+        </div>
+      </div>
+      <p class="cal-periodo-ayuda">${textoApp(
+        "7 y 15 días terminan en el día seleccionado. Gastos incluye pagos registrados.",
+        "7 and 15 days end on the selected day. Expenses include recorded payments."
+      )}</p>
+    </div>`;
+}
+
 function resumenDiaCalendario(fecha) {
   const registros = [
     ...data.movimientos.map(m => ({
@@ -12926,6 +13088,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
