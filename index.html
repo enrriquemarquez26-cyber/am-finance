@@ -3347,6 +3347,35 @@ html.tema-oscuro .inicio-transacciones .inicio-categorias-nota {color:#b4becb}
 }
 @media(prefers-reduced-motion:reduce){.inicio-transacciones .inicio-transacciones-indicadores button::after{transition:none}}
 
+
+/* Gráfico y barras de categorías del carrusel de Inicio. */
+.inicio-transacciones .inicio-categorias-grafico {gap:10px;padding:12px 2px 2px}
+.inicio-transacciones .inicio-categorias-anillo {flex-basis:clamp(106px,30vw,150px);width:clamp(106px,30vw,150px)}
+.inicio-transacciones .inicio-categorias-total {inset:24% 14%;gap:3px}
+.inicio-transacciones .inicio-categorias-total strong {font-size:clamp(.8rem,3.1vw,1.12rem);letter-spacing:-.025em}
+.inicio-transacciones .inicio-categorias-mes {font-size:.48rem;line-height:1.2;color:#687385;background:rgba(130,140,155,.10);border-radius:12px;padding:3px 5px;align-self:center;text-transform:capitalize}
+.inicio-transacciones .inicio-categorias-panel {flex:1;min-width:0;border-radius:22px;padding:12px 9px;background:rgba(144,133,177,.055);border:1px solid rgba(137,149,165,.08);box-shadow:0 6px 15px rgba(40,35,70,.04)}
+.inicio-transacciones .inicio-categorias-panel h4 {font-size:.76rem;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em}
+.inicio-transacciones .inicio-categorias-leyenda {gap:7px}
+.inicio-transacciones .inicio-categorias-leyenda li {position:relative;grid-template-columns:minmax(0,1fr) auto;gap:5px}
+.inicio-transacciones .inicio-categoria-barra {position:relative;display:flex;align-items:center;gap:5px;min-height:29px;border-radius:999px;background:color-mix(in srgb,var(--categoria-color) 16%,transparent);overflow:hidden;padding-right:5px}
+.inicio-transacciones .inicio-categoria-relleno {position:absolute;inset:0 auto 0 0;background:var(--categoria-color);opacity:.23;pointer-events:none}
+.inicio-transacciones .inicio-categorias-leyenda i.inicio-categoria-icono {position:relative;display:grid;place-items:center;flex:0 0 26px;width:26px;height:29px;border-radius:999px;background:var(--categoria-color);color:white}
+.inicio-transacciones .inicio-categoria-icono svg {width:16px;height:16px}
+.inicio-transacciones .inicio-categorias-leyenda .inicio-categoria-nombre {position:relative;font-size:.59rem;line-height:1.15;font-weight:650}
+.inicio-transacciones .inicio-categorias-leyenda strong {font-size:.64rem;max-width:75px}
+.inicio-transacciones .inicio-categoria-porcentaje {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+html.tema-oscuro .inicio-transacciones .inicio-categorias-panel {background:rgba(180,170,210,.08)}
+html.tema-oscuro .inicio-transacciones .inicio-categorias-mes {color:#c3c9d4}
+@media(max-width:359px){
+ .inicio-transacciones .inicio-categorias-grafico {gap:6px}
+ .inicio-transacciones .inicio-categorias-anillo {flex-basis:98px;width:98px}
+ .inicio-transacciones .inicio-categorias-panel {padding:10px 6px}
+ .inicio-transacciones .inicio-categorias-panel h4 {font-size:.68rem}
+ .inicio-transacciones .inicio-categorias-leyenda .inicio-categoria-nombre {font-size:.54rem}
+ .inicio-transacciones .inicio-categorias-leyenda strong {font-size:.58rem}
+ .inicio-transacciones .inicio-categorias-leyenda i.inicio-categoria-icono {flex-basis:22px;width:22px}
+}
 </style>
 </head>
 <body>
@@ -4170,11 +4199,11 @@ function resumenCategoriasInicio(datos, mes) {
 function graficoCategoriasInicio() {
   const resumen = resumenCategoriasInicio(data, month());
   const detalles = {
-    renta:[textoApp("Renta", "Rent"), "#9c83ed"],
-    supermercado:[textoApp("Supermercado", "Groceries"), "#ffae65"],
-    restaurantes:[textoApp("Restaurantes", "Restaurants"), "#5ccbb9"],
+    renta:[textoApp("Renta", "Rent"), "#28d873"],
+    supermercado:[textoApp("Supermercado", "Groceries"), "#ffa20c"],
+    restaurantes:[textoApp("Restaurantes", "Restaurants"), "#ae48f2"],
     alimentacion:[textoApp("Alimentación", "Food"), "#e6ad54"],
-    transporte:[textoApp("Transporte", "Transport"), "#719ce1"],
+    transporte:[textoApp("Transporte", "Transport"), "#26a9f5"],
     compras:[textoApp("Compras", "Shopping"), "#d58cc4"],
     hogar:[textoApp("Hogar", "Home"), "#8caa75"],
     salud:[textoApp("Salud", "Health"), "#e18b94"],
@@ -4190,44 +4219,56 @@ function graficoCategoriasInicio() {
   const detalle = categoria => Object.prototype.hasOwnProperty.call(detalles, categoria.clave)
     ? detalles[categoria.clave] : [categoria.nombre, "#9988bb"];
   let acumulado = 0;
-  const segmentos = resumen.categorias.map(categoria => {
-    const desplazamiento = -acumulado;
-    acumulado += categoria.porcentaje;
-    if (!categoria.porcentaje) return "";
-    return `<circle cx="50" cy="50" r="41" pathLength="100"
-      fill="none" stroke="${detalle(categoria)[1]}" stroke-width="12"
-      stroke-dasharray="${categoria.porcentaje} ${100 - categoria.porcentaje}"
+  const segmentos = resumen.categorias.map((categoria, indice) => {
+    const porcentaje = categoria.porcentaje;
+    const separacion = resumen.categorias.length > 1 ? Math.min(4, porcentaje * .35) : 0;
+    const desplazamiento = -(acumulado + separacion / 2);
+    acumulado += porcentaje;
+    const color = detalle(categoria)[1];
+    return `<defs><linearGradient id="categoriaInicioGrad${indice}" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="${color}" stop-opacity=".7"/><stop offset="1" stop-color="${color}"/>
+      </linearGradient></defs>
+      <circle cx="50" cy="50" r="41" pathLength="100"
+      fill="none" stroke="url(#categoriaInicioGrad${indice})" stroke-width="10"
+      stroke-linecap="${porcentaje > 6 && separacion ? 'round' : 'butt'}"
+      stroke-dasharray="${porcentaje - separacion} ${100 - porcentaje + separacion}"
       stroke-dashoffset="${desplazamiento}" transform="rotate(-90 50 50)"/>`;
   }).join("");
   const mes = new Date(month() + "-01T12:00:00").toLocaleDateString(
     idiomaActual() === "en" ? "en-US" : "es", {month:"long",year:"numeric"}
   );
   return `
-    <div class="inicio-categorias-titulo">
-      <strong>${textoApp("Gastos por categoría", "Expenses by category")}</strong>
-      <span>${safe(mes)}</span>
-    </div>
     <div class="inicio-categorias-grafico">
       <div class="inicio-categorias-anillo">
         <svg viewBox="0 0 100 100" role="img"
           aria-label="${safe(textoApp("Gastos del mes: ", "Monthly expenses: ") + money(resumen.total))}">
-          <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(130,140,155,.13)" stroke-width="12"/>
+          <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(130,140,155,.13)" stroke-width="10"/>
           ${segmentos}
         </svg>
         <div class="inicio-categorias-total" aria-hidden="true">
-          <span>${textoApp("Gastos", "Expenses")}</span>
           <strong>${money(resumen.total)}</strong>
+          <span>${textoApp("Gastos", "Expenses")}</span>
+          <small class="inicio-categorias-mes">${safe(mes)}</small>
         </div>
       </div>
-      <ul class="inicio-categorias-leyenda">
-        ${resumen.categorias.slice(0,4).map(categoria => `
-          <li>
-            <i aria-hidden="true" style="background:${detalle(categoria)[1]}"></i>
-            <span>${safe(detalle(categoria)[0])}<small>${categoria.porcentaje.toLocaleString(idiomaActual() === "en" ? "en-US" : "es", {maximumFractionDigits:1})}%</small></span>
-            <strong>${money(categoria.monto)}</strong>
-          </li>
-        `).join("")}
-      </ul>
+      <div class="inicio-categorias-panel">
+        <h4>${textoApp("Principales categorías", "Top categories")}</h4>
+        <ul class="inicio-categorias-leyenda">
+          ${resumen.categorias.slice(0,4).map(categoria => {
+            const [nombre, color] = detalle(categoria);
+            const iconoNombre = categoria.clave === "otros" ? "Otros" : categoria.nombre;
+            return `<li style="--categoria-color:${color}">
+              <span class="inicio-categoria-barra">
+                <span class="inicio-categoria-relleno" style="width:${categoria.porcentaje}%" aria-hidden="true"></span>
+                <i class="inicio-categoria-icono" aria-hidden="true">${iconoCategoriaMovimiento(iconoNombre)}</i>
+                <span class="inicio-categoria-nombre">${safe(nombre)}</span>
+              </span>
+              <strong>${money(categoria.monto)}</strong>
+              <span class="inicio-categoria-porcentaje">${categoria.porcentaje.toFixed(1)}%</span>
+            </li>`;
+          }).join("")}
+        </ul>
+      </div>
     </div>
     <p class="inicio-categorias-nota">${resumen.total === 0
       ? textoApp("Todavía no hay gastos este mes.", "No expenses this month yet.")
@@ -13466,6 +13507,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
