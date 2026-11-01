@@ -2843,6 +2843,9 @@ html.tema-oscuro .mov28 #movCalendario .cal-controles .cal-mes {border-color:rgb
 #movVentana .categoria-opciones button[aria-pressed="true"] {background:rgba(130,140,155,.16)}
 #movVentana .categoria-selector :focus-visible {outline:2px solid currentColor;outline-offset:2px}
 
+
+[data-orden-lista] .banco-card { -webkit-touch-callout:none;user-select:none; }
+[data-orden-lista] .inicio-orden-activo { outline:2px solid currentColor;outline-offset:-2px;opacity:.72;border-radius:28px; }
 </style>
 <style id="balanceone-calendario-tarjetas-028">
 /* Calendario real (pestaña Calendario y Movimientos): casillas independientes,
@@ -4258,8 +4261,7 @@ try {
   cuentasBanco = [];
 }
 
-const tarjetasBanco = tipo => cuentasBanco
-  .filter(c => c.tipo === tipo)
+const tarjetasBanco = () => ordenarElementosInicio(cuentasBanco, "bancos")
   .map(c => {
     const saldo = Number(c.saldo) || 0;
     const meta = Number(c.meta) || 0;
@@ -4293,7 +4295,7 @@ const banco = String(c.nombre || "").toLowerCase();
   banco.includes("bmo") ? "bmo.com" :
   "example.com") + "&sz=128";
    return `
-<div class="banco-deslizable" data-cuenta-id="${safe(String(c.id))}">
+<div class="banco-deslizable" data-cuenta-id="${safe(String(c.id))}" data-orden-id="${safe(String(c.id))}">
   <div class="banco-acciones" inert>
     <button type="button" class="banco-editar"
       onclick="editarCuentaBanco(this.closest('.banco-deslizable').dataset.cuentaId)">
@@ -4333,14 +4335,14 @@ const banco = String(c.nombre || "").toLowerCase();
     <div class="banco-info">
       <span class="banco-nombre">${safe(c.nombre)}</span>
       <span class="banco-tipo">
-        ${tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")}
+        ${c.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")}
       </span>
     </div>
 
     <span class="banco-saldo">${money(saldo)}</span>
   </div>
 
-  ${tipo === "ahorro" ? `
+  ${c.tipo === "ahorro" ? `
     <div class="banco-meta">
             ${barraProgreso(porcentaje, "#42b883")}
 
@@ -4523,8 +4525,7 @@ ${autos + tarjetas + prestamos > 0 ? `
     </button>
   </div>
 
-  ${tarjetasBanco("cheques")}
-  ${tarjetasBanco("ahorro")}
+  <div data-orden-lista="bancos">${tarjetasBanco()}</div>
 
   ${cuentasBanco.length === 0 ? `
     <p class="note" style="padding:0 16px 16px;margin:0">
@@ -4544,7 +4545,7 @@ ${autos + tarjetas + prestamos > 0 ? `
     </button>
   </div>
 
-  ${data.tarjetas.map(t => {
+  <div data-orden-lista="credito">${ordenarElementosInicio(data.tarjetas, "credito").map(t => {
     const saldo = Number(t.saldo) || 0;
     const limite = Number(t.limite) || 0;
     const uso = limite > 0 ? saldo / limite * 100 : 0;
@@ -4570,7 +4571,7 @@ ${autos + tarjetas + prestamos > 0 ? `
     );
 
     return `
-      <button type="button" class="banco-card"
+      <button type="button" class="banco-card" data-orden-id="${safe(String(t.id))}"
         onclick="go('tarjetas')">
 
         <div class="banco-fila">
@@ -4613,7 +4614,7 @@ ${autos + tarjetas + prestamos > 0 ? `
         </div>
       </button>
     `;
-  }).join("")}
+  }).join("")}</div>
 
   ${data.tarjetas.length === 0 ? `
     <p class="note" style="padding:0 16px 16px;margin:0">
@@ -9322,6 +9323,109 @@ function activarOrdenHerramientas() {
   });
 }
 
+
+function ordenarElementosInicio(elementos, grupo) {
+  let orden = [];
+  try {
+    const guardado = JSON.parse(localStorage.getItem("balanceone-orden-inicio-" + grupo) || "[]");
+    if (Array.isArray(guardado)) orden = guardado.map(String);
+  } catch {}
+  const posiciones = new Map(orden.map((id, i) => [id, i]));
+  return elementos.slice().sort((a,b) =>
+    (posiciones.get(String(a.id)) ?? Infinity) - (posiciones.get(String(b.id)) ?? Infinity));
+}
+function activarOrdenCuentasInicio() {
+  let pendiente = null, activo = null, lista = null, timer = null, modo = "";
+  let x0 = 0, y0 = 0, bloquearHasta = 0, previo = [];
+  const cancelarTimer = () => { clearTimeout(timer); timer = null; };
+  const guardar = contenedor => {
+    try {
+      localStorage.setItem("balanceone-orden-inicio-" + contenedor.dataset.ordenLista,
+        JSON.stringify([...contenedor.children].map(n => n.dataset.ordenId)));
+    } catch {
+      previo.forEach(n => contenedor.appendChild(n));
+      alert(textoApp("No se pudo guardar el orden.", "Could not save the order."));
+    }
+  };
+  function iniciar(evento, x, y, tipo) {
+    const fila = evento.target.closest("[data-orden-id]");
+    if (!fila || !evento.target.closest(".banco-card") || fila.classList.contains("abierta")) return;
+    const contenedor = fila.closest("[data-orden-lista]");
+    if (!contenedor || contenedor.children.length < 2) return;
+    cancelarTimer(); pendiente = fila; lista = contenedor; modo = tipo; x0=x; y0=y;
+    previo = [...lista.children];
+    timer = setTimeout(() => {
+      if (!pendiente || !pendiente.isConnected) return;
+      activo = pendiente; activo.classList.add("inicio-orden-activo");
+      gestoBanco = null;
+      bloquearHasta = Date.now() + 700;
+    },450);
+  }
+  function mover(evento,x,y,tipo) {
+    if (!pendiente || modo !== tipo) return;
+    if (!activo) {
+      if (Math.hypot(x-x0,y-y0)>10) {cancelarTimer();pendiente=null;}
+      return;
+    }
+    if (evento.cancelable) evento.preventDefault();
+    gestoBanco = null;
+    const destino = document.elementFromPoint(x,y)?.closest("[data-orden-id]");
+    if (!destino || destino === activo || destino.parentElement !== lista) return;
+    const filas = [...lista.children];
+    if (filas.indexOf(activo)<filas.indexOf(destino)) destino.after(activo);
+    else destino.before(activo);
+  }
+  function terminar(tipo, cancelar=false) {
+    if (modo !== tipo) return;
+    cancelarTimer();
+    if (activo) {
+      activo.classList.remove("inicio-orden-activo");
+      bloquearHasta=Date.now()+700;
+      gestoBanco=null;
+      if (cancelar) previo.forEach(n => lista.appendChild(n));
+      else guardar(lista);
+    }
+    pendiente=activo=lista=null;modo="";
+  }
+  document.addEventListener("touchstart", e => {
+    if (e.touches.length!==1) {terminar("touch",true);return;}
+    iniciar(e,e.touches[0].clientX,e.touches[0].clientY,"touch");
+  },{passive:true});
+  document.addEventListener("touchmove",e => {
+    if(e.touches.length!==1) {terminar("touch",true);return;}
+    mover(e,e.touches[0].clientX,e.touches[0].clientY,"touch");
+  },{passive:false});
+  document.addEventListener("touchend",()=>terminar("touch"));
+  document.addEventListener("touchcancel",()=>terminar("touch",true));
+  document.addEventListener("pointerdown",e=>{
+    if(e.pointerType!=="touch" && e.button===0) iniciar(e,e.clientX,e.clientY,"mouse");
+  });
+  document.addEventListener("pointermove",e=>{
+    if(e.pointerType!=="touch") mover(e,e.clientX,e.clientY,"mouse");
+  },{passive:false});
+  document.addEventListener("pointerup",()=>terminar("mouse"));
+  document.addEventListener("pointercancel",()=>terminar("mouse",true));
+  document.addEventListener("click",e=>{
+    if(e.target.closest("[data-orden-lista]") && Date.now()<bloquearHasta){
+      e.preventDefault();e.stopImmediatePropagation();
+    }
+  },true);
+  document.addEventListener("contextmenu",e=>{
+    if(e.target.closest("[data-orden-lista] .banco-card")) e.preventDefault();
+  });
+  document.addEventListener("keydown",e=>{
+    if(!e.altKey || !["ArrowUp","ArrowDown"].includes(e.key)) return;
+    const fila=e.target.closest("[data-orden-id]");
+    const contenedor=fila?.closest("[data-orden-lista]");
+    if(!contenedor) return;
+    e.preventDefault();previo=[...contenedor.children];
+    if(e.key==="ArrowUp") fila.previousElementSibling?.before(fila);
+    else fila.nextElementSibling?.after(fila);
+    guardar(contenedor);e.target.focus();
+  });
+}
+activarOrdenCuentasInicio();
+
 activarOrdenHerramientas();
 let importeVentana = "";
 let focoAntesVentana = null;
@@ -13362,6 +13466,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
