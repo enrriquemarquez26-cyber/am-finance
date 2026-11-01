@@ -16,7 +16,13 @@
 <style>
 *{box-sizing:border-box}
 /* Respetar la zona de la hora y Dynamic Island al abrir desde Inicio. */
-body{margin:0;padding-top:env(safe-area-inset-top,0px);background:#F2F2F7;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+/* El contenido se desplaza dentro del área visible, fuera de la barra de estado. */
+html{height:100%;overflow:hidden;background:#F2F2F7}
+html.tema-oscuro{background:#101216}
+body{position:fixed;top:env(safe-area-inset-top,0px);right:0;bottom:0;left:0;
+  margin:0;padding-top:0;overflow-y:auto;overscroll-behavior-y:none;
+  -webkit-overflow-scrolling:touch;
+  background:#F2F2F7;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 header{background:#F2F2F7;padding:24px 20px 10px;border-bottom:none}
 .logo{font-size:1.4375rem;font-weight:300}
 .sub{color:#84909d;font-size:0.8125rem;margin-top:5px}
@@ -3561,7 +3567,7 @@ function go(p){
   b.classList.toggle("active",b.id==="nav-"+pestañaActiva)
  );
  render();
- window.scrollTo(0,0);
+ document.body.scrollTo(0, 0);
 }
 
 function render(){
@@ -7962,7 +7968,7 @@ function editarPerfilLocal() {
     </section>
   `;
 
-  window.scrollTo(0, 0);
+  document.body.scrollTo(0, 0);
 }
 
 async function guardarPerfilLocal(event) {
@@ -8107,7 +8113,7 @@ function preferenciasPerfil() {
   document.getElementById("formatoImportes").value = formato;
   document.getElementById("idiomaPerfil").value = idiomaActual();
   aplicarIdiomaGeneral();
-  window.scrollTo(0, 0);
+  document.body.scrollTo(0, 0);
 }
 
 function guardarFormatoImportes(formato) {
@@ -8473,7 +8479,7 @@ function abrirAjuste(tipo) {
       localStorage.getItem("balanceone-tamano-texto") || "normal";
   }
 
-  window.scrollTo(0, 0);
+  document.body.scrollTo(0, 0);
 }
 
 function cambiarTema(tema){
@@ -9236,7 +9242,7 @@ document.addEventListener("touchstart", event => {
 
   if (
     event.touches.length !== 1 ||
-    window.scrollY > 0 ||
+    document.body.scrollTop > 0 ||
     event.touches[0].clientY > 140 ||
     event.target.closest(
       "input,select,textarea,button,a,nav,#amMenu,#movVentana,#movVentanaFondo"
@@ -10069,7 +10075,7 @@ function abrirFormasTarjetas() {
     </section>
   `;
 
-  window.scrollTo(0, 0);
+  document.body.scrollTo(0, 0);
 }
 function cambiarFormaTarjetas(forma) {
   if (!["ovalada", "redondeada", "recta"].includes(forma)) return;
@@ -12950,6 +12956,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
