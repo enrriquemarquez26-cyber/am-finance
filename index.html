@@ -86,7 +86,7 @@ nav button.active {
 
   nav button.active {
     background: rgba(180,180,190,0.25);
-    color: #F28C28;
+    color: #252525;
     padding-left: 14px;
     padding-right: 14px;
     transform: scaleY(1);
@@ -105,24 +105,19 @@ nav button {
   white-space: nowrap;
 }
 
+/* Iconos monocromáticos, sin círculos de color ni sombras. */
 nav button svg {
   display: block;
   flex-shrink: 0;
   width: 30px;
   height: 30px;
-  padding: 6px;
-  border-radius: 50%;
-  color: #fff;
-  stroke-width: 2.2;
-  box-shadow: 0 4px 9px rgba(0,0,0,.14);
+  padding: 3px;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  stroke-width: 1.7;
+  box-shadow: none;
 }
-
-/* Iconos redondos como los de la ventana de Herramientas. */
-#nav-inicio svg {background: linear-gradient(145deg,#54c9ff,#0087f7);}
-#nav-transferencias svg {background: linear-gradient(145deg,#ffaa54,#ff6a2e);}
-#nav-vehiculos svg {background: linear-gradient(145deg,#65e6a4,#00bd5a);}
-#nav-tarjetas svg {background: linear-gradient(145deg,#d45bff,#8e16eb);}
-#nav-perfil svg {background: linear-gradient(145deg,#55575d,#191b20);}
 
 nav button span {
   font-size: 10px;
@@ -457,7 +452,7 @@ html.tema-oscuro nav button {
 }
 
 html.tema-oscuro nav button.active {
-  color: #F28C28;
+  color: #f5f6f8;
   background: rgba(205,214,230,.19);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
 }
@@ -518,7 +513,7 @@ html.tema-claro nav button {
 }
 
 html.tema-claro nav button.active {
-  color: #F28C28;
+  color: #252525;
   background: rgba(155,165,185,.26);
 }
 
@@ -2613,7 +2608,7 @@ html.inicio-nuevo-activo nav {
 html.inicio-nuevo-activo nav button {padding:6px 2px;gap:3px}
 html.inicio-nuevo-activo nav button svg {width:30px;height:30px}
 html.inicio-nuevo-activo nav button span {font-size:9px}
-html.inicio-nuevo-activo nav button.active {background:rgba(155,165,185,.26);color:var(--balanceone-color,#ff7900);padding-left:5px;padding-right:5px}
+html.inicio-nuevo-activo nav button.active {background:rgba(155,165,185,.26);color:#252525;padding-left:5px;padding-right:5px}
 html.tema-oscuro .inicio-nuevo-tarjeta,
 html.tema-oscuro .inicio-nuevo-panel {background:rgba(36,42,51,.9);border-color:rgba(255,255,255,.07);color:#f5f6f8}
 html.tema-oscuro .inicio-nuevo-anillo-centro {background:#252a33}
@@ -2626,7 +2621,7 @@ html.tema-oscuro .inicio-nuevo-escena::after {opacity:.48}
 html.tema-oscuro .inicio-nuevo-escena > .inicio-nuevo-tarjeta::before,
 html.tema-oscuro .inicio-nuevo-escena > .inicio-nuevo-tarjeta::after {opacity:.46}
 html.tema-oscuro.inicio-nuevo-activo nav {background:rgba(30,32,38,.78);border-color:rgba(255,255,255,.14)}
-html.tema-oscuro.inicio-nuevo-activo nav button.active {background:rgba(205,214,230,.19);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+html.tema-oscuro.inicio-nuevo-activo nav button.active {color:#f5f6f8;background:rgba(205,214,230,.19);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 @media(max-width:390px){
   .inicio-nuevo-tarjeta {padding:16px 12px;border-radius:33px}
   .inicio-nuevo-escena {padding-top:29px}
@@ -3305,51 +3300,27 @@ html.tema-oscuro .cal-fin-028 .cal-cuadricula .cal-dia[aria-pressed="true"] {
 </section>
 <nav>
   <button onclick="go('inicio')" id="nav-inicio">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.2 10.1 4a2.8 2.8 0 0 1 3.8 0l6.6 6.2"/><path d="M5.5 9v10a1.5 1.5 0 0 0 1.5 1.5h3v-6h4v6h3a1.5 1.5 0 0 0 1.5-1.5V9"/></svg>
     <span>Inicio</span>
   </button>
 
   <button onclick="go('movimientos')" id="nav-transferencias">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="5" width="18" height="16" rx="3"/>
-      <path d="M7 3v4M17 3v4M3 10h18"/>
-      <path d="M8 14h3M14 14h2M8 18h3"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="4"/><path d="M8 3v4m8-4v4M4 10h16"/><path d="M8 14h2m4 0h2m-8 3.5h2"/></svg>
     <span>Calendario</span>
   </button>
 
   <button onclick="go('vehiculos')" id="nav-vehiculos">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m5 10 2-6h10l2 6"/>
-      <rect x="3" y="10" width="18" height="10" rx="3"/>
-      <path d="M5 20v2m14-2v2M3 10H2m19 0h1"/>
-      <path d="M7 15h.01M17 15h.01M8 18h8"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 14 1.5-4a2 2 0 0 1 1.9-1.3H15a2.5 2.5 0 0 1 1.9.9l2.6 3.1 1.3.5a1.8 1.8 0 0 1 1.2 1.7V17h-2.5M8.5 17h7M3.5 17H2v-2a1 1 0 0 1 1-1h17"/><path d="M8 8.7 6.5 14m6-5.3V14"/><circle cx="6" cy="17" r="2.5"/><circle cx="18" cy="17" r="2.5"/></svg>
     <span>Vehículos</span>
   </button>
 
   <button onclick="go('tarjetas')" id="nav-tarjetas">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="2" y="5" width="20" height="14" rx="3"/>
-      <path d="M2 10h20"/>
-      <rect x="6" y="13" width="4" height="3" rx=".5"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-1"/><rect x="3" y="7" width="15" height="14" rx="3"/><path d="M3 12h15m-11 5h4"/></svg>
     <span>Tarjetas</span>
   </button>
 
   <button onclick="go('perfil')" id="nav-perfil">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="9"/>
-      <circle cx="12" cy="9" r="3"/>
-      <path d="M5.8 18.5a6.5 6.5 0 0 1 12.4 0"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21v-1.5a7.5 7.5 0 0 1 15 0V21"/></svg>
     <span>Perfil</span>
   </button>
 </nav>
@@ -9976,7 +9947,6 @@ function aplicarColorPrincipal(color) {
     :root {
       --balanceone-color: ${color};
     }
-       html nav button.active,
     html .logo span,
     .cuentas-agregar,
     .perfil-plan {
@@ -12949,6 +12919,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
