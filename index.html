@@ -3271,6 +3271,22 @@ html.tema-oscuro .cal-fin-028 .cal-periodo-total--gasto {color:#ff9ca7;backgroun
 }
 
 </style>
+<style id="nueva-cuenta-bancaria">
+.apariencia-ventana.cuenta-nueva {padding:20px;max-width:400px;border-radius:36px}
+.apariencia-ventana.cuenta-nueva h2 {margin:6px 0 18px;font-size:1.08rem}
+.cuenta-nueva .apariencia-tirador {margin-bottom:14px}
+.cuenta-nueva-form {display:grid;gap:14px}
+.cuenta-nueva-form label {display:block;min-width:0;font-size:.76rem;font-weight:600}
+.cuenta-nueva-form input,.cuenta-nueva-form select {display:block;width:100%;min-width:0;max-width:100%;margin:6px 0 0;padding:12px 14px;border-radius:20px;font-size:16px;box-sizing:border-box}
+.cuenta-nueva-importes {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cuenta-nueva-guardar {width:100%;min-height:46px;margin:3px 0 0;padding:13px 16px;border:0;border-radius:999px;background:var(--balanceone-color,#ff7900);color:white;font:inherit;font-size:.88rem;font-weight:650}
+.apariencia-ventana.cuenta-nueva .apariencia-listo {margin-top:8px;min-height:40px;background:transparent!important;color:inherit!important;font-size:.85rem}
+.cuenta-nueva-error {margin:0;color:#c63b4a;font-size:.75rem;line-height:1.5}
+html.tema-oscuro .cuenta-nueva-error {color:#ff9ca7}
+.cuenta-nueva-guardar:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:3px}
+@media(max-width:359px){.apariencia-ventana.cuenta-nueva{padding:17px}.cuenta-nueva-form{gap:12px}.cuenta-nueva-importes{gap:8px}}
+
+</style>
 </head>
 <body>
 <header>
@@ -8798,51 +8814,81 @@ window.addEventListener("hashchange", procesarEnlaceApplePay);
 procesarEnlaceApplePay();
 
 function abrirNuevaCuenta() {
-    const nombre = prompt(textoApp("Nombre del banco o cuenta:", "Bank or account name:"));
-  if (nombre === null || !nombre.trim()) return;
-
-    const tipo = prompt(textoApp("Tipo: cheques o ahorro", "Type: checking or savings"), textoApp("ahorro", "savings"));
-  if (tipo === null) return;
-    const t = tipo.trim().toLowerCase().replace(/^checking$/, "cheques").replace(/^savings$/, "ahorro");
-  if (t !== "cheques" && t !== "ahorro") {
-        alert(textoApp("Escribe cheques o ahorro.", "Enter checking or savings."));
-    return;
-  }
-
-    const s = prompt(textoApp("Saldo inicial en dólares:", "Starting balance in dollars:"));
-  if (s === null) return;
-  const saldo = Number(s);
-  if (!s.trim() || !Number.isFinite(saldo) || saldo < 0) {
-        alert(textoApp("Saldo no válido.", "Invalid balance."));
-    return;
-  }
-
-    const m = prompt(textoApp("Meta en dólares:", "Savings goal in dollars:"), "0");
-  if (m === null) return;
-  const meta = Number(m);
-  if (!m.trim() || !Number.isFinite(meta) || meta < 0) {
-        alert(textoApp("Meta no válida.", "Invalid savings goal."));
-    return;
-  }
-
-  const clave = "amfinance-cuentas-banco";
-  let cuentas = [];
-  try {
-    cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
-    if (!Array.isArray(cuentas)) cuentas = [];
-  } catch (e) {}
-
-  cuentas.push({
-    id: Date.now().toString(),
-    nombre: nombre.trim(),
-    tipo: t,
-    saldo: saldo,
-    meta: meta
-  });
-
-  localStorage.setItem(clave, JSON.stringify(cuentas));
-  go("inicio");
-    alert(textoApp("Cuenta creada correctamente.", "Account created successfully."));
+  const ventana = crearVentanaApariencia(
+    textoApp("Nueva cuenta bancaria", "New bank account"),
+    `<form id="formNuevaCuentaBanco" class="cuenta-nueva-form">
+      <label>${textoApp("Banco o nombre de la cuenta", "Bank or account name")}
+        <input name="nombre" type="text" maxlength="100" required autocomplete="off"
+          placeholder="${textoApp("Ej.: Chase", "E.g. Chase")}">
+      </label>
+      <label>${textoApp("Tipo de cuenta", "Account type")}
+        <select name="tipo">
+          <option value="ahorro">${textoApp("Ahorros", "Savings")}</option>
+          <option value="cheques">${textoApp("Cheques", "Checking")}</option>
+        </select>
+      </label>
+      <div class="cuenta-nueva-importes">
+        <label>${textoApp("Saldo inicial ($)", "Starting balance ($)")}
+          <input name="saldo" type="number" min="0" step="0.01" inputmode="decimal"
+            required placeholder="0.00">
+        </label>
+        <label>${textoApp("Meta ($)", "Goal ($)")}
+          <input name="meta" type="number" min="0" step="0.01" inputmode="decimal"
+            required value="0">
+        </label>
+      </div>
+      <p class="cuenta-nueva-error" data-error-cuenta role="alert" hidden></p>
+      <button type="submit" class="cuenta-nueva-guardar">${textoApp("Guardar cuenta", "Save account")}</button>
+    </form>`,
+    true
+  );
+  if (!ventana) return;
+  ventana.classList.add("cuenta-nueva");
+  const cancelar = ventana.querySelector(".apariencia-listo");
+  cancelar.textContent = textoApp("Cancelar", "Cancel");
+  const form = ventana.querySelector("form");
+  const error = ventana.querySelector("[data-error-cuenta]");
+  form.onsubmit = event => {
+    event.preventDefault();
+    if (form.dataset.guardado === "si") return;
+    error.hidden = true;
+    if (!form.reportValidity()) return;
+    const nombre = form.elements.nombre.value.trim();
+    const tipo = form.elements.tipo.value;
+    const saldoEntrada = form.elements.saldo.value;
+    const metaEntrada = form.elements.meta.value;
+    const saldo = Number(saldoEntrada);
+    const meta = Number(metaEntrada);
+    if (!nombre || !["cheques", "ahorro"].includes(tipo) ||
+        !saldoEntrada.trim() || !metaEntrada.trim() ||
+        !Number.isFinite(saldo) || saldo < 0 ||
+        !Number.isFinite(meta) || meta < 0) {
+      error.textContent = textoApp("Revisa el nombre y los importes.", "Check the name and amounts.");
+      error.hidden = false;
+      return;
+    }
+    const clave = "amfinance-cuentas-banco";
+    let cuentas;
+    try {
+      cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
+      if (!Array.isArray(cuentas)) throw new Error("Formato de cuentas no válido");
+    } catch {
+      error.textContent = textoApp("No se pudieron leer tus cuentas. No se hicieron cambios.", "Could not read your accounts. No changes were made.");
+      error.hidden = false;
+      return;
+    }
+    const cuenta = {id:id(), nombre, tipo, saldo, meta};
+    try {
+      localStorage.setItem(clave, JSON.stringify([...cuentas, cuenta]));
+    } catch {
+      error.textContent = textoApp("No se pudo guardar la cuenta. Inténtalo de nuevo.", "Could not save the account. Try again.");
+      error.hidden = false;
+      return;
+    }
+    form.dataset.guardado = "si";
+    ventana.close();
+    go("inicio");
+  };
 }
 
 
@@ -13088,6 +13134,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
