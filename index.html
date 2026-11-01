@@ -3228,6 +3228,13 @@ html.tema-oscuro .cal-fin-028 .cal-cuadricula .cal-dia[aria-pressed="true"] {
   }
 }
 </style>
+<style id="inicio-capsulas-unificadas">
+/* Inicio clásico: mismo contorno que Últimas transacciones.
+   Los dos resúmenes de Ingresos y Gastos y pagos conservan sus estilos. */
+#content > .inicio-capsula {
+  border-radius:36px !important;
+}
+</style>
 </head>
 <body>
 <header>
@@ -4127,7 +4134,7 @@ const banco = String(c.nombre || "").toLowerCase();
 
  el().innerHTML=`
  ${avisosVencimiento()}
-<div class="card balance-principal">
+<div class="card inicio-capsula balance-principal">
   <div class="label">
     ${textoApp("Balance del mes", "Monthly balance")}
   </div>
@@ -4149,7 +4156,7 @@ const banco = String(c.nombre || "").toLowerCase();
 </div>
 
 ${autos + tarjetas + prestamos > 0 ? `
-  <div class="card" style="border-radius:40px">
+  <div class="card inicio-capsula" style="border-radius:40px">
     <div class="label">
       ${textoApp("Mis deudas pendientes", "Outstanding debts")}
     </div>
@@ -4161,7 +4168,7 @@ ${autos + tarjetas + prestamos > 0 ? `
     </div>
   </div>
 ` : ""}
-<button type="button" class="card"
+<button type="button" class="card inicio-capsula"
   onclick="go('movimientos')"
   style="display:block;width:100%;padding:16px;
   border-radius:36px;text-align:left;color:inherit;
@@ -4278,7 +4285,7 @@ ${autos + tarjetas + prestamos > 0 ? `
    `}
 </button>
 
-<div id="cuentasInicio">
+<div id="cuentasInicio" class="inicio-capsula">
   <div class="cuentas-cabecera">
     <h2>${textoApp("Cuentas bancarias", "Bank accounts")}</h2>
 
@@ -4297,7 +4304,7 @@ ${autos + tarjetas + prestamos > 0 ? `
     </p>
   ` : ""}
 </div>
-<div class="card"
+<div class="card inicio-capsula"
   style="padding:0;border:0;border-radius:30px;overflow:hidden;margin-top:16px">
 
   <div class="cuentas-cabecera">
@@ -4400,7 +4407,7 @@ ${data.vehiculos.map(v => {
   const nombre = [v.nombre, v.modelo].filter(Boolean).join(" ");
 
   return `
-    <button type="button" class="card"
+    <button type="button" class="card inicio-capsula"
       onclick="go('vehiculos')"
       style="display:block;width:100%;padding:20px;
       border-radius:42px;text-align:left;color:inherit;
@@ -12919,6 +12926,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
