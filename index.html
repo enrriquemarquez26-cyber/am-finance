@@ -3474,6 +3474,12 @@ html.tema-oscuro .suscripciones-programadas :is(.programadas-nota,.programada-id
 .cal-pagos-mes .cal-pagos-total small {font-size:.59rem;color:#84909d;line-height:1.3}
 .cal-pagos-mes .cal-pagos-total strong {font-size:1rem;line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 html.tema-oscuro .cal-pagos-mes .cal-pagos-total small {color:#aeb7c5}
+
+.marca-auto-titulo {display:flex;align-items:center;gap:10px;margin:0 0 12px;min-width:0}
+.marca-auto-titulo h3 {min-width:0;overflow-wrap:anywhere}
+.marca-auto-logo {position:relative;display:inline-grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:rgba(130,140,155,.08);vertical-align:middle;overflow:hidden;margin-right:7px;color:inherit;font-size:1rem}
+.marca-auto-titulo .marca-auto-logo {width:34px;height:34px;flex-basis:34px;margin:0}
+.marca-auto-logo .compania-logo {padding:3px!important;background:#fff!important}
 </style>
 </head>
 <body>
@@ -4794,7 +4800,7 @@ ${data.vehiculos.map(v => {
             style="display:block;font-size:1.05rem;
             white-space:nowrap;overflow:hidden;
             text-overflow:ellipsis">
-            ${safe(nombre)}
+            ${logoMarcaVehiculo(v)}${safe(nombre)}
           </strong>
 
           <span class="label"
@@ -6062,9 +6068,7 @@ ${(v.fotoGaleria || v.foto) ? `
        style="display:block;width:100%;height:170px;object-fit:contain;border-radius:24px;margin-bottom:14px">
 ` : ""}
 
-<h3 style="font-size:1.1rem;margin:0 0 12px">
-  ${safe(v.nombre)}
-</h3>
+<div class="marca-auto-titulo">${logoMarcaVehiculo(v)}<h3 style="font-size:1.1rem;margin:0">${safe(v.nombre)}</h3></div>
   <div class="label">
   ${safe(v.modelo || "")}
   ${v.anio ? " · " + safe(v.anio) : ""}
@@ -10120,6 +10124,36 @@ function eliminarCuentaBanco(identificador) {
     ));
   }
 }
+function marcaAutoDetectada(nombre) {
+  const texto = String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+  const marcas = [
+    ["mercedes benz|mercedes|benz", "Mercedes-Benz", "mercedes-benz.com"],
+    ["audi", "Audi", "audi.com"], ["bmw", "BMW", "bmw.com"],
+    ["hyundai", "Hyundai", "hyundai.com"], ["kia", "Kia", "kia.com"],
+    ["toyota", "Toyota", "toyota.com"], ["honda", "Honda", "honda.com"],
+    ["ford", "Ford", "ford.com"], ["chevrolet|chevy", "Chevrolet", "chevrolet.com"],
+    ["nissan", "Nissan", "nissanusa.com"], ["tesla", "Tesla", "tesla.com"],
+    ["volkswagen|vw", "Volkswagen", "vw.com"], ["lexus", "Lexus", "lexus.com"],
+    ["mazda", "Mazda", "mazdausa.com"], ["subaru", "Subaru", "subaru.com"],
+    ["jeep", "Jeep", "jeep.com"], ["ram", "Ram", "ramtrucks.com"],
+    ["dodge", "Dodge", "dodge.com"], ["gmc", "GMC", "gmc.com"],
+    ["cadillac", "Cadillac", "cadillac.com"], ["buick", "Buick", "buick.com"],
+    ["lincoln", "Lincoln", "lincoln.com"], ["acura", "Acura", "acura.com"],
+    ["infiniti", "Infiniti", "infinitiusa.com"], ["volvo", "Volvo", "volvocars.com"],
+    ["porsche", "Porsche", "porsche.com"], ["land rover|range rover", "Land Rover", "landrover.com"],
+    ["lamborghini", "Lamborghini", "lamborghini.com"], ["ferrari", "Ferrari", "ferrari.com"],
+    ["mitsubishi", "Mitsubishi", "mitsubishicars.com"], ["mini", "MINI", "miniusa.com"]
+  ];
+  const marca = marcas.find(([patron]) => new RegExp("(?:^| )(?:" + patron + ")(?= |$)").test(texto));
+  return marca ? {nombre:marca[1], dominio:marca[2]} : null;
+}
+function logoMarcaVehiculo(vehiculo) {
+  const marca = marcaAutoDetectada([vehiculo.marca,vehiculo.nombre,vehiculo.modelo].filter(Boolean).join(" "));
+  if (!marca) return "";
+  return `<span class="marca-auto-logo" role="img" aria-label="${safe(marca.nombre)}" title="${safe(marca.nombre)}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m5 7-2 6v7h3v-3h12v3h3v-7l-2-6H5Z"/><path d="M3 13h18M7 14v1m10-1v1"/></svg>${imagenCompania(marca.nombre)}</span>`;
+}
+
 function imagenCompania(nombre) {
   const texto = String(nombre || "")
     .normalize("NFD")
@@ -10189,10 +10223,11 @@ function imagenCompania(nombre) {
     ([marca]) => texto.includes(marca)
   );
   const esIcloud = /\bi\s*cloud(?:\b|\+)/.test(texto);
-  if (!compania && !esIcloud) return "";
+  const marcaAuto = marcaAutoDetectada(texto);
+  if (!compania && !esIcloud && !marcaAuto) return "";
   const nube = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="n" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#72dcff"/><stop offset="1" stop-color="#0786f8"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="#f3f9ff"/><path d="M18 46a10 10 0 0 1-1-20 15 15 0 0 1 29-2 11 11 0 0 1 0 22Z" fill="url(#n)"/></svg>`;
   const fuente = esIcloud ? "data:image/svg+xml," + encodeURIComponent(nube)
-    : "https://www.google.com/s2/favicons?domain=" + compania[1] + "&sz=128";
+    : "https://www.google.com/s2/favicons?domain=" + (marcaAuto ? marcaAuto.dominio : compania[1]) + "&sz=128";
 
   return `
     <img src="${fuente}"
@@ -11935,6 +11970,7 @@ function pagosMesCalendario() {
     })),
     ...data.vehiculos.map(v => ({
       nombre: v.nombre,
+      marcaNombre:[v.marca,v.nombre,v.modelo].filter(Boolean).join(" "),
       dia: Number(v.vencimiento),
       monto: v.pago,
       saldo: Number(v.saldo),
@@ -11981,7 +12017,7 @@ function pagosMesCalendario() {
             <button type="button" class="cal-pago-fila" onclick="go('${p.destino}')">
               <span class="cal-pago-icono" aria-hidden="true">
                 ${p.destino === "vehiculos" ? "🚘" : "💳"}
-                ${imagenCompania(p.nombre)}
+                ${imagenCompania(p.marcaNombre || p.nombre)}
               </span>
               <span class="cal-pago-info">
                 <strong>${safe(p.nombre)}</strong>
@@ -12275,7 +12311,7 @@ function iconosDiaCalendario(fecha) {
     ...data.tarjetas.filter(coincide)
       .map(t => ({nombre:t.nombre, icono:"💳"})),
     ...data.vehiculos.filter(coincide)
-      .map(v => ({nombre:v.nombre, icono:"🚘"}))
+      .map(v => ({nombre:v.nombre, marcaNombre:[v.marca,v.nombre,v.modelo].filter(Boolean).join(" "), icono:"🚘"}))
   ];
 
   if (!eventos.length) return "";
@@ -12296,7 +12332,7 @@ function iconosDiaCalendario(fecha) {
       overflow:hidden;background:rgba(130,140,155,.12);
       font-size:13px">
           ${e.icono}
-          ${imagenCompania(e.nombre)}
+          ${imagenCompania(e.marcaNombre || e.nombre)}
         </span>
       `).join("")}
 
@@ -13613,6 +13649,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
