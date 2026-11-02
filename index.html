@@ -3498,6 +3498,14 @@ html.tema-oscuro .cal-pagos-mes .cal-pagos-total small {color:#aeb7c5}
 .cal-pagos-mes .cal-pagos-paginacion button[aria-pressed="true"] {background:rgba(130,140,155,.22);font-weight:700}
 @media(max-width:359px){.cal-fin-028 .cal-pagos-mes .cal-pagos-cuadricula{gap:6px}.cal-fin-028 .cal-pagos-cuadricula .cal-pago-fila{grid-template-columns:24px minmax(0,1fr) 6px;padding:7px;column-gap:4px}.cal-fin-028 .cal-pagos-cuadricula .cal-pago-icono{width:24px;height:24px}.cal-fin-028 .cal-pagos-cuadricula .cal-pago-info strong{font-size:.6rem}.cal-fin-028 .cal-pagos-cuadricula .cal-pago-monto{font-size:.64rem}}
 </style>
+
+<style id="avisos-tres-logos">
+.avisos-vencimiento:not(.is-abierto) .aviso-logos-trio {display:flex;align-items:center;gap:2px;flex:0 0 auto}
+.aviso-logos-trio > .aviso-vencimiento-icono {flex:0 0 18px;width:18px;height:18px}
+.aviso-logos-trio > .aviso-vencimiento-icono img {inset:0;width:18px;height:18px;padding:0}
+.aviso-logos-trio > .aviso-vencimiento-icono svg {width:16px;height:16px}
+.avisos-vencimiento.is-abierto .aviso-logos-trio {display:none}
+</style>
 </head>
 <body>
 <header>
@@ -4264,17 +4272,13 @@ function avisosVencimiento() {
     </section></div>`;
   }
   const principal = proximos.find(c => /apple card/i.test(c.nombre)) || proximos[0];
-  const restantes = proximos.filter(c=>c!==principal);
+  const logosCapsula = [principal,...proximos.filter(c=>c!==principal)].slice(0,3);
   return `${fondo}<div class="avisos-ancla"><section id="avisosUnificados" class="avisos-vencimiento"
     aria-label="${textoApp("Notificaciones", "Notifications")}">
     <button type="button" class="aviso-vencimiento" aria-expanded="false"
       aria-controls="avisosUnificadosLista" onclick="abrirPanelAvisos()">
-      <span class="aviso-vencimiento-icono ${/apple/i.test(principal.nombre)?"aviso-vencimiento-icono--apple":""}"
-        aria-hidden="true">${iconoAvisoVencimiento(principal)}</span>
-      ${restantes.length ? `<span class="aviso-miniaturas" aria-hidden="true">
-        ${restantes.slice(0,3).map(c=>`<span class="aviso-miniatura">${iconoAvisoVencimiento(c)}</span>`).join("")}
-        ${restantes.length>3?`<span class="aviso-miniatura aviso-miniatura--mas">+${restantes.length-3}</span>`:""}
-      </span>` : ""}
+      <span class="aviso-logos-trio" aria-hidden="true">${logosCapsula.map(c=>
+        `<span class="aviso-vencimiento-icono">${iconoAvisoVencimiento(c)}</span>`).join("")}</span>
       <span class="aviso-vencimiento-texto">
         <strong><span class="avisos-cerrado">${safe(principal.tipoAviso === "respaldo"
           ? textoApp("Guardar copia","Save backup") : principal.nombre)}</span><span class="avisos-abierto">${textoApp("Notificaciones","Notifications")}</span></strong>
@@ -13708,6 +13712,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
