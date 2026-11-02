@@ -3376,6 +3376,22 @@ html.tema-oscuro .inicio-transacciones .inicio-categorias-mes {color:#c3c9d4}
  .inicio-transacciones .inicio-categorias-leyenda strong {font-size:.58rem}
  .inicio-transacciones .inicio-categorias-leyenda i.inicio-categoria-icono {flex-basis:22px;width:22px}
 }
+
+.cuenta-operacion .cuenta-operacion-saldo {display:flex;flex-direction:column;gap:6px;padding:17px 18px;margin-bottom:18px;border-radius:25px;background:rgba(130,140,155,.07)}
+.cuenta-operacion-saldo span {font-size:.9rem;font-weight:650;overflow-wrap:anywhere}
+.cuenta-operacion-saldo strong {font-size:1.8rem;letter-spacing:-.04em}
+.cuenta-operacion-saldo small {font-size:.68rem;color:#84909d}
+.cuenta-operaciones {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;border:0;padding:0;margin:0}
+.cuenta-operaciones label {position:relative;cursor:pointer}
+.cuenta-operaciones input {position:absolute;opacity:0;width:1px;height:1px;padding:0;margin:0}
+.cuenta-operaciones label > span {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:72px;border-radius:20px;background:rgba(130,140,155,.08);font-size:.7rem;color:inherit;border:1px solid transparent}
+.cuenta-operaciones svg {width:23px;height:23px}
+.cuenta-operaciones input:checked + span {border-color:var(--balanceone-color,#ff7900);background:rgba(255,140,30,.09)}
+.cuenta-operaciones input:focus-visible + span {outline:2px solid currentColor;outline-offset:2px}
+.cuenta-operacion .cuenta-operacion-nota {font-size:.66rem;line-height:1.45;color:#84909d;margin:0}
+.cuenta-operacion [hidden] {display:none!important}
+.cuenta-operacion button:disabled {opacity:.5;cursor:default}
+.sr-operacion {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 </style>
 </head>
 <body>
@@ -9110,66 +9126,119 @@ function abrirNuevaCuenta() {
 }
 
 
-function abrirCuentaBanco(id) {
+function prepararOperacionBanco(cuentas, origenId, operacion, entrada, destinoId, fecha, identificador) {
+  const monto = Number(entrada);
+  const centavos = Math.round(monto * 100);
+  if (!String(entrada).trim() || !Number.isFinite(monto) || monto <= 0 ||
+      !Number.isSafeInteger(centavos) || centavos <= 0 || Math.abs(monto * 100 - centavos) > .00001)
+    throw new Error(textoApp("Introduce un importe mayor que cero, con hasta dos decimales.", "Enter a positive amount with up to two decimal places."));
+  if (!Array.isArray(cuentas) || !["deposito", "retiro", "transferencia"].includes(operacion))
+    throw new Error(textoApp("No se pudo validar la operación.", "Could not validate the transaction."));
+  const copia = JSON.parse(JSON.stringify(cuentas));
+  const origen = copia.find(c => String(c.id) === String(origenId));
+  const destino = operacion === "transferencia" ? copia.find(c => String(c.id) === String(destinoId)) : null;
+  if (!origen || (operacion === "transferencia" && (!destino || destino === origen)))
+    throw new Error(textoApp("Elige una cuenta de destino diferente.", "Choose a different destination account."));
+  const saldoCentavos = cuenta => {
+    const saldo = Number(cuenta.saldo);
+    const valor = Math.round(saldo * 100);
+    if (!Number.isFinite(saldo) || !Number.isSafeInteger(valor))
+      throw new Error(textoApp("El saldo de la cuenta no es válido.", "The account balance is invalid."));
+    return valor;
+  };
+  const saldo = saldoCentavos(origen);
+  if (operacion !== "deposito" && centavos > saldo)
+    throw new Error(textoApp("Saldo insuficiente en la cuenta de origen.", "Insufficient funds in the source account."));
+  const nuevoOrigen = saldo + (operacion === "deposito" ? centavos : -centavos);
+  if (!Number.isSafeInteger(nuevoOrigen)) throw new Error(textoApp("Importe demasiado grande.", "Amount too large."));
+  origen.saldo = nuevoOrigen / 100;
+  if (!Array.isArray(origen.historial)) origen.historial = [];
+  const registro = {id:identificador, fecha, tipo:operacion, monto:centavos / 100};
+  if (destino) {
+    const nuevoDestino = saldoCentavos(destino) + centavos;
+    if (!Number.isSafeInteger(nuevoDestino)) throw new Error(textoApp("Importe demasiado grande.", "Amount too large."));
+    destino.saldo = nuevoDestino / 100;
+    registro.sentido = "salida";
+    registro.contraparteId = destino.id;
+    registro.contraparte = destino.nombre;
+    if (!Array.isArray(destino.historial)) destino.historial = [];
+    destino.historial.push({id:identificador, fecha, tipo:"transferencia", sentido:"entrada",
+      monto:centavos / 100, contraparteId:origen.id, contraparte:origen.nombre});
+  }
+  origen.historial.push(registro);
+  return copia;
+}
+
+function abrirCuentaBanco(identificador) {
   const clave = "amfinance-cuentas-banco";
   let cuentas;
-
   try {
     cuentas = JSON.parse(localStorage.getItem(clave) || "[]");
-    if (!Array.isArray(cuentas)) return;
-  } catch (e) {
-        alert(textoApp("No se pudieron leer las cuentas.", "Could not load accounts."));
-    return;
+    if (!Array.isArray(cuentas)) throw new Error();
+  } catch {
+    alert(textoApp("No se pudieron leer las cuentas.", "Could not load accounts.")); return;
   }
-
-  const cuenta = cuentas.find(c => String(c.id) === String(id));
-  if (!cuenta) {
-        alert(textoApp("Cuenta no encontrada.", "Account not found."));
-    return;
-  }
-
-  const opcion = prompt(
-        cuenta.nombre + textoApp("\nSaldo: ", "\nBalance: ") + money(cuenta.saldo) +
-    textoApp("\n\nEscribe:\n1 - Depositar\n2 - Retirar", "\n\nEnter:\n1 - Deposit\n2 - Withdraw")
-  );
-
-  if (opcion === null) return;
-  if (opcion !== "1" && opcion !== "2") {
-        alert(textoApp("Selecciona 1 o 2.", "Select 1 or 2."));
-    return;
-  }
-
-    const entrada = prompt(textoApp("Cantidad en dólares:", "Amount in dollars:"));
-  if (entrada === null) return;
-  const monto = Number(entrada);
-
-  if (!entrada.trim() || !Number.isFinite(monto) || monto <= 0) {
-        alert(textoApp("Introduce una cantidad válida.", "Enter a valid amount."));
-    return;
-  }
-
-  const saldoActual = Number(cuenta.saldo) || 0;
-
-  if (opcion === "2" && monto > saldoActual) {
-        alert(textoApp("Saldo insuficiente.", "Insufficient funds."));
-    return;
-  }
-
-  cuenta.saldo = Math.round(
-    (saldoActual + (opcion === "1" ? monto : -monto)) * 100
-  ) / 100;
-
-  if (!Array.isArray(cuenta.historial)) cuenta.historial = [];
-
-  cuenta.historial.push({
-    fecha: new Date().toISOString(),
-    tipo: opcion === "1" ? "deposito" : "retiro",
-    monto: monto
-  });
-
-  localStorage.setItem(clave, JSON.stringify(cuentas));
-  go("inicio");
-    alert(textoApp("Operación realizada. Nuevo saldo: ", "Transaction completed. New balance: ") + money(cuenta.saldo));
+  const cuenta = cuentas.find(c => String(c.id) === String(identificador));
+  if (!cuenta) {alert(textoApp("Cuenta no encontrada.", "Account not found."));return;}
+  const destinos = cuentas.filter(c => String(c.id) !== String(identificador));
+  const icono = trazos => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${trazos}</svg>`;
+  const ventana = crearVentanaApariencia(textoApp("Gestionar cuenta", "Manage account"), `
+    <div class="cuenta-operacion-saldo"><span>${safe(cuenta.nombre)}</span>
+      <strong>${money(cuenta.saldo)}</strong><small>${textoApp("Saldo disponible", "Available balance")}</small></div>
+    <form class="cuenta-nueva-form" id="formOperacionBanco">
+      <fieldset class="cuenta-operaciones"><legend class="sr-operacion">${textoApp("Operación", "Transaction")}</legend>
+        ${[
+          ["deposito", textoApp("Depositar", "Deposit"), '<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>'],
+          ["retiro", textoApp("Retirar", "Withdraw"), '<path d="M12 15V3m-5 5 5-5 5 5M4 16v5h16v-5"/>'],
+          ["transferencia", textoApp("Transferir", "Transfer"), '<path d="M3 7h18m-5-5 5 5-5 5M21 17H3m5-5-5 5 5 5"/>']
+        ].map(([valor,nombre,trazos], i) => `<label><input type="radio" name="operacion" value="${valor}" ${i===0 ? "checked" : ""}>
+          <span>${icono(trazos)}${nombre}</span></label>`).join("")}
+      </fieldset>
+      <label data-destino-banco hidden>${textoApp("Transferir a", "Transfer to")}
+        <select name="destino"><option value="">${textoApp("Seleccionar cuenta", "Select account")}</option>
+          ${destinos.map(c => `<option value="${safe(String(c.id))}">${safe(c.nombre)} · ${c.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")}</option>`).join("")}</select>
+      </label>
+      <p class="note" data-sin-destino hidden>${textoApp("Agrega otra cuenta bancaria para transferir entre tus cuentas.", "Add another bank account to transfer between accounts.")}</p>
+      <label>${textoApp("Importe ($)", "Amount ($)")}<input name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required></label>
+      <p class="cuenta-nueva-error" data-error-cuenta role="alert" hidden></p>
+      <p class="cuenta-operacion-nota">${textoApp("Registra la operación en Balance One. No envía dinero a través del banco.", "Records the transaction in Balance One. Does not send money through your bank.")}</p>
+      <button type="submit" class="cuenta-nueva-guardar">${textoApp("Guardar depósito", "Save deposit")}</button>
+    </form>`, true);
+  if (!ventana) return;
+  ventana.classList.add("cuenta-nueva", "cuenta-operacion");
+  ventana.querySelector(".apariencia-listo").textContent = textoApp("Cancelar", "Cancel");
+  const form = ventana.querySelector("form");
+  const error = ventana.querySelector("[data-error-cuenta]");
+  const guardar = form.querySelector('[type="submit"]');
+  const actualizar = () => {
+    const transferencia = form.elements.operacion.value === "transferencia";
+    form.querySelector("[data-destino-banco]").hidden = !transferencia;
+    form.elements.destino.required = transferencia;
+    form.querySelector("[data-sin-destino]").hidden = !transferencia || destinos.length > 0;
+    guardar.disabled = transferencia && destinos.length === 0;
+    guardar.textContent = form.elements.operacion.value === "deposito" ? textoApp("Guardar depósito", "Save deposit")
+      : transferencia ? textoApp("Guardar transferencia", "Save transfer") : textoApp("Guardar retiro", "Save withdrawal");
+    error.hidden = true;
+  };
+  form.onchange = actualizar;
+  form.onsubmit = evento => {
+    evento.preventDefault();
+    if (form.dataset.guardado || !form.reportValidity()) return;
+    error.hidden = true;
+    let nuevas;
+    try {
+      const actuales = JSON.parse(localStorage.getItem(clave) || "[]");
+      nuevas = prepararOperacionBanco(actuales, identificador, form.elements.operacion.value,
+        form.elements.monto.value, form.elements.destino.value, new Date().toISOString(), id());
+    } catch(e) {
+      error.textContent = e instanceof SyntaxError ? textoApp("No se pudieron leer las cuentas.", "Could not load accounts.") : e.message;
+      error.hidden = false;return;
+    }
+    try {localStorage.setItem(clave, JSON.stringify(nuevas));}
+    catch {error.textContent = textoApp("No se pudo guardar. No se hicieron cambios.", "Could not save. No changes were made.");error.hidden=false;return;}
+    form.dataset.guardado = "si";
+    ventana.close();go("inicio");
+  };
 }
 
 function abrirAmMenu() {
@@ -13508,6 +13577,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
