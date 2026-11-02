@@ -2846,6 +2846,8 @@ html.tema-oscuro .mov28 #movCalendario .cal-controles .cal-mes {border-color:rgb
 
 [data-orden-lista] .banco-card { -webkit-touch-callout:none;user-select:none; }
 [data-orden-lista] .inicio-orden-activo { outline:2px solid currentColor;outline-offset:-2px;opacity:.72;border-radius:28px; }
+#formSuscripcion [hidden], #formSuscripcionCalendario [hidden] {display:none!important}
+.suscripcion-cancelar {border:0;border-radius:20px;padding:12px;background:rgba(212,77,86,.1);color:#cf5963;font:inherit}
 </style>
 <style id="balanceone-calendario-tarjetas-028">
 /* Calendario real (pestaña Calendario y Movimientos): casillas independientes,
@@ -3392,6 +3394,48 @@ html.tema-oscuro .inicio-transacciones .inicio-categorias-mes {color:#c3c9d4}
 .cuenta-operacion [hidden] {display:none!important}
 .cuenta-operacion button:disabled {opacity:.5;cursor:default}
 .sr-operacion {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+
+/* Pantalla Suscripciones: campos agrupados y tarjetas compactas. */
+.subs-pantalla {padding-bottom:110px;color:inherit}
+.subs-cabecera {display:flex;align-items:center;gap:12px;margin:5px 2px 22px}
+.subs-emblema {display:grid;place-items:center;flex:0 0 43px;height:43px;border-radius:16px;background:rgba(130,140,155,.09)}
+.subs-emblema svg {width:25px;height:25px}
+.subs-cabecera h2 {margin:0;font-size:1.4rem;letter-spacing:-.04em}
+.subs-cabecera p {margin:5px 0 0;font-size:.73rem;color:#84909d}
+.subs-pantalla .card {padding:19px 17px;border-radius:30px!important}
+.subs-titulo {display:flex;align-items:center;gap:9px;margin-bottom:18px}
+.subs-titulo h3 {margin:0;font-size:.96rem;letter-spacing:-.02em}
+.subs-paso {display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgba(130,140,155,.09);font-size:1.1rem}
+.subs-form,.subs-fechas {display:grid;gap:15px;min-width:0}
+.subs-dos-columnas {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+.subs-form label {display:flex;flex-direction:column;gap:7px;min-width:0;margin:0;font-size:.73rem;font-weight:600}
+.subs-form input,.subs-form select {width:100%;max-width:100%;min-width:0;min-height:46px;box-sizing:border-box;margin:0;padding:11px 12px;border:1px solid rgba(130,140,155,.24);border-radius:17px;font-size:16px;color:inherit;background:rgba(130,140,155,.045);font-family:inherit}
+.subs-form input[type="date"] {display:block;appearance:none;-webkit-appearance:none;line-height:1.3}
+.subs-form input[type="date"]::-webkit-date-and-time-value {text-align:left}
+.subs-form :is(input,select):focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
+.subs-precios {border:1px solid rgba(130,140,155,.12);border-radius:23px;padding:13px 12px;margin:2px 0;min-width:0;background:rgba(130,140,155,.035)}
+.subs-precios legend {font-size:.73rem;font-weight:650;padding:0 5px}
+.subs-ayuda {font-size:.64rem;line-height:1.5;color:#84909d;margin:10px 0 0}
+.subs-form .subs-guardar {width:100%;min-height:47px;margin:2px 0 0;border:0;border-radius:999px;background:var(--balanceone-color,#ff7900)!important;color:white!important;font:inherit;font-size:.85rem;font-weight:650}
+.subs-aviso {margin:0;text-align:center}
+.subs-contador {margin-left:auto;padding:5px 9px;border-radius:999px;background:rgba(130,140,155,.09);font-size:.64rem;color:#84909d}
+.subs-registros {display:grid;gap:10px}
+.subs-registro {border-radius:23px;padding:13px;background:rgba(130,140,155,.055);border:1px solid rgba(130,140,155,.10)}
+.subs-registro-superior {display:flex;align-items:center;gap:9px}
+.subs-logo {position:relative;display:grid;place-items:center;flex:0 0 33px;height:33px;border-radius:50%;background:rgba(130,140,155,.1)}
+.subs-identidad {flex:1;min-width:0}
+.subs-identidad strong {display:block;font-size:.83rem;overflow-wrap:anywhere}
+.subs-identidad small {display:block;margin-top:3px;color:#84909d;font-size:.65rem}
+.subs-importe {font-size:.87rem;overflow-wrap:anywhere;max-width:45%}
+.subs-detalle {font-size:.65rem;color:#84909d;line-height:1.5;margin:11px 0 6px}
+.subs-estado {display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(130,140,155,.08);font-size:.62rem;color:#84909d}
+.subs-acciones {display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;padding-top:9px;border-top:1px solid rgba(130,140,155,.12)}
+.subs-acciones button {border:0;border-radius:999px;padding:7px 9px;background:rgba(130,140,155,.08);color:inherit;font:inherit;font-size:.63rem;min-height:34px}
+.subs-acciones .subs-eliminar {color:#cf5963;margin-left:auto}
+.subs-vacio {padding:16px 5px;text-align:center}
+.subs-vacio strong {font-size:.83rem}.subs-vacio p {color:#84909d;font-size:.72rem;line-height:1.5}
+html.tema-oscuro .subs-pantalla :is(.subs-ayuda,.subs-detalle,.subs-estado,.subs-contador,.subs-identidad small,.subs-cabecera p,.subs-vacio p) {color:#aeb7c5}
+@media(max-width:359px){.subs-pantalla .card{padding:17px 13px}.subs-precios{padding:12px 9px}.subs-form input,.subs-form select{padding:10px 8px}.subs-dos-columnas{gap:7px}}
 </style>
 </head>
 <body>
@@ -7033,6 +7077,52 @@ function resumenPreciosSuscripcion(registro) {
   return `${etiqueta}: ${mes} · ${textoApp("Año", "Year")}: ${anio}`;
 }
 
+function camposFinalSuscripcion(fin = "") {
+  return `<label class="suscripcion-campo">${textoApp("Finalización", "End date")}
+    <select name="duracion"><option value="indefinida" ${!fin ? "selected" : ""}>${textoApp("Hasta que canceles", "Until cancelled")}</option>
+    <option value="fecha" ${fin ? "selected" : ""}>${textoApp("Elegir último cobro", "Choose last charge")}</option></select></label>
+    <div data-fin-suscripcion><label class="suscripcion-campo">${textoApp("Último cobro", "Last charge")}
+      <input name="fin" type="date" value="${safe(fin)}"></label></div>`;
+}
+function activarFormularioSuscripcion(form) {
+  const e = form.elements;
+  let anualAutomatico = !e.precioAnual.value;
+  function actualizar() {
+    const anual = e.frecuencia.value === "anual";
+    const mensual = Number(e.precioMensual.value);
+    if (anualAutomatico && anual) {
+      e.precioAnual.value = Number.isFinite(mensual) && mensual > 0 ? (Math.round(mensual * 1200) / 100).toFixed(2) : "";
+    }
+    const obligatorio = ["prestamo", "cuotas"].includes(e.categoria.value);
+    e.duracion.querySelector('option[value="indefinida"]').disabled = obligatorio;
+    if (obligatorio) e.duracion.value = "fecha";
+    const sinFin = e.duracion.value === "indefinida" && !obligatorio;
+    form.querySelector("[data-fin-suscripcion]").hidden = sinFin;
+    e.fin.disabled = sinFin;
+    e.fin.required = !sinFin;
+    e.precioAnual.required = anual;
+    e.precioMensual.required = !anual;
+  }
+  form.addEventListener("input", evento => {
+    if (evento.target === e.precioAnual) anualAutomatico = !e.precioAnual.value;
+    actualizar();
+  });
+  form.addEventListener("change", actualizar);
+  actualizar();
+}
+function cancelarSuscripcionRegistrada(identificador) {
+  const lista = Array.isArray(data.suscripciones) ? data.suscripciones : [];
+  const registro = lista.find(s => String(s.id) === String(identificador));
+  if (!registro || registro.canceladaEn) return;
+  if (!confirm(textoApp("¿Dejar de programar cobros de esta suscripción en Balance One? Debes cancelar el servicio con su proveedor por separado.", "Stop scheduling this subscription in Balance One? Cancel the service separately with its provider."))) return;
+  const nuevos = {...data, suscripciones:lista.map(s => s === registro ? {...s,canceladaEn:today()} : s)};
+  try {localStorage.setItem(KEY,JSON.stringify(nuevos));}
+  catch {alert(textoApp("No se pudo guardar la cancelación.", "Could not save cancellation."));return;}
+  data=nuevos;
+  document.querySelector(".apariencia-ventana--suscripciones")?.close();
+  render();
+}
+
 function guardarSuscripcionFormulario(form, indice = null) {
   if (form.dataset.guardado === "si") return false;
 
@@ -7043,10 +7133,12 @@ function guardarSuscripcionFormulario(form, indice = null) {
   const precioMensualTexto = String(campos.get("precioMensual") || "").trim();
   const precioAnualTexto = String(campos.get("precioAnual") || "").trim();
   const precioMensual = precioMensualTexto ? round(precioMensualTexto) : null;
-  const precioAnual = precioAnualTexto ? round(precioAnualTexto) : null;
+  const precioAnual = precioAnualTexto ? round(precioAnualTexto)
+    : frecuencia === "anual" && validAmount(precioMensual) ? round(precioMensual * 12) : null;
   const monto = frecuencia === "anual" ? precioAnual : precioMensual;
   const inicio = String(campos.get("inicio") || "");
-  const fin = String(campos.get("fin") || "");
+  const fin = campos.get("duracion") === "indefinida" && !["prestamo", "cuotas"].includes(categoria)
+    ? "" : String(campos.get("fin") || "");
 
   if (!nombre || !validDate(inicio) || !validAmount(monto) ||
       (precioMensual !== null && !validAmount(precioMensual)) ||
@@ -7096,139 +7188,56 @@ function guardarSuscripcionFormulario(form, indice = null) {
   return true;
 }
 
- function suscripciones() {
-  const lista = Array.isArray(data.suscripciones)
-    ? data.suscripciones : [];
-
+function suscripciones() {
+  const lista = Array.isArray(data.suscripciones) ? data.suscripciones : [];
+  const activas = lista.filter(s => !s.canceladaEn && (!s.fin || s.fin >= today())).length;
   el().innerHTML = `
-    <h2>${textoApp("Suscripciones", "Subscriptions")}</h2>
-
-    <div class="card">
-      <h3>${textoApp("Agregar suscripción", "Add subscription")}</h3>
-
-      <form id="formSuscripcion">
-      <label for="frecuenciaProgramada">
-  ${textoApp("Frecuencia", "Frequency")}
-</label>
-
-<select id="frecuenciaProgramada" name="frecuencia" required>
-  <option value="mensual">
-    ${textoApp("Mensual", "Monthly")}
-  </option>
-  <option value="cada14dias">
-    ${textoApp("Cada dos semanas · 14 días", "Every two weeks · 14 days")}
-  </option>
-  <option value="anual">
-    ${textoApp("Anual · cada 12 meses", "Yearly · every 12 months")}
-  </option>
-</select>
-      <label for="tipoPagoProgramado">
-  ${textoApp("Tipo de pago", "Payment type")}
-</label>
-
-<select id="tipoPagoProgramado" name="categoria" required>
-  <option value="suscripcion">
-    ${textoApp("Suscripción", "Subscription")}
-  </option>
-  <option value="renta">
-    ${textoApp("Renta", "Rent")}
-  </option>
-  <option value="prestamo">
-    ${textoApp("Préstamo personal", "Personal loan")}
-  </option>
-  <option value="cuotas">
-    ${textoApp("Compras a cuotas · Klarna y similares",
-      "Installments · Klarna and similar")}
-  </option>
-</select>
-       <label>${textoApp("Nombre", "Name")}</label>
-        <input name="nombre" maxlength="80" required
-          placeholder="Netflix, Spotify…">
-
-        <label for="precioMensualProgramado">${textoApp("Precio mensual ($)", "Monthly price ($)")}</label>
-        <input id="precioMensualProgramado" name="precioMensual" type="number"
-          min="0.01" step="0.01" placeholder="0.00">
-        <label for="precioAnualProgramado">${textoApp("Precio anual ($)", "Yearly price ($)")}</label>
-        <input id="precioAnualProgramado" name="precioAnual" type="number"
-          min="0.01" step="0.01" placeholder="0.00">
-        <p class="note">${textoApp(
-          "Puedes indicar ambos precios para compararlos. Solo se programará el cobro del período seleccionado. Si eliges cada 14 días, usa el primer importe como precio por cobro.",
-          "You may enter both prices to compare. Only the selected billing period is scheduled. For every 14 days, use the first amount as the per-charge price."
-        )}</p>
-
-        <label>${textoApp("Primer cobro", "First charge")}</label>
-        <input name="inicio" type="date" value="${today()}" required>
-        <label for="ultimoCobroProgramado">
-  ${textoApp("Último cobro", "Last charge")}
-</label>
-
-<input id="ultimoCobroProgramado"
-  name="fin" type="date">
-
-<p class="note">
-  ${textoApp(
-    "Obligatorio para préstamos y compras a cuotas. Déjalo vacío para pagos sin fecha de finalización.",
-    "Required for loans and installments. Leave blank for payments with no end date."
-  )}
-</p>
-        <button class="primary" type="submit">
-          ${textoApp("Guardar suscripción", "Save subscription")}
-        </button>
-      </form>
-
-      <p class="note">
-        ${textoApp(
-          "Se repetirá según la frecuencia elegida hasta el último cobro. No registra gastos automáticamente.",
-"Repeats at the selected frequency through the last charge. Expenses are not recorded automatically."
-        )}
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>${textoApp("Mis suscripciones", "My subscriptions")}</h3>
-
-      ${lista.map((s, i) => `
-        <div style="display:flex;align-items:center;gap:12px;
-          padding:12px 0;border-bottom:1px solid rgba(130,140,155,.15)">
-          <span aria-hidden="true"
-            style="position:relative;width:36px;height:36px;
-            display:grid;place-items:center;flex-shrink:0">
-            ↻ ${imagenCompania(s.nombre)}
-          </span>
-
-          <span style="flex:1;min-width:0">
-            <strong>${safe(s.nombre)}</strong>
-            <small style="display:block">
-              ${textoApp("Primer cobro · Día ", "First charge · Day ")}
-              ${Number(String(s.inicio).slice(8,10))}
-            </small>
-            <small style="display:block;color:#84909d">
-              ${resumenPreciosSuscripcion(s)}
-            </small>
-          </span>
-
-          <strong>${money(s.monto)}</strong>
-        <button type="button"
-  onclick="eliminarRegistroProgramado('suscripcion', ${i})"
-  style="border:0;border-radius:999px;padding:8px;
-  color:#d44d56;background:rgba(212,77,86,.1);font:inherit">
-  ${textoApp("Eliminar", "Delete")}
-</button>
+    <section class="subs-pantalla">
+      <header class="subs-cabecera"><span class="subs-emblema" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="4"/><path d="M7 3v4m10-4v4M3 11h18m-13 5h3m4 0h1"/></svg></span>
+        <div><h2>${textoApp("Suscripciones", "Subscriptions")}</h2><p>${textoApp("Tus servicios y pagos, organizados.", "Your services and payments, organized.")}</p></div></header>
+      <div class="card subs-formulario">
+        <div class="subs-titulo"><span class="subs-paso">+</span><h3>${textoApp("Nueva suscripción", "New subscription")}</h3></div>
+        <form id="formSuscripcion" class="subs-form">
+          <label class="subs-campo">${textoApp("Nombre del servicio", "Service name")}<input name="nombre" maxlength="80" required placeholder="Netflix, iCloud, Spotify…" autocomplete="off"></label>
+          <div class="subs-dos-columnas">
+            <label class="subs-campo">${textoApp("Frecuencia", "Frequency")}<select name="frecuencia" required>
+              <option value="mensual">${textoApp("Mensual", "Monthly")}</option><option value="anual">${textoApp("Anual", "Yearly")}</option><option value="cada14dias">${textoApp("Cada 14 días", "Every 14 days")}</option></select></label>
+            <label class="subs-campo">${textoApp("Tipo de pago", "Payment type")}<select name="categoria" required>
+              <option value="suscripcion">${textoApp("Suscripción", "Subscription")}</option><option value="renta">${textoApp("Renta", "Rent")}</option><option value="prestamo">${textoApp("Préstamo", "Loan")}</option><option value="cuotas">${textoApp("Cuotas", "Installments")}</option></select></label>
+          </div>
+          <fieldset class="subs-precios"><legend>${textoApp("Importe del servicio", "Service price")}</legend>
+            <div class="subs-dos-columnas">
+              <label class="subs-campo">${textoApp("Precio mensual ($)", "Monthly price ($)")}<input name="precioMensual" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+              <label class="subs-campo">${textoApp("Precio anual ($)", "Yearly price ($)")}<input name="precioAnual" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+            </div>
+            <p class="subs-ayuda">${textoApp("Anual: mensual × 12. Puedes ajustar el precio si tienes un descuento. Cada 14 días usa el primer importe por cobro.", "Yearly: monthly × 12. Adjust the price if you have a discount. Every 14 days uses the first amount per charge.")}</p>
+          </fieldset>
+          <div class="subs-fechas"><label class="subs-campo">${textoApp("Primer cobro", "First charge")}<input name="inicio" type="date" value="${today()}" required></label>
+            ${camposFinalSuscripcion()}
+          </div>
+          <button class="primary subs-guardar" type="submit">${textoApp("Guardar suscripción", "Save subscription")}</button>
+          <p class="subs-ayuda subs-aviso">${textoApp("Cobros previstos hasta que canceles o hasta la fecha elegida. No se descuentan automáticamente de tus cuentas.", "Scheduled charges until cancelled or the chosen end date. They are not deducted automatically from your accounts.")}</p>
+        </form>
       </div>
-      `).join("") || `
-        <p class="note">
-          ${textoApp("Todavía no hay suscripciones.", "No subscriptions yet.")}
-        </p>
-      `}
-    </div>
-  `;
-
+      <div class="card subs-listado">
+        <div class="subs-titulo"><h3>${textoApp("Mis suscripciones", "My subscriptions")}</h3><span class="subs-contador">${activas} ${textoApp("activas", "active")}</span></div>
+        <div class="subs-registros">
+          ${lista.map((registro,i) => `<article class="subs-registro">
+            <div class="subs-registro-superior"><span class="subs-logo" aria-hidden="true">↻ ${imagenCompania(registro.nombre)}</span>
+              <div class="subs-identidad"><strong>${safe(registro.nombre)}</strong><small>${registro.frecuencia === "anual" ? textoApp("Anual", "Yearly") : registro.frecuencia === "cada14dias" ? textoApp("Cada 14 días", "Every 14 days") : textoApp("Mensual", "Monthly")}</small></div>
+              <strong class="subs-importe">${money(registro.monto)}</strong></div>
+            <p class="subs-detalle">${resumenPreciosSuscripcion(registro)}</p>
+            <span class="subs-estado">${registro.canceladaEn ? textoApp("Cancelada", "Cancelled") : registro.fin ? textoApp("Último cobro: ", "Last charge: ") + safe(registro.fin) : textoApp("Hasta que canceles", "Until cancelled")}</span>
+            <div class="subs-acciones"><button type="button" onclick="abrirFormularioSuscripcionCalendario(${i})">${textoApp("Editar", "Edit")}</button>
+              ${!registro.canceladaEn ? `<button type="button" onclick="cancelarSuscripcionRegistrada(${safe(JSON.stringify(String(registro.id)))})">${textoApp("Cancelar suscripción", "Cancel subscription")}</button>` : ""}
+              <button class="subs-eliminar" type="button" onclick="eliminarRegistroProgramado('suscripcion', ${i})">${textoApp("Eliminar", "Delete")}</button></div>
+          </article>`).join("") || `<div class="subs-vacio"><strong>${textoApp("Todo listo para empezar", "Ready to get started")}</strong><p>${textoApp("Añade tu primer servicio y organiza sus próximos cobros.", "Add your first service and organize upcoming charges.")}</p></div>`}
+        </div>
+      </div>
+    </section>`;
   const form = document.getElementById("formSuscripcion");
-
-  form.onsubmit = event => {
-    event.preventDefault();
-    guardarSuscripcionFormulario(form);
-  };
+  activarFormularioSuscripcion(form);
+  form.onsubmit = event => {event.preventDefault();guardarSuscripcionFormulario(form);};
 }
 function metasAhorro(){
   el().innerHTML = `
@@ -11967,7 +11976,7 @@ function suscripcionesDelMes(
   for (const s of lista) {
     if (!validDate(String(s.inicio))) continue;
 
-    const limite = s.fin && s.fin < finMes ? s.fin : finMes;
+    const limite = [finMes, s.fin, s.canceladaEn].filter(Boolean).sort()[0];
     if (s.inicio > limite || limite < inicioMes) continue;
 
     if (s.frecuencia === "anual") {
@@ -12170,11 +12179,12 @@ function abrirFormularioSuscripcionCalendario(indice = null) {
         ${campo("precioAnual", textoApp("Precio anual ($)", "Yearly price ($)"), "number", actual.precioAnual ?? (actual.frecuencia === "anual" ? actual.monto ?? "" : ""), 'min="0.01" step="0.01" placeholder="0.00"')}
       </div>
       <p class="note suscripcion-ayuda">${textoApp(
-        "Rellena el precio del período que pagas. El otro es opcional. Cada 14 días usa el primer precio por cobro.",
-        "Enter the price for your billing period. The other is optional. For every 14 days, the first price is per charge."
+        "Anual calcula mensual × 12; puedes ajustar el precio anual. Cada 14 días usa el primer importe por cobro.",
+        "Yearly calculates monthly × 12; you can adjust the annual price. Every 14 days uses the first amount per charge."
       )}</p>
       ${campo("inicio", textoApp("Primer cobro", "First charge"), "date", actual.inicio || today(), "required")}
-      ${campo("fin", textoApp("Último cobro (si aplica)", "Last charge (if applicable)"), "date", actual.fin || "")}
+      ${camposFinalSuscripcion(actual.fin || "")}
+      ${registro && !actual.canceladaEn ? `<button type="button" onclick="cancelarSuscripcionRegistrada(${safe(JSON.stringify(String(actual.id)))})" class="suscripcion-cancelar">${textoApp("Cancelar suscripción", "Cancel subscription")}</button>` : ""}
       <button type="submit" class="primary suscripcion-guardar">
         ${textoApp("Guardar suscripción", "Save subscription")}
       </button>
@@ -12183,6 +12193,7 @@ function abrirFormularioSuscripcionCalendario(indice = null) {
   if (!ventana) return;
   ventana.classList.add("apariencia-ventana--suscripciones");
   const form = ventana.querySelector("#formSuscripcionCalendario");
+  activarFormularioSuscripcion(form);
   form.onsubmit = event => {
     event.preventDefault();
     if (guardarSuscripcionFormulario(form, indice)) ventana.close();
@@ -13577,6 +13588,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
