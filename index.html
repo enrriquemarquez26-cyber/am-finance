@@ -2848,6 +2848,7 @@ html.tema-oscuro .mov28 #movCalendario .cal-controles .cal-mes {border-color:rgb
 [data-orden-lista] .inicio-orden-activo { outline:2px solid currentColor;outline-offset:-2px;opacity:.72;border-radius:28px; }
 #formSuscripcion [hidden], #formSuscripcionCalendario [hidden] {display:none!important}
 .suscripcion-cancelar {border:0;border-radius:20px;padding:12px;background:rgba(212,77,86,.1);color:#cf5963;font:inherit}
+.programada-registrar {border:0;border-radius:999px;background:rgba(130,140,155,.12);color:inherit;font:inherit;font-size:.7rem;padding:8px 12px;margin-top:10px}
 </style>
 <style id="balanceone-calendario-tarjetas-028">
 /* Calendario real (pestaña Calendario y Movimientos): casillas independientes,
@@ -4594,7 +4595,7 @@ ${autos + tarjetas + prestamos > 0 ? `
 
      const detalle = [
        fecha,
-       cuenta ? cuenta.nombre : "",
+       cuenta ? cuenta.nombre : nombreOrigenPago(m),
        tipoCuenta
      ].filter(Boolean).join(" · ");
 
@@ -5056,6 +5057,94 @@ function cuentasVistaNueva() {
   `;
 }
 
+// Un origen de crédito usa un prefijo para distinguirlo de los ID bancarios.
+function origenPagoSeleccionado(valor) {
+  const texto = String(valor || "");
+  return texto.startsWith("credito:") ? {tarjetaId:texto.slice(8)} : {cuentaId:texto};
+}
+function opcionesOrigenPago(cuentas, excluirTarjeta = null, permitirCredito = true) {
+  const bancos = cuentas.map(c => `<option value="${safe(String(c.id))}">${safe(c.nombre)} · ${c.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")} · ${money(c.saldo)}</option>`).join("");
+  const tarjetas = permitirCredito ? data.tarjetas.filter(t => String(t.id) !== String(excluirTarjeta)).map(t =>
+    `<option value="${safe("credito:" + String(t.id))}">${safe(t.nombre)} · ${textoApp("Crédito", "Credit")} · ${textoApp("Deuda: ", "Debt: ")}${money(t.saldo)}</option>`).join("") : "";
+  return `<option value="">${textoApp("Seleccionar origen", "Select payment source")}</option>` +
+    (bancos ? `<optgroup label="${textoApp("Cuentas bancarias", "Bank accounts")}">${bancos}</optgroup>` : "") +
+    (tarjetas ? `<optgroup label="${textoApp("Tarjetas de crédito", "Credit cards")}">${tarjetas}</optgroup>` : "");
+}
+function nombreOrigenPago(registro) {
+  const tarjetaId = registro.fuenteTarjetaId || registro.tarjetaId;
+  if (tarjetaId) {
+    const tarjeta = data.tarjetas.find(t => String(t.id) === String(tarjetaId));
+    return (tarjeta?.nombre || textoApp("Tarjeta", "Card")) + " · " + textoApp("Crédito", "Credit");
+  }
+  return "";
+}
+function prepararPagoConOrigen(datos, cuentas, anterior, nuevo) {
+  const copia = JSON.parse(JSON.stringify(datos));
+  const bancos = JSON.parse(JSON.stringify(cuentas));
+  if (!Array.isArray(bancos)) throw new Error(textoApp("Cuentas no válidas", "Invalid accounts"));
+  const cambiosTarjeta = new Map();
+  const sumarTarjeta = (ident, diferencia) => {
+    const t = copia.tarjetas.find(t => String(t.id) === String(ident));
+    if (!t) throw new Error(textoApp("Tarjeta no encontrada", "Card not found"));
+    cambiosTarjeta.set(String(ident), round((cambiosTarjeta.get(String(ident)) || 0) + diferencia));
+  };
+  function aplicar(pago, signo) {
+    if (!pago) return;
+    if (!validAmount(Number(pago.monto)) || !validDate(String(pago.fecha)) || !["vehiculo", "tarjeta"].includes(pago.tipo)) throw new Error(textoApp("Pago no válido", "Invalid payment"));
+    if (pago.bancoId && pago.fuenteTarjetaId) throw new Error(textoApp("Selecciona un solo origen", "Select one payment source"));
+    const monto = round(Number(pago.monto));
+    if (pago.fuenteTarjetaId) {
+      if (pago.tipo === "tarjeta" && String(pago.fuenteTarjetaId) === String(pago.cuentaId)) throw new Error(textoApp("No puedes pagar una tarjeta con ella misma.", "A card cannot pay itself."));
+      sumarTarjeta(pago.fuenteTarjetaId,signo * monto);
+    } else if (pago.bancoId) {
+      const banco = bancos.find(b => String(b.id) === String(pago.bancoId));
+      if (!banco) throw new Error(textoApp("Cuenta bancaria no encontrada", "Bank account not found"));
+      banco.saldo = round(Number(banco.saldo) - signo * monto);
+    } else throw new Error(textoApp("Selecciona el origen del pago", "Select the payment source"));
+    if (pago.tipo === "tarjeta") sumarTarjeta(pago.cuentaId, -signo * monto);
+    else {
+      const auto = copia.vehiculos.find(v => String(v.id) === String(pago.cuentaId));
+      const capital = Number(pago.capital), interes = Number(pago.interes);
+      if (!auto || !validAmount(capital) || !Number.isFinite(interes) || interes < 0 || Math.abs(round(capital + interes) - monto) > .001) throw new Error(textoApp("Capital o intereses no válidos", "Invalid principal or interest"));
+      auto.saldo = round(Number(auto.saldo) - signo * capital);
+    }
+  }
+  aplicar(anterior,-1);aplicar(nuevo,1);
+  for (const cuenta of bancos) if (!Number.isFinite(Number(cuenta.saldo)) || Number(cuenta.saldo)<0) throw new Error(textoApp("Saldo bancario insuficiente", "Insufficient bank balance"));
+  for (const [ident,diferencia] of cambiosTarjeta) {
+    const t = copia.tarjetas.find(t => String(t.id) === ident);
+    const saldo = round(Number(t.saldo) + diferencia);
+    if (!Number.isFinite(saldo) || saldo<0) throw new Error(textoApp("El pago supera la deuda de la tarjeta", "Payment exceeds card debt"));
+    if (diferencia > 0 && Number(t.limite)>0 && saldo>Number(t.limite)) throw new Error(textoApp("El pago supera el crédito disponible", "Payment exceeds available credit"));
+    t.saldo=saldo;
+  }
+  for (const auto of copia.vehiculos) if (!Number.isFinite(Number(auto.saldo)) || Number(auto.saldo)<0) throw new Error(textoApp("El pago supera el saldo del vehículo", "Payment exceeds vehicle balance"));
+  copia.pagos = anterior ? copia.pagos.filter(p => p.id !== anterior.id) : copia.pagos;
+  if (nuevo) {
+    const registro = {...nuevo};
+    if (registro.tipo === "vehiculo") registro.saldoRestante=copia.vehiculos.find(v => String(v.id)===String(registro.cuentaId)).saldo;
+    copia.pagos.push(registro);
+  }
+  return {datos:copia,cuentas:bancos};
+}
+function guardarPagoConOrigen(anterior,nuevo) {
+  const clave="amfinance-cuentas-banco";
+  let antes;
+  try {
+    antes=localStorage.getItem(clave);
+    const resultado=prepararPagoConOrigen(data,JSON.parse(antes || "[]"),anterior,nuevo);
+    // Ambas escrituras se completan antes de cambiar el estado en memoria.
+    try {
+      localStorage.setItem(clave,JSON.stringify(resultado.cuentas));
+      localStorage.setItem(KEY,JSON.stringify(resultado.datos));
+    } catch(error) {
+      if (antes===null) localStorage.removeItem(clave); else localStorage.setItem(clave,antes);
+      throw error;
+    }
+    data=resultado.datos;return true;
+  } catch(error) {alert(error.message || textoApp("No se pudo guardar el pago", "Could not save payment"));return false;}
+}
+
 function guardarMovimientoBanco(anterior, nuevo) {
   const claveBanco = "amfinance-cuentas-banco";
   const datosPrevios = localStorage.getItem(KEY);
@@ -5145,6 +5234,7 @@ function guardarMovimientoBanco(anterior, nuevo) {
       if (!Number.isFinite(saldo) || saldo < 0) {
         throw new Error("La deuda de la tarjeta no puede ser negativa");
       }
+      if (diferencia > 0 && Number(tarjeta.limite)>0 && saldo>Number(tarjeta.limite)) throw new Error(textoApp("Crédito disponible insuficiente", "Insufficient available credit"));
       tarjeta.saldo = saldo;
     }
 
@@ -5307,8 +5397,8 @@ function movimientos(){
 
       <p class="mov-ayuda">
         ${textoApp(
-          "El movimiento actualizará únicamente esta cuenta.",
-          "This transaction will update only this account."
+          "El gasto se descuenta del banco o aumenta la deuda de la tarjeta elegida.",
+          "Expenses reduce the selected bank balance or increase the selected card debt."
         )}
       </p>
     </form>
@@ -5364,7 +5454,7 @@ function movimientos(){
       <div class="hist-registro"
         data-hist-fecha="${safe(m.fecha)}"
         data-hist-tipo="${m.tipo}"
-        data-hist-nombre="${safe(m.nombre)}">
+        data-hist-nombre="${safe(m.nombre + " " + nombreOrigenPago(m))}">
 
         <div class="hist-fila">
          <div class="hist-icono" aria-hidden="true"
@@ -5385,6 +5475,7 @@ function movimientos(){
 
           <div class="hist-info">
             <strong>${safe(m.nombre)}</strong>
+            ${nombreOrigenPago(m) ? `<small style="display:block;color:#84909d;font-size:.65rem;margin-top:3px">${safe(nombreOrigenPago(m))}</small>` : ""}
             <div class="hist-meta"><span class="hist-fecha">${
               validDate(String(m.fecha))
                 ? new Date(m.fecha+"T12:00:00").toLocaleDateString(
@@ -5561,15 +5652,21 @@ try {
     alert(textoApp("No se pudieron leer las cuentas bancarias.", "Could not load bank accounts."));
 }
 
-cuentasMov.forEach(cuenta => {
-  const opcion = document.createElement("option");
-  opcion.value = cuenta.id;
-  opcion.textContent = cuenta.nombre + " · " +
-        (cuenta.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking"));
-  selectorCuenta.appendChild(opcion);
-});
+function actualizarOrigenesMovimiento() {
+  const previo=selectorCuenta.value;
+  selectorCuenta.innerHTML=opcionesOrigenPago(cuentasMov,null,campoTipo.value === "gasto");
+  if ([...selectorCuenta.options].some(o => o.value===previo)) selectorCuenta.value=previo;
+}
+actualizarOrigenesMovimiento();
 
 function actualizarVistaMovimiento() {
+  if (selectorCuenta.value.startsWith("credito:")) {
+    const tarjeta = data.tarjetas.find(t => String(t.id)===selectorCuenta.value.slice(8));
+    document.getElementById("movSaldo").textContent = tarjeta ? textoApp("Deuda actual: ", "Current debt: ")+money(tarjeta.saldo) : "";
+    const monto=round(campoMonto.value);
+    document.getElementById("movSaldoDespues").textContent=tarjeta && validAmount(monto) ? textoApp("Deuda después de la compra: ", "Debt after purchase: ")+money(round(Number(tarjeta.saldo)+monto)) : "";
+    return;
+  }
   const cuenta = cuentasMov.find(
     c => String(c.id) === selectorCuenta.value
   );
@@ -5610,6 +5707,7 @@ function actualizarVistaMovimiento() {
 botonesTipo.forEach(boton => {
   boton.onclick = () => {
     campoTipo.value = boton.dataset.tipo;
+    actualizarOrigenesMovimiento();
 
     botonesTipo.forEach(b => {
       b.classList.toggle("activo", b === boton);
@@ -5643,14 +5741,14 @@ formulario.onsubmit = e => {
     return;
   }
 
-  if (!cuentasMov.some(c => String(c.id) === cuentaId)) {
+  if (!cuentasMov.some(c => String(c.id) === cuentaId) && !(tipo === "gasto" && cuentaId.startsWith("credito:") && data.tarjetas.some(t => String(t.id) === cuentaId.slice(8)))) {
         alert(textoApp("Selecciona una cuenta válida.", "Select a valid account."));
     return;
   }
 
   const movimiento = {
     id: id(),
-    cuentaId,
+    ...origenPagoSeleccionado(cuentaId),
     nombre,
     tipo,
     monto,
@@ -5761,13 +5859,13 @@ function guardarEdicion(e,origen,ident){
  }
 if (
   origen === "pago" &&
-  item.tipo === "tarjeta" &&
-  item.bancoId
+  (item.bancoId || item.fuenteTarjetaId)
 ) {
   const corregido = {
     ...item,
     monto,
-    fecha
+    fecha,
+    ...(item.tipo === "vehiculo" ? {capital:round(monto-Number(item.interes))} : {})
   };
 
   if (!guardarPagoTarjetaBanco(item, corregido)) return;
@@ -5846,8 +5944,7 @@ function eliminar(origen,ident){
    if(!confirm(origen==="pago" ? textoApp("¿Seguro que deseas eliminar este pago?", "Are you sure you want to delete this payment?") : textoApp("¿Seguro que deseas eliminar este movimiento?", "Are you sure you want to delete this transaction?")))return;
  if (
   origen === "pago" &&
-  item.tipo === "tarjeta" &&
-  item.bancoId
+  (item.bancoId || item.fuenteTarjetaId)
 ) {
   if (!guardarPagoTarjetaBanco(item, null)) return;
 
@@ -6071,6 +6168,7 @@ ${textoApp("Día", "Day")} ${j+1}
       <button class="secondary" onclick="toggle('auto${i}')">${textoApp("Registrar pago", "Record payment")}</button>
    <div class="payment hidden" id="auto${i}">
     <form onsubmit="pagarAuto(event,${i})">
+      <label>${textoApp("Pagar con", "Pay with")}</label><select name="origenPago" required>${opcionesCuentasPago()}</select>
           <label class="label">${textoApp("Cantidad pagada ($)", "Amount paid ($)")}</label>
      <input name="monto" type="number" min="0.01" step="0.01" value="${v.pago}" required>
           <button class="primary">${textoApp("Confirmar pago", "Confirm payment")}</button>
@@ -6663,7 +6761,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
           <form onsubmit="pagarTarjeta(event,${i})">
             <div class="credito-form-campo">
               <label for="cuentaPagoTarjeta${i}">${textoApp("Cuenta de origen", "Source account")}</label>
-              <select id="cuentaPagoTarjeta${i}" name="bancoId" required>${opcionesCuentasPago()}</select>
+              <select id="cuentaPagoTarjeta${i}" name="bancoId" required>${opcionesCuentasPago(t.id)}</select>
             </div>
             <div class="credito-form-campo">
               <label for="montoPagoTarjeta${i}">${textoApp("Cantidad pagada ($)", "Amount paid ($)")}</label>
@@ -6853,10 +6951,14 @@ function mostrarNombreImagenCredito(entrada, indice) {
 
 function pagarAuto(e, i) {
   e.preventDefault();
+  if(e.target.dataset.guardado === "si")return;
   const v = data.vehiculos[i];
   if (!v) return;
 
-  const monto = round(new FormData(e.target).get("monto"));
+  const campos = new FormData(e.target);
+  const monto = round(campos.get("monto"));
+  const fuente=origenPagoSeleccionado(campos.get("origenPago"));
+  if (!fuente.cuentaId && !fuente.tarjetaId) {alert(textoApp("Selecciona el origen del pago", "Select payment source"));return;}
   const saldo = Number(v.saldo);
   const apr = Number(v.apr);
 
@@ -6898,6 +7000,7 @@ function pagarAuto(e, i) {
   const pago = {
     id: id(),
     cuentaId: v.id,
+    ...(fuente.tarjetaId ? {fuenteTarjetaId:fuente.tarjetaId} : {bancoId:fuente.cuentaId}),
     nombre: v.nombre,
     monto,
     interes,
@@ -6907,25 +7010,8 @@ function pagarAuto(e, i) {
     saldoRestante: saldoNuevo
   };
 
-  const nuevosDatos = {
-    ...data,
-    vehiculos: data.vehiculos.map((auto, indice) =>
-      indice === i ? {...auto, saldo: saldoNuevo} : auto
-    ),
-    pagos: [...data.pagos, pago]
-  };
-
-  try {
-    localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
-  } catch {
-    alert(textoApp(
-      "No se pudo guardar el pago. Inténtalo de nuevo.",
-      "Could not save the payment. Please try again."
-    ));
-    return;
-  }
-
-  data = nuevosDatos;
+  if (!guardarPagoConOrigen(null,pago)) return;
+  e.target.dataset.guardado = "si";
 
   alert(
     textoApp(
@@ -6938,115 +7024,18 @@ function pagarAuto(e, i) {
 
   render();
 }
-function opcionesCuentasPago() {
+function opcionesCuentasPago(excluirTarjeta = null) {
   try {
-    const cuentas = JSON.parse(
-      localStorage.getItem("amfinance-cuentas-banco") || "[]"
-    );
-
-    if (!Array.isArray(cuentas)) {
-            return '<option value="">'+textoApp("No se pudieron leer las cuentas", "Could not load accounts")+'</option>';
-    }
-
-        return '<option value="">'+textoApp("Seleccionar cuenta", "Select account")+'</option>' +
-      cuentas.map(cuenta => `
-        <option value="${safe(cuenta.id)}">
-          ${safe(cuenta.nombre)} ·
-                    ${cuenta.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")}
-          · ${money(cuenta.saldo)}
-        </option>
-      `).join("");
-  } catch (error) {
-        return '<option value="">'+textoApp("No se pudieron leer las cuentas", "Could not load accounts")+'</option>';
-  }
+    const cuentas=JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
+    if (!Array.isArray(cuentas)) throw new Error();
+    return opcionesOrigenPago(cuentas,excluirTarjeta);
+  } catch {return '<option value="">'+textoApp("No se pudieron leer las cuentas", "Could not load accounts")+'</option>';}
 }
-function guardarPagoTarjetaBanco(anterior, nuevo) {
-  const pago = nuevo || anterior;
-  const claveBanco = "amfinance-cuentas-banco";
-
-  try {
-    const bancosPrevios = localStorage.getItem(claveBanco);
-    const datosPrevios = localStorage.getItem(KEY);
-    const cuentas = JSON.parse(bancosPrevios || "[]");
-
-    if (!Array.isArray(cuentas) || !pago) {
-            throw new Error(textoApp("Datos no válidos", "Invalid data"));
-    }
-
-    const cuenta = cuentas.find(
-      c => String(c.id) === String(pago.bancoId)
-    );
-
-    const tarjeta = data.tarjetas.find(
-      t => t.id === pago.cuentaId
-    );
-
-    if (!cuenta || !tarjeta) {
-            alert(textoApp("No se encontró la cuenta bancaria o la tarjeta.", "The bank account or card was not found."));
-      return false;
-    }
-
-    const diferencia = round(
-      (nuevo ? Number(nuevo.monto) : 0) -
-      (anterior ? Number(anterior.monto) : 0)
-    );
-
-    const saldoBanco = round(Number(cuenta.saldo) - diferencia);
-    const deudaTarjeta = round(Number(tarjeta.saldo) - diferencia);
-
-    if (
-      !Number.isFinite(saldoBanco) ||
-      !Number.isFinite(deudaTarjeta) ||
-      saldoBanco < 0 ||
-      deudaTarjeta < 0
-    ) {
-            alert(textoApp("Revisa el saldo de la cuenta y la deuda de la tarjeta.", "Check the account balance and the card debt."));
-      return false;
-    }
-
-    cuenta.saldo = saldoBanco;
-
-    const pagos = anterior
-      ? data.pagos.filter(p => p.id !== anterior.id)
-      : [...data.pagos];
-
-    if (nuevo) pagos.push(nuevo);
-
-    const tarjetas = data.tarjetas.map(t =>
-      t.id === tarjeta.id ? {...t, saldo: deudaTarjeta} : t
-    );
-
-    const datosNuevos = {...data, tarjetas, pagos};
-
-    try {
-      localStorage.setItem(claveBanco, JSON.stringify(cuentas));
-      localStorage.setItem(KEY, JSON.stringify(datosNuevos));
-    } catch (error) {
-      if (bancosPrevios === null) {
-        localStorage.removeItem(claveBanco);
-      } else {
-        localStorage.setItem(claveBanco, bancosPrevios);
-      }
-
-      if (datosPrevios === null) {
-        localStorage.removeItem(KEY);
-      } else {
-        localStorage.setItem(KEY, datosPrevios);
-      }
-
-      throw error;
-    }
-
-    data = datosNuevos;
-    return true;
-  } catch (error) {
-        alert(textoApp("No se pudieron guardar los cambios del pago.", "Could not save the payment changes."));
-    return false;
-  }
-}
+function guardarPagoTarjetaBanco(anterior,nuevo) {return guardarPagoConOrigen(anterior,nuevo);}
 
 function pagarTarjeta(e, i) {
   e.preventDefault();
+  if(e.target.dataset.guardado === "si")return;
 
   const tarjeta = data.tarjetas[i];
   if (!tarjeta) return;
@@ -7077,7 +7066,7 @@ function pagarTarjeta(e, i) {
   const pago = {
     id: id(),
     cuentaId: tarjeta.id,
-    bancoId,
+    ...(bancoId.startsWith("credito:") ? {fuenteTarjetaId:bancoId.slice(8)} : {bancoId}),
     nombre: tarjeta.nombre,
     monto,
     tipo: "tarjeta",
@@ -7085,9 +7074,10 @@ function pagarTarjeta(e, i) {
   };
 
   if (!guardarPagoTarjetaBanco(null, pago)) return;
+  e.target.dataset.guardado = "si";
 
   render();
-    alert(textoApp("Pago registrado y descontado de la cuenta elegida.", "Payment recorded and deducted from the selected account."));
+    alert(textoApp("Pago registrado con el origen elegido.", "Payment recorded with the selected payment source."));
 }
 
 function resumenPreciosSuscripcion(registro) {
@@ -7258,7 +7248,7 @@ function suscripciones() {
               <strong class="subs-importe">${money(registro.monto)}</strong></div>
             <p class="subs-detalle">${resumenPreciosSuscripcion(registro)}</p>
             <span class="subs-estado">${registro.canceladaEn ? textoApp("Cancelada", "Cancelled") : registro.fin ? textoApp("Último cobro: ", "Last charge: ") + safe(registro.fin) : textoApp("Hasta que canceles", "Until cancelled")}</span>
-            <div class="subs-acciones"><button type="button" onclick="abrirFormularioSuscripcionCalendario(${i})">${textoApp("Editar", "Edit")}</button>
+            <div class="subs-acciones">${!registro.canceladaEn ? `<button type="button" onclick="registrarCobroProgramado(${safe(JSON.stringify(String(registro.id)))}, '${today()}')">${textoApp("Registrar gasto", "Record expense")}</button>` : ""}<button type="button" onclick="abrirFormularioSuscripcionCalendario(${i})">${textoApp("Editar", "Edit")}</button>
               ${!registro.canceladaEn ? `<button type="button" onclick="cancelarSuscripcionRegistrada(${safe(JSON.stringify(String(registro.id)))})">${textoApp("Cancelar suscripción", "Cancel subscription")}</button>` : ""}
               <button class="subs-eliminar" type="button" onclick="eliminarRegistroProgramado('suscripcion', ${i})">${textoApp("Eliminar", "Delete")}</button></div>
           </article>`).join("") || `<div class="subs-vacio"><strong>${textoApp("Todo listo para empezar", "Ready to get started")}</strong><p>${textoApp("Añade tu primer servicio y organiza sus próximos cobros.", "Add your first service and organize upcoming charges.")}</p></div>`}
@@ -9632,8 +9622,8 @@ function abrirMovVentana() {
     return;
   }
 
-  if (!cuentas.length) {
-        alert(textoApp("Primero agrega una cuenta bancaria en Inicio.", "First add a bank account on Home."));
+  if (!cuentas.length && !data.tarjetas.length) {
+        alert(textoApp("Primero agrega una cuenta bancaria o tarjeta de crédito.", "First add a bank account or credit card."));
     return;
   }
 
@@ -9646,13 +9636,14 @@ function abrirMovVentana() {
   document.getElementById("movVentanaFecha").value = today();
 
   const selector = document.getElementById("movVentanaCuenta");
-    selector.replaceChildren(new Option(textoApp("Seleccionar cuenta", "Select account"), ""));
-  cuentas.forEach(c => {
-    selector.add(new Option(
-            c.nombre + " · " + (c.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")) + " · " + money(c.saldo),
-      String(c.id)
-    ));
-  });
+  const tipo = document.getElementById("movVentanaTipo");
+  const actualizarOrigen = () => {
+    const previo=selector.value;
+    selector.innerHTML=opcionesOrigenPago(cuentas,null,tipo.value === "gasto");
+    if ([...selector.options].some(o=>o.value===previo)) selector.value=previo;
+  };
+  tipo.onchange=actualizarOrigen;
+  actualizarOrigen();
 
   ventana.classList.remove("hidden");
   document.getElementById("movVentanaFondo").classList.remove("hidden");
@@ -9705,7 +9696,8 @@ document.getElementById("movVentanaForm").onsubmit = event => {
 
   if (
     !Number.isFinite(monto) || monto <= 0 ||
-    !nombre || !fecha || !cuentaId ||
+    !nombre || !validDate(fecha) || !cuentaId ||
+    (tipo === "ingreso" && cuentaId.startsWith("credito:")) ||
     !["gasto", "ingreso"].includes(tipo)
   ) {
         alert(textoApp("Revisa la cantidad, nota, fecha y cuenta.", "Check the amount, note, date and account."));
@@ -9714,7 +9706,7 @@ document.getElementById("movVentanaForm").onsubmit = event => {
 
   const movimiento = {
     id: id(),
-    cuentaId,
+    ...origenPagoSeleccionado(cuentaId),
     nombre,
     tipo,
     monto,
@@ -11213,7 +11205,7 @@ function eliminarTarjetaCredito(indice) {
     )
   );
 
-  if (tienePagos || tieneComprasVinculadas) {
+  if (tienePagos || tieneComprasVinculadas || data.pagos.some(p => String(p.fuenteTarjetaId) === String(tarjeta.id))) {
     alert(textoApp(
       "Esta tarjeta tiene compras o pagos registrados y no se puede eliminar para conservar su historial y los saldos vinculados.",
       "This card has recorded purchases or payments and cannot be deleted, to preserve its history and linked balances."
@@ -11472,7 +11464,7 @@ function abrirDiaCalendario(fecha) {
         ? textoApp("Ahorros", "Savings")
         : textoApp("Cheques", "Checking"))
       : "";
-    const detalle = [cuenta?.nombre, tipoCuenta].filter(Boolean).join(" · ") || etiqueta;
+    const detalle = [cuenta?.nombre || nombreOrigenPago(registro), tipoCuenta].filter(Boolean).join(" · ") || etiqueta;
     const color = ingreso ? "#13865b" : "#d44d56";
 
     // Igualar los movimientos del día a «Últimas transacciones» de Inicio.
@@ -12056,6 +12048,32 @@ function suscripcionesDelMes(
   return eventos.sort((a,b) => a.fecha.localeCompare(b.fecha));
 }
 
+function registrarCobroProgramado(identificador, fecha) {
+  const registro=(data.suscripciones || []).find(s => String(s.id)===String(identificador));
+  if (!registro || !validDate(fecha)) return;
+  const dia=document.querySelector(".cal-dia-ventana");
+  if (dia) {dia.addEventListener("close",()=>registrarCobroProgramado(identificador,fecha),{once:true});dia.close();return;}
+  if (data.movimientos.some(m=>String(m.suscripcionId)===String(identificador) && m.vencimientoSuscripcion===fecha)) {alert(textoApp("Este cobro ya está registrado.", "This charge is already recorded."));return;}
+  const ventana=crearVentanaApariencia(textoApp("Registrar gasto", "Record expense"),`<form class="cuenta-nueva-form">
+    <p><strong>${safe(registro.nombre)}</strong> · ${safe(fecha)}</p>
+    <label>${textoApp("Pagar con", "Pay with")}<select name="origen" required>${opcionesCuentasPago()}</select></label>
+    <label>${textoApp("Importe ($)", "Amount ($)")}<input name="monto" type="number" min="0.01" step="0.01" value="${Number(registro.monto).toFixed(2)}" required></label>
+    <button type="submit" class="cuenta-nueva-guardar">${textoApp("Guardar gasto", "Save expense")}</button></form>`,true);
+  if (!ventana) return;
+  ventana.classList.add("cuenta-nueva");
+  const form=ventana.querySelector("form");
+  form.onsubmit=e=>{
+    e.preventDefault();if(form.dataset.guardado || !form.reportValidity())return;
+    if(data.movimientos.some(m=>String(m.suscripcionId)===String(identificador) && m.vencimientoSuscripcion===fecha))return;
+    const monto=round(form.elements.monto.value);
+    const origen=String(form.elements.origen.value);
+    if(!validAmount(monto) || !origen)return;
+    const movimiento={id:id(),nombre:registro.nombre,tipo:"gasto",categoria:registro.categoria==="renta"?"Renta":"Suscripciones",monto,fecha,suscripcionId:registro.id,vencimientoSuscripcion:fecha,...origenPagoSeleccionado(origen)};
+    if(!guardarMovimientoBanco(null,movimiento))return;
+    form.dataset.guardado="si";ventana.close();render();
+  };
+}
+
 function bloqueSuscripcionesCalendario(fecha) {
   const mesElegido = fecha ? fecha.slice(0,7) : mesCalendario;
   const lista = suscripcionesDelMes(mesElegido).filter(s => !fecha || s.fecha === fecha);
@@ -12070,6 +12088,7 @@ function bloqueSuscripcionesCalendario(fecha) {
           <div class="programada-principal"><span class="programada-logo" aria-hidden="true">↻${imagenCompania(s.nombre)}</span>
             <span class="programada-identidad"><strong>${safe(s.nombre)}</strong><small>${textoApp("Día ", "Day ")}${Number(s.fecha.slice(8,10))} · ${frecuencia}</small></span>
             <strong class="programada-importe">${money(s.monto)}</strong></div>
+          <button type="button" class="programada-registrar" onclick="registrarCobroProgramado(${safe(JSON.stringify(String(s.id)))}, '${s.fecha}')">${data.movimientos.some(m=>String(m.suscripcionId)===String(s.id) && m.vencimientoSuscripcion===s.fecha) ? textoApp("Gasto registrado", "Expense recorded") : textoApp("Registrar gasto", "Record expense")}</button>
           <div class="programada-detalle"><span>${resumenPreciosSuscripcion(s)}</span><small>${s.canceladaEn ? textoApp("Cancelada", "Cancelled") : s.fin ? textoApp("Hasta ", "Until ") + safe(s.fin) : textoApp("Hasta que canceles", "Until cancelled")}</small></div>
         </article>`;
       }).join("") || `<p class="programadas-nota">${textoApp("No hay suscripciones para este mes.", "No subscriptions for this month.")}</p>`}
@@ -12454,7 +12473,7 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
     return;
   }
 
-  if (!cuentas.length) {
+  if (!cuentas.length && !data.tarjetas.length) {
     alert(textoApp(
       "Primero agrega una cuenta bancaria desde Inicio.",
       "First, add a bank account from Home."
@@ -12494,14 +12513,7 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
           ${textoApp("Cuenta de origen", "Pay from")}
         </label>
         <select id="pagoPrestamoBanco" name="cuentaId" required>
-          <option value="">
-            ${textoApp("Selecciona una cuenta", "Select an account")}
-          </option>
-          ${cuentas.map(c => `
-            <option value="${safe(String(c.id))}">
-              ${safe(c.nombre)} · ${money(c.saldo)}
-            </option>
-          `).join("")}
+          ${opcionesOrigenPago(cuentas)}
         </select>
 
         <label for="pagoPrestamoMonto">
@@ -12522,8 +12534,8 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
           value="${desglose.interesPendiente.toFixed(2)}" required>
 
         <p class="note">${textoApp(
-          "El total sale de tu cuenta. Solo el importe restante después de los intereses reduce la deuda.",
-          "The total leaves your account. Only the amount remaining after interest reduces the debt."
+          "El origen elegido cubre el total. Si es crédito, aumenta la deuda de esa tarjeta; el capital reduce este préstamo.",
+          "The selected source covers the total. Credit increases that card debt; principal reduces this loan."
         )}</p>
 
         <label for="pagoPrestamoFecha">
@@ -12562,7 +12574,7 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
     const capital = round(monto - interesPrestamo);
 
     if (
-      !cuentas.some(c => String(c.id) === cuentaId) ||
+      (!cuentas.some(c => String(c.id) === cuentaId) && !(cuentaId.startsWith("credito:") && data.tarjetas.some(t => String(t.id)===cuentaId.slice(8)))) ||
       !validAmount(monto) ||
       !Number.isFinite(interesPrestamo) ||
       interesPrestamo < 0 ||
@@ -12579,7 +12591,7 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
 
     const movimiento = {
       id:id(),
-      cuentaId,
+      ...origenPagoSeleccionado(cuentaId),
       prestamoId,
       nombre:textoApp("Pago: ", "Payment: ") + actual.nombre,
       tipo:"gasto",
@@ -12597,8 +12609,8 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
     render();
 
     alert(textoApp(
-      "Pago guardado. Cuenta bancaria y deuda actualizadas.",
-      "Payment saved. Bank account and debt updated."
+      "Pago guardado. Origen del pago y deuda actualizados.",
+      "Payment saved. Payment source and debt updated."
     ));
   };
 }
@@ -13586,6 +13598,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
