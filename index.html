@@ -3997,6 +3997,7 @@ function datosAvisosVencimiento(incluirPagados = false) {
       return {
         nombre:String(v.nombre || v.modelo || textoApp("Vehículo", "Vehicle")),
         tipoAviso:"vehiculo", identificador:v.id,
+        marcaNombre:[v.marca,v.nombre,v.modelo].filter(Boolean).join(" "),
         faltan, valido, fecha, importe, destino:"vehiculos",
         clave:claveAviso("vehiculo",v.id,fecha),
         pagoRegistrado:registradoEnPeriodo("vehiculo",v.id,fecha,importe)
@@ -4116,6 +4117,12 @@ function iconoAvisoVencimiento(c) {
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/>
         </svg>`;
+  // Usa los mismos logos que las tarjetas y vehículos, también en notificaciones.
+  const logo = imagenCompania(c.marcaNombre || `${c.nombre} ${c.banco || ""}`);
+  if (logo) return `<span class="aviso-icono-base">${dibujo}</span>${logo
+    .replace('loading="lazy"', 'loading="eager"')
+    .replace('style="position:absolute;', 'style="opacity:1;position:absolute;')
+    .replace("this.parentElement.classList.add('logo-compania-cargado')", "this.parentElement.classList.add('logo-compania-cargado');this.previousElementSibling.style.visibility='hidden'")}`;
   if(!dominio) return dibujo;
   const respaldo = dominio === "apple.com"
     ? `<svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true">
@@ -13701,6 +13708,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
