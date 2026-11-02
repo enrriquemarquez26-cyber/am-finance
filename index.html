@@ -729,7 +729,7 @@ overscroll-behavior: contain;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  transform: none;
+  transform: scale(.96);
   gap: 0;
   padding: 14px 18px 14px 22px;
   text-align: left;
@@ -2849,6 +2849,7 @@ html.tema-oscuro .mov28 #movCalendario .cal-controles .cal-mes {border-color:rgb
 #formSuscripcion [hidden], #formSuscripcionCalendario [hidden] {display:none!important}
 .suscripcion-cancelar {border:0;border-radius:20px;padding:12px;background:rgba(212,77,86,.1);color:#cf5963;font:inherit}
 .programada-registrar {border:0;border-radius:999px;background:rgba(130,140,155,.12);color:inherit;font:inherit;font-size:.7rem;padding:8px 12px;margin-top:10px}
+[id^="creditoResumen"], [id^="vehiculoResumen"] {scroll-margin-top:16px}
 </style>
 <style id="balanceone-calendario-tarjetas-028">
 /* Calendario real (pestaña Calendario y Movimientos): casillas independientes,
@@ -3481,10 +3482,10 @@ html.tema-oscuro .cal-pagos-mes .cal-pagos-total small {color:#aeb7c5}
 .marca-auto-titulo .marca-auto-logo {width:34px;height:34px;flex-basis:34px;margin:0}
 .marca-auto-logo .compania-logo {padding:3px!important;background:#fff!important}
 
-/* Dos columnas de cuatro pagos: mantiene el panel, sus colores y bordes. */
+/* Dos columnas de tres pagos: mantiene el panel, sus colores y bordes. */
 .cal-pagos-mes .cal-pagos-paginas {display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;min-width:0}
 .cal-pagos-mes .cal-pagos-paginas::-webkit-scrollbar {display:none}
-.cal-fin-028 .cal-pagos-mes .cal-pagos-cuadricula {flex:0 0 100%;width:100%;min-width:0;box-sizing:border-box;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(66px,auto));grid-auto-flow:column;gap:8px;scroll-snap-align:start;align-content:start}
+.cal-fin-028 .cal-pagos-mes .cal-pagos-cuadricula {flex:0 0 100%;width:100%;min-width:0;box-sizing:border-box;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(66px,auto));grid-auto-flow:column;gap:8px;scroll-snap-align:start;align-content:start}
 .cal-fin-028 .cal-pagos-cuadricula .cal-pago-fila {grid-template-columns:28px minmax(0,1fr) 7px;grid-template-rows:auto auto;column-gap:6px;row-gap:3px;min-width:0;min-height:66px;padding:8px;box-sizing:border-box}
 .cal-fin-028 .cal-pagos-cuadricula .cal-pago-icono {grid-column:1;grid-row:1 / 3;width:28px;height:28px;font-size:15px}
 .cal-fin-028 .cal-pagos-cuadricula .cal-pago-info {grid-column:2;grid-row:1;gap:3px}
@@ -6076,7 +6077,7 @@ ${Array.from({length:31},(_,i)=>`
    p.tipo==="vehiculo"&&cuentaDePago(p)===v
   ).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
   return `
-  <div class="card vehiculo-panel">
+  <div class="card vehiculo-panel" id="vehiculoResumen${i}" tabindex="-1">
 ${(v.fotoGaleria || v.foto) ? `
   <img src="${safe(v.fotoGaleria || v.foto)}"
        alt="${safe(v.nombre)}"
@@ -6587,7 +6588,7 @@ function tarjetas(){
   </div>
 
  ${data.tarjetas.map((t,i)=>`
-  <button type="button" class="credito-fila"
+  <button type="button" class="credito-fila" id="creditoResumen${i}"
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
     onclick="toggle('detalleCredito${i}')"
 aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombre)}">
@@ -11980,12 +11981,34 @@ function actualizarPaginaPagosMes(carrusel) {
   const pagina=Math.round(carrusel.scrollLeft/carrusel.clientWidth);
   carrusel.closest(".cal-pagos-mes").querySelectorAll(".cal-pagos-paginacion button").forEach((b,i)=>b.setAttribute("aria-pressed",String(i===pagina)));
 }
+function abrirDetallePagoDelMes(destino, identificador) {
+  if (!["tarjetas", "vehiculos"].includes(destino)) return;
+  const grupo = destino === "tarjetas" ? data.tarjetas : data.vehiculos;
+  const indice = grupo.findIndex(item => String(item.id) === String(identificador));
+  if (indice < 0) {
+    alert(textoApp("Este registro ya no está disponible.", "This record is no longer available."));
+    return;
+  }
+  go(destino);
+  let objetivo;
+  if (destino === "tarjetas") {
+    document.getElementById("detalleCredito" + indice)?.classList.remove("hidden");
+    objetivo = document.getElementById("creditoResumen" + indice);
+  } else {
+    objetivo = document.getElementById("vehiculoResumen" + indice);
+  }
+  if (!objetivo) return;
+  objetivo.focus({preventScroll:true});
+  objetivo.scrollIntoView({block:"start", behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+}
+
 function pagosMesCalendario() {
   const [anio, mes] = mesCalendario.split("-").map(Number);
   const ultimoDia = new Date(anio, mes, 0, 12).getDate();
 
   const pagos = [
     ...data.tarjetas.map(t => ({
+      identificador: t.id,
       nombre: t.nombre,
       dia: Number(t.vencimiento),
       monto: t.pagoMinimo,
@@ -11994,6 +12017,7 @@ function pagosMesCalendario() {
       tipo: textoApp("Tarjeta", "Credit card")
     })),
     ...data.vehiculos.map(v => ({
+      identificador: v.id,
       nombre: v.nombre,
       marcaNombre:[v.marca,v.nombre,v.modelo].filter(Boolean).join(" "),
       dia: Number(v.vencimiento),
@@ -12017,7 +12041,7 @@ function pagosMesCalendario() {
     suma + (Number.isFinite(monto) && monto > 0 ? Math.round(monto * 100) : 0), 0) / 100;
   const incompleto = importes.some(monto => !Number.isFinite(monto) || monto <= 0);
 
-  const paginas = Array.from({length:Math.ceil(pagos.length / 8)}, (_, i) => pagos.slice(i*8,i*8+8));
+  const paginas = Array.from({length:Math.ceil(pagos.length / 6)}, (_, i) => pagos.slice(i*6,i*6+6));
   return `
     <div class="card cal-pagos-mes">
       <div class="cal-pagos-total-cabecera">
@@ -12041,7 +12065,7 @@ function pagosMesCalendario() {
             Number.isFinite(Number(p.monto)) &&
             Number(p.monto) > 0;
           return `
-            <button type="button" class="cal-pago-fila" title="${safe(p.nombre)}" onclick="go('${p.destino}')">
+            <button type="button" class="cal-pago-fila" title="${safe(p.nombre)}" onclick="abrirDetallePagoDelMes('${p.destino}', ${safe(JSON.stringify(String(p.identificador)))})">
               <span class="cal-pago-icono" aria-hidden="true">
                 ${p.destino === "vehiculos" ? "🚘" : "💳"}
                 ${imagenCompania(p.marcaNombre || p.nombre)}
