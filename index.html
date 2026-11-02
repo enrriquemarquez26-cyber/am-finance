@@ -3506,6 +3506,11 @@ html.tema-oscuro .cal-pagos-mes .cal-pagos-total small {color:#aeb7c5}
 .aviso-logos-trio > .aviso-vencimiento-icono svg {width:16px;height:16px}
 .avisos-vencimiento.is-abierto .aviso-logos-trio {display:none}
 </style>
+<style id="movimientos-transferencias">
+.transferencia-importe {color:inherit!important}
+.hist-tipo.transferencia {color:inherit;background:rgba(130,140,155,.12)}
+.hist-filtros {flex-wrap:wrap}
+</style>
 </head>
 <body>
 <header>
@@ -4601,6 +4606,7 @@ ${autos + tarjetas + prestamos > 0 ? `
       aria-label="${textoApp('1 de 2: Últimas transacciones','1 of 2: Recent transactions')}">
       <div class="cal-movs-lista">
   ${[
+    ...movimientosTransferenciasBanco(),
     ...data.movimientos.map(m => ({
       ...m,
       esPago: false,
@@ -4613,7 +4619,7 @@ ${autos + tarjetas + prestamos > 0 ? `
       bancoRef: p.bancoId,
       nombre: textoApp("Pago: ", "Payment: ") + p.nombre
     }))
-  ].sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)))
+  ].sort(ordenarMovimientosVista)
    .slice(0,3).map(m => {
      const ingreso = m.tipo === "ingreso";
      const color = ingreso ? "#13865b" : "#d44d56";
@@ -4640,16 +4646,16 @@ ${autos + tarjetas + prestamos > 0 ? `
        tipoCuenta
      ].filter(Boolean).join(" · ");
 
-     const etiqueta = m.esPago
+     const etiqueta = m.esTransferencia ? textoApp("Transferencia","Transfer") : m.esPago
        ? textoApp("Pago", "Payment")
        : ingreso
          ? textoApp("Ingreso", "Income")
          : textoApp("Gasto", "Expense");
 
      return `
-       <button type="button" class="cal-mov-fila transaccion-resumen" onclick="go('movimientos')">
+       <button type="button" class="cal-mov-fila transaccion-resumen" onclick="go('historialMovimientos')">
          <span class="cal-mov-logo" aria-hidden="true">
-           ${ingreso ? "↗" : "↙"}${imagenCompania(m.nombre)}
+           ${m.esTransferencia ? "⇄" : ingreso ? "↗" : "↙"}${imagenCompania(m.nombre)}
          </span>
          <span class="cal-mov-info">
            <strong title="${safe(m.nombre)}">${safe(m.nombre)}</strong>
@@ -4657,8 +4663,8 @@ ${autos + tarjetas + prestamos > 0 ? `
          </span>
          <span class="cal-mov-derecha">
            <small class="cal-mov-etiqueta ${ingreso ? "cal-mov-entrada" : "cal-mov-salida"}"
-             ${m.esPago ? 'style="background:rgba(130,140,155,.12);color:inherit"' : ""}>${etiqueta}</small>
-           <strong class="${ingreso ? "cal-mov-entrada" : "cal-mov-salida"}">${ingreso ? "+" : "−"}${money(m.monto)}</strong>
+             ${m.esPago || m.esTransferencia ? 'style="background:rgba(130,140,155,.12);color:inherit"' : ""}>${etiqueta}</small>
+           <strong class="${m.esTransferencia ? "transferencia-importe" : ingreso ? "cal-mov-entrada" : "cal-mov-salida"}">${m.esTransferencia ? "" : ingreso ? "+" : "−"}${money(m.monto)}</strong>
          </span>
          <span class="cal-pago-chevron" aria-hidden="true">›</span>
        </button>
@@ -5112,6 +5118,7 @@ function opcionesOrigenPago(cuentas, excluirTarjeta = null, permitirCredito = tr
     (tarjetas ? `<optgroup label="${textoApp("Tarjetas de crédito", "Credit cards")}">${tarjetas}</optgroup>` : "");
 }
 function nombreOrigenPago(registro) {
+  if (registro.esTransferencia) return registro.ruta;
   const tarjetaId = registro.fuenteTarjetaId || registro.tarjetaId;
   if (tarjetaId) {
     const tarjeta = data.tarjetas.find(t => String(t.id) === String(tarjetaId));
@@ -5365,14 +5372,51 @@ const datosNuevos = {
     return false;
   }
 }
+function movimientosTransferenciasBanco() {
+  let cuentas;
+  try { cuentas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]"); }
+  catch { return []; }
+  if (!Array.isArray(cuentas)) return [];
+  const registros = new Map();
+  for (const cuenta of cuentas) for (const r of (Array.isArray(cuenta.historial) ? cuenta.historial : [])) {
+    if (r.tipo !== "transferencia" || !["salida","entrada"].includes(r.sentido) ||
+        !Number.isFinite(Number(r.monto)) || Number(r.monto) <= 0) continue;
+    const salida = r.sentido === "salida";
+    const origenId = salida ? cuenta.id : r.contraparteId;
+    const destinoId = salida ? r.contraparteId : cuenta.id;
+    const clave = JSON.stringify([r.id, r.fecha, origenId, destinoId, Number(r.monto)]);
+    if (registros.has(clave) && !salida) continue;
+    const origen = cuentas.find(c=>String(c.id)===String(origenId));
+    const destino = cuentas.find(c=>String(c.id)===String(destinoId));
+    const desde = origen?.nombre || (salida ? cuenta.nombre : r.contraparte) || textoApp("Cuenta de origen","Source account");
+    const hasta = destino?.nombre || (salida ? r.contraparte : cuenta.nombre) || textoApp("Cuenta de destino","Destination account");
+    let fecha = String(r.fecha || "");
+    if (fecha.includes("T")) {
+      const d = new Date(fecha);
+      if (Number.isNaN(d.getTime())) continue;
+      fecha = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+    if (!validDate(fecha)) continue;
+    registros.set(clave, {id:r.id, fecha, instante:String(r.fecha), monto:Number(r.monto),
+      tipo:"transferencia", origen:"transferencia", esTransferencia:true,
+      nombre:textoApp("Transferencia","Transfer"), ruta:desde+" → "+hasta});
+  }
+  return Array.from(registros.values());
+}
+function ordenarMovimientosVista(a,b) {
+  return String(b.fecha).localeCompare(String(a.fecha)) ||
+    String(b.instante || b.fecha).localeCompare(String(a.instante || a.fecha));
+}
+
 function movimientos(){
  const items=[
+  ...movimientosTransferenciasBanco(),
   ...data.movimientos.map(m=>({...m,origen:"movimiento"})),
   ...data.pagos.map(p=>({
    ...p,origen:"pago",tipo:"gasto",
    nombre:textoApp("Pago: ", "Payment: ")+p.nombre
   }))
- ].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+ ].sort(ordenarMovimientosVista);
 
  el().innerHTML=`
 <div class="mov-pantalla mov28">
@@ -5475,6 +5519,7 @@ function movimientos(){
       data-filtro-hist="gasto">${textoApp("Gastos", "Expenses")}</button>
     <button type="button"
       data-filtro-hist="ingreso">${textoApp("Ingresos", "Income")}</button>
+    <button type="button" data-filtro-hist="transferencia">${textoApp("Transferencias","Transfers")}</button>
   </div>
 
   <div id="histLista">
@@ -5506,7 +5551,7 @@ function movimientos(){
     stroke-width="1.8" stroke-linecap="round"
     stroke-linejoin="round">
     <circle cx="12" cy="12" r="9"/>
-    <path d="${m.tipo==="ingreso"
+    <path d="${m.esTransferencia ? "M3 7h18m-4-4 4 4-4 4M21 17H3m4-4-4 4 4 4" : m.tipo==="ingreso"
       ?"M12 17V7m-4 4 4-4 4 4"
       :"M12 7v10m-4-4 4 4 4-4"}"/>
   </svg>
@@ -5528,24 +5573,24 @@ function movimientos(){
                   )
                 : safe(m.fecha)
             }</span>
-            <span class="hist-tipo ${m.tipo==="ingreso"?"ingreso":"gasto"}">
-              ${m.tipo==="ingreso"?textoApp("Ingreso","Income"):textoApp("Gasto","Expense")}
+            <span class="hist-tipo ${m.esTransferencia ? "transferencia" : m.tipo==="ingreso"?"ingreso":"gasto"}">
+              ${m.esTransferencia ? textoApp("Transferencia","Transfer") : m.tipo==="ingreso"?textoApp("Ingreso","Income"):textoApp("Gasto","Expense")}
             </span></div>
           </div>
 
           <strong class="hist-importe ${
-            m.tipo==="ingreso"?"green":"red"
+            m.esTransferencia ? "transferencia-importe" : m.tipo==="ingreso"?"green":"red"
           }">
-            ${m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
+            ${m.esTransferencia ? "" : m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
           </strong>
 
-          <button type="button" class="hist-menu"
+          ${!m.esTransferencia ? `<button type="button" class="hist-menu"
             data-hist-menu="${i}"
             aria-label="${textoApp("Opciones de ", "Options for ")}${safe(m.nombre)}"
-            aria-expanded="false">⋯</button>
+            aria-expanded="false">⋯</button>` : ""}
         </div>
 
-        <div id="histOpciones${i}" class="hidden">
+        ${!m.esTransferencia ? `<div id="histOpciones${i}" class="hidden">
           <div class="hist-acciones">
             <button type="button"
               data-hist-editar="${i}">${textoApp("Editar", "Edit")}</button>
@@ -5554,7 +5599,7 @@ function movimientos(){
           </div>
         </div>
 
-        ${openEdit===m.origen+":"+m.id?editor(m):""}
+        ${openEdit===m.origen+":"+m.id?editor(m):""}` : ""}
       </div>
     `).join("")}
   </div>
@@ -13712,6 +13757,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
