@@ -3436,6 +3436,27 @@ html.tema-oscuro .inicio-transacciones .inicio-categorias-mes {color:#c3c9d4}
 .subs-vacio strong {font-size:.83rem}.subs-vacio p {color:#84909d;font-size:.72rem;line-height:1.5}
 html.tema-oscuro .subs-pantalla :is(.subs-ayuda,.subs-detalle,.subs-estado,.subs-contador,.subs-identidad small,.subs-cabecera p,.subs-vacio p) {color:#aeb7c5}
 @media(max-width:359px){.subs-pantalla .card{padding:17px 13px}.subs-precios{padding:12px 9px}.subs-form input,.subs-form select{padding:10px 8px}.subs-dos-columnas{gap:7px}}
+
+/* Solo el bloque de suscripciones programadas del calendario. */
+.card.suscripciones-programadas {margin-top:16px;padding:17px 15px;border-radius:28px!important;min-width:0}
+.suscripciones-programadas .programadas-cabecera {display:flex;align-items:center;gap:9px}
+.suscripciones-programadas .programadas-cabecera h3 {margin:0;font-size:.94rem;line-height:1.25;letter-spacing:-.025em;flex:1;min-width:0}
+.suscripciones-programadas .programadas-contador {display:grid;place-items:center;min-width:24px;height:24px;border-radius:50%;font-size:.66rem;background:rgba(130,140,155,.1);color:#84909d}
+.suscripciones-programadas .programadas-nota {font-size:.66rem;line-height:1.45;color:#84909d;margin:8px 0 14px}
+.suscripciones-programadas .programadas-lista {display:grid;gap:9px}
+.suscripciones-programadas .programada-fila {padding:12px;border-radius:22px;background:rgba(130,140,155,.06);border:1px solid rgba(130,140,155,.11)}
+.suscripciones-programadas .programada-principal {display:flex;align-items:center;gap:10px;min-width:0}
+.suscripciones-programadas .programada-logo {position:relative;display:grid;place-items:center;flex:0 0 39px;height:39px;border-radius:13px;font-size:1.2rem;background:rgba(130,140,155,.08)}
+.suscripciones-programadas .programada-logo .compania-logo {border-radius:13px!important}
+.suscripciones-programadas .programada-identidad {flex:1;min-width:0}
+.suscripciones-programadas .programada-identidad strong {display:block;font-size:.86rem;overflow-wrap:anywhere}
+.suscripciones-programadas .programada-identidad small {display:block;font-size:.65rem;color:#84909d;margin-top:4px}
+.suscripciones-programadas .programada-importe {font-size:.93rem;max-width:42%;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.suscripciones-programadas .programada-detalle {margin-top:11px;padding-top:9px;border-top:1px solid rgba(130,140,155,.12);font-size:.63rem;line-height:1.45;color:#84909d}
+.suscripciones-programadas .programada-detalle small {display:block;font-size:.6rem;margin-top:4px}
+.suscripciones-programadas .programadas-administrar {display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:43px;margin:13px 0 0;padding:10px 13px;border:0;border-radius:17px;color:inherit;background:rgba(130,140,155,.10);font:inherit;font-size:.74rem;font-weight:600;text-align:left}
+.suscripciones-programadas .programadas-administrar > span:last-child {font-size:1.15rem;color:#84909d}
+html.tema-oscuro .suscripciones-programadas :is(.programadas-nota,.programada-identidad small,.programada-detalle,.programadas-contador) {color:#aeb7c5}
 </style>
 </head>
 <body>
@@ -10160,10 +10181,14 @@ function imagenCompania(nombre) {
   const compania = companias.find(
     ([marca]) => texto.includes(marca)
   );
-  if (!compania) return "";
+  const esIcloud = /\bi\s*cloud(?:\b|\+)/.test(texto);
+  if (!compania && !esIcloud) return "";
+  const nube = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="n" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#72dcff"/><stop offset="1" stop-color="#0786f8"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="#f3f9ff"/><path d="M18 46a10 10 0 0 1-1-20 15 15 0 0 1 29-2 11 11 0 0 1 0 22Z" fill="url(#n)"/></svg>`;
+  const fuente = esIcloud ? "data:image/svg+xml," + encodeURIComponent(nube)
+    : "https://www.google.com/s2/favicons?domain=" + compania[1] + "&sz=128";
 
   return `
-    <img src="https://www.google.com/s2/favicons?domain=${compania[1]}&sz=128"
+    <img src="${fuente}"
       alt="" loading="lazy" referrerpolicy="no-referrer"
       class="compania-logo"
       onload="this.parentElement.classList.add('logo-compania-cargado')"
@@ -12024,60 +12049,24 @@ function suscripcionesDelMes(
 
 function bloqueSuscripcionesCalendario(fecha) {
   const mesElegido = fecha ? fecha.slice(0,7) : mesCalendario;
-  const lista = suscripcionesDelMes(mesElegido)
-    .filter(s => !fecha || s.fecha === fecha);
-
+  const lista = suscripcionesDelMes(mesElegido).filter(s => !fecha || s.fecha === fecha);
   if (fecha && !lista.length) return "";
-
-  return `
-    <div class="card" style="margin-top:16px">
-      <h3>${textoApp(
-        "Suscripciones programadas",
-        "Scheduled subscriptions"
-      )}</h3>
-
-      <p class="note">${textoApp(
-        "Cobros previstos; no están incluidos en los gastos registrados.",
-        "Expected charges; not included in recorded expenses."
-      )}</p>
-
-      ${lista.map(s => `
-        <div style="display:flex;align-items:center;
-          gap:12px;padding:12px 0">
-          <span aria-hidden="true"
-            style="position:relative;display:grid;
-            place-items:center;width:36px;height:36px;
-            flex-shrink:0">
-            ↻ ${imagenCompania(s.nombre)}
-          </span>
-
-          <span style="flex:1;min-width:0">
-            <strong>${safe(s.nombre)}</strong>
-            <small style="display:block">
-              ${textoApp("Día ", "Day ")}
-              ${Number(s.fecha.slice(8,10))}
-            </small>
-            <small style="display:block;color:#84909d;font-size:.69rem;margin-top:3px">
-              ${resumenPreciosSuscripcion(s)}
-            </small>
-          </span>
-
-          <strong>${money(s.monto)}</strong>
-        </div>
-      `).join("") || `
-        <p class="note">${textoApp(
-          "No hay suscripciones para este mes.",
-          "No subscriptions for this month."
-        )}</p>
-      `}
-
-      <button type="button"
-        onclick="abrirSuscripcionesDesdeCalendario()"
-        class="secondary">
-        ${textoApp("Administrar suscripciones", "Manage subscriptions")}
-      </button>
+  return `<section class="card suscripciones-programadas">
+    <header class="programadas-cabecera"><h3>${textoApp("Suscripciones programadas", "Scheduled subscriptions")}</h3><span class="programadas-contador">${lista.length}</span></header>
+    <p class="programadas-nota">${textoApp("Próximos cobros · No incluidos en tus gastos.", "Scheduled charges · Not included in your expenses.")}</p>
+    <div class="programadas-lista">
+      ${lista.map(s => {
+        const frecuencia = s.frecuencia === "anual" ? textoApp("Anual", "Yearly") : s.frecuencia === "cada14dias" ? textoApp("Cada 14 días", "Every 14 days") : textoApp("Mensual", "Monthly");
+        return `<article class="programada-fila">
+          <div class="programada-principal"><span class="programada-logo" aria-hidden="true">↻${imagenCompania(s.nombre)}</span>
+            <span class="programada-identidad"><strong>${safe(s.nombre)}</strong><small>${textoApp("Día ", "Day ")}${Number(s.fecha.slice(8,10))} · ${frecuencia}</small></span>
+            <strong class="programada-importe">${money(s.monto)}</strong></div>
+          <div class="programada-detalle"><span>${resumenPreciosSuscripcion(s)}</span><small>${s.canceladaEn ? textoApp("Cancelada", "Cancelled") : s.fin ? textoApp("Hasta ", "Until ") + safe(s.fin) : textoApp("Hasta que canceles", "Until cancelled")}</small></div>
+        </article>`;
+      }).join("") || `<p class="programadas-nota">${textoApp("No hay suscripciones para este mes.", "No subscriptions for this month.")}</p>`}
     </div>
-  `;
+    <button type="button" class="programadas-administrar" onclick="abrirSuscripcionesDesdeCalendario()"><span>${textoApp("Administrar suscripciones", "Manage subscriptions")}</span><span aria-hidden="true">›</span></button>
+  </section>`;
 }
 
 function abrirSuscripcionesDesdeCalendario() {
@@ -13588,6 +13577,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
