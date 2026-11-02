@@ -3467,6 +3467,13 @@ html.tema-oscuro .suscripciones-programadas :is(.programadas-nota,.programada-id
 .cal-dia-cabecera [data-ampliar-dia][aria-expanded="true"] .cal-icono-ampliar {display:none}
 .cal-dia-cabecera #calTituloDia {min-width:0;line-height:1.3}
 .cal-dia-cabecera button:focus-visible {outline:2px solid currentColor;outline-offset:2px}
+
+.cal-pagos-mes .cal-pagos-total-cabecera {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;min-width:0}
+.cal-pagos-mes .cal-pagos-total-cabecera h3 {margin:0;flex:1;min-width:0}
+.cal-pagos-mes .cal-pagos-total {display:flex;flex-direction:column;align-items:flex-end;gap:3px;max-width:52%;text-align:right}
+.cal-pagos-mes .cal-pagos-total small {font-size:.59rem;color:#84909d;line-height:1.3}
+.cal-pagos-mes .cal-pagos-total strong {font-size:1rem;line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+html.tema-oscuro .cal-pagos-mes .cal-pagos-total small {color:#aeb7c5}
 </style>
 </head>
 <body>
@@ -11944,9 +11951,17 @@ function pagosMesCalendario() {
     dia: Math.min(p.dia, ultimoDia)
   })).sort((a, b) => a.dia - b.dia);
 
+  const importes = pagos.map(p => Number(p.monto));
+  const total = importes.reduce((suma, monto) =>
+    suma + (Number.isFinite(monto) && monto > 0 ? Math.round(monto * 100) : 0), 0) / 100;
+  const incompleto = importes.some(monto => !Number.isFinite(monto) || monto <= 0);
+
   return `
     <div class="card cal-pagos-mes">
-      <h3>${textoApp("Pagos del mes", "Monthly payments")}</h3>
+      <div class="cal-pagos-total-cabecera">
+        <h3>${textoApp("Pagos del mes", "Monthly payments")}</h3>
+        <div class="cal-pagos-total"><small>${incompleto ? textoApp("Total parcial", "Partial total") : textoApp("Total programado", "Scheduled total")}</small><strong>${money(total)}</strong></div>
+      </div>
 
       <p class="note">
         ${textoApp(
@@ -13598,6 +13613,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
