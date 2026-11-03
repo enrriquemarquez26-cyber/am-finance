@@ -7918,7 +7918,7 @@ function transferencias() {
    
        return `
       <button type="button"
-        class="cal-dia ${fecha === today() ? "cal-hoy" : ""} ${resumen.gastos > 0 || resumen.ingresos > 0 ? "cal-dia--movimientos" : ""}"
+        class="cal-dia ${fecha === today() ? "cal-hoy" : ""} ${resumen.registros.length > 0 ? "cal-dia--movimientos" : ""}"
         aria-pressed="${fecha === diaCalendario}"
         aria-label="${fecha}"
         title="${fecha} · ${textoApp("Gastos", "Expenses")}: ${money(resumen.gastos)} · ${textoApp("Ingresos", "Income")}: ${money(resumen.ingresos)}"
@@ -11487,6 +11487,7 @@ function bloquePeriodoCalendario() {
 
 function resumenDiaCalendario(fecha) {
   const registros = [
+    ...movimientosTransferenciasBanco().map(m=>({...m,origenCalendario:"transferencia"})),
     ...data.movimientos.map(m => ({
       ...m,
       origenCalendario: "movimiento"
@@ -11509,7 +11510,7 @@ function resumenDiaCalendario(fecha) {
     .reduce((total, r) => total + Number(r.monto), 0));
 
   const gastos = round(registros
-    .filter(r => r.tipo !== "ingreso")
+    .filter(r => r.tipo === "gasto")
     .reduce((total, r) => total + Number(r.monto), 0));
 
   return {
@@ -11570,7 +11571,7 @@ function abrirDiaCalendario(fecha) {
       c => String(c.id) === String(bancoId)
     );
 
-    const etiqueta = registro.origenCalendario === "pago"
+    const etiqueta = registro.esTransferencia ? textoApp("Transferencia","Transfer") : registro.origenCalendario === "pago"
       ? textoApp("Pago", "Payment")
       : ingreso ? textoApp("Ingreso", "Income")
       : textoApp("Gasto", "Expense");
@@ -11580,7 +11581,7 @@ function abrirDiaCalendario(fecha) {
         : textoApp("Cheques", "Checking"))
       : "";
     const detalle = [cuenta?.nombre || nombreOrigenPago(registro), tipoCuenta].filter(Boolean).join(" · ") || etiqueta;
-    const color = ingreso ? "#13865b" : "#d44d56";
+    const color = registro.esTransferencia ? "inherit" : ingreso ? "#13865b" : "#d44d56";
 
     // Igualar los movimientos del día a «Últimas transacciones» de Inicio.
     // Las opciones de editar y eliminar siguen disponibles en el botón de tres puntos.
@@ -11589,7 +11590,7 @@ function abrirDiaCalendario(fecha) {
         <div class="cal-dia-transaccion-principal">
           <span class="cal-dia-transaccion-icono" aria-hidden="true"
             style="color:${color}">
-            ${ingreso ? "↗" : "↙"}
+            ${registro.esTransferencia ? "⇄" : ingreso ? "↗" : "↙"}
             ${imagenCompania(registro.nombre)}
           </span>
           <span class="cal-dia-transaccion-datos">
@@ -11599,17 +11600,17 @@ function abrirDiaCalendario(fecha) {
           <span class="cal-dia-transaccion-importe">
             <small class="cal-dia-transaccion-tipo"
               style="color:${registro.origenCalendario === "pago" ? "inherit" : color};
-                background:${registro.origenCalendario === "pago"
+                background:${registro.esTransferencia || registro.origenCalendario === "pago"
                   ? "rgba(130,140,155,.12)"
                   : ingreso ? "rgba(19,134,91,.1)" : "rgba(212,77,86,.1)"}">
               ${etiqueta}
             </small>
-            <strong style="color:${color}">${ingreso ? "+" : "−"}${money(registro.monto)}</strong>
+            <strong style="color:${color}">${registro.esTransferencia ? "" : ingreso ? "+" : "−"}${money(registro.monto)}</strong>
           </span>
-          <button type="button" class="cal-dia-transaccion-opciones"
+          ${!registro.esTransferencia ? `<button type="button" class="cal-dia-transaccion-opciones"
             data-acciones-dia-toggle aria-expanded="false"
             aria-label="${textoApp("Opciones de", "Options for")} ${safe(registro.nombre)}"
-            title="${textoApp("Editar o eliminar", "Edit or delete")}">···</button>
+            title="${textoApp("Editar o eliminar", "Edit or delete")}">···</button>` : ""}
         </div>
       </div>
     `;
@@ -11868,7 +11869,7 @@ function conectarAccionesDia(ventana, fecha, registros) {
 
   ventana.querySelectorAll("[data-registro-dia]").forEach((fila, i) => {
     const registro = registros[i];
-    if (!registro) return;
+    if (!registro || registro.esTransferencia) return;
 
     const origen = registro.origenCalendario === "pago"
       ? "pago" : "movimiento";
@@ -12410,7 +12411,9 @@ function iconosDiaCalendario(fecha) {
       Number(elemento.saldo) > 0;
   };
 
-  const eventos = [...prestamosDelMes(fecha.slice(0,7))
+  const eventos = [
+    ...movimientosTransferenciasBanco().filter(m=>m.fecha===fecha).map(m=>({nombre:m.ruta,icono:"⇄",esTransferencia:true})),
+    ...prestamosDelMes(fecha.slice(0,7))
   .filter(p => p.fecha === fecha)
   .map(p => ({nombre:p.nombre, icono:"💰"})),
     ...suscripcionesDelMes(fecha.slice(0,7))
@@ -12428,8 +12431,8 @@ function iconosDiaCalendario(fecha) {
     <span style="display:flex;align-items:center;
       justify-content:center;gap:0;margin-top:5px"
       aria-label="${safe(textoApp(
-        "Cobros programados: ",
-        "Scheduled charges: "
+        "Eventos: ",
+        "Events: "
       ) + eventos.map(e => e.nombre).join(", "))}">
 
       ${eventos.slice(0,2).map(e => `
@@ -12440,7 +12443,7 @@ function iconosDiaCalendario(fecha) {
       overflow:hidden;background:rgba(130,140,155,.12);
       font-size:13px">
           ${e.icono}
-          ${imagenCompania(e.marcaNombre || e.nombre)}
+          ${e.esTransferencia ? "" : imagenCompania(e.marcaNombre || e.nombre)}
         </span>
       `).join("")}
 
