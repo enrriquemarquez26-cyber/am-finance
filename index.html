@@ -3511,6 +3511,28 @@ html.tema-oscuro .cal-pagos-mes .cal-pagos-total small {color:#aeb7c5}
 .hist-tipo.transferencia {color:inherit;background:rgba(130,140,155,.12)}
 .hist-filtros {flex-wrap:wrap}
 </style>
+
+<style id="movimiento-campos-alineados">
+/* El select conserva el valor del formulario; solo se muestra el selector con iconos. */
+#movVentanaForm > [hidden] {display:none!important}
+#movVentanaForm > label {grid-column:1;min-width:0;margin:0}
+#movVentanaForm > input,
+#movVentanaForm > select,
+#movVentanaForm > .categoria-selector {
+  grid-column:2;min-width:0;width:100%;max-width:100%;box-sizing:border-box;margin:0;
+}
+#movVentanaForm > .categoria-selector {align-self:center}
+#movVentana #movCategoriaResumen {
+  min-width:0;min-height:38px;padding:7px 11px;border-radius:999px;
+  background:rgba(255,255,255,.38);font-size:16px;line-height:1.3;gap:7px;
+}
+#movCategoriaIcono {display:flex;align-items:center;flex:0 0 19px;width:19px}
+#movVentana #movCategoriaIcono svg {width:19px;height:19px}
+#movCategoriaTexto {min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#movVentana #movCategoriaResumen::after {flex:0 0 auto;margin-left:0}
+#movVentana .categoria-opciones {grid-template-columns:minmax(0,1fr)}
+html.tema-oscuro #movVentana #movCategoriaResumen {background:rgba(255,255,255,.08)}
+</style>
 </head>
 <body>
 <header>
@@ -13760,6 +13782,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
