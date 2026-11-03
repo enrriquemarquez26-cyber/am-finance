@@ -4320,6 +4320,17 @@ function avisosVencimiento() {
     <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
   </section></div>`;
 }
+function pagoCuentaComoGasto(pago) {
+  // Abonar una tarjeta liquida deuda: la compra ya se registra como gasto.
+  return pago.tipo !== "tarjeta";
+}
+function movimientoVistaPago(pago) {
+  return {...pago, tipoPago:pago.tipo,
+    tipo:pagoCuentaComoGasto(pago) ? "gasto" : "pago-tarjeta",
+    esPago:true, pagoTarjeta:pago.tipo === "tarjeta",
+    nombre:textoApp("Pago: ","Payment: ")+pago.nombre};
+}
+
 function resumenCategoriasInicio(datos, mes) {
   const normalizar = valor => String(valor || "").normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
@@ -4343,7 +4354,7 @@ function resumenCategoriasInicio(datos, mes) {
     totales.set(clave, grupo);
   };
   (datos.movimientos || []).forEach(m => agregar(m, false));
-  (datos.pagos || []).forEach(p => agregar(p, true));
+  (datos.pagos || []).filter(pagoCuentaComoGasto).forEach(p => agregar(p, true));
   const totalCentavos = [...totales.values()].reduce((suma, c) => suma + c.centavos, 0);
   const ordenadas = [...totales.values()].filter(c => c.centavos > 0)
     .sort((a,b) => b.centavos - a.centavos || a.clave.localeCompare(b.clave));
@@ -4570,7 +4581,7 @@ const banco = String(c.nombre || "").toLowerCase();
  const gastos=mov.filter(m=>m.tipo==="gasto")
   .reduce((a,m)=>a+Number(m.monto),0);
  const pagos=data.pagos.filter(p=>
-  String(p.fecha).slice(0,7)===month()
+  pagoCuentaComoGasto(p) && String(p.fecha).slice(0,7)===month()
  ).reduce((a,p)=>a+Number(p.monto),0);
  const autos=data.vehiculos.reduce((a,v)=>a+Number(v.saldo),0);
  const tarjetas=data.tarjetas.reduce((a,t)=>a+Number(t.saldo),0);
@@ -4636,11 +4647,7 @@ ${autos + tarjetas + prestamos > 0 ? `
       bancoRef: m.cuentaId
     })),
     ...data.pagos.map(p => ({
-      ...p,
-      tipo: "gasto",
-      esPago: true,
-      bancoRef: p.bancoId,
-      nombre: textoApp("Pago: ", "Payment: ") + p.nombre
+      ...movimientoVistaPago(p), bancoRef:p.bancoId
     }))
   ].sort(ordenarMovimientosVista)
    .slice(0,3).map(m => {
@@ -4687,7 +4694,7 @@ ${autos + tarjetas + prestamos > 0 ? `
          <span class="cal-mov-derecha">
            <small class="cal-mov-etiqueta ${ingreso ? "cal-mov-entrada" : "cal-mov-salida"}"
              ${m.esPago || m.esTransferencia ? 'style="background:rgba(130,140,155,.12);color:inherit"' : ""}>${etiqueta}</small>
-           <strong class="${m.esTransferencia ? "transferencia-importe" : ingreso ? "cal-mov-entrada" : "cal-mov-salida"}">${m.esTransferencia ? "" : ingreso ? "+" : "−"}${money(m.monto)}</strong>
+           <strong class="${m.esTransferencia || m.pagoTarjeta ? "transferencia-importe" : ingreso ? "cal-mov-entrada" : "cal-mov-salida"}">${m.esTransferencia || m.pagoTarjeta ? "" : ingreso ? "+" : "−"}${money(m.monto)}</strong>
          </span>
          <span class="cal-pago-chevron" aria-hidden="true">›</span>
        </button>
@@ -5436,8 +5443,7 @@ function movimientos(){
   ...movimientosTransferenciasBanco(),
   ...data.movimientos.map(m=>({...m,origen:"movimiento"})),
   ...data.pagos.map(p=>({
-   ...p,origen:"pago",tipo:"gasto",
-   nombre:textoApp("Pago: ", "Payment: ")+p.nombre
+   ...movimientoVistaPago(p),origen:"pago"
   }))
  ].sort(ordenarMovimientosVista);
 
@@ -5543,6 +5549,7 @@ function movimientos(){
     <button type="button"
       data-filtro-hist="ingreso">${textoApp("Ingresos", "Income")}</button>
     <button type="button" data-filtro-hist="transferencia">${textoApp("Transferencias","Transfers")}</button>
+    <button type="button" data-filtro-hist="pago-tarjeta">${textoApp("Pagos de tarjeta","Card payments")}</button>
   </div>
 
   <div id="histLista">
@@ -5596,15 +5603,15 @@ function movimientos(){
                   )
                 : safe(m.fecha)
             }</span>
-            <span class="hist-tipo ${m.esTransferencia ? "transferencia" : m.tipo==="ingreso"?"ingreso":"gasto"}">
-              ${m.esTransferencia ? textoApp("Transferencia","Transfer") : m.tipo==="ingreso"?textoApp("Ingreso","Income"):textoApp("Gasto","Expense")}
+            <span class="hist-tipo ${m.esTransferencia || m.pagoTarjeta ? "transferencia" : m.tipo==="ingreso"?"ingreso":"gasto"}">
+              ${m.pagoTarjeta ? textoApp("Pago de tarjeta","Card payment") : m.esTransferencia ? textoApp("Transferencia","Transfer") : m.tipo==="ingreso"?textoApp("Ingreso","Income"):textoApp("Gasto","Expense")}
             </span></div>
           </div>
 
           <strong class="hist-importe ${
-            m.esTransferencia ? "transferencia-importe" : m.tipo==="ingreso"?"green":"red"
+            m.esTransferencia || m.pagoTarjeta ? "transferencia-importe" : m.tipo==="ingreso"?"green":"red"
           }">
-            ${m.esTransferencia ? "" : m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
+            ${m.esTransferencia || m.pagoTarjeta ? "" : m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
           </strong>
 
           ${!m.esTransferencia ? `<button type="button" class="hist-menu"
@@ -11419,7 +11426,7 @@ function sumarPeriodoCalendario(datos, desde, hasta) {
     else gastos += monto;
   };
   (datos.movimientos || []).forEach(m => agregar(m, false));
-  (datos.pagos || []).forEach(p => agregar(p, true));
+  (datos.pagos || []).filter(pagoCuentaComoGasto).forEach(p => agregar(p, true));
   return {ingresos:round(ingresos), gastos:round(gastos)};
 }
 
@@ -11505,8 +11512,8 @@ function bloquePeriodoCalendario() {
         </div>
       </div>
       <p class="cal-periodo-ayuda">${textoApp(
-        "7 y 15 días terminan en el día seleccionado. Gastos incluye pagos registrados.",
-        "7 and 15 days end on the selected day. Expenses include recorded payments."
+        "7 y 15 días terminan en el día seleccionado. Gastos incluye pagos registrados, excepto abonos a tarjetas.",
+        "7 and 15 days end on the selected day. Expenses include recorded payments, except credit card repayments."
       )}</p>
     </div>`;
 }
@@ -11519,11 +11526,7 @@ function resumenDiaCalendario(fecha) {
       origenCalendario: "movimiento"
     })),
     ...data.pagos.map(p => ({
-      ...p,
-      tipoPago: p.tipo,
-      tipo: "gasto",
-      origenCalendario: "pago",
-      nombre: textoApp("Pago: ", "Payment: ") + p.nombre
+      ...movimientoVistaPago(p), origenCalendario:"pago"
     }))
   ].filter(registro =>
     String(registro.fecha).slice(0, 10) === fecha &&
@@ -11597,7 +11600,7 @@ function abrirDiaCalendario(fecha) {
       c => String(c.id) === String(bancoId)
     );
 
-    const etiqueta = registro.esTransferencia ? textoApp("Transferencia","Transfer") : registro.origenCalendario === "pago"
+    const etiqueta = registro.pagoTarjeta ? textoApp("Pago de tarjeta","Card payment") : registro.esTransferencia ? textoApp("Transferencia","Transfer") : registro.origenCalendario === "pago"
       ? textoApp("Pago", "Payment")
       : ingreso ? textoApp("Ingreso", "Income")
       : textoApp("Gasto", "Expense");
@@ -11607,7 +11610,7 @@ function abrirDiaCalendario(fecha) {
         : textoApp("Cheques", "Checking"))
       : "";
     const detalle = [cuenta?.nombre || nombreOrigenPago(registro), tipoCuenta].filter(Boolean).join(" · ") || etiqueta;
-    const color = registro.esTransferencia ? "inherit" : ingreso ? "#13865b" : "#d44d56";
+    const color = registro.esTransferencia || registro.pagoTarjeta ? "inherit" : ingreso ? "#13865b" : "#d44d56";
 
     // Igualar los movimientos del día a «Últimas transacciones» de Inicio.
     // Las opciones de editar y eliminar siguen disponibles en el botón de tres puntos.
@@ -11631,7 +11634,7 @@ function abrirDiaCalendario(fecha) {
                   : ingreso ? "rgba(19,134,91,.1)" : "rgba(212,77,86,.1)"}">
               ${etiqueta}
             </small>
-            <strong style="color:${color}">${registro.esTransferencia ? "" : ingreso ? "+" : "−"}${money(registro.monto)}</strong>
+            <strong style="color:${color}">${registro.esTransferencia || registro.pagoTarjeta ? "" : ingreso ? "+" : "−"}${money(registro.monto)}</strong>
           </span>
           ${!registro.esTransferencia ? `<button type="button" class="cal-dia-transaccion-opciones"
             data-acciones-dia-toggle aria-expanded="false"
@@ -12013,8 +12016,7 @@ function movimientosRecientesDelCalendario() {
   } catch {}
   const eventos=[
     ...data.movimientos.map(m=>({...m,bancoRef:m.cuentaId,esPago:false})),
-    ...data.pagos.map(p=>({...p,tipo:"gasto",bancoRef:p.bancoId,esPago:true,
-      nombre:textoApp("Pago: ","Payment: ")+p.nombre}))
+    ...data.pagos.map(p=>({...movimientoVistaPago(p),bancoRef:p.bancoId}))
   ].filter(m=>validDate(String(m.fecha)) && String(m.fecha).startsWith(mesCalendario+"-"))
    .sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)))
    .slice(0,5);
@@ -13786,6 +13788,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
