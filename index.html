@@ -3533,6 +3533,51 @@ html.tema-oscuro .cal-pagos-mes .cal-pagos-total small {color:#aeb7c5}
 #movVentana .categoria-opciones {grid-template-columns:minmax(0,1fr)}
 html.tema-oscuro #movVentana #movCategoriaResumen {background:rgba(255,255,255,.08)}
 </style>
+<style id="metas-ahorro-completas">
+.metas-pantalla {max-width:720px;margin:0 auto;padding-bottom:20px}
+.metas-cabecera {display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 20px}
+.metas-cabecera h2 {margin:0;font-size:1.35rem;letter-spacing:-.025em}
+.metas-cabecera p {margin:7px 0 0;line-height:1.4}
+.metas-agregar,.meta-avance {border:0;border-radius:999px;background:var(--balanceone-color,#ff7900);color:#fff;font:inherit;font-size:.8rem;font-weight:650;padding:12px 16px;min-height:44px;cursor:pointer}
+.metas-agregar {flex-shrink:0}
+.metas-pantalla .card {border-radius:34px;padding:20px;margin:0 0 14px}
+.metas-total {display:grid;gap:9px}
+.metas-total > strong {font-size:1.8rem;letter-spacing:-.025em;overflow-wrap:anywhere}
+.metas-total > small {font-size:.73rem}
+.metas-nota {font-size:.72rem;line-height:1.5;margin:0 7px 19px}
+.meta-superior {display:flex;align-items:center;gap:11px}
+.meta-superior > div {flex:1;min-width:0}
+.meta-superior h3 {font-size:1rem;margin:0 0 5px;overflow-wrap:anywhere}
+.meta-superior small {font-size:.69rem;line-height:1.4;display:block}
+.meta-icono {display:grid;place-items:center;flex:0 0 40px;height:40px;border-radius:50%;background:rgba(130,140,155,.1)}
+.meta-icono svg {width:24px;height:24px}
+.meta-editar {background:transparent;border:0;border-radius:999px;padding:8px;color:inherit;font:inherit;font-size:.73rem;min-height:40px}
+.meta-importes {display:flex;align-items:baseline;flex-wrap:wrap;gap:7px;margin:21px 0 12px}
+.meta-importes strong {font-size:1.35rem;letter-spacing:-.025em;overflow-wrap:anywhere}
+.meta-importes span {font-size:.76rem}
+.meta-progreso {height:8px;background:rgba(130,140,155,.2);border-radius:999px;overflow:hidden}
+.meta-progreso span {display:block;height:100%;border-radius:inherit;background:var(--balanceone-color,#ff7900)}
+.meta-progreso-pie {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:.72rem}
+.meta-acciones {display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:20px}
+.meta-acciones > button:last-child {border:0;border-radius:999px;background:transparent;color:inherit;font:inherit;font-size:.76rem;padding:10px;min-height:44px}
+.metas-vacio {text-align:center}
+.metas-vacio h3 {font-size:1rem;margin-top:4px}
+.metas-vacio p {line-height:1.6;margin-bottom:20px}
+.meta-form {display:grid;gap:14px;min-width:0}
+.meta-form label {display:block;font-size:.78rem;font-weight:600;min-width:0}
+.metas-dialogo .meta-form input,.metas-dialogo .meta-form select {display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;margin:7px 0 0;padding:12px 14px;border-radius:22px;font-size:16px;min-height:44px;color:inherit}
+.meta-form .note {margin:0;font-size:.72rem;line-height:1.5}
+.meta-form [hidden],.meta-historial [hidden] {display:none!important}
+.meta-eliminar {border:0;border-radius:999px;background:rgba(212,77,86,.09);color:#c34850;font:inherit;font-size:.8rem;padding:12px;min-height:44px}
+.meta-historia-fila {display:flex;align-items:center;gap:10px;padding:13px 12px;background:rgba(130,140,155,.07);border-radius:24px;margin-top:9px}
+.meta-historia-fila > div {flex:1;min-width:0;overflow-wrap:anywhere}
+.meta-historia-fila strong {font-size:.8rem}
+.meta-historia-fila small {display:block;font-size:.68rem;margin-top:5px;line-height:1.45}
+.meta-historia-fila > button {flex-shrink:0;min-width:36px;min-height:36px;border-radius:50%;border:0;background:rgba(130,140,155,.12);color:inherit;font:inherit}
+.metas-pantalla button:focus-visible,.metas-dialogo button:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
+@media(max-width:370px){.metas-cabecera{align-items:flex-start;flex-wrap:wrap}.metas-pantalla .card{padding:17px}.meta-acciones{gap:5px}.meta-avance{padding:11px 12px;font-size:.75rem}}
+
+</style>
 </head>
 <body>
 <header>
@@ -7373,15 +7418,130 @@ function suscripciones() {
   activarFormularioSuscripcion(form);
   form.onsubmit = event => {event.preventDefault();guardarSuscripcionFormulario(form);};
 }
-function metasAhorro(){
-  el().innerHTML = `
-        <h2>${textoApp("Metas de ahorro", "Savings goals")}</h2>
-    <div class="card">
-            <h3>${textoApp("Mis metas de ahorro", "My savings goals")}</h3>
-            <p class="note">${textoApp("Aquí podrás organizar tus objetivos de ahorro.", "Here you will be able to organize your savings goals.")}</p>
-    </div>
-  `;
+function centavosMeta(valor, permitirCero = false) {
+  const texto = String(valor ?? "").trim();
+  const numero = Number(texto), centavos = Math.round(numero * 100);
+  if (!texto || !Number.isFinite(numero) || !Number.isSafeInteger(centavos) ||
+      centavos < (permitirCero ? 0 : 1) || Math.abs(numero * 100 - centavos) > .00001)
+    throw new Error(textoApp("Introduce un importe válido, con hasta dos decimales.","Enter a valid amount with up to two decimal places."));
+  return centavos;
 }
+function resumenMetaAhorro(meta) {
+  const objetivo = centavosMeta(meta.objetivo);
+  const aportes = Array.isArray(meta.aportes) ? meta.aportes : [];
+  const ahorrado = aportes.reduce((suma,a) => {
+    const monto = centavosMeta(a.monto);
+    const total = suma + (a.tipo === "retiro" ? -monto : monto);
+    if (!Number.isSafeInteger(total)) throw new Error(textoApp("Importe demasiado grande.","Amount is too large."));
+    return total;
+  },0);
+  if (ahorrado < 0) throw new Error(textoApp("El ahorro no puede quedar negativo.","Savings cannot be negative."));
+  return {objetivo:objetivo/100, ahorrado:ahorrado/100, falta:Math.max(0,objetivo-ahorrado)/100,
+    porcentaje:Math.min(100,Math.round(ahorrado/objetivo*100)), completa:ahorrado>=objetivo};
+}
+function prepararCambioMetaAhorro(datos, accion, ident, entrada) {
+  const lista = Array.isArray(datos.metasAhorro) ? JSON.parse(JSON.stringify(datos.metasAhorro)) : [];
+  const indice = lista.findIndex(m=>String(m.id)===String(ident));
+  if (accion !== "crear" && indice < 0) throw new Error(textoApp("Esta meta ya no está disponible.","This goal is no longer available."));
+  if (accion === "crear" || accion === "editar") {
+    const nombre = String(entrada.nombre || "").trim();
+    const objetivo = centavosMeta(entrada.objetivo)/100;
+    const fecha = String(entrada.fecha || "");
+    if (!nombre || nombre.length>80 || (fecha && !validDate(fecha)))
+      throw new Error(textoApp("Revisa el nombre y la fecha de la meta.","Check the goal name and date."));
+    if (accion === "crear") {
+      if (!ident || lista.some(m=>String(m.id)===String(ident))) throw new Error(textoApp("No se pudo crear la meta.","Could not create the goal."));
+      const inicial = centavosMeta(entrada.inicial || "0",true)/100;
+      lista.push({id:ident,nombre,objetivo,fecha,creadaEn:today(),aportes:inicial>0
+        ? [{id:id(),tipo:"aporte",monto:inicial,fecha:today(),nota:textoApp("Ahorro inicial","Initial savings")}] : []});
+    } else Object.assign(lista[indice],{nombre,objetivo,fecha});
+  } else if (accion === "aporte") {
+    if (!["aporte","retiro"].includes(entrada.tipo) || !validDate(String(entrada.fecha)))
+      throw new Error(textoApp("Revisa el tipo y la fecha del avance.","Check the entry type and date."));
+    const monto = centavosMeta(entrada.monto)/100;
+    const meta=lista[indice];
+    if (!Array.isArray(meta.aportes)) meta.aportes=[];
+    meta.aportes.push({id:id(),tipo:entrada.tipo,monto,fecha:entrada.fecha,nota:String(entrada.nota||"").trim().slice(0,120)});
+    resumenMetaAhorro(meta);
+  } else if (accion === "quitarAporte") {
+    const meta=lista[indice];
+    const aportes = Array.isArray(meta.aportes) ? meta.aportes : [];
+    if (!aportes.some(a=>String(a.id)===String(entrada.aporteId))) throw new Error(textoApp("Avance no encontrado.","Entry not found."));
+    meta.aportes=aportes.filter(a=>String(a.id)!==String(entrada.aporteId));
+    resumenMetaAhorro(meta);
+  } else if (accion === "eliminar") lista.splice(indice,1);
+  else throw new Error(textoApp("Operación no válida.","Invalid operation."));
+  return {...datos,metasAhorro:lista};
+}
+function guardarCambioMetaAhorro(accion, ident, entrada) {
+  const nuevos=prepararCambioMetaAhorro(data,accion,ident,entrada);
+  // Confirmar almacenamiento antes de actualizar la pantalla o el estado.
+  localStorage.setItem(KEY,JSON.stringify(nuevos));
+  data=nuevos;
+}
+function fechaMetaAhorro(fecha) {
+  return validDate(fecha) ? new Date(fecha+"T12:00:00").toLocaleDateString(idiomaActual()==="en"?"en-US":"es",{day:"numeric",month:"short",year:"numeric"}) : "";
+}
+function metasAhorro(){
+  const lista=Array.isArray(data.metasAhorro)?data.metasAhorro:[];
+  const validas=lista.flatMap(m=>{try{return [{meta:m,resumen:resumenMetaAhorro(m)}];}catch{return [];}});
+  const total=validas.reduce((s,m)=>s+Math.round(m.resumen.ahorrado*100),0)/100;
+  const completas=validas.filter(m=>m.resumen.completa).length;
+  const argumento=valor=>safe(JSON.stringify(String(valor)));
+  el().innerHTML=`<section class="metas-pantalla">
+    <div class="metas-cabecera"><div><h2>${textoApp("Metas de ahorro","Savings goals")}</h2><p class="note">${textoApp("Un paso más cerca de lo que quieres.","One step closer to what you want.")}</p></div>
+      <button type="button" class="metas-agregar" onclick="abrirFormularioMetaAhorro()">+ ${textoApp("Crear meta","Create goal")}</button></div>
+    <div class="card metas-total"><span class="label">${textoApp("Ahorro registrado","Recorded savings")}</span><strong>${money(total)}</strong><small class="label">${validas.length} ${textoApp("metas","goals")} · ${completas} ${textoApp("completadas","completed")}</small></div>
+    <p class="note metas-nota">${textoApp("Los avances son un seguimiento manual. No mueven dinero ni cambian los saldos de tus cuentas.","Entries track progress manually. They do not move money or change your account balances.")}</p>
+    <div class="metas-lista">${validas.map(({meta:m,resumen:r})=>{
+      const vencida=m.fecha && m.fecha<today() && !r.completa;
+      return `<article class="card meta-objetivo"><div class="meta-superior"><span class="meta-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><div><h3>${safe(m.nombre)}</h3><small class="label">${r.completa?textoApp("Meta alcanzada","Goal reached"):m.fecha?safe(fechaMetaAhorro(m.fecha)):textoApp("Sin fecha límite","No deadline")}${vencida?' · '+textoApp("Fecha pasada","Past target date"):''}</small></div><button type="button" class="meta-editar" aria-label="${safe(textoApp("Editar meta: ","Edit goal: ")+m.nombre)}" onclick="abrirFormularioMetaAhorro(${argumento(m.id)})">${textoApp("Editar","Edit")}</button></div>
+        <div class="meta-importes"><strong>${money(r.ahorrado)}</strong><span class="label">${textoApp("de","of")} ${money(r.objetivo)}</span></div>
+        <div class="meta-progreso" role="progressbar" aria-label="${safe(m.nombre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${r.porcentaje}" aria-valuetext="${safe(money(r.ahorrado)+' / '+money(r.objetivo))}"><span style="width:${r.porcentaje}%"></span></div>
+        <div class="meta-progreso-pie"><span class="label">${r.completa?textoApp("¡Lo lograste!","You did it!"):textoApp("Faltan ","Remaining ")+money(r.falta)}</span><strong>${r.porcentaje}%</strong></div>
+        <div class="meta-acciones"><button type="button" class="meta-avance" onclick="abrirAvanceMetaAhorro(${argumento(m.id)})">+ ${textoApp("Registrar avance","Record progress")}</button><button type="button" onclick="abrirHistorialMetaAhorro(${argumento(m.id)})">${textoApp("Historial","History")} ›</button></div></article>`;
+    }).join("") || `<div class="card metas-vacio"><h3>${textoApp("Tu próxima meta empieza aquí","Your next goal starts here")}</h3><p class="note">${textoApp("Crea un fondo de emergencia, ahorra para un viaje o prepara la entrada de tu próximo auto.","Build an emergency fund, save for a trip or prepare a down payment for your next car.")}</p><button type="button" class="metas-agregar" onclick="abrirFormularioMetaAhorro()">+ ${textoApp("Crear mi primera meta","Create my first goal")}</button></div>`}</div>
+    ${validas.length!==lista.length?`<p class="note" role="status">${textoApp("Hay metas con datos inválidos que no se pudieron mostrar. Conserva una copia de tus datos.","Some goals contain invalid data and could not be displayed. Keep a backup of your data.")}</p>`:''}
+  </section>`;
+}
+function formularioMetaError(form,error) {
+  const aviso=form.querySelector('[data-meta-error]');aviso.textContent=error?.message || textoApp("No se pudo guardar. Inténtalo de nuevo.","Could not save. Please try again.");aviso.hidden=false;
+}
+function abrirFormularioMetaAhorro(ident=null) {
+  const meta=(Array.isArray(data.metasAhorro)?data.metasAhorro:[]).find(m=>String(m.id)===String(ident));
+  if(ident!==null&&!meta)return;
+  const v=crearVentanaApariencia(meta?textoApp("Editar meta","Edit goal"):textoApp("Nueva meta","New goal"),`<form class="meta-form">
+    <label>${textoApp("Nombre de la meta","Goal name")}<input name="nombre" maxlength="80" value="${safe(meta?.nombre||'')}" placeholder="${textoApp('Fondo de emergencia','Emergency fund')}" required></label>
+    <label>${textoApp("Objetivo ($)","Target ($)")}<input name="objetivo" type="number" inputmode="decimal" min="0.01" step="0.01" value="${meta?Number(meta.objetivo):''}" placeholder="0.00" required></label>
+    ${!meta?`<label>${textoApp("Ya tengo ahorrado ($)","Already saved ($)")}<input name="inicial" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>`:''}
+    <label>${textoApp("Fecha objetivo (opcional)","Target date (optional)")}<input name="fecha" type="date" value="${safe(meta?.fecha||'')}"></label>
+    <p class="note">${textoApp("Solo registra tu objetivo y avance; tus cuentas bancarias no se modifican.","Tracks your goal and progress only; bank accounts are not changed.")}</p>
+    <p data-meta-error class="cuenta-nueva-error" role="alert" hidden></p><button type="submit" class="meta-avance">${textoApp("Guardar meta","Save goal")}</button>
+    ${meta?`<button type="button" class="meta-eliminar" data-eliminar-meta>${textoApp("Eliminar meta","Delete goal")}</button>`:''}</form>`,true);
+  if(!v)return;v.classList.add('metas-dialogo');const form=v.querySelector('form');
+  form.onsubmit=e=>{e.preventDefault();if(form.dataset.guardado||!form.reportValidity())return;try{guardarCambioMetaAhorro(meta?'editar':'crear',meta?.id||id(),Object.fromEntries(new FormData(form)));form.dataset.guardado='si';v.close();render();}catch(error){formularioMetaError(form,error);}};
+  if(meta)form.querySelector('[data-eliminar-meta]').onclick=()=>{if(!confirm(textoApp("¿Eliminar esta meta y su historial? No cambia el dinero de tus cuentas.","Delete this goal and its history? Account balances will not change.")))return;try{guardarCambioMetaAhorro('eliminar',meta.id,{});v.close();render();}catch(error){formularioMetaError(form,error);}};
+}
+function abrirAvanceMetaAhorro(ident) {
+  const meta=(data.metasAhorro||[]).find(m=>String(m.id)===String(ident));if(!meta)return;
+  const r=resumenMetaAhorro(meta);
+  const v=crearVentanaApariencia(textoApp("Registrar avance","Record progress"),`<form class="meta-form"><strong>${safe(meta.nombre)}</strong><p class="note">${textoApp("Ahorro registrado: ","Recorded savings: ")}${money(r.ahorrado)}</p>
+    <label>${textoApp("Tipo","Type")}<select name="tipo"><option value="aporte">${textoApp("Añadir ahorro","Add savings")}</option><option value="retiro">${textoApp("Reducir ahorro","Reduce savings")}</option></select></label>
+    <label>${textoApp("Importe ($)","Amount ($)")}<input name="monto" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required></label>
+    <label>${textoApp("Fecha","Date")}<input name="fecha" type="date" value="${today()}" required></label>
+    <label>${textoApp("Nota (opcional)","Note (optional)")}<input name="nota" maxlength="120" placeholder="${textoApp('Ej. Ahorro de esta semana','E.g. This week’s savings')}"></label>
+    <p class="note">${textoApp("Este avance no registra ingresos, gastos ni transferencias.","This entry does not record income, expenses or transfers.")}</p><p data-meta-error class="cuenta-nueva-error" role="alert" hidden></p><button class="meta-avance" type="submit">${textoApp("Guardar avance","Save progress")}</button></form>`,true);
+  if(!v)return;v.classList.add('metas-dialogo');const form=v.querySelector('form');
+  form.onsubmit=e=>{e.preventDefault();if(form.dataset.guardado||!form.reportValidity())return;try{guardarCambioMetaAhorro('aporte',ident,Object.fromEntries(new FormData(form)));form.dataset.guardado='si';v.close();render();}catch(error){formularioMetaError(form,error);}};
+}
+function abrirHistorialMetaAhorro(ident) {
+  const meta=(data.metasAhorro||[]).find(m=>String(m.id)===String(ident));if(!meta)return;
+  const aportes=Array.isArray(meta.aportes)?meta.aportes:[];
+  const v=crearVentanaApariencia(textoApp("Historial de la meta","Goal history"),`<div class="meta-historial"><strong>${safe(meta.nombre)}</strong><p class="note">${textoApp("Avances registrados manualmente.","Manually recorded progress.")}</p>${aportes.map((a,i)=>({a,i})).sort((x,y)=>String(y.a.fecha).localeCompare(String(x.a.fecha))||y.i-x.i).map(({a,i})=>`<div class="meta-historia-fila"><div><strong>${a.tipo==='retiro'?textoApp('Reducción','Reduction'):textoApp('Aporte','Contribution')}</strong><small class="label">${safe(fechaMetaAhorro(a.fecha))}${a.nota?' · '+safe(a.nota):''}</small></div><strong>${a.tipo==='retiro'?'−':'+'}${money(a.monto)}</strong><button type="button" data-quitar-aporte="${i}" aria-label="${safe(textoApp('Eliminar avance del ','Delete entry from ')+fechaMetaAhorro(a.fecha))}">×</button></div>`).join('')||`<p class="note">${textoApp('Aún no hay avances registrados.','No progress entries yet.')}</p>`}<p data-meta-error class="cuenta-nueva-error" role="alert" hidden></p></div>`,true);
+  if(!v)return;v.classList.add('metas-dialogo');
+  v.querySelectorAll('[data-quitar-aporte]').forEach(b=>{b.onclick=()=>{const a=aportes[Number(b.dataset.quitarAporte)];if(!a||!confirm(textoApp('¿Eliminar este avance de la meta?','Delete this progress entry?')))return;try{guardarCambioMetaAhorro('quitarAporte',ident,{aporteId:a.id});v.addEventListener('close',()=>abrirHistorialMetaAhorro(ident),{once:true});v.close();render();}catch(error){const aviso=v.querySelector('[data-meta-error]');aviso.textContent=error.message;aviso.hidden=false;}};});
+}
+
 
 let mesPagosPendientes = month();
 let filtroPagosPendientes = "pendientes";
@@ -7773,6 +7933,22 @@ async function restaurarCopia(event){
       alert(textoApp("Este archivo no es una copia válida de Balance One.",
         "This file is not a valid Balance One backup."));
       return;
+    }
+
+    if (respaldo.datos.metasAhorro !== undefined) {
+      if (!Array.isArray(respaldo.datos.metasAhorro)) throw new Error("Invalid goals");
+      const idsMetas = new Set();
+      for (const meta of respaldo.datos.metasAhorro) {
+        if (!meta || !meta.id || idsMetas.has(String(meta.id)) || typeof meta.nombre !== "string" ||
+            !meta.nombre.trim() || meta.nombre.length>80 || (meta.fecha && !validDate(meta.fecha)) || !Array.isArray(meta.aportes)) throw new Error("Invalid goal");
+        idsMetas.add(String(meta.id));
+        const idsAportes = new Set();
+        for (const aporte of meta.aportes) {
+          if (!aporte || !aporte.id || idsAportes.has(String(aporte.id)) || !["aporte","retiro"].includes(aporte.tipo) || !validDate(aporte.fecha)) throw new Error("Invalid entry");
+          idsAportes.add(String(aporte.id));
+        }
+        resumenMetaAhorro(meta);
+      }
     }
 
     // Los respaldos antiguos (versión 1) no tienen preferencias.
@@ -13790,6 +13966,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
