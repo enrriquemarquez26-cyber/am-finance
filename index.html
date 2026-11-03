@@ -3841,6 +3841,7 @@ let page="inicio";
 let openEdit=null;
 
 function go(p){
+ if (p !== "inicio" && !document.getElementById("movVentana").classList.contains("hidden")) cerrarMovVentana();
  cerrarPanelAvisos();
  page=p;
  openEdit=null;
@@ -9714,6 +9715,7 @@ function actualizarSelectorCategoria() {
 }
 
 function abrirMovVentana() {
+  if (page !== "inicio") return;
   const ventana = document.getElementById("movVentana");
   if (!ventana.classList.contains("hidden")) return;
 
@@ -9853,6 +9855,7 @@ let gestoMovimiento = null;
 
 document.addEventListener("touchstart", event => {
   gestoMovimiento = null;
+  if (page !== "inicio") return;
 
   if (
     event.touches.length !== 1 ||
@@ -9874,6 +9877,7 @@ document.addEventListener("touchstart", event => {
 
 document.addEventListener("touchmove", event => {
   if (!gestoMovimiento) return;
+  if (page !== "inicio") { gestoMovimiento = null; return; }
   if (event.touches.length !== 1) {
     gestoMovimiento = null;
     return;
@@ -13782,6 +13786,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
