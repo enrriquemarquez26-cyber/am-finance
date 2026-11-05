@@ -10788,7 +10788,11 @@ function imagenCompania(nombre) {
   const marcaAuto = marcaAutoDetectada(texto);
   if (!compania && !esIcloud && !marcaAuto) return "";
   const nube = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="n" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#72dcff"/><stop offset="1" stop-color="#0786f8"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="#f3f9ff"/><path d="M18 46a10 10 0 0 1-1-20 15 15 0 0 1 29-2 11 11 0 0 1 0 22Z" fill="url(#n)"/></svg>`;
-  const fuente = esIcloud ? "data:image/svg+xml," + encodeURIComponent(nube)
+  // Exxon se incluye en el archivo para evitar favicons pequeños o genéricos.
+  const esExxon = /(?:^|[^a-z0-9])exxon(?:mobil|[^a-z0-9]|$)/.test(texto);
+  const exxon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" fill="#fff"/><text x="64" y="76" text-anchor="middle" fill="#ed1c24" font-family="Arial,Helvetica,sans-serif" font-size="34" font-weight="900" letter-spacing="-2">Exxon</text></svg>';
+  const fuente = esExxon ? "data:image/svg+xml," + encodeURIComponent(exxon)
+    : esIcloud ? "data:image/svg+xml," + encodeURIComponent(nube)
     : "https://www.google.com/s2/favicons?domain=" + (marcaAuto ? marcaAuto.dominio : compania[1]) + "&sz=128";
 
   return `
@@ -14282,6 +14286,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
