@@ -10689,7 +10689,14 @@ function logoCompaniaIntegrado(nombre) {
   return marca ? "data:image/svg+xml," + encodeURIComponent(logos[marca]) : "";
 }
 
+function logoZelleIntegrado(nombre) {
+  return /(?:^|[^a-z0-9])zelle(?:[^a-z0-9]|$)/i.test(String(nombre || "")) ? "data:image/svg+xml," + encodeURIComponent("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#6D1ED4\"/><g transform=\"translate(22 22) scale(3.5)\" fill=\"#fff\"><path d=\"M13.559 24h-2.841a.483.483 0 0 1-.483-.483v-2.765H5.638a.667.667 0 0 1-.666-.666v-2.234a.67.67 0 0 1 .142-.412l8.139-10.382h-7.25a.667.667 0 0 1-.667-.667V3.914c0-.367.299-.666.666-.666h4.23V.483c0-.266.217-.483.483-.483h2.841c.266 0 .483.217.483.483v2.765h4.323c.367 0 .666.299.666.666v2.137a.67.67 0 0 1-.141.41l-8.19 10.481h7.665c.367 0 .666.299.666.666v2.477a.667.667 0 0 1-.666.667h-4.32v2.765a.483.483 0 0 1-.483.483Z\"/></g></svg>") : "";
+}
+
 function imagenCompania(nombre) {
+  const zelle = logoZelleIntegrado(nombre);
+  if (zelle) return `<img src="${zelle}" alt="" class="compania-logo" loading="lazy" onload="this.parentElement.classList.add(\'logo-compania-cargado\')" onerror="this.parentElement.classList.remove(\'logo-compania-cargado\');this.remove()" style="position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;object-fit:contain;border-radius:50%">`;
+
   const texto = String(nombre || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -14298,6 +14305,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
