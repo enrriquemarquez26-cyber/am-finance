@@ -3709,6 +3709,26 @@ main#content {padding-left:max(16px,env(safe-area-inset-left));padding-right:max
 <style id="iconos-registros-neutros">
 .cal-mov-logo > svg,.hist-icono > svg,.cal-dia-transaccion-icono > svg {width:22px;height:22px;flex:0 0 22px;color:inherit}
 </style>
+<style id="presupuestos-categorias">
+#content .presupuestos-widget {min-width:0;padding:17px 15px;margin:0 0 16px;border-radius:36px!important;grid-column:1/-1}
+.presupuestos-cabecera,.presupuestos-fila-cabecera,.presupuestos-importes,.presupuestos-pie {display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.presupuestos-cabecera h3 {margin:0 0 4px}
+.presupuestos-cabecera small {text-transform:capitalize}
+.presupuestos-lista {display:grid;gap:8px;margin-top:12px}
+.presupuestos-lista > .note {margin:0 0 4px}
+.presupuestos-fila {display:grid;gap:7px;min-width:0;padding:11px 13px;border-radius:23px;background:rgba(130,140,155,.09)}
+.presupuestos-fila-cabecera strong {font-size:.86rem;overflow-wrap:anywhere}
+.presupuestos-widget button,.presupuestos-eliminar {border:0;border-radius:999px;padding:8px 11px;background:rgba(130,140,155,.11);color:inherit;font:inherit;font-size:.73rem;font-weight:650;cursor:pointer}
+.presupuestos-widget .presupuestos-agregar {color:var(--balanceone-color,#ff7900);background:rgba(255,121,0,.09)}
+.presupuestos-importes {font-size:.8rem;font-weight:700;overflow-wrap:anywhere}
+.presupuestos-importes small,.presupuestos-pie {color:#657181;font-size:.66rem;font-weight:550}
+.presupuestos-estado {color:#9c5800;font-weight:700}
+.presupuestos-fila:is([data-estado="limite"],[data-estado="excedido"]) .presupuestos-estado,.presupuestos-eliminar {color:#b62c40}
+html.tema-oscuro .presupuestos-importes small,html.tema-oscuro .presupuestos-pie {color:#b4becb}
+html.tema-oscuro .presupuestos-estado {color:#ffc278}
+html.tema-oscuro .presupuestos-fila:is([data-estado="limite"],[data-estado="excedido"]) .presupuestos-estado,html.tema-oscuro .presupuestos-eliminar {color:#ff9ca7}
+@media(min-width:700px) {.presupuestos-lista {grid-template-columns:repeat(2,minmax(0,1fr))}.presupuestos-lista > .note {grid-column:1/-1}}
+</style>
 </head>
 <body>
 <header>
@@ -4515,15 +4535,24 @@ function movimientoVistaPago(pago) {
     nombre:textoApp("Pago: ","Payment: ")+pago.nombre};
 }
 
-function resumenCategoriasInicio(datos, mes) {
-  const normalizar = valor => String(valor || "").normalize("NFD")
+const aliasCategoriasGasto = new Map([
+  ["rent", "renta"], ["alquiler", "renta"],
+  ["supermercados", "supermercado"], ["groceries", "supermercado"],
+  ["restaurante", "restaurantes"], ["restaurants", "restaurantes"],
+  ["food", "alimentacion"], ["transport", "transporte"],
+  ["shopping", "compras"], ["home", "hogar"], ["health", "salud"],
+  ["work", "trabajo"], ["fuel", "gasolina"], ["utilities", "servicios"],
+  ["entertainment", "entretenimiento"], ["insurance", "seguros"],
+  ["education", "educacion"], ["subscriptions", "suscripciones"], ["other", "otros"]
+]);
+
+function claveCategoriaGasto(valor) {
+  const nombre = String(valor || "").normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-  const alias = new Map([
-    ["rent", "renta"], ["alquiler", "renta"],
-    ["supermercados", "supermercado"], ["groceries", "supermercado"],
-    ["restaurante", "restaurantes"], ["restaurants", "restaurantes"],
-    ["other", "otros"]
-  ]);
+  return aliasCategoriasGasto.get(nombre) || nombre || "otros";
+}
+
+function resumenCategoriasInicio(datos, mes) {
   const totales = new Map();
   const agregar = (registro, pago) => {
     const fecha = String(registro.fecha || "").slice(0,10);
@@ -4531,8 +4560,7 @@ function resumenCategoriasInicio(datos, mes) {
     if ((!pago && registro.tipo !== "gasto") || !validDate(fecha) ||
         fecha.slice(0,7) !== mes || !Number.isFinite(monto) || monto <= 0) return;
     const original = String(registro.categoria || "").trim();
-    const normalizada = normalizar(original);
-    const clave = alias.get(normalizada) || normalizada || "otros";
+    const clave = claveCategoriaGasto(original);
     const grupo = totales.get(clave) || {clave, nombre:original, centavos:0};
     grupo.centavos += Math.round(monto * 100);
     totales.set(clave, grupo);
@@ -4551,9 +4579,8 @@ function resumenCategoriasInicio(datos, mes) {
   };
 }
 
-function graficoCategoriasInicio() {
-  const resumen = resumenCategoriasInicio(data, month());
-  const detalles = {
+function detallesCategoriasGasto() {
+  return {
     renta:[textoApp("Renta", "Rent"), "#28d873"],
     supermercado:[textoApp("Supermercado", "Groceries"), "#ffa20c"],
     restaurantes:[textoApp("Restaurantes", "Restaurants"), "#ae48f2"],
@@ -4571,6 +4598,144 @@ function graficoCategoriasInicio() {
     suscripciones:[textoApp("Suscripciones", "Subscriptions"), "#838cc6"],
     otros:[textoApp("Otros", "Other"), "#a8b1c0"]
   };
+}
+
+function presupuestosValidos(lista) {
+  if (!Array.isArray(lista)) return false;
+  const categorias = detallesCategoriasGasto();
+  const claves = new Set();
+  return lista.every(p => {
+    if (!p || typeof p.categoria !== "string" || !Object.hasOwn(categorias, p.categoria) ||
+        !Number.isSafeInteger(p.limiteCentavos) || p.limiteCentavos < 1 || claves.has(p.categoria)) return false;
+    claves.add(p.categoria);
+    return true;
+  });
+}
+
+function resumenPresupuestos(datos, mes) {
+  const lista = datos.presupuestos ?? [];
+  if (!presupuestosValidos(lista)) return [];
+  const gastado = new Map(resumenCategoriasInicio(datos, mes).categorias
+    .map(c => [c.clave, Math.round(c.monto * 100)]));
+  return lista.map(p => {
+    const usado = gastado.get(p.categoria) || 0;
+    const disponible = p.limiteCentavos - usado;
+    const porcentaje = usado / p.limiteCentavos * 100;
+    const estado = disponible < 0 ? "excedido" : disponible === 0 ? "limite" : porcentaje >= 80 ? "cerca" : "normal";
+    return {...p, usado, disponible, porcentaje, estado};
+  });
+}
+
+function widgetPresupuestos() {
+  const detalles = detallesCategoriasGasto();
+  const mes = month();
+  const nombreMes = new Date(mes + "-01T12:00:00").toLocaleDateString(
+    idiomaActual() === "en" ? "en-US" : "es", {month:"long", year:"numeric"});
+  const lista = resumenPresupuestos(data, mes);
+  const estados = {
+    normal:"",
+    cerca:textoApp("Ya usaste el 80 % o más", "80% or more used"),
+    limite:textoApp("Límite alcanzado", "Limit reached"),
+    excedido:textoApp("Límite superado", "Over budget")
+  };
+  return `<section class="card inicio-capsula presupuestos-widget" aria-labelledby="presupuestosTitulo">
+    <div class="presupuestos-cabecera">
+      <div><h3 id="presupuestosTitulo">${textoApp("Presupuestos", "Budgets")}</h3><small class="label">${safe(nombreMes)}</small></div>
+      ${lista.length < Object.keys(detalles).length ? `<button type="button" class="presupuestos-agregar" onclick="abrirPresupuesto()">+ ${textoApp("Agregar", "Add")}</button>` : ""}
+    </div>
+    <div class="presupuestos-lista">
+    ${lista.map(p => {
+      const [nombre, color] = detalles[p.categoria];
+      const usado = money(p.usado / 100);
+      const limite = money(p.limiteCentavos / 100);
+      const diferencia = money(Math.abs(p.disponible) / 100);
+      const saldo = p.disponible < 0 ? textoApp(`${diferencia} de más`, `${diferencia} over`) : textoApp(`${diferencia} disponibles`, `${diferencia} left`);
+      const colorBarra = p.estado === "cerca" ? "#ff7900" : p.estado === "normal" ? color : "#d44d56";
+      return `<article class="presupuestos-fila" data-estado="${p.estado}">
+        <div class="presupuestos-fila-cabecera">
+          <strong>${safe(nombre)}</strong>
+          <button type="button" aria-label="${safe(textoApp(`Editar presupuesto de ${nombre}`, `Edit ${nombre} budget`))}" onclick="abrirPresupuesto('${p.categoria}')">${textoApp("Editar", "Edit")}</button>
+        </div>
+        <div class="presupuestos-importes"><span>${usado} <small>${textoApp("de", "of")} ${limite}</small></span><small>${Math.floor(p.porcentaje)} %</small></div>
+        <div aria-hidden="true">${barraProgreso(p.porcentaje, colorBarra)}</div>
+        <div class="presupuestos-pie"><span>${saldo}</span>${estados[p.estado] ? `<span class="presupuestos-estado">${estados[p.estado]}</span>` : ""}</div>
+      </article>`;
+    }).join("") || `<p class="note">${textoApp("Pon un límite mensual para gasolina, comida o cualquier categoría.", "Set a monthly limit for fuel, food or any category.")}</p>`}
+    </div>
+  </section>`;
+}
+
+function abrirPresupuesto(categoria = "") {
+  const lista = data.presupuestos ?? [];
+  if (!presupuestosValidos(lista)) {
+    alert(textoApp("No se pudieron leer los presupuestos.", "Could not read budgets."));
+    return;
+  }
+  const actual = lista.find(p => p.categoria === categoria);
+  if (categoria && !actual) return;
+  const opciones = Object.entries(detallesCategoriasGasto()).filter(([clave]) =>
+    clave === categoria || !lista.some(p => p.categoria === clave));
+  if (!opciones.length) return;
+  const ventana = crearVentanaApariencia(
+    actual ? textoApp("Editar presupuesto", "Edit budget") : textoApp("Nuevo presupuesto", "New budget"),
+    `<form class="cuenta-nueva-form">
+      <label>${textoApp("Categoría", "Category")}<select name="categoria" required>
+        ${actual ? "" : `<option value="">${textoApp("Elige una categoría", "Choose a category")}</option>`}
+        ${opciones.map(([clave,[nombre]]) => `<option value="${clave}" ${clave === categoria ? "selected" : ""}>${safe(nombre)}</option>`).join("")}
+      </select></label>
+      <label>${textoApp("Límite mensual ($)", "Monthly limit ($)")}<input name="limite" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" value="${actual ? (actual.limiteCentavos / 100).toFixed(2) : ""}" required></label>
+      <p class="note">${textoApp("El límite se repite cada mes. La barra se actualiza con tus gastos registrados.", "The limit repeats every month. The bar updates with your recorded expenses.")}</p>
+      <p class="cuenta-nueva-error" role="alert" data-presupuesto-error hidden></p>
+      <button class="cuenta-nueva-guardar" type="submit">${textoApp("Guardar presupuesto", "Save budget")}</button>
+      ${actual ? `<button class="presupuestos-eliminar" type="button" data-eliminar-presupuesto>${textoApp("Eliminar presupuesto", "Delete budget")}</button>` : ""}
+    </form>`, true);
+  if (!ventana) return;
+  ventana.classList.add("cuenta-nueva");
+  const form = ventana.querySelector("form");
+  function guardar(eliminar) {
+    if (form.dataset.guardado) return;
+    let nuevos;
+    try {
+      const vigentes = data.presupuestos ?? [];
+      let nuevaLista;
+      if (eliminar) {
+        nuevaLista = vigentes.filter(p => p.categoria !== categoria);
+      } else {
+        const presupuesto = {
+          categoria:form.elements.categoria.value,
+          limiteCentavos:centavosMeta(form.elements.limite.value)
+        };
+        nuevaLista = actual
+          ? vigentes.map(p => p.categoria === categoria ? presupuesto : p)
+          : [...vigentes, presupuesto];
+      }
+      if (!presupuestosValidos(nuevaLista)) throw new Error(textoApp("Elige una categoría sin presupuesto.", "Choose a category without a budget."));
+      nuevos = {...data, presupuestos:nuevaLista};
+      localStorage.setItem(KEY, JSON.stringify(nuevos));
+    } catch (error) {
+      const aviso = form.querySelector("[data-presupuesto-error]");
+      aviso.textContent = error instanceof DOMException ? textoApp("No se pudo guardar el presupuesto.", "Could not save the budget.") : error.message;
+      aviso.hidden = false;
+      return;
+    }
+    data = nuevos;
+    form.dataset.guardado = "si";
+    ventana.close();
+    render();
+  }
+  form.onsubmit = evento => {
+    evento.preventDefault();
+    if (form.reportValidity()) guardar(false);
+  };
+  const quitar = form.querySelector("[data-eliminar-presupuesto]");
+  if (quitar) quitar.onclick = () => {
+    if (confirm(textoApp("¿Eliminar este presupuesto mensual?", "Delete this monthly budget?"))) guardar(true);
+  };
+}
+
+function graficoCategoriasInicio() {
+  const resumen = resumenCategoriasInicio(data, month());
+  const detalles = detallesCategoriasGasto();
   const detalle = categoria => Object.prototype.hasOwnProperty.call(detalles, categoria.clave)
     ? detalles[categoria.clave] : [categoria.nombre, "#9988bb"];
   let acumulado = 0;
@@ -4796,6 +4961,8 @@ const banco = String(c.nombre || "").toLowerCase();
     <div class="smallamount red">${money(gastos+pagos)}</div>
   </div>
 </div>
+
+${widgetPresupuestos()}
 
 ${autos + tarjetas + prestamos > 0 ? `
   <div class="card inicio-capsula inicio-deudas-adaptable" style="border-radius:40px">
@@ -5218,6 +5385,8 @@ function inicioNuevo() {
           </button>
         </div>
       </div>
+
+      ${widgetPresupuestos()}
 
       <div class="inicio-nuevo-panel">
         <div class="row">
@@ -8147,6 +8316,11 @@ async function restaurarCopia(event){
     if(!valido) {
       alert(textoApp("Este archivo no es una copia válida de Balance One.",
         "This file is not a valid Balance One backup."));
+      return;
+    }
+
+    if (respaldo.datos.presupuestos !== undefined && !presupuestosValidos(respaldo.datos.presupuestos)) {
+      alert(textoApp("Los presupuestos de esta copia no son válidos.", "The budgets in this backup are invalid."));
       return;
     }
 
@@ -14305,6 +14479,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
