@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.3.8 Beta</title>
+<title>Balance One 0.3.9 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3786,13 +3786,19 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .hist-filtro-atajos {display:flex;gap:7px;flex-wrap:wrap}
 .hist-filtro-atajos button,.hist-filtro-limpiar {border:0;border-radius:999px;padding:8px 11px;background:rgba(130,140,155,.12);color:inherit;font:inherit;font-size:.72rem;cursor:pointer}
 </style>
+<style id="balance-one-modo-discreto">
+.inicio-balance-cabecera {display:flex;align-items:center;justify-content:space-between;gap:8px}
+.inicio-ojo {display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:rgba(130,140,155,.12);color:inherit;cursor:pointer}
+.inicio-ojo[aria-pressed="true"] {background:rgba(130,140,155,.24)}
+.inicio-ojo:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
+</style>
 </head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.3.8 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.3.9 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4004,8 +4010,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.3.8 Beta",
-      "Smart control of your finances · 0.3.8 Beta"
+      "Control inteligente de tus finanzas · 0.3.9 Beta",
+      "Smart control of your finances · 0.3.9 Beta"
     );
   }
 }
@@ -4027,7 +4033,15 @@ function guardarIdiomaApp(idioma) {
   preferenciasPerfil();
 }
 
+const CLAVE_MODO_DISCRETO_INICIO = "balanceone-modo-discreto-inicio";
+let modoDiscretoInicio = false;
+try {
+  modoDiscretoInicio = localStorage.getItem(CLAVE_MODO_DISCRETO_INICIO) === "1";
+} catch {}
+let ocultarImportesAlDibujarInicio = false;
+
 const money = n => {
+  if (ocultarImportesAlDibujarInicio) return "••••";
   const preferencia = localStorage.getItem(
     "balanceone-formato-importes"
   );
@@ -4121,12 +4135,48 @@ function go(p){
  window.scrollTo(0, 0);
 }
 
+function dibujarInicio() {
+  // Solo los importes que se dibujan en Inicio se enmascaran.
+  ocultarImportesAlDibujarInicio = modoDiscretoInicio;
+  try {
+    return disenoInicioActual() === "nuevo" ? inicioNuevo() : inicio();
+  } finally {
+    ocultarImportesAlDibujarInicio = false;
+  }
+}
+
+function alternarModoDiscretoInicio() {
+  if (page !== "inicio") return;
+  modoDiscretoInicio = !modoDiscretoInicio;
+  try {
+    localStorage.setItem(CLAVE_MODO_DISCRETO_INICIO, modoDiscretoInicio ? "1" : "0");
+  } catch {}
+  dibujarInicio();
+  document.getElementById("modoDiscretoInicioBoton")?.focus({preventScroll:true});
+}
+
+function botonModoDiscretoInicio() {
+  const titulo = modoDiscretoInicio
+    ? textoApp("Mostrar importes de Inicio", "Show amounts on Home")
+    : textoApp("Ocultar importes de Inicio", "Hide amounts on Home");
+  return `<button type="button" class="inicio-ojo" id="modoDiscretoInicioBoton"
+    onclick="alternarModoDiscretoInicio()" aria-label="${textoApp("Modo discreto en Inicio", "Discreet mode on Home")}"
+    aria-pressed="${modoDiscretoInicio}" title="${titulo}">
+    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
+      stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M2 12s3.7-6 10-6 10 6 10 6-3.7 6-10 6S2 12 2 12Z"/>
+      <circle cx="12" cy="12" r="2.6"/>
+      ${modoDiscretoInicio ? '<path d="m3 3 18 18"/>' : ""}
+    </svg>
+  </button>`;
+}
+
 function render(){
  aplicarIdiomaGeneral();
  document.documentElement.classList.toggle(
    "inicio-nuevo-activo", page === "inicio" && disenoInicioActual() === "nuevo"
  );
- if(page==="inicio")return disenoInicioActual()==="nuevo" ? inicioNuevo() : inicio();
+ if(page==="inicio")return dibujarInicio();
  if(page==="suscripciones")return suscripciones();
  if(page==="metasAhorro")return metasAhorro();
 
@@ -4145,7 +4195,7 @@ if(page==="deudas")return deudas();
 
 page="inicio";
  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.id==="nav-inicio"));
- return disenoInicioActual()==="nuevo" ? inicioNuevo() : inicio();
+ return dibujarInicio();
 }
 function diasParaVencer(dia){
 const hoy=new Date();
@@ -4929,6 +4979,7 @@ function compararMeses(datos, base, elegido) {
 }
 
 function importeCambioMensual(centavos) {
+  if (ocultarImportesAlDibujarInicio) return money(0);
   const signo = centavos > 0 ? "+" : centavos < 0 ? "−" : "";
   return signo + money(Math.abs(centavos) / 100);
 }
@@ -5172,8 +5223,9 @@ const banco = String(c.nombre || "").toLowerCase();
  <div class="inicio-adaptable">
  ${avisosVencimiento()}
 <div class="card inicio-capsula balance-principal">
-  <div class="label">
-    ${textoApp("Balance del mes", "Monthly balance")}
+  <div class="inicio-balance-cabecera">
+    <div class="label">${textoApp("Balance del mes", "Monthly balance")}</div>
+    ${botonModoDiscretoInicio()}
   </div>
   <div class="amount">${money(ingresos-gastos-pagos)}</div>
 </div>
@@ -5601,7 +5653,10 @@ function inicioNuevo() {
     <section class="inicio-nuevo">
       ${avisos}
       <div>
-        <h2 class="inicio-nuevo-titulo">${textoApp("Mi resumen", "My overview")}</h2>
+        <div class="inicio-balance-cabecera">
+          <h2 class="inicio-nuevo-titulo">${textoApp("Mi resumen", "My overview")}</h2>
+          ${botonModoDiscretoInicio()}
+        </div>
         <p class="inicio-nuevo-subtitulo">${textoApp("Tus finanzas, a tu manera", "Your finances, your way")}</p>
       </div>
 
@@ -9269,7 +9324,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.3.8 Beta</p>
+      <p class="ajustes-version">Balance One · 0.3.9 Beta</p>
     </section>
   `;
 }
@@ -9555,7 +9610,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.3.8 Beta
+        ${textoApp("Versión", "Version")} 0.3.9 Beta
       </p>
     </section>
   `;
@@ -9802,7 +9857,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.3.8 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.3.9 Beta</p>
         </div>`
     }
   };
@@ -14944,6 +14999,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
