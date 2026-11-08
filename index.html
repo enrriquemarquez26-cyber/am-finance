@@ -3850,6 +3850,52 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .bo049-modo-discreto input {width:20px;height:20px;flex:none;margin:0;accent-color:var(--balanceone-color,#ff7900)}
 .bo047-recibo {display:block;max-width:100%;max-height:60dvh;margin:auto;object-fit:contain;border-radius:12px}
 .bo047-proyecto {display:block;font-size:.69rem;color:inherit;opacity:.8;overflow-wrap:anywhere}
+@media (prefers-reduced-motion: no-preference) {
+  [data-animar-ajustes] {
+    animation: ajustesPantallaEntrada 210ms cubic-bezier(.2,.65,.3,1);
+  }
+
+  [data-animar-ajustes] :is(.ajustes-fila,.ajustes-volver),
+  .apariencia-ventana.ajustes-ventana :is(.apariencia-opcion,.apariencia-listo) {
+    transition: transform 130ms ease-out;
+  }
+
+  [data-animar-ajustes] :is(.ajustes-fila,.ajustes-volver):active,
+  .apariencia-ventana.ajustes-ventana :is(.apariencia-opcion,.apariencia-listo):active {
+    transform: scale(.98);
+  }
+
+  .apariencia-ventana.ajustes-ventana[open] {
+    animation: ajustesVentanaEntrada 230ms cubic-bezier(.2,.65,.3,1);
+  }
+
+  .apariencia-ventana.ajustes-ventana[open]::backdrop {
+    animation: ajustesFondoEntrada 190ms ease-out;
+  }
+
+  .apariencia-ventana.ajustes-ventana-saliendo[open] {
+    animation: none;
+  }
+
+  .apariencia-ventana.ajustes-ventana-saliendo[open]::backdrop {
+    animation: ajustesFondoEntrada 150ms ease-in reverse both;
+  }
+}
+
+@keyframes ajustesPantallaEntrada {
+  from {opacity:.4;translate:0 7px}
+  to {opacity:1;translate:0 0}
+}
+
+@keyframes ajustesVentanaEntrada {
+  from {opacity:0;translate:0 16px}
+  to {opacity:1;translate:0 0}
+}
+
+@keyframes ajustesFondoEntrada {
+  from {opacity:0}
+  to {opacity:1}
+}
 </style>
 </head>
 <body>
@@ -4100,7 +4146,7 @@ function abrirCategoriasPersonales() {
     const actualizadas = editar.value ? categorias.map(c => c.id === categoria.id ? categoria : c) : [...categorias, categoria];
     if (guardarDatosExtra({categoriasPersonales:actualizadas})) {
       traducirMenusVentana();
-      ventana.close();
+      cerrarVentanaApariencia(ventana);
     }
   };
 }
@@ -4184,7 +4230,7 @@ function abrirTarjetasInicio() {
   ventana.querySelector("[data-guardar]").onclick = () => {
     try {
       localStorage.setItem(CLAVE_TARJETAS_INICIO, JSON.stringify({...preferenciasTarjetasInicio(), [diseno]:orden}));
-      ventana.close();
+      cerrarVentanaApariencia(ventana);
     } catch { alert(t("No se pudieron guardar las tarjetas.", "Could not save the cards.")); }
   };
   dibujar();
@@ -4248,7 +4294,7 @@ function abrirOrdenFinancieroInicio(grupo) {
   ventana.querySelector("[data-guardar-orden]").onclick = () => {
     try {
       guardarOrdenElementosInicio(grupo, orden.map(item => String(item.id)));
-      ventana.close();
+      cerrarVentanaApariencia(ventana);
     } catch {
       alert(t("No se pudo guardar el orden.", "Could not save the order."));
     }
@@ -10126,7 +10172,7 @@ function preferenciasPerfil(desdeAjustes = false) {
   const formato = formatoImportesActual();
 
   el().innerHTML = `
-    <section class="ajustes-pantalla">
+    <section class="ajustes-pantalla" data-animar-ajustes>
       <button class="ajustes-volver" onclick="${desdeAjustes ? 'ajustes()' : 'perfil()'}">
         ‹ ${desdeAjustes ? textoApp("Ajustes", "Settings") : textoApp("Mi perfil", "My profile")}
       </button>
@@ -10296,7 +10342,7 @@ function ajustes() {
   ];
 
   el().innerHTML = `
-    <section class="ajustes-pantalla">
+    <section class="ajustes-pantalla" data-animar-ajustes>
       <h2>${textoApp("Ajustes", "Settings")}</h2>
       <p class="ajustes-subtitulo">
         ${textoApp("Personaliza Balance One", "Personalize Balance One")}
@@ -10607,7 +10653,7 @@ function abrirAjuste(tipo) {
   if (!pantalla) return;
 
   el().innerHTML = `
-    <section class="ajustes-pantalla">
+    <section class="ajustes-pantalla" data-animar-ajustes>
       <button class="ajustes-volver" onclick="${tipo === "inicio" ? "abrirAjuste('apariencia')" : "ajustes()"}">
         ‹ ${tipo === "inicio" ? t("Apariencia", "Appearance") : t("Ajustes", "Settings")}
       </button>
@@ -12281,11 +12327,42 @@ function imagenCompania(nombre) {
       padding:0;border-radius:50%">
   `;
 }
+function cerrarVentanaApariencia(ventana, despues) {
+  if (!ventana.open || ventana.classList.contains("ajustes-ventana-saliendo")) return;
+
+  const cerrar = () => {
+    if (!ventana.open) return;
+    ventana.close();
+    despues?.();
+  };
+  if (!ventana.classList.contains("ajustes-ventana") ||
+      typeof ventana.animate !== "function" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    cerrar();
+    return;
+  }
+
+  const estilo = getComputedStyle(ventana);
+  const inicio = {opacity:estilo.opacity, translate:estilo.getPropertyValue("translate") || "none"};
+  ventana.classList.add("ajustes-ventana-saliendo");
+  ventana.inert = true;
+  const salida = ventana.animate([inicio, {opacity:0, translate:"0 10px"}],
+    {duration:150, easing:"ease-in", fill:"forwards"});
+  salida.finished.then(cerrar, cerrar);
+}
+
 function crearVentanaApariencia(titulo, contenido, sinTeclado = false) {
   if (document.querySelector(".apariencia-ventana")) return null;
 
   const ventana = document.createElement("dialog");
   ventana.className = "apariencia-ventana";
+  if (el().querySelector("[data-animar-ajustes]")) {
+    ventana.classList.add("ajustes-ventana");
+    ventana.addEventListener("cancel", event => {
+      event.preventDefault();
+      cerrarVentanaApariencia(ventana);
+    });
+  }
   ventana.setAttribute("aria-labelledby", "aparienciaTitulo");
 
   ventana.innerHTML = `
@@ -12307,9 +12384,7 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false) {
   const focoAnterior = document.activeElement;
   const overflowAnterior = document.body.style.overflow;
 
-  ventana.querySelector(".apariencia-listo").onclick = () => {
-    ventana.close();
-  };
+  ventana.querySelector(".apariencia-listo").onclick = () => cerrarVentanaApariencia(ventana);
 
   ventana.addEventListener("close", () => {
     document.body.style.overflow = overflowAnterior;
@@ -12453,10 +12528,7 @@ function abrirOpcionApariencia(tipo) {
     }, {once:true});
     const botonVer = ventana.querySelector(".apariencia-listo");
     botonVer.textContent = textoApp("Ver inicio elegido", "View selected home");
-    botonVer.onclick = () => {
-      ventana.close();
-      go("inicio");
-    };
+    botonVer.onclick = () => cerrarVentanaApariencia(ventana, () => go("inicio"));
   }
 
     ventana.querySelectorAll("button[data-valor]").forEach(boton => {
@@ -12633,7 +12705,7 @@ try {
 } catch {}
 function abrirFormasTarjetas() {
   el().innerHTML = `
-    <section class="ajustes-pantalla">
+    <section class="ajustes-pantalla" data-animar-ajustes>
       <button type="button" class="ajustes-volver"
         onclick="abrirAjuste('apariencia')">
         ‹ ${textoApp("Apariencia", "Appearance")}
