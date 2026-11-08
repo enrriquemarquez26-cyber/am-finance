@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.3.4 Beta</title>
+<title>Balance One 0.3.5 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3777,13 +3777,22 @@ html.tema-oscuro .presupuestos-fila:is([data-estado="limite"],[data-estado="exce
 .hist-paginacion .note {margin:0;font-size:.68rem}
 .hist-paginacion[hidden],.hist-paginacion button[hidden] {display:none!important}
 </style>
+<style id="historial-filtros-fecha-cuenta">
+.hist-cabecera-acciones {display:flex;align-items:center;gap:7px}
+.hist-filtrar {white-space:nowrap}
+.hist-filtro-fechas {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.hist-filtro-fechas input[type="date"] {-webkit-appearance:none;appearance:none;padding-inline:7px;min-height:42px}
+html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
+.hist-filtro-atajos {display:flex;gap:7px;flex-wrap:wrap}
+.hist-filtro-atajos button,.hist-filtro-limpiar {border:0;border-radius:999px;padding:8px 11px;background:rgba(130,140,155,.12);color:inherit;font:inherit;font-size:.72rem;cursor:pointer}
+</style>
 </head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.3.4 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.3.5 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -3995,8 +4004,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.3.4 Beta",
-      "Smart control of your finances · 0.3.4 Beta"
+      "Control inteligente de tus finanzas · 0.3.5 Beta",
+      "Smart control of your finances · 0.3.5 Beta"
     );
   }
 }
@@ -4093,7 +4102,7 @@ if(changed)save();
 let page="inicio";
 let openEdit=null;
 const TAMANO_PAGINA_HISTORIAL = 30;
-const estadoHistorial = {filtro:"todos", busqueda:"", buscando:false, limite:TAMANO_PAGINA_HISTORIAL};
+const estadoHistorial = {filtro:"todos", busqueda:"", buscando:false, alcance:null, limite:TAMANO_PAGINA_HISTORIAL};
 
 function go(p){
  if (p !== "inicio" && !document.getElementById("movVentana").classList.contains("hidden")) cerrarMovVentana();
@@ -4101,7 +4110,7 @@ function go(p){
  page=p;
  openEdit=null;
  if (p === "historialMovimientos") {
-   Object.assign(estadoHistorial, {filtro:"todos", busqueda:"", buscando:false, limite:TAMANO_PAGINA_HISTORIAL});
+   Object.assign(estadoHistorial, {filtro:"todos", busqueda:"", buscando:false, alcance:null, limite:TAMANO_PAGINA_HISTORIAL});
  }
  const pestañaActiva = (p === "movimientos" || p === "historialMovimientos")
    ? "transferencias" : p;
@@ -6015,7 +6024,7 @@ function movimientosTransferenciasBanco() {
     if (!validDate(fecha)) continue;
     registros.set(clave, {id:r.id, fecha, instante:String(r.fecha), monto:Number(r.monto),
       tipo:"transferencia", origen:"transferencia", esTransferencia:true,
-      nombre:textoApp("Transferencia","Transfer"), ruta:desde+" → "+hasta});
+      origenId, destinoId, nombre:textoApp("Transferencia","Transfer"), ruta:desde+" → "+hasta});
   }
   return Array.from(registros.values());
 }
@@ -6100,6 +6109,7 @@ function movimientos(){
   <div class="hist-cabecera">
     <h3>${textoApp("Historial", "History")}</h3>
 
+    <div class="hist-cabecera-acciones">
     <button type="button" class="hist-buscar"
       id="histBuscarBoton" aria-label="${textoApp("Buscar movimientos", "Search transactions")}"
       aria-expanded="false">
@@ -6110,6 +6120,10 @@ function movimientos(){
         <path d="m16 16 5 5"/>
       </svg>
     </button>
+    <button type="button" class="mov28-enlace hist-filtrar" id="histFiltrarBoton" aria-haspopup="dialog">
+      ${textoApp("Filtrar", "Filter")}
+    </button>
+    </div>
   </div>
 
   <div id="histBusqueda" class="hidden">
@@ -6350,6 +6364,97 @@ function filaHistorial(m, i, anterior) {
   `;
 }
 
+function cuentasDelRegistroHistorial(registro) {
+  const cuentas = [];
+  const agregar = (prefijo, id) => {
+    if (id != null && id !== "") cuentas.push(prefijo + String(id));
+  };
+  if (registro.esTransferencia) {
+    agregar("banco:",registro.origenId);
+    agregar("banco:",registro.destinoId);
+  } else if (registro.esPago) {
+    agregar("banco:",registro.bancoId);
+    agregar("credito:",registro.fuenteTarjetaId);
+    if (registro.pagoTarjeta) agregar("credito:",registro.cuentaId);
+  } else {
+    agregar("banco:",registro.cuentaId);
+    agregar("credito:",registro.tarjetaId);
+  }
+  return cuentas;
+}
+
+function coincideAlcanceHistorial(registro, cuentas, alcance) {
+  if (!alcance) return true;
+  const {desde,hasta,cuenta} = alcance;
+  if (cuenta && !cuentas.includes(cuenta)) return false;
+  if (!desde && !hasta) return true;
+  const fecha = String(registro.fecha || "").slice(0,10);
+  return validDate(fecha) && (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+}
+
+function abrirFiltrosHistorial(aplicar) {
+  let cuentas = [];
+  try {
+    const guardadas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
+    if (Array.isArray(guardadas)) cuentas = guardadas;
+  } catch {}
+  const alcance = estadoHistorial.alcance ?? {};
+  const opciones = [
+    ...cuentas.map(c => ({valor:"banco:" + c.id, nombre:c.nombre + " · " + (c.tipo === "ahorro" ? textoApp("Ahorros","Savings") : textoApp("Cheques","Checking"))})),
+    ...data.tarjetas.map(t => ({valor:"credito:" + t.id, nombre:t.nombre + " · " + textoApp("Crédito","Credit")}))
+  ];
+  const ventana = crearVentanaApariencia(textoApp("Filtrar historial","Filter history"), `
+    <form class="cuenta-nueva-form">
+      <label>${textoApp("Cuenta o tarjeta","Account or card")}<select name="cuenta">
+        <option value="">${textoApp("Todas","All")}</option>
+        ${opciones.map(o => `<option value="${safe(o.valor)}" ${o.valor === alcance.cuenta ? "selected" : ""}>${safe(o.nombre)}</option>`).join("")}
+      </select></label>
+      <div class="hist-filtro-fechas">
+        <label>${textoApp("Desde","From")}<input name="desde" type="date" value="${safe(alcance.desde || "")}"></label>
+        <label>${textoApp("Hasta","To")}<input name="hasta" type="date" value="${safe(alcance.hasta || "")}"></label>
+      </div>
+      <div class="hist-filtro-atajos">
+        <button type="button" data-hist-mes="0">${textoApp("Este mes","This month")}</button>
+        <button type="button" data-hist-mes="-1">${textoApp("Mes anterior","Last month")}</button>
+      </div>
+      <p data-error-filtro-hist class="cuenta-nueva-error" role="alert" hidden></p>
+      <button type="submit" class="cuenta-nueva-guardar">${textoApp("Aplicar filtros","Apply filters")}</button>
+      ${estadoHistorial.alcance ? `<button type="button" class="hist-filtro-limpiar" data-limpiar-filtro-hist>${textoApp("Quitar filtros de fecha y cuenta","Clear date and account filters")}</button>` : ""}
+    </form>`, true);
+  if (!ventana) return;
+  ventana.classList.add("cuenta-nueva","hist-filtros-dialogo");
+  const form = ventana.querySelector("form");
+  const {desde,hasta,cuenta} = form.elements;
+  const aviso = form.querySelector("[data-error-filtro-hist]");
+  const actualizar = filtro => {
+    estadoHistorial.alcance = filtro;
+    ventana.close();
+    aplicar();
+  };
+  form.onsubmit = evento => {
+    evento.preventDefault();
+    if ((desde.value && !validDate(desde.value)) || (hasta.value && !validDate(hasta.value)) ||
+        (desde.value && hasta.value && desde.value > hasta.value)) {
+      aviso.textContent = textoApp("Revisa el rango. La fecha inicial debe ser anterior o igual a la final.","Check the range. The start date must be on or before the end date.");
+      aviso.hidden = false;
+      return;
+    }
+    actualizar(desde.value || hasta.value || cuenta.value ? {desde:desde.value,hasta:hasta.value,cuenta:cuenta.value} : null);
+  };
+  form.addEventListener("input", () => { aviso.hidden = true; });
+  for (const boton of form.querySelectorAll("[data-hist-mes]")) {
+    boton.onclick = () => {
+      const mes = mesComparacionDesplazado(month(),Number(boton.dataset.histMes));
+      const periodo = limitesPeriodoCalendario("mes",mes);
+      desde.value = periodo.desde;
+      hasta.value = periodo.hasta;
+      aviso.hidden = true;
+    };
+  }
+  const limpiar = form.querySelector("[data-limpiar-filtro-hist]");
+  if (limpiar) limpiar.onclick = () => actualizar(null);
+}
+
 function iniciarHistorialMovimientos() {
  const items=[
   ...movimientosTransferenciasBanco(),
@@ -6362,7 +6467,7 @@ function iniciarHistorialMovimientos() {
   const normalizar = texto => String(texto ?? "").normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const indiceBusqueda = items.map((m,i) => ({
-    m, i, texto:normalizar(m.nombre + " " + nombreOrigenPago(m))
+    m, i, cuentas:cuentasDelRegistroHistorial(m), texto:normalizar(m.nombre + " " + nombreOrigenPago(m))
   }));
   const lista = document.getElementById("histLista");
   const aviso = document.getElementById("histSinResultados");
@@ -6370,6 +6475,7 @@ function iniciarHistorialMovimientos() {
   const cantidad = document.getElementById("histCantidad");
   const verMas = document.getElementById("histVerMas");
   const botonBusqueda = document.getElementById("histBuscarBoton");
+  const botonFiltrar = document.getElementById("histFiltrarBoton");
   const cajaBusqueda = document.getElementById("histBusqueda");
   const textoBusqueda = document.getElementById("histBuscarTexto");
   const botonesFiltro = document.querySelectorAll("[data-filtro-hist]");
@@ -6400,8 +6506,12 @@ function iniciarHistorialMovimientos() {
       openEdit = null;
     }
     const texto = normalizar(estadoHistorial.busqueda);
-    coincidencias = indiceBusqueda.filter(({m,texto:descripcion}) =>
-      (estadoHistorial.filtro === "todos" || m.tipo === estadoHistorial.filtro) && descripcion.includes(texto));
+    const alcance = estadoHistorial.alcance;
+    coincidencias = indiceBusqueda.filter(({m,cuentas,texto:descripcion}) =>
+      (estadoHistorial.filtro === "todos" || m.tipo === estadoHistorial.filtro) &&
+      descripcion.includes(texto) && coincideAlcanceHistorial(m,cuentas,alcance));
+    const activos = Number(Boolean(alcance?.desde || alcance?.hasta)) + Number(Boolean(alcance?.cuenta));
+    botonFiltrar.textContent = textoApp("Filtrar","Filter") + (activos ? ` (${activos})` : "");
     lista.replaceChildren();
     mostrados = 0;
     mostrarSiguienteBloque();
@@ -6423,6 +6533,7 @@ function iniciarHistorialMovimientos() {
       filtrar();
     }
   };
+  botonFiltrar.onclick = () => abrirFiltrosHistorial(filtrar);
   textoBusqueda.oninput = () => {
     estadoHistorial.busqueda = textoBusqueda.value;
     filtrar();
@@ -9117,7 +9228,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.3.4 Beta</p>
+      <p class="ajustes-version">Balance One · 0.3.5 Beta</p>
     </section>
   `;
 }
@@ -9403,7 +9514,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.3.4 Beta
+        ${textoApp("Versión", "Version")} 0.3.5 Beta
       </p>
     </section>
   `;
@@ -9650,7 +9761,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.3.4 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.3.5 Beta</p>
         </div>`
     }
   };
@@ -14782,6 +14893,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
