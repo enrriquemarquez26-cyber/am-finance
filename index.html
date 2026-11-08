@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.3.0 Beta</title>
+<title>Balance One 0.3.1 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3661,7 +3661,7 @@ main#content {padding-left:max(16px,env(safe-area-inset-left));padding-right:max
   .mov28 #movCalendario > .cal-fin-028 {display:grid;grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);align-items:start;gap:22px}
   .cal-listas-adaptable > :first-child {margin-top:0!important}
   .mov28 #movCalendario .cal-principal-adaptable .cal-dia {min-height:62px}
-  .inicio-transacciones .inicio-transacciones-carrusel {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;overflow:visible;scroll-snap-type:none}
+  .inicio-transacciones .inicio-transacciones-carrusel {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;overflow:visible;scroll-snap-type:none}
   .inicio-transacciones .inicio-transacciones-pagina {width:100%;min-width:0;scroll-snap-align:none}
   .inicio-transacciones .inicio-transacciones-indicadores {display:none}
   #amMenu .amPagina {grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
@@ -3729,13 +3729,39 @@ html.tema-oscuro .presupuestos-estado {color:#ffc278}
 html.tema-oscuro .presupuestos-fila:is([data-estado="limite"],[data-estado="excedido"]) .presupuestos-estado,html.tema-oscuro .presupuestos-eliminar {color:#ff9ca7}
 @media(min-width:700px) {.presupuestos-lista {grid-template-columns:repeat(2,minmax(0,1fr))}.presupuestos-lista > .note {grid-column:1/-1}}
 </style>
+<style id="balance-one-comparacion-mensual">
+.comparacion-resumen {min-width:0;padding:8px 4px}
+.comparacion-resumen h4 {margin:0;font-size:.88rem}
+.comparacion-resumen .note {margin:6px 0 10px;font-size:.66rem}
+.comparacion-resumen dl {margin:0 0 8px;padding:6px 10px;border-radius:20px;background:rgba(130,140,155,.09)}
+.comparacion-resumen dl div,.comparacion-categoria summary,.comparacion-movimientos > div {display:flex;align-items:center;justify-content:space-between;gap:8px}
+.comparacion-resumen dl div {padding:7px 0;font-size:.73rem}
+.comparacion-resumen dd {margin:0;font-weight:700;text-align:right;overflow-wrap:anywhere}
+.comparacion-enlace {border:0;border-radius:999px;background:rgba(130,140,155,.10);color:var(--balanceone-color,#ff7900);padding:10px 13px;font:inherit;font-size:.75rem;font-weight:650}
+.comparacion-dialogo .comparacion-selectores {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.comparacion-dialogo .comparacion-selectores select {padding:10px 6px}
+.comparacion-dialogo h3 {font-size:.9rem;margin:16px 0 10px}
+.comparacion-tabla {width:100%;table-layout:fixed;border-collapse:collapse;margin-top:14px;font-size:.66rem}
+.comparacion-tabla th,.comparacion-tabla td {padding:8px 3px;border-bottom:1px solid rgba(130,140,155,.18);text-align:right;overflow-wrap:anywhere}
+.comparacion-tabla th:first-child {text-align:left;width:26%}
+.comparacion-tabla thead th:not(:first-child),.comparacion-categoria-totales,.comparacion-movimientos h4 {text-transform:capitalize}
+.comparacion-categoria {margin:7px 0;padding:9px 11px;border-radius:18px;background:rgba(130,140,155,.09);font-size:.74rem}
+.comparacion-categoria summary {cursor:pointer;padding:5px 0;list-style:none;overflow-wrap:anywhere}
+.comparacion-categoria summary::-webkit-details-marker {display:none}
+.comparacion-categoria summary strong::before {content:"›";margin-right:6px}
+.comparacion-categoria[open] summary strong::before {content:"⌄"}
+.comparacion-categoria-totales {display:flex;gap:5px 12px;flex-wrap:wrap;color:inherit;opacity:.8;font-size:.64rem}
+.comparacion-movimientos h4 {margin:12px 0 5px;font-size:.72rem}
+.comparacion-movimientos > div {padding:6px 0;border-top:1px solid rgba(130,140,155,.16);overflow-wrap:anywhere}
+.comparacion-movimientos small {display:block;opacity:.8;font-size:.62rem}
+</style>
 </head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.3.0 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.3.1 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -3946,8 +3972,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.3.0 Beta",
-      "Smart control of your finances · 0.3.0 Beta"
+      "Control inteligente de tus finanzas · 0.3.1 Beta",
+      "Smart control of your finances · 0.3.1 Beta"
     );
   }
 }
@@ -4552,21 +4578,26 @@ function claveCategoriaGasto(valor) {
   return aliasCategoriasGasto.get(nombre) || nombre || "otros";
 }
 
-function resumenCategoriasInicio(datos, mes) {
-  const totales = new Map();
-  const agregar = (registro, pago) => {
+function movimientosGastoDelMes(datos, mes) {
+  const registros = [
+    ...(datos.movimientos || []).filter(m => m.tipo === "gasto"),
+    ...(datos.pagos || []).filter(pagoCuentaComoGasto)
+  ];
+  return registros.filter(registro => {
     const fecha = String(registro.fecha || "").slice(0,10);
-    const monto = Number(registro.monto);
-    if ((!pago && registro.tipo !== "gasto") || !validDate(fecha) ||
-        fecha.slice(0,7) !== mes || !Number.isFinite(monto) || monto <= 0) return;
+    return fecha.slice(0,7) === mes && validDate(fecha) && validAmount(Number(registro.monto));
+  });
+}
+
+function resumenCategoriasInicio(datos, mes, registros = movimientosGastoDelMes(datos, mes)) {
+  const totales = new Map();
+  for (const registro of registros) {
     const original = String(registro.categoria || "").trim();
     const clave = claveCategoriaGasto(original);
     const grupo = totales.get(clave) || {clave, nombre:original, centavos:0};
-    grupo.centavos += Math.round(monto * 100);
+    grupo.centavos += Math.round(Number(registro.monto) * 100);
     totales.set(clave, grupo);
-  };
-  (datos.movimientos || []).forEach(m => agregar(m, false));
-  (datos.pagos || []).filter(pagoCuentaComoGasto).forEach(p => agregar(p, true));
+  }
   const totalCentavos = [...totales.values()].reduce((suma, c) => suma + c.centavos, 0);
   const ordenadas = [...totales.values()].filter(c => c.centavos > 0)
     .sort((a,b) => b.centavos - a.centavos || a.clave.localeCompare(b.clave));
@@ -4795,17 +4826,153 @@ function graficoCategoriasInicio() {
       : textoApp("Las cuatro categorías con más gastos. El gráfico incluye todos los gastos y pagos del mes.", "Your four highest spending categories. The chart includes all expenses and payments this month.")}</p>`;
 }
 
+function mesComparacionDesplazado(mes, salto) {
+  const [anio, numero] = mes.split("-").map(Number);
+  const fecha = new Date(anio, numero - 1 + salto, 1, 12);
+  return fecha.getFullYear() + "-" + String(fecha.getMonth() + 1).padStart(2,"0");
+}
+
+function etiquetaMesComparacion(mes, corto = false) {
+  return new Date(mes + "-01T12:00:00").toLocaleDateString(
+    idiomaActual() === "en" ? "en-US" : "es", {month:corto ? "short" : "long", year:"numeric"});
+}
+
+function compararMeses(datos, base, elegido) {
+  function totales(mes) {
+    const registros = movimientosGastoDelMes(datos, mes);
+    const gastos = resumenCategoriasInicio(datos, mes, registros);
+    const ingresos = (datos.movimientos || []).reduce((suma, m) => {
+      const fecha = String(m.fecha || "").slice(0,10);
+      const monto = Number(m.monto);
+      return m.tipo === "ingreso" && fecha.slice(0,7) === mes && validDate(fecha) && validAmount(monto)
+        ? suma + Math.round(monto * 100) : suma;
+    }, 0);
+    const gastado = Math.round(gastos.total * 100);
+    return {mes, ingresos, gastos:gastado, balance:ingresos - gastado, categorias:gastos.categorias, registros};
+  }
+  const anterior = totales(base);
+  const actual = totales(elegido);
+  const categorias = new Map();
+  for (const [lado, resumen] of [["anterior",anterior], ["actual",actual]]) {
+    for (const c of resumen.categorias) {
+      const fila = categorias.get(c.clave) || {clave:c.clave, nombre:c.nombre, anterior:0, actual:0};
+      fila[lado] = Math.round(c.monto * 100);
+      categorias.set(c.clave, fila);
+    }
+  }
+  return {anterior, actual, categorias:[...categorias.values()]
+    .map(c => ({...c, cambio:c.actual - c.anterior}))
+    .sort((a,b) => Math.abs(b.cambio) - Math.abs(a.cambio) || a.clave.localeCompare(b.clave))};
+}
+
+function importeCambioMensual(centavos) {
+  const signo = centavos > 0 ? "+" : centavos < 0 ? "−" : "";
+  return signo + money(Math.abs(centavos) / 100);
+}
+
+function filasComparacionMensual() {
+  return [["ingresos",textoApp("Ingresos","Income")], ["gastos",textoApp("Gastos y pagos","Expenses and payments")], ["balance",textoApp("Balance del mes","Monthly balance")]];
+}
+
+function vistaComparacionMensual() {
+  const mes = month();
+  const {anterior,actual} = compararMeses(data,mesComparacionDesplazado(mes,-1),mes);
+  return `<div class="comparacion-resumen">
+    <h4>${textoApp("Comparación mensual", "Monthly comparison")}</h4>
+    <p class="note">${safe(etiquetaMesComparacion(actual.mes,true))} ${textoApp("en curso frente a", "in progress vs.")} ${safe(etiquetaMesComparacion(anterior.mes,true))}</p>
+    <dl>${filasComparacionMensual().map(([clave,nombre]) => `<div><dt>${nombre}</dt><dd>${importeCambioMensual(actual[clave]-anterior[clave])}</dd></div>`).join("")}</dl>
+    <button type="button" class="comparacion-enlace" onclick="abrirComparacionMensual()">${textoApp("Ver comparación", "View comparison")} ›</button>
+  </div>`;
+}
+
+function detalleComparacionMensual(comparacion) {
+  const {anterior,actual,categorias} = comparacion;
+  const detalles = detallesCategoriasGasto();
+  return `
+    ${anterior.mes === month() || actual.mes === month() ? `<p class="note">${textoApp("El mes actual sigue en curso. Los importes reflejan los movimientos registrados.", "The current month is still in progress. Amounts reflect recorded transactions.")}</p>` : ""}
+    <table class="comparacion-tabla">
+      <thead><tr><th scope="col">${textoApp("Concepto", "Metric")}</th><th scope="col">${safe(etiquetaMesComparacion(anterior.mes,true))}</th><th scope="col">${safe(etiquetaMesComparacion(actual.mes,true))}</th><th scope="col">${textoApp("Cambio", "Change")}</th></tr></thead>
+      <tbody>${filasComparacionMensual().map(([clave,nombre]) => `<tr><th scope="row">${nombre}</th><td>${money(anterior[clave]/100)}</td><td>${money(actual[clave]/100)}</td><td>${importeCambioMensual(actual[clave]-anterior[clave])}</td></tr>`).join("")}</tbody>
+    </table>
+    <h3>${textoApp("Cambios por categoría", "Changes by category")}</h3>
+    ${categorias.map((c,i) => {
+      const nombre = Object.hasOwn(detalles,c.clave) ? detalles[c.clave][0] : c.nombre || c.clave;
+      return `<details class="comparacion-categoria" data-categoria-comparacion="${i}">
+        <summary><strong>${safe(nombre)}</strong><span>${importeCambioMensual(c.cambio)}</span></summary>
+        <div class="comparacion-categoria-totales"><span>${safe(etiquetaMesComparacion(anterior.mes,true))} · ${money(c.anterior/100)}</span><span>${safe(etiquetaMesComparacion(actual.mes,true))} · ${money(c.actual/100)}</span></div>
+        <div data-comparacion-movimientos></div>
+      </details>`;
+    }).join("") || `<p class="note">${textoApp("No hay gastos registrados en estos meses.", "No expenses recorded in these months.")}</p>`}`;
+}
+
+function abrirComparacionMensual() {
+  const actual = month();
+  const meses = new Set(Array.from({length:12},(_,i) => mesComparacionDesplazado(actual,-i)));
+  for (const registro of [...data.movimientos,...data.pagos]) {
+    const fecha = String(registro.fecha || "").slice(0,10);
+    if (validDate(fecha)) meses.add(fecha.slice(0,7));
+  }
+  const opciones = seleccionado => [...meses].sort().reverse().map(mes =>
+    `<option value="${safe(mes)}" ${mes === seleccionado ? "selected" : ""}>${safe(etiquetaMesComparacion(mes))}</option>`).join("");
+  const ventana = crearVentanaApariencia(textoApp("Comparación mensual", "Monthly comparison"), `
+    <div class="cuenta-nueva-form comparacion-selectores">
+      <label>${textoApp("Mes de referencia", "Reference month")}<select data-mes-base>${opciones(mesComparacionDesplazado(actual,-1))}</select></label>
+      <label>${textoApp("Mes a comparar", "Comparison month")}<select data-mes-elegido>${opciones(actual)}</select></label>
+    </div>
+    <div data-comparacion-detalle></div>`,true);
+  if (!ventana) return;
+  ventana.classList.add("comparacion-dialogo");
+  const base = ventana.querySelector("[data-mes-base]");
+  const elegido = ventana.querySelector("[data-mes-elegido]");
+  const contenido = ventana.querySelector("[data-comparacion-detalle]");
+  function actualizar() {
+    if (base.value === elegido.value) {
+      contenido.innerHTML = `<p class="note" role="status">${textoApp("Elige dos meses distintos.", "Choose two different months.")}</p>`;
+      return;
+    }
+    const comparacion = compararMeses(data,base.value,elegido.value);
+    contenido.innerHTML = detalleComparacionMensual(comparacion);
+    contenido.querySelectorAll("[data-categoria-comparacion]").forEach(fila => {
+      fila.addEventListener("toggle", () => {
+        if (!fila.open) return;
+        const destino = fila.querySelector("[data-comparacion-movimientos]");
+        if (destino.childElementCount) return;
+        const categoria = comparacion.categorias[Number(fila.dataset.categoriaComparacion)].clave;
+        destino.innerHTML = [comparacion.anterior,comparacion.actual].map(mes => {
+          const registros = mes.registros.filter(m => claveCategoriaGasto(m.categoria) === categoria)
+            .sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
+          return `<section class="comparacion-movimientos">
+            <h4>${safe(etiquetaMesComparacion(mes.mes))}</h4>
+            ${registros.map(m => `<div><span>${safe(m.nombre || textoApp("Gasto", "Expense"))}<small>${safe(fechaMetaAhorro(String(m.fecha).slice(0,10)))}</small></span><strong>${money(Number(m.monto))}</strong></div>`).join("") || `<p class="note">${textoApp("Sin gastos en esta categoría.", "No expenses in this category.")}</p>`}
+          </section>`;
+        }).join("");
+      });
+    });
+  }
+  base.addEventListener("change",actualizar);
+  elegido.addEventListener("change",actualizar);
+  actualizar();
+}
+
+function cambiarVistaTransaccionesConTeclado(evento) {
+  const carrusel = evento.currentTarget;
+  if (evento.target !== carrusel || !["ArrowLeft","ArrowRight"].includes(evento.key) ||
+      !carrusel.clientWidth || carrusel.scrollWidth <= carrusel.clientWidth) return;
+  evento.preventDefault();
+  const actual = Math.round(carrusel.scrollLeft / carrusel.clientWidth);
+  irVistaTransacciones(actual + (evento.key === "ArrowRight" ? 1 : -1));
+}
+
 function actualizarIndicadoresTransacciones(carrusel) {
   if (!carrusel.clientWidth) return;
-  const pagina = Math.max(0, Math.min(1, Math.round(carrusel.scrollLeft / carrusel.clientWidth)));
+  const pagina = Math.round(carrusel.scrollLeft / carrusel.clientWidth);
   carrusel.closest(".inicio-transacciones").querySelectorAll("[data-vista-transacciones]")
     .forEach((boton, indice) => boton.setAttribute("aria-pressed", String(indice === pagina)));
 }
 
 function irVistaTransacciones(pagina) {
-  if (pagina !== 0 && pagina !== 1) return;
   const carrusel = document.getElementById("inicioTransaccionesCarrusel");
-  if (!carrusel) return;
+  if (!carrusel || !Number.isInteger(pagina) || pagina < 0 || pagina >= carrusel.children.length) return;
   carrusel.scrollTo({left:pagina * carrusel.clientWidth,
     behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
 }
@@ -4985,11 +5152,11 @@ ${autos + tarjetas + prestamos > 0 ? `
   </div>
   <div id="inicioTransaccionesCarrusel" class="inicio-transacciones-carrusel"
     role="region" aria-roledescription="${textoApp('carrusel','carousel')}"
-    aria-label="${textoApp('Transacciones y gastos por categoría','Transactions and expenses by category')}"
+    aria-label="${textoApp('Transacciones, gastos por categoría y comparación mensual','Transactions, expenses by category and monthly comparison')}"
     tabindex="0" onscroll="actualizarIndicadoresTransacciones(this)"
-    onkeydown="if(event.target === this &amp;&amp; (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {event.preventDefault();irVistaTransacciones(event.key === 'ArrowRight' ? 1 : 0)}">
+    onkeydown="cambiarVistaTransaccionesConTeclado(event)">
     <article class="inicio-transacciones-pagina" role="group"
-      aria-label="${textoApp('1 de 2: Últimas transacciones','1 of 2: Recent transactions')}">
+      aria-label="${textoApp('1 de 3: Últimas transacciones','1 of 3: Recent transactions')}">
       <div class="cal-movs-lista">
   ${[
     ...movimientosTransferenciasBanco(),
@@ -5059,8 +5226,12 @@ ${autos + tarjetas + prestamos > 0 ? `
         </div>
     </article>
     <article class="inicio-transacciones-pagina" role="group"
-      aria-label="${textoApp('2 de 2: Gastos por categoría','2 of 2: Expenses by category')}">
+      aria-label="${textoApp('2 de 3: Gastos por categoría','2 of 3: Expenses by category')}">
       ${graficoCategoriasInicio()}
+    </article>
+    <article class="inicio-transacciones-pagina" role="group"
+      aria-label="${textoApp('3 de 3: Comparación mensual','3 of 3: Monthly comparison')}">
+      ${vistaComparacionMensual()}
     </article>
   </div>
   <div class="inicio-transacciones-indicadores" role="group"
@@ -5073,6 +5244,10 @@ ${autos + tarjetas + prestamos > 0 ? `
       aria-controls="inicioTransaccionesCarrusel"
       aria-label="${textoApp('Ver gastos por categoría','Show expenses by category')}"
       onclick="irVistaTransacciones(1)"></button>
+    <button type="button" data-vista-transacciones="2" aria-pressed="false"
+      aria-controls="inicioTransaccionesCarrusel"
+      aria-label="${textoApp('Ver comparación mensual','Show monthly comparison')}"
+      onclick="irVistaTransacciones(2)"></button>
   </div>
 </section>
 
@@ -5413,6 +5588,8 @@ function inicioNuevo() {
           </div>
         </div>
       </div>
+
+      <div class="inicio-nuevo-panel">${vistaComparacionMensual()}</div>
 
       <div class="inicio-nuevo-resumen">
         <div class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--menta">
@@ -8890,7 +9067,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.3.0 Beta</p>
+      <p class="ajustes-version">Balance One · 0.3.1 Beta</p>
     </section>
   `;
 }
@@ -9176,7 +9353,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.3.0 Beta
+        ${textoApp("Versión", "Version")} 0.3.1 Beta
       </p>
     </section>
   `;
@@ -9423,7 +9600,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.3.0 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.3.1 Beta</p>
         </div>`
     }
   };
@@ -10858,9 +11035,10 @@ function logoCompaniaIntegrado(nombre) {
   if (/\bspectrum\b/.test(normalizado)) marca = "spectrum";
   else if (/\b(?:american express|americanexpress|amex)\b/.test(normalizado)) marca = "americanexpress";
   else if (/\b(?:verizon|veraizon|verision)\b/.test(normalizado)) marca = "verizon";
+  else if (/\b(?:cash app|cashapp|square cash)\b/.test(normalizado)) marca = "cashapp";
   else if (/\b(?:github|git hub)\b/.test(normalizado)) marca = "github";
   else if (/\b(?:mcdonalds?|mc donalds?)(?: s)?\b/.test(normalizado)) marca = "mcdonalds";
-  const logos = {"github":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#ffffff\"/><g transform=\"translate(18 18) scale(3.8333333333333335)\" fill=\"#181717\"><path d=\"M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12\"/></g></svg>","americanexpress":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>American Express</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#016fd0\"/><svg x=\"9\" y=\"40\" width=\"110\" height=\"48\" viewBox=\"0.08 7 23.84 10.47\"><rect y=\"7\" width=\"24\" height=\"10.47\" fill=\"#fff\"/><path d=\"M16.015 14.378c0-.32-.135-.496-.344-.622-.21-.12-.464-.135-.81-.135h-1.543v2.82h.675v-1.027h.72c.24 0 .39.024.478.125.12.13.104.38.104.55v.35h.66v-.555c-.002-.25-.017-.376-.108-.516-.06-.08-.18-.18-.33-.234l.02-.008c.18-.072.48-.297.48-.747zm-.87.407l-.028-.002c-.09.053-.195.058-.33.058h-.81v-.63h.824c.12 0 .24 0 .33.05.098.048.156.147.15.255 0 .12-.045.215-.134.27zM20.297 15.837H19v.6h1.304c.676 0 1.05-.278 1.05-.884 0-.28-.066-.448-.187-.582-.153-.133-.392-.193-.73-.207l-.376-.015c-.104 0-.18 0-.255-.03-.09-.03-.15-.105-.15-.21 0-.09.017-.166.09-.21.083-.046.177-.066.272-.06h1.23v-.602h-1.35c-.704 0-.958.437-.958.84 0 .9.776.855 1.407.87.104 0 .18.015.225.06.046.03.082.106.082.18 0 .077-.035.15-.08.18-.06.053-.15.07-.277.07zM0 0v10.096L.81 8.22h1.75l.225.464V8.22h2.043l.45 1.02.437-1.013h6.502c.295 0 .56.057.756.236v-.23h1.787v.23c.307-.17.686-.23 1.12-.23h2.606l.24.466v-.466h1.918l.254.465v-.466h1.858v3.948H20.87l-.36-.6v.585h-2.353l-.256-.63h-.583l-.27.614h-1.213c-.48 0-.84-.104-1.08-.24v.24h-2.89v-.884c0-.12-.03-.12-.105-.135h-.105v1.036H6.067v-.48l-.21.48H4.69l-.202-.48v.465H2.235l-.256-.624H1.4l-.256.624H0V24h23.786v-7.108c-.27.135-.613.18-.973.18H21.09v-.255c-.21.165-.57.255-.914.255H14.71v-.9c0-.12-.018-.12-.12-.12h-.075v1.022h-1.8v-1.066c-.298.136-.643.15-.928.136h-.214v.915h-2.18l-.54-.617-.57.6H4.742v-3.93h3.61l.518.602.554-.6h2.412c.28 0 .74.03.942.225v-.24h2.177c.202 0 .644.045.903.225v-.24h3.265v.24c.163-.164.508-.24.803-.24h1.89v.24c.194-.15.464-.24.84-.24h1.176V0H0zM21.156 14.955c.004.005.006.012.01.016.01.01.024.01.032.02l-.042-.035zM23.828 13.082h.065v.555h-.065zM23.865 15.03v-.005c-.03-.025-.046-.048-.075-.07-.15-.153-.39-.215-.764-.225l-.36-.012c-.12 0-.194-.007-.27-.03-.09-.03-.15-.105-.15-.21 0-.09.03-.16.09-.204.076-.045.15-.05.27-.05h1.223v-.588h-1.283c-.69 0-.96.437-.96.84 0 .9.78.855 1.41.87.104 0 .18.015.224.06.046.03.076.106.076.18 0 .07-.034.138-.09.18-.045.056-.136.07-.27.07h-1.288v.605h1.287c.42 0 .734-.118.9-.36h.03c.09-.134.135-.3.135-.523 0-.24-.045-.39-.135-.526zM18.597 14.208v-.583h-2.235V16.458h2.235v-.585h-1.57v-.57h1.533v-.584h-1.532v-.51M13.51 8.787h.685V11.6h-.684zM13.126 9.543l-.007.006c0-.314-.13-.5-.34-.624-.217-.125-.47-.135-.81-.135H10.43v2.82h.674v-1.034h.72c.24 0 .39.03.487.12.122.136.107.378.107.548v.354h.677v-.553c0-.25-.016-.375-.11-.516-.09-.107-.202-.19-.33-.237.172-.07.472-.3.472-.75zm-.855.396h-.015c-.09.054-.195.056-.33.056H11.1v-.623h.825c.12 0 .24.004.33.05.09.04.15.128.15.25s-.047.22-.134.266zM15.92 9.373h.632v-.6h-.644c-.464 0-.804.105-1.02.33-.286.3-.362.69-.362 1.11 0 .512.123.833.36 1.074.232.238.645.31.97.31h.78l.255-.627h1.39l.262.627h1.36v-2.11l1.272 2.11h.95l.002.002V8.786h-.684v1.963l-1.18-1.96h-1.02V11.4L18.11 8.744h-1.004l-.943 2.22h-.3c-.177 0-.362-.03-.468-.134-.125-.15-.186-.36-.186-.662 0-.285.08-.51.194-.63.133-.135.272-.165.516-.165zm1.668-.108l.464 1.118v.002h-.93l.466-1.12zM2.38 10.97l.254.628H4V9.393l.972 2.205h.584l.973-2.202.015 2.202h.69v-2.81H6.118l-.807 1.904-.876-1.905H3.343v2.663L2.205 8.787h-.997L.01 11.597h.72l.26-.626h1.39zm-.688-1.705l.46 1.118-.003.002h-.915l.457-1.12zM11.856 13.62H9.714l-.85.923-.825-.922H5.346v2.82H8l.855-.932.824.93h1.302v-.94h.838c.6 0 1.17-.164 1.17-.945l-.006-.003c0-.78-.598-.93-1.128-.93zM7.67 15.853l-.014-.002H6.02v-.557h1.47v-.574H6.02v-.51H7.7l.733.82-.764.824zm2.642.33l-1.03-1.147 1.03-1.108v2.253zm1.553-1.258h-.885v-.717h.885c.24 0 .42.098.42.344 0 .243-.15.372-.42.372zM9.967 9.373v-.586H7.73V11.6h2.237v-.58H8.4v-.564h1.527V9.88H8.4v-.507\" fill=\"#016fd0\"/></svg></svg>","mcdonalds":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#DA291C\"/><g transform=\"translate(24 19) scale(3.3333333333333335)\" fill=\"#FFC72C\"><path d=\"M17.243 3.006c2.066 0 3.742 8.714 3.742 19.478H24c0-11.588-3.042-20.968-6.766-20.968-2.127 0-4.007 2.81-5.248 7.227-1.241-4.416-3.121-7.227-5.231-7.227C3.031 1.516 0 10.888 0 22.476h3.014c0-10.763 1.658-19.47 3.724-19.47 2.066 0 3.741 8.05 3.741 17.98h2.997c0-9.93 1.684-17.98 3.75-17.98Z\"/></g></svg>","spectrum":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#fff\"/><text x=\"60\" y=\"61\" text-anchor=\"middle\" fill=\"#003057\" font-family=\"Arial,Helvetica,sans-serif\" font-size=\"20\" font-weight=\"700\" letter-spacing=\"-1\">Spectrum</text><path d=\"m108 46 10 9-10 9z\" fill=\"#0099D8\"/><text x=\"64\" y=\"82\" text-anchor=\"middle\" fill=\"#003057\" font-family=\"Arial,Helvetica,sans-serif\" font-size=\"14\" letter-spacing=\"3\">MOBILE</text></svg>","verizon":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>Verizon</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#fff\"/><path d=\"M18.302 0H22v.003L10.674 24H7.662L2 12h3.727l3.449 7.337z\" fill=\"#e31b23\" transform=\"translate(19 19) scale(3.75)\"/></svg>"};
+  const logos = {"github":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#ffffff\"/><g transform=\"translate(18 18) scale(3.8333333333333335)\" fill=\"#181717\"><path d=\"M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12\"/></g></svg>","americanexpress":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>American Express</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#016fd0\"/><svg x=\"9\" y=\"40\" width=\"110\" height=\"48\" viewBox=\"0.08 7 23.84 10.47\"><rect y=\"7\" width=\"24\" height=\"10.47\" fill=\"#fff\"/><path d=\"M16.015 14.378c0-.32-.135-.496-.344-.622-.21-.12-.464-.135-.81-.135h-1.543v2.82h.675v-1.027h.72c.24 0 .39.024.478.125.12.13.104.38.104.55v.35h.66v-.555c-.002-.25-.017-.376-.108-.516-.06-.08-.18-.18-.33-.234l.02-.008c.18-.072.48-.297.48-.747zm-.87.407l-.028-.002c-.09.053-.195.058-.33.058h-.81v-.63h.824c.12 0 .24 0 .33.05.098.048.156.147.15.255 0 .12-.045.215-.134.27zM20.297 15.837H19v.6h1.304c.676 0 1.05-.278 1.05-.884 0-.28-.066-.448-.187-.582-.153-.133-.392-.193-.73-.207l-.376-.015c-.104 0-.18 0-.255-.03-.09-.03-.15-.105-.15-.21 0-.09.017-.166.09-.21.083-.046.177-.066.272-.06h1.23v-.602h-1.35c-.704 0-.958.437-.958.84 0 .9.776.855 1.407.87.104 0 .18.015.225.06.046.03.082.106.082.18 0 .077-.035.15-.08.18-.06.053-.15.07-.277.07zM0 0v10.096L.81 8.22h1.75l.225.464V8.22h2.043l.45 1.02.437-1.013h6.502c.295 0 .56.057.756.236v-.23h1.787v.23c.307-.17.686-.23 1.12-.23h2.606l.24.466v-.466h1.918l.254.465v-.466h1.858v3.948H20.87l-.36-.6v.585h-2.353l-.256-.63h-.583l-.27.614h-1.213c-.48 0-.84-.104-1.08-.24v.24h-2.89v-.884c0-.12-.03-.12-.105-.135h-.105v1.036H6.067v-.48l-.21.48H4.69l-.202-.48v.465H2.235l-.256-.624H1.4l-.256.624H0V24h23.786v-7.108c-.27.135-.613.18-.973.18H21.09v-.255c-.21.165-.57.255-.914.255H14.71v-.9c0-.12-.018-.12-.12-.12h-.075v1.022h-1.8v-1.066c-.298.136-.643.15-.928.136h-.214v.915h-2.18l-.54-.617-.57.6H4.742v-3.93h3.61l.518.602.554-.6h2.412c.28 0 .74.03.942.225v-.24h2.177c.202 0 .644.045.903.225v-.24h3.265v.24c.163-.164.508-.24.803-.24h1.89v.24c.194-.15.464-.24.84-.24h1.176V0H0zM21.156 14.955c.004.005.006.012.01.016.01.01.024.01.032.02l-.042-.035zM23.828 13.082h.065v.555h-.065zM23.865 15.03v-.005c-.03-.025-.046-.048-.075-.07-.15-.153-.39-.215-.764-.225l-.36-.012c-.12 0-.194-.007-.27-.03-.09-.03-.15-.105-.15-.21 0-.09.03-.16.09-.204.076-.045.15-.05.27-.05h1.223v-.588h-1.283c-.69 0-.96.437-.96.84 0 .9.78.855 1.41.87.104 0 .18.015.224.06.046.03.076.106.076.18 0 .07-.034.138-.09.18-.045.056-.136.07-.27.07h-1.288v.605h1.287c.42 0 .734-.118.9-.36h.03c.09-.134.135-.3.135-.523 0-.24-.045-.39-.135-.526zM18.597 14.208v-.583h-2.235V16.458h2.235v-.585h-1.57v-.57h1.533v-.584h-1.532v-.51M13.51 8.787h.685V11.6h-.684zM13.126 9.543l-.007.006c0-.314-.13-.5-.34-.624-.217-.125-.47-.135-.81-.135H10.43v2.82h.674v-1.034h.72c.24 0 .39.03.487.12.122.136.107.378.107.548v.354h.677v-.553c0-.25-.016-.375-.11-.516-.09-.107-.202-.19-.33-.237.172-.07.472-.3.472-.75zm-.855.396h-.015c-.09.054-.195.056-.33.056H11.1v-.623h.825c.12 0 .24.004.33.05.09.04.15.128.15.25s-.047.22-.134.266zM15.92 9.373h.632v-.6h-.644c-.464 0-.804.105-1.02.33-.286.3-.362.69-.362 1.11 0 .512.123.833.36 1.074.232.238.645.31.97.31h.78l.255-.627h1.39l.262.627h1.36v-2.11l1.272 2.11h.95l.002.002V8.786h-.684v1.963l-1.18-1.96h-1.02V11.4L18.11 8.744h-1.004l-.943 2.22h-.3c-.177 0-.362-.03-.468-.134-.125-.15-.186-.36-.186-.662 0-.285.08-.51.194-.63.133-.135.272-.165.516-.165zm1.668-.108l.464 1.118v.002h-.93l.466-1.12zM2.38 10.97l.254.628H4V9.393l.972 2.205h.584l.973-2.202.015 2.202h.69v-2.81H6.118l-.807 1.904-.876-1.905H3.343v2.663L2.205 8.787h-.997L.01 11.597h.72l.26-.626h1.39zm-.688-1.705l.46 1.118-.003.002h-.915l.457-1.12zM11.856 13.62H9.714l-.85.923-.825-.922H5.346v2.82H8l.855-.932.824.93h1.302v-.94h.838c.6 0 1.17-.164 1.17-.945l-.006-.003c0-.78-.598-.93-1.128-.93zM7.67 15.853l-.014-.002H6.02v-.557h1.47v-.574H6.02v-.51H7.7l.733.82-.764.824zm2.642.33l-1.03-1.147 1.03-1.108v2.253zm1.553-1.258h-.885v-.717h.885c.24 0 .42.098.42.344 0 .243-.15.372-.42.372zM9.967 9.373v-.586H7.73V11.6h2.237v-.58H8.4v-.564h1.527V9.88H8.4v-.507\" fill=\"#016fd0\"/></svg></svg>","mcdonalds":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#DA291C\"/><g transform=\"translate(24 19) scale(3.3333333333333335)\" fill=\"#FFC72C\"><path d=\"M17.243 3.006c2.066 0 3.742 8.714 3.742 19.478H24c0-11.588-3.042-20.968-6.766-20.968-2.127 0-4.007 2.81-5.248 7.227-1.241-4.416-3.121-7.227-5.231-7.227C3.031 1.516 0 10.888 0 22.476h3.014c0-10.763 1.658-19.47 3.724-19.47 2.066 0 3.741 8.05 3.741 17.98h2.997c0-9.93 1.684-17.98 3.75-17.98Z\"/></g></svg>","spectrum":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#fff\"/><text x=\"60\" y=\"61\" text-anchor=\"middle\" fill=\"#003057\" font-family=\"Arial,Helvetica,sans-serif\" font-size=\"20\" font-weight=\"700\" letter-spacing=\"-1\">Spectrum</text><path d=\"m108 46 10 9-10 9z\" fill=\"#0099D8\"/><text x=\"64\" y=\"82\" text-anchor=\"middle\" fill=\"#003057\" font-family=\"Arial,Helvetica,sans-serif\" font-size=\"14\" letter-spacing=\"3\">MOBILE</text></svg>","verizon":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>Verizon</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#fff\"/><path d=\"M18.302 0H22v.003L10.674 24H7.662L2 12h3.727l3.449 7.337z\" fill=\"#e31b23\" transform=\"translate(19 19) scale(3.75)\"/></svg>","cashapp":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>Cash App</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#00D632\"/><path fill=\"#fff\" d=\"M17.42 8.105l-.93.93a.5.5 0 01-.67.01 5 5 0 00-3.22-1.18c-.97 0-1.94.32-1.94 1.21 0 .9 1.04 1.2 2.24 1.65 2.1.7 3.84 1.58 3.84 3.64 0 2.24-1.74 3.78-4.58 3.95l-.26 1.2a.49.49 0 01-.48.39H9.63l-.09-.01a.5.5 0 01-.38-.59l.28-1.27a6.54 6.54 0 01-2.88-1.57v-.01a.48.48 0 010-.68l1-.97a.49.49 0 01.67 0c.91.86 2.13 1.34 3.39 1.32 1.3 0 2.17-.55 2.17-1.42 0-.87-.88-1.1-2.54-1.72-1.76-.63-3.43-1.52-3.43-3.6 0-2.42 2.01-3.6 4.39-3.71l.25-1.23a.48.48 0 01.48-.38h1.78l.1.01c.26.06.43.31.37.57l-.27 1.37c.9.3 1.75.77 2.48 1.39l.02.02c.19.2.19.5 0 .68z\" transform=\"translate(19 19) scale(3.75)\"/></svg>"};
   return marca ? "data:image/svg+xml," + encodeURIComponent(logos[marca]) : "";
 }
 
@@ -14480,6 +14658,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
