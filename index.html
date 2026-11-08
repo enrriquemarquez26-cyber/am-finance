@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.4.7 Beta</title>
+<title>Balance One 0.4.8 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3846,7 +3846,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.4.7 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.4.8 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -3874,7 +3874,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   <form id="movVentanaForm">
     <output id="movVentanaMonto"
             style="display:block;text-align:center;font-size:2rem;font-weight:650;padding:12px;border-radius:999px;background:rgba(255,255,255,.25);margin-bottom:12px"
-            aria-live="polite">$0.00</output>
+            aria-live="polite">0.00</output>
 
     <div id="movVentanaTeclado"
          style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px">
@@ -4376,13 +4376,13 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.4.7 Beta",
-      "Smart control of your finances · 0.4.7 Beta"
+      "Control inteligente de tus finanzas · 0.4.8 Beta",
+      "Smart control of your finances · 0.4.8 Beta"
     );
   }
 }
 
-function guardarIdiomaApp(idioma) {
+function guardarIdiomaApp(idioma, desdeAjustes = false) {
   if (!["es", "en"].includes(idioma)) return;
 
   try {
@@ -4396,7 +4396,7 @@ function guardarIdiomaApp(idioma) {
   }
 
   aplicarIdiomaGeneral();
-  preferenciasPerfil();
+  preferenciasPerfil(desdeAjustes);
 }
 
 const CLAVE_MODO_DISCRETO_INICIO = "balanceone-modo-discreto-inicio";
@@ -4406,21 +4406,47 @@ try {
 } catch {}
 let ocultarImportesAlDibujarInicio = false;
 
-const money = n => {
-  if (ocultarImportesAlDibujarInicio) return "••••";
-  const preferencia = localStorage.getItem(
-    "balanceone-formato-importes"
-  );
+const CLAVE_MONEDA_IMPORTES = "balanceone-moneda-importes";
+const CLAVE_FORMATO_IMPORTES = "balanceone-formato-importes";
+const MONEDAS_IMPORTES = Object.freeze({USD:"$", EUR:"€"});
+const FORMATOS_IMPORTES = Object.freeze(["en-US", "es-ES"]);
 
-  const formato = ["en-US", "es-ES"].includes(preferencia)
-    ? preferencia
-    : "en-US";
+function monedaActual() {
+  const moneda = localStorage.getItem(CLAVE_MONEDA_IMPORTES);
+  return Object.hasOwn(MONEDAS_IMPORTES, moneda) ? moneda : "USD";
+}
 
-  return new Intl.NumberFormat(formato, {
-    style: "currency",
-    currency: "USD"
-  }).format(Number(n) || 0);
-};
+function formatoImportesActual() {
+  const formato = localStorage.getItem(CLAVE_FORMATO_IMPORTES);
+  return FORMATOS_IMPORTES.includes(formato) ? formato : "en-US";
+}
+
+function formateadorImportes(decimales = 2) {
+  return new Intl.NumberFormat(formatoImportesActual(), {
+    style:"currency",
+    currency:monedaActual(),
+    useGrouping:true,
+    minimumFractionDigits:decimales,
+    maximumFractionDigits:decimales
+  });
+}
+
+function textoImporte(es, en) {
+  return textoApp(es, en) + " (" + MONEDAS_IMPORTES[monedaActual()] + ")";
+}
+
+const money = n => ocultarImportesAlDibujarInicio
+  ? "••••" : formateadorImportes().format(Number(n) || 0);
+
+function formatearBorradorImporte(importe) {
+  if (!importe) return money(0);
+  const decimales = importe.split(".")[1];
+  if (decimales === "") {
+    return formateadorImportes(1).formatToParts(Number(importe))
+      .filter(parte => parte.type !== "fraction").map(parte => parte.value).join("");
+  }
+  return formateadorImportes(decimales?.length ?? 0).format(Number(importe));
+}
 
 const round=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
 const el=()=>document.getElementById("content");
@@ -5197,7 +5223,7 @@ function abrirPresupuesto(categoria = "", volverALista = false) {
         ${actual ? "" : `<option value="">${textoApp("Elige una categoría", "Choose a category")}</option>`}
         ${opciones.map(([clave,[nombre]]) => `<option value="${safe(clave)}" ${clave === categoria ? "selected" : ""}>${safe(nombre)}</option>`).join("")}
       </select></label>
-      <label>${textoApp("Límite mensual ($)", "Monthly limit ($)")}<input name="limite" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" value="${actual ? (actual.limiteCentavos / 100).toFixed(2) : ""}" required></label>
+      <label>${textoImporte("Límite mensual", "Monthly limit")}<input name="limite" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" value="${actual ? (actual.limiteCentavos / 100).toFixed(2) : ""}" required></label>
       <p class="note">${textoApp("El límite se repite cada mes. La barra se actualiza con tus gastos registrados.", "The limit repeats every month. The bar updates with your recorded expenses.")}</p>
       <p class="cuenta-nueva-error" role="alert" data-presupuesto-error hidden></p>
       <button class="cuenta-nueva-guardar" type="submit">${textoApp("Guardar presupuesto", "Save budget")}</button>
@@ -6690,7 +6716,7 @@ function movimientos(){
         maxlength="80" required>
 
       <label for="movMonto">
-        ${textoApp("Cantidad ($)", "Amount ($)")}
+        ${textoImporte("Cantidad", "Amount")}
       </label>
       <input id="movMonto" name="monto"
         type="number" min="0.01"
@@ -7244,7 +7270,7 @@ function editor(m){
     <select id="histEditarCategoria" name="categoria">${opcionesCategoriaEdicion(m.categoria)}</select>
     ${camposExtraMovimiento(m)}
    `}
-      <label class="label">${textoApp("Cantidad ($)", "Amount ($)")}</label>
+      <label class="label">${textoImporte("Cantidad", "Amount")}</label>
    <input name="monto" type="number" min="0.01" step="0.01" value="${m.monto}" required>
       <label class="label">${textoApp("Fecha", "Date")}</label>
    <input name="fecha" type="date" value="${safe(m.fecha)}" required>
@@ -7491,9 +7517,9 @@ function vehiculos(){
   <div class="card hidden vehiculo-panel" id="agregarVehiculo">
   <form id="formAuto">
       <input name="nombre" placeholder="${textoApp("Nombre del vehículo", "Vehicle name")}" maxlength="80" required>
-      <input name="saldo" type="number" min="0" step="0.01" placeholder="${textoApp("Saldo pendiente ($)", "Outstanding balance ($)")}" required>
+      <input name="saldo" type="number" min="0" step="0.01" placeholder="${textoImporte("Saldo pendiente", "Outstanding balance")}" required>
       <input name="apr" type="number" min="0" step="0.01" placeholder="APR (%)" required>
-      <input name="pago" type="number" min="0.01" step="0.01" placeholder="${textoApp("Pago mensual ($)", "Monthly payment ($)")}" required>
+      <input name="pago" type="number" min="0.01" step="0.01" placeholder="${textoImporte("Pago mensual", "Monthly payment")}" required>
       <label class="label">${textoApp("Día de vencimiento mensual", "Monthly payment due day")}</label>
 <select name="vencimiento" required>
 <option value="">${textoApp("Seleccionar día de pago", "Select payment day")}</option>
@@ -7629,7 +7655,7 @@ ${textoApp("Día", "Day")} ${j+1}
    <div class="payment hidden" id="auto${i}">
     <form onsubmit="pagarAuto(event,${i})">
       <label>${textoApp("Pagar con", "Pay with")}</label><select name="origenPago" required>${opcionesCuentasPago()}</select>
-          <label class="label">${textoApp("Cantidad pagada ($)", "Amount paid ($)")}</label>
+          <label class="label">${textoImporte("Cantidad pagada", "Amount paid")}</label>
      <input name="monto" type="number" min="0.01" step="0.01" value="${v.pago}" required>
           <button class="primary">${textoApp("Confirmar pago", "Confirm payment")}</button>
     </form>
@@ -7655,7 +7681,7 @@ ${textoApp("Día", "Day")} ${j+1}
     <input name="anio" type="number" min="1900" max="2100"
                       placeholder="${textoApp("Ej. 2019", "e.g. 2019")}"
            value="${safe(v.anio || "")}">
-<label class="label">${textoApp("Monto inicial del préstamo ($)", "Original loan amount ($)")}</label>
+<label class="label">${textoImporte("Monto inicial del préstamo", "Original loan amount")}</label>
 <input name="montoInicial" type="number"
        min="0.01" step="0.01"
               placeholder="${textoApp("Ej. 45000", "e.g. 45000")}"
@@ -7985,12 +8011,12 @@ function tarjetas(){
                 placeholder="${textoApp("Ej. American Express", "e.g. American Express")}"
         maxlength="80" required>
 
-            <label for="tarjetaSaldo">${textoApp("Deuda actual ($)", "Current debt ($)")}</label>
+            <label for="tarjetaSaldo">${textoImporte("Deuda actual", "Current debt")}</label>
       <input id="tarjetaSaldo" name="saldo"
         type="number" min="0" step="0.01"
         placeholder="0.00" required>
 
-            <label for="tarjetaLimite">${textoApp("Límite de crédito ($)", "Credit limit ($)")}</label>
+            <label for="tarjetaLimite">${textoImporte("Límite de crédito", "Credit limit")}</label>
       <input id="tarjetaLimite" name="limite"
         type="number" min="0" step="0.01"
         placeholder="0.00" required>
@@ -8174,7 +8200,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
                   pattern="[0-9]{4}" maxlength="4" placeholder="1234" value="${safe(t.ultimos4 || "")}">
               </div>
               <div class="credito-form-campo">
-                <label for="minimoCredito${i}">${textoApp("Pago mínimo ($)", "Minimum payment ($)")}</label>
+                <label for="minimoCredito${i}">${textoImporte("Pago mínimo", "Minimum payment")}</label>
                 <input id="minimoCredito${i}" name="pagoMinimo" type="number" min="0" step="0.01"
                   placeholder="0.00" value="${safe(t.pagoMinimo ?? "")}">
               </div>
@@ -8224,7 +8250,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
               <select id="cuentaPagoTarjeta${i}" name="bancoId" required>${opcionesCuentasPago(t.id)}</select>
             </div>
             <div class="credito-form-campo">
-              <label for="montoPagoTarjeta${i}">${textoApp("Cantidad pagada ($)", "Amount paid ($)")}</label>
+              <label for="montoPagoTarjeta${i}">${textoImporte("Cantidad pagada", "Amount paid")}</label>
               <input id="montoPagoTarjeta${i}" name="monto" type="number"
                 min="0.01" step="0.01" placeholder="0.00" required>
             </div>
@@ -8705,8 +8731,8 @@ function suscripciones() {
           ${camposServicioHogar()}
           <fieldset class="subs-precios"><legend>${textoApp("Importe del servicio", "Service price")}</legend>
             <div class="subs-dos-columnas">
-              <label class="subs-campo">${textoApp("Precio mensual ($)", "Monthly price ($)")}<input name="precioMensual" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></label>
-              <label class="subs-campo">${textoApp("Precio anual ($)", "Yearly price ($)")}<input name="precioAnual" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+              <label class="subs-campo">${textoImporte("Precio mensual", "Monthly price")}<input name="precioMensual" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+              <label class="subs-campo">${textoImporte("Precio anual", "Yearly price")}<input name="precioAnual" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></label>
             </div>
             <p class="subs-ayuda">${textoApp("Anual: mensual × 12. Puedes ajustar el precio si tienes un descuento. Cada 14 días usa el primer importe por cobro.", "Yearly: monthly × 12. Adjust the price if you have a discount. Every 14 days uses the first amount per charge.")}</p>
           </fieldset>
@@ -8877,10 +8903,10 @@ function abrirFormularioMetaAhorro(ident=null) {
   try {cuentas=cuentasMetasAhorro().filter(c=>c.tipo==="ahorro");}catch(error){alert(error.message);return;}
   const v=crearVentanaApariencia(meta?textoApp("Editar meta","Edit goal"):textoApp("Nueva meta","New goal"),`<form class="meta-form">
     <label>${textoApp("Nombre de la meta","Goal name")}<input name="nombre" maxlength="80" value="${safe(meta?.nombre||'')}" placeholder="${textoApp('Fondo de emergencia','Emergency fund')}" required></label>
-    <label>${textoApp("Objetivo ($)","Target ($)")}<input name="objetivo" type="number" inputmode="decimal" min="0.01" step="0.01" value="${meta?Number(meta.objetivo):''}" placeholder="0.00" required></label>
+    <label>${textoImporte("Objetivo", "Target")}<input name="objetivo" type="number" inputmode="decimal" min="0.01" step="0.01" value="${meta?Number(meta.objetivo):''}" placeholder="0.00" required></label>
     <label>${textoApp("Seguimiento","Tracking")}<select name="cuentaId"><option value="">${textoApp("Registrar manualmente","Record manually")}</option>${cuentas.map(c=>`<option value="${safe(c.id)}" ${String(meta?.cuentaId||'')===String(c.id)?'selected':''}>${safe(c.nombre)} · ${money(c.saldo)}</option>`).join('')}</select></label>
     <p class="note" data-meta-vinculo>${textoApp("Al vincular, la meta usa el saldo completo de esa cuenta. Cada cuenta puede vincularse a una meta. Vincular no mueve dinero.","Linked goals use the full account balance. Each account can link to one goal. Linking does not move money.")}</p>
-    ${!meta?`<label data-meta-inicial>${textoApp("Ya tengo ahorrado ($)","Already saved ($)")}<input name="inicial" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>`:''}
+    ${!meta?`<label data-meta-inicial>${textoImporte("Ya tengo ahorrado", "Already saved")}<input name="inicial" type="number" inputmode="decimal" min="0" step="0.01" value="0"></label>`:''}
     <label>${textoApp("Fecha objetivo (opcional)","Target date (optional)")}<input name="fecha" type="date" value="${safe(meta?.fecha||'')}"></label>
     <p class="note">${textoApp("La vinculación solo consulta el saldo. Puedes hacer depósitos o transferencias desde Cuentas bancarias.","Linking reads the balance. You can record deposits or transfers from Bank accounts.")}</p>
     <p data-meta-error class="cuenta-nueva-error" role="alert" hidden></p><button type="submit" class="meta-avance">${textoApp("Guardar meta","Save goal")}</button>
@@ -8906,7 +8932,7 @@ function abrirAvanceMetaAhorro(ident) {
   const r=resumenMetaAhorro(meta);
   const v=crearVentanaApariencia(textoApp("Registrar avance","Record progress"),`<form class="meta-form"><strong>${safe(meta.nombre)}</strong><p class="note">${textoApp("Ahorro registrado: ","Recorded savings: ")}${money(r.ahorrado)}</p>
     <label>${textoApp("Tipo","Type")}<select name="tipo"><option value="aporte">${textoApp("Añadir ahorro","Add savings")}</option><option value="retiro">${textoApp("Reducir ahorro","Reduce savings")}</option></select></label>
-    <label>${textoApp("Importe ($)","Amount ($)")}<input name="monto" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required></label>
+    <label>${textoImporte("Importe", "Amount")}<input name="monto" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required></label>
     <label>${textoApp("Fecha","Date")}<input name="fecha" type="date" value="${today()}" required></label>
     <label>${textoApp("Nota (opcional)","Note (optional)")}<input name="nota" maxlength="120" placeholder="${textoApp('Ej. Ahorro de esta semana','E.g. This week’s savings')}"></label>
     <p class="note">${textoApp("Este avance no registra ingresos, gastos ni transferencias.","This entry does not record income, expenses or transfers.")}</p><p data-meta-error class="cuenta-nueva-error" role="alert" hidden></p><button class="meta-avance" type="submit">${textoApp("Guardar avance","Save progress")}</button></form>`,true);
@@ -9151,7 +9177,8 @@ const CLAVES_PREFERENCIAS_RESPALDO = Object.freeze([
   "balanceone-orden-inicio-bancos",
   "balanceone-orden-inicio-credito",
   "balanceone-idioma",
-  "balanceone-formato-importes",
+  CLAVE_FORMATO_IMPORTES,
+  CLAVE_MONEDA_IMPORTES,
   "balanceone-diseno-inicio",
   CLAVE_TARJETAS_INICIO,
   "balanceone-tamano-texto",
@@ -9689,8 +9716,8 @@ function deudas() {
 function abrirNuevoPrestamo() {
   const campos = [
     ["nombre", "Banco o aplicación", "Bank or app", "text"],
-    ["saldo", "Saldo pendiente ($)", "Outstanding balance ($)", "number"],
-    ["cuota", "Importe de la cuota ($)", "Installment amount ($)", "number"],
+    ["saldo", "Saldo pendiente", "Outstanding balance", "number"],
+    ["cuota", "Importe de la cuota", "Installment amount", "number"],
     ["proximo", "Próximo vencimiento", "Next due date", "date"],
     ["fin", "Último pago previsto", "Expected final payment", "date"]
   ];
@@ -9700,7 +9727,7 @@ function abrirNuevoPrestamo() {
     `
       <form id="formPrestamoCompacto">
         ${campos.map(([nombre, es, en, tipo]) => `
-          <label for="prestamo-${nombre}">${textoApp(es, en)}</label>
+          <label for="prestamo-${nombre}">${tipo === "number" ? textoImporte(es, en) : textoApp(es, en)}</label>
           <input id="prestamo-${nombre}" name="${nombre}"
             type="${tipo}" required
             ${tipo === "number" ? 'min="0.01" step="0.01"' : ""}
@@ -9909,7 +9936,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.4.7 Beta</p>
+      <p class="ajustes-version">Balance One · 0.4.8 Beta</p>
     </section>
   `;
 }
@@ -10030,28 +10057,27 @@ async function guardarPerfilLocal(event) {
   }
 }
 
-function preferenciasPerfil() {
-  const formato = localStorage.getItem(
-    "balanceone-formato-importes"
-  ) || "en-US";
+function preferenciasPerfil(desdeAjustes = false) {
+  const formato = formatoImportesActual();
 
   el().innerHTML = `
     <section class="ajustes-pantalla">
-      <button class="ajustes-volver" onclick="perfil()">
-        ‹ ${textoApp("Mi perfil", "My profile")}
+      <button class="ajustes-volver" onclick="${desdeAjustes ? 'ajustes()' : 'perfil()'}">
+        ‹ ${desdeAjustes ? textoApp("Ajustes", "Settings") : textoApp("Mi perfil", "My profile")}
       </button>
 
-      <h2>${textoApp("Preferencias", "Preferences")}</h2>
+      <h2>${desdeAjustes ? textoApp("Moneda y formato", "Currency and format") : textoApp("Preferencias", "Preferences")}</h2>
 
       <div class="card" style="border-radius:30px;margin-top:20px">
-        <h3>${textoApp("Moneda", "Currency")}</h3>
-        <p>${textoApp(
-          "USD · Dólar estadounidense",
-          "USD · US dollar"
-        )}</p>
+        <label for="monedaImportes">${textoApp("Moneda", "Currency")}</label>
+        <select id="monedaImportes" style="border-radius:999px"
+                onchange="guardarMonedaImportes(this.value, ${desdeAjustes})">
+          <option value="USD">${textoApp("USD · Dólar estadounidense ($)", "USD · US dollar ($)")}</option>
+          <option value="EUR">${textoApp("EUR · Euro (€)", "EUR · Euro (€)")}</option>
+        </select>
         <p class="note">${textoApp(
-          "Tus registros actuales están expresados en dólares.",
-          "Your current records are in US dollars."
+          "La moneda elegida se muestra en todos tus importes. Si cambias de moneda, las cifras guardadas conservan su valor numérico, sin conversión.",
+          "The selected currency is shown on all amounts. Changing the currency keeps the stored numbers as entered, without conversion."
         )}</p>
       </div>
 
@@ -10063,15 +10089,9 @@ function preferenciasPerfil() {
 
         <select id="formatoImportes"
                 style="border-radius:999px"
-                onchange="guardarFormatoImportes(this.value)">
-          <option value="en-US">${textoApp(
-            "Estados Unidos · $1,234.56",
-            "United States · $1,234.56"
-          )}</option>
-          <option value="es-ES">${textoApp(
-            "España · 1.234,56 US$",
-            "Spain · 1.234,56 US$"
-          )}</option>
+                onchange="guardarFormatoImportes(this.value, ${desdeAjustes})">
+          <option value="en-US">${textoApp("Estados Unidos", "United States")}</option>
+          <option value="es-ES">${textoApp("España", "Spain")}</option>
         </select>
 
         <p class="note">${textoApp(
@@ -10088,7 +10108,7 @@ function preferenciasPerfil() {
 
         <select id="idiomaPerfil"
                 style="border-radius:999px"
-                onchange="guardarIdiomaApp(this.value)">
+                onchange="guardarIdiomaApp(this.value, ${desdeAjustes})">
           <option value="es">Español</option>
           <option value="en">English</option>
         </select>
@@ -10101,27 +10121,39 @@ function preferenciasPerfil() {
     </section>
   `;
 
+  document.getElementById("monedaImportes").value = monedaActual();
   document.getElementById("formatoImportes").value = formato;
   document.getElementById("idiomaPerfil").value = idiomaActual();
   aplicarIdiomaGeneral();
   window.scrollTo(0, 0);
 }
 
-function guardarFormatoImportes(formato) {
-  if (!["en-US", "es-ES"].includes(formato)) return;
-
-  try {
-    localStorage.setItem("balanceone-formato-importes", formato);
-    preferenciasPerfil();
-  } catch {
-        alert(textoApp("No se pudo guardar la preferencia.", "Could not save the preference."));
+function guardarMonedaImportes(moneda, desdeAjustes) {
+  if (Object.hasOwn(MONEDAS_IMPORTES, moneda)) {
+    guardarPreferenciaImportes(CLAVE_MONEDA_IMPORTES, moneda, desdeAjustes);
   }
+}
+
+function guardarFormatoImportes(formato, desdeAjustes) {
+  if (FORMATOS_IMPORTES.includes(formato)) {
+    guardarPreferenciaImportes(CLAVE_FORMATO_IMPORTES, formato, desdeAjustes);
+  }
+}
+
+function guardarPreferenciaImportes(clave, valor, desdeAjustes) {
+  try {
+    localStorage.setItem(clave, valor);
+  } catch {
+    alert(textoApp("No se pudo guardar la preferencia.", "Could not save the preference."));
+  }
+  preferenciasPerfil(desdeAjustes);
 }
 
 function iconoAjuste(tipo) {
   const dibujos = {
     cuenta: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2Z"/>',
     apariencia: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
+    dinero: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18M7 15h4"/>',
     avisos: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
     datos: '<path d="M7 18H6a4 4 0 0 1-1-8 7 7 0 0 1 13-2 5 5 0 0 1 0 10h-1M12 12v10M9 15l3-3 3 3"/>',
     privacidad: '<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/>',
@@ -10145,6 +10177,11 @@ function ajustes() {
       "apariencia",
       textoApp("Apariencia", "Appearance"),
       textoApp("Diseño de inicio, tema y texto", "Home layout, theme and text")
+    ],
+    [
+      "dinero",
+      textoApp("Moneda y formato", "Currency and format"),
+      textoApp("Dólar, euro y formato de los importes", "Dollar, euro and number format")
     ],
     [
       "avisos",
@@ -10195,13 +10232,14 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.4.7 Beta
+        ${textoApp("Versión", "Version")} 0.4.8 Beta
       </p>
     </section>
   `;
 }
 
 function abrirAjuste(tipo) {
+  if (tipo === "dinero") return preferenciasPerfil(true);
   const t = textoApp;
 
   const pantallas = {
@@ -10456,7 +10494,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.4.7 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.4.8 Beta</p>
         </div>`
     }
   };
@@ -10621,7 +10659,7 @@ function abrirImportacionApplePay(compra) {
         <label for="applePayComercio">${textoApp("Comercio", "Merchant")}</label>
         <input id="applePayComercio" name="comercio" maxlength="80" value="${safe(compra.comercio)}" required>
 
-        <label for="applePayMonto">${textoApp("Cantidad ($)", "Amount ($)")}</label>
+        <label for="applePayMonto">${textoApp("Cantidad (USD)", "Amount (USD)")}</label>
         <input id="applePayMonto" name="monto" type="number" min="0.01" max="1000000" step="0.01" value="${compra.monto.toFixed(2)}" required>
 
         <label for="applePayDestino">${textoApp("Cuenta o tarjeta utilizada", "Account or card used")}</label>
@@ -10796,11 +10834,11 @@ function abrirNuevaCuenta() {
         </select>
       </label>
       <div class="cuenta-nueva-importes">
-        <label>${textoApp("Saldo inicial ($)", "Starting balance ($)")}
+        <label>${textoImporte("Saldo inicial", "Starting balance")}
           <input name="saldo" type="number" min="0" step="0.01" inputmode="decimal"
             required placeholder="0.00">
         </label>
-        <label>${textoApp("Meta ($)", "Goal ($)")}
+        <label>${textoImporte("Meta", "Goal")}
           <input name="meta" type="number" min="0" step="0.01" inputmode="decimal"
             required value="0">
         </label>
@@ -10933,7 +10971,7 @@ function abrirCuentaBanco(identificador) {
           ${destinos.map(c => `<option value="${safe(String(c.id))}">${safe(c.nombre)} · ${c.tipo === "ahorro" ? textoApp("Ahorros", "Savings") : textoApp("Cheques", "Checking")}</option>`).join("")}</select>
       </label>
       <p class="note" data-sin-destino hidden>${textoApp("Agrega otra cuenta bancaria para transferir entre tus cuentas.", "Add another bank account to transfer between accounts.")}</p>
-      <label>${textoApp("Importe ($)", "Amount ($)")}<input name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required></label>
+      <label>${textoImporte("Importe", "Amount")}<input name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required></label>
       <p class="cuenta-nueva-error" data-error-cuenta role="alert" hidden></p>
       <p class="cuenta-operacion-nota">${textoApp("Registra la operación en Balance One. No envía dinero a través del banco.", "Records the transaction in Balance One. Does not send money through your bank.")}</p>
       <button type="submit" class="cuenta-nueva-guardar">${textoApp("Guardar depósito", "Save deposit")}</button>
@@ -11415,7 +11453,7 @@ function abrirMovVentana(copia = null) {
   extras.innerHTML = camposExtraMovimiento();
   document.getElementById("movCategoriaSelector").open = false;
   importeVentana = copia && validAmount(Number(copia.monto)) ? round(Number(copia.monto)).toFixed(2) : "";
-  document.getElementById("movVentanaMonto").textContent = "$" + (importeVentana || "0.00");
+  document.getElementById("movVentanaMonto").textContent = formatearBorradorImporte(importeVentana);
   document.getElementById("movVentanaFecha").value = today();
   document.getElementById("movVentanaTitulo").textContent = copia
     ? textoApp("Duplicar gasto", "Duplicate expense")
@@ -11458,7 +11496,11 @@ const tecladoVentana = document.getElementById("movVentanaTeclado");
   const boton = document.createElement("button");
   boton.type = "button";
   boton.textContent = tecla;
-  boton.setAttribute("aria-label", tecla === "⌫" ? "Borrar cifra" : tecla);
+  if (tecla === ".") {
+    boton.dataset.teclaDecimal = "";
+    boton.textContent = formatoImportesActual() === "es-ES" ? "," : ".";
+  }
+  boton.setAttribute("aria-label", tecla === "⌫" ? textoApp("Borrar cifra", "Delete digit") : boton.textContent);
   boton.style.cssText =
     "padding:11px;border:0;border-radius:999px;" +
     "background:rgba(150,160,180,.2);color:inherit;font-size:1.4rem";
@@ -11478,7 +11520,7 @@ const tecladoVentana = document.getElementById("movVentanaTeclado");
     }
 
     document.getElementById("movVentanaMonto").textContent =
-      "$" + (importeVentana || "0.00");
+      formatearBorradorImporte(importeVentana);
   };
 
   tecladoVentana.appendChild(boton);
@@ -11782,7 +11824,7 @@ function editarCuentaBanco(identificador) {
       </select>
 
       <label for="bancoEditarMeta">
-        ${textoApp("Meta de ahorro ($)", "Savings goal ($)")}
+        ${textoImporte("Meta de ahorro", "Savings goal")}
       </label>
       <input id="bancoEditarMeta" name="meta"
         type="number" min="0" step="0.01" required
@@ -12658,6 +12700,11 @@ function traducirMenusVentana() {
   poner('#movVentanaTipo option[value="gasto"]', "Gasto", "Expense");
   poner('#movVentanaTipo option[value="ingreso"]', "Ingreso", "Income");
   poner("#movVentanaForm .mov-guardar", "Guardar", "Save");
+  const teclaDecimal = document.querySelector("[data-tecla-decimal]");
+  if (teclaDecimal) {
+    teclaDecimal.textContent = formatoImportesActual() === "es-ES" ? "," : ".";
+    teclaDecimal.setAttribute("aria-label", teclaDecimal.textContent);
+  }
   poner("#amMenu h3", "Herramientas", "Tools");
   const cerrarHerramientas = document.getElementById("amMenuCerrar");
   if (cerrarHerramientas) cerrarHerramientas.setAttribute(
@@ -12890,14 +12937,14 @@ function abrirCalculadora(tipo) {
   if (tipo === "tarjeta") {
     campos.push(campo(
       "pago",
-      textoApp("Pago mensual ($)", "Monthly payment ($)"),
+      textoImporte("Pago mensual", "Monthly payment"),
       100, 0.01, 1e9, 0.01
     ));
   } else {
     if (tipo === "ahorro") {
       campos.push(campo(
         "aporte",
-        textoApp("Aportación mensual ($)", "Monthly contribution ($)"),
+        textoImporte("Aportación mensual", "Monthly contribution"),
         100, 0, 1e9, 0.01
       ));
     }
@@ -14048,7 +14095,7 @@ function prepararFacturaServicio(datos, identificador, fecha, importe) {
 function abrirFacturaServicio(identificador, fecha) {
   const evento = suscripcionesDelMes(fecha.slice(0,7)).find(s => String(s.id) === String(identificador) && s.fecha === fecha && s.categoria === "servicios");
   if (!evento) return;
-  const ventana = crearVentanaApariencia(textoApp("Factura del mes", "Monthly bill"), `<form class="cuenta-nueva-form"><strong>${safe(evento.nombre)}</strong><p class="note">${safe(fecha)} · ${textoApp("Este importe solo cambia esta factura. Guardarlo no registra un gasto.", "This amount only changes this bill. Saving does not record an expense.")}</p><label>${textoApp("Importe de esta factura ($)", "This bill's amount ($)")}<input name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required value="${validAmount(evento.monto) ? Number(evento.monto).toFixed(2) : ""}"></label><button type="submit" class="cuenta-nueva-guardar">${textoApp("Guardar importe", "Save amount")}</button><button type="button" data-pagar class="cuenta-nueva-guardar">${textoApp("Registrar pago", "Record payment")}</button></form>`, true);
+  const ventana = crearVentanaApariencia(textoApp("Factura del mes", "Monthly bill"), `<form class="cuenta-nueva-form"><strong>${safe(evento.nombre)}</strong><p class="note">${safe(fecha)} · ${textoApp("Este importe solo cambia esta factura. Guardarlo no registra un gasto.", "This amount only changes this bill. Saving does not record an expense.")}</p><label>${textoImporte("Importe de esta factura", "This bill's amount")}<input name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required value="${validAmount(evento.monto) ? Number(evento.monto).toFixed(2) : ""}"></label><button type="submit" class="cuenta-nueva-guardar">${textoApp("Guardar importe", "Save amount")}</button><button type="button" data-pagar class="cuenta-nueva-guardar">${textoApp("Registrar pago", "Record payment")}</button></form>`, true);
   if (!ventana) return;
   ventana.classList.add("cuenta-nueva");
   const form = ventana.querySelector("form");
@@ -14074,7 +14121,7 @@ function registrarCobroProgramado(identificador, fecha) {
   const ventana=crearVentanaApariencia(textoApp("Registrar gasto", "Record expense"),`<form class="cuenta-nueva-form">
     <p><strong>${safe(registro.nombre)}</strong> · ${safe(fecha)}</p>
     <label>${textoApp("Pagar con", "Pay with")}<select name="origen" required>${opcionesCuentasPago()}</select></label>
-    <label>${textoApp("Importe ($)", "Amount ($)")}<input name="monto" type="number" min="0.01" step="0.01" value="${validAmount(suscripcionesDelMes(fecha.slice(0,7)).find(s=>String(s.id)===String(identificador) && s.fecha===fecha)?.monto) ? Number(suscripcionesDelMes(fecha.slice(0,7)).find(s=>String(s.id)===String(identificador) && s.fecha===fecha).monto).toFixed(2) : ""}" required></label>
+    <label>${textoImporte("Importe", "Amount")}<input name="monto" type="number" min="0.01" step="0.01" value="${validAmount(suscripcionesDelMes(fecha.slice(0,7)).find(s=>String(s.id)===String(identificador) && s.fecha===fecha)?.monto) ? Number(suscripcionesDelMes(fecha.slice(0,7)).find(s=>String(s.id)===String(identificador) && s.fecha===fecha).monto).toFixed(2) : ""}" required></label>
     <button type="submit" class="cuenta-nueva-guardar">${textoApp("Guardar gasto", "Save expense")}</button></form>`,true);
   if (!ventana) return;
   ventana.classList.add("cuenta-nueva");
@@ -14211,8 +14258,8 @@ function abrirFormularioSuscripcionCalendario(indice = null) {
       </label>
       ${camposServicioHogar(actual)}
       <div class="suscripcion-precios">
-        ${campo("precioMensual", textoApp("Precio mensual ($)", "Monthly price ($)"), "number", actual.precioMensual ?? (actual.frecuencia !== "anual" ? actual.monto ?? "" : ""), 'min="0.01" step="0.01" placeholder="0.00"')}
-        ${campo("precioAnual", textoApp("Precio anual ($)", "Yearly price ($)"), "number", actual.precioAnual ?? (actual.frecuencia === "anual" ? actual.monto ?? "" : ""), 'min="0.01" step="0.01" placeholder="0.00"')}
+        ${campo("precioMensual", textoImporte("Precio mensual", "Monthly price"), "number", actual.precioMensual ?? (actual.frecuencia !== "anual" ? actual.monto ?? "" : ""), 'min="0.01" step="0.01" placeholder="0.00"')}
+        ${campo("precioAnual", textoImporte("Precio anual", "Yearly price"), "number", actual.precioAnual ?? (actual.frecuencia === "anual" ? actual.monto ?? "" : ""), 'min="0.01" step="0.01" placeholder="0.00"')}
       </div>
       <p class="note suscripcion-ayuda">${textoApp(
         "Anual calcula mensual × 12; puedes ajustar el precio anual. Cada 14 días usa el primer importe por cobro.",
@@ -14538,17 +14585,14 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
         </select>
 
         <label for="pagoPrestamoMonto">
-          ${textoApp("Cantidad pagada ($)", "Amount paid ($)")}
+          ${textoImporte("Cantidad pagada", "Amount paid")}
         </label>
         <input id="pagoPrestamoMonto" name="monto"
           type="number" min="0.01" step="0.01"
           value="${desglose.sugerido.toFixed(2)}" required>
 
         <label for="pagoPrestamoInteres">
-          ${textoApp(
-            "Intereses incluidos en el pago ($)",
-            "Interest included in this payment ($)"
-          )}
+          ${textoImporte("Intereses incluidos en el pago", "Interest included in this payment")}
         </label>
         <input id="pagoPrestamoInteres" name="intereses"
           type="number" min="0" step="0.01"
@@ -14756,7 +14800,7 @@ function conectarEstimacionPrestamo(form) {
       <label>${textoApp("Fecha de inicio", "Loan start date")}</label>
       <input data-inicio type="date">
 
-      <label>${textoApp("Monto original ($)", "Original amount ($)")}</label>
+      <label>${textoImporte("Monto original", "Original amount")}</label>
       <input data-original type="number" min="0.01" step="0.01">
 
       <label>${textoApp("Tasa anual fija (%)", "Fixed annual rate (%)")}</label>
@@ -15114,10 +15158,10 @@ function abrirContratoPrestamo(indice) {
   const prestamoId = p.id;
   const c = p.contrato || {};
   const campos = [
-    ["original", "Monto original ($)", "Original amount ($)",
+    ["original", "Monto original", "Original amount",
       c.montoOriginal ?? p.montoOriginal ?? ""],
-    ["intereses", "Intereses totales del contrato ($)",
-      "Total contract interest ($)", c.interesesTotales ?? ""],
+    ["intereses", "Intereses totales del contrato",
+      "Total contract interest", c.interesesTotales ?? ""],
     ["tasa", "Tasa anual APR (%) · opcional",
       "Annual APR (%) · optional",
       c.tasaAnual ?? p.tasaAnualInicial ?? ""]
@@ -15129,7 +15173,7 @@ function abrirContratoPrestamo(indice) {
       <p><strong>${safe(p.nombre)}</strong></p>
       <form>
         ${campos.map(([nombre, es, en, valor]) => `
-          <label for="contrato-${nombre}">${textoApp(es,en)}</label>
+          <label for="contrato-${nombre}">${nombre === "tasa" ? textoApp(es, en) : textoImporte(es, en)}</label>
           <input id="contrato-${nombre}" name="${nombre}"
             type="number" min="${nombre === "original" ? "0.01" : "0"}"
             step="any" value="${safe(String(valor))}"
@@ -15209,7 +15253,7 @@ function abrirContratoPrestamo(indice) {
 function abrirPrestamoCompacto() {
   const campo = (nombre, es, en, tipo, opciones = "") => `
     <label style="display:block;min-width:0">
-      <span class="label">${textoApp(es,en)}</span>
+      <span class="label">${["original","cuota","saldoActual"].includes(nombre) ? textoImporte(es,en) : textoApp(es,en)}</span>
       <input name="${nombre}" type="${tipo}" ${opciones}
         style="box-sizing:border-box;width:100%;min-width:0;
         margin:5px 0 0;padding:10px 12px;border-radius:16px">
@@ -15287,8 +15331,8 @@ function abrirPrestamoCompacto() {
           <div data-saldo-anterior hidden>
             ${campo(
               "saldoActual",
-              "Capital pendiente actual ($)",
-              "Current outstanding principal ($)",
+              "Capital pendiente actual",
+              "Current outstanding principal",
               "number",'min="0.01" step="0.01"'
             )}
             <p class="note">${textoApp(
