@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.3.5 Beta</title>
+<title>Balance One 0.3.8 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -2811,7 +2811,7 @@ html.tema-oscuro .pp28 .pp28-stat small,html.tema-oscuro .pp28 .pp28-status em,h
 .mov28 .hist-importe {text-align:right;font-size:.8rem;letter-spacing:-.015em}
 .mov28 .hist-menu {width:26px;height:34px;border-radius:50%;font-size:19px;color:#8290a0}
 .mov28 .hist-menu:focus-visible,.mov28 .hist-filtros button:focus-visible,.mov28 .mov28-enlace:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
-.mov28 .hist-acciones {padding:6px 8px 4px}
+.mov28 .hist-acciones {padding:6px 8px 4px;flex-wrap:wrap}
 .mov28 .hist-acciones button {border-radius:999px}
 .mov28 #histBusqueda input {background:rgba(137,149,165,.065);border:1px solid rgba(137,149,165,.12);margin-bottom:12px}
 html.tema-oscuro .mov28 .mov28-enlace {background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.08);color:#ffac65}
@@ -3792,7 +3792,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.3.5 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.3.8 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4004,8 +4004,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.3.5 Beta",
-      "Smart control of your finances · 0.3.5 Beta"
+      "Control inteligente de tus finanzas · 0.3.8 Beta",
+      "Smart control of your finances · 0.3.8 Beta"
     );
   }
 }
@@ -5818,6 +5818,22 @@ function guardarPagoConOrigen(anterior,nuevo) {
   } catch(error) {alert(error.message || textoApp("No se pudo guardar el pago", "Could not save payment"));return false;}
 }
 
+function valorOrigenMovimiento(movimiento) {
+  if (movimiento.tarjetaId != null && movimiento.tarjetaId !== "") {
+    return "credito:" + movimiento.tarjetaId;
+  }
+  return String(movimiento.cuentaId ?? "");
+}
+
+function firmaGasto(movimiento) {
+  if (movimiento?.tipo !== "gasto") return "";
+  const nombre = claveNotaGasto(movimiento.nombre);
+  const origen = valorOrigenMovimiento(movimiento);
+  const monto = Number(movimiento.monto);
+  if (!nombre || !origen || !validAmount(monto) || !validDate(movimiento.fecha)) return "";
+  return JSON.stringify([nombre, origen, movimiento.fecha, Math.round(monto * 100)]);
+}
+
 function guardarMovimientoBanco(anterior, nuevo) {
   const claveBanco = "amfinance-cuentas-banco";
   const datosPrevios = localStorage.getItem(KEY);
@@ -5961,6 +5977,14 @@ const datosNuevos = {
   tarjetas: tarjetasActualizadas,
   prestamos: prestamosActualizados
 };
+
+    const firma = firmaGasto(nuevo);
+    if (firma && firma !== firmaGasto(anterior) &&
+        data.movimientos.some(m => (!anterior || m.id !== anterior.id) && firmaGasto(m) === firma) &&
+        !confirm(textoApp(
+          "Ya hay un gasto con el mismo nombre, importe, fecha y cuenta. ¿Quieres guardar este gasto también?",
+          "An expense with the same name, amount, date and account already exists. Save this expense too?"
+        ))) return false;
 
     try {
       localStorage.setItem(
@@ -6295,6 +6319,10 @@ render();
 };
 }
 
+function gastoDuplicable(m) {
+  return m?.tipo === "gasto" && !m.esPago && !m.prestamoId && !m.suscripcionId;
+}
+
 function filaHistorial(m, i, anterior) {
   return `
       ${anterior == null || String(anterior.fecha) !== String(m.fecha) ? `
@@ -6354,6 +6382,7 @@ function filaHistorial(m, i, anterior) {
           <div class="hist-acciones">
             <button type="button"
               data-hist-editar="${i}">${textoApp("Editar", "Edit")}</button>
+            ${gastoDuplicable(m) ? `<button type="button" data-hist-duplicar="${i}">${textoApp("Duplicar", "Duplicate")}</button>` : ""}
             <button type="button"
               data-hist-eliminar="${i}">${textoApp("Eliminar", "Delete")}</button>
           </div>
@@ -6555,7 +6584,7 @@ function iniciarHistorialMovimientos() {
     }
   };
   lista.onclick = evento => {
-    const boton = evento.target.closest("[data-hist-menu], [data-hist-editar], [data-hist-eliminar]");
+    const boton = evento.target.closest("[data-hist-menu], [data-hist-editar], [data-hist-duplicar], [data-hist-eliminar]");
     if (!boton) return;
     if (boton.dataset.histMenu !== undefined) {
       const opciones = document.getElementById("histOpciones" + boton.dataset.histMenu);
@@ -6563,13 +6592,22 @@ function iniciarHistorialMovimientos() {
       boton.setAttribute("aria-expanded",String(abrir));
       return;
     }
-    const editarRegistro = boton.dataset.histEditar !== undefined;
-    const movimiento = items[Number(editarRegistro ? boton.dataset.histEditar : boton.dataset.histEliminar)];
+    const {histEditar,histDuplicar,histEliminar} = boton.dataset;
+    const movimiento = items[Number(histEditar ?? histDuplicar ?? histEliminar)];
     if (!movimiento || movimiento.esTransferencia) return;
-    if (editarRegistro) editar(movimiento.origen,movimiento.id);
+    if (histEditar !== undefined) editar(movimiento.origen,movimiento.id);
+    else if (histDuplicar !== undefined) abrirMovVentana(movimiento);
     else eliminar(movimiento.origen,movimiento.id);
   };
   filtrar(false);
+}
+
+function opcionesCategoriaEdicion(categoria) {
+  const actual = String(categoria ?? "");
+  const opciones = Array.from(document.getElementById("movVentanaCategoria").options)
+    .filter(o => !o.hasAttribute("data-categoria-copia"));
+  if (actual && !opciones.some(o => o.value === actual)) opciones.push({value:actual,textContent:actual});
+  return opciones.map(o => `<option value="${safe(o.value)}" ${o.value === actual ? "selected" : ""}>${safe(o.textContent)}</option>`).join("");
 }
 
 function editor(m){
@@ -6593,6 +6631,8 @@ function editor(m){
         `}
         <label class="label">${textoApp("Descripción", "Description")}</label>
     <input name="nombre" maxlength="80" value="${safe(m.nombre)}" required>
+    <label class="label" for="histEditarCategoria">${textoApp("Categoría", "Category")}</label>
+    <select id="histEditarCategoria" name="categoria">${opcionesCategoriaEdicion(m.categoria)}</select>
    `}
       <label class="label">${textoApp("Cantidad ($)", "Amount ($)")}</label>
    <input name="monto" type="number" min="0.01" step="0.01" value="${m.monto}" required>
@@ -6683,7 +6723,8 @@ const corregido = {
   nombre,
   tipo: f.get("tipo"),
   monto,
-  fecha
+  fecha,
+  categoria: f.has("categoria") ? String(f.get("categoria")) : item.categoria
 };
 
 if (!guardarMovimientoBanco(item, corregido)) return;
@@ -9228,7 +9269,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.3.5 Beta</p>
+      <p class="ajustes-version">Balance One · 0.3.8 Beta</p>
     </section>
   `;
 }
@@ -9514,7 +9555,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.3.5 Beta
+        ${textoApp("Versión", "Version")} 0.3.8 Beta
       </p>
     </section>
   `;
@@ -9761,7 +9802,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.3.5 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.3.8 Beta</p>
         </div>`
     }
   };
@@ -9982,19 +10023,6 @@ function abrirImportacionApplePay(compra) {
       alert(textoApp("Esta compra ya está registrada.", "This purchase has already been recorded."));
       return;
     }
-
-    // Si no hay ID, pedimos confirmación para compras casi idénticas recientes.
-    const sospechaDuplicado = data.movimientos.some(m =>
-      m.origenAtajo === "applepay" &&
-      m.nombre.toLowerCase() === nombre.toLowerCase() &&
-      m.monto === monto && m.fecha === fecha &&
-      (cuenta.tipo === "banco" ? m.cuentaId === cuenta.id : m.tarjetaId === cuenta.id) &&
-      Date.now() - Number(m.registradoAtajos || 0) < 10 * 60 * 1000
-    );
-    if (sospechaDuplicado && !confirm(textoApp(
-      "Ya hay una compra similar reciente. ¿Quieres registrar otra?",
-      "A similar recent purchase exists. Record another one?"
-    ))) return;
 
     const movimiento = {
       id:id(), nombre, monto, fecha, tipo:"gasto",
@@ -10669,7 +10697,7 @@ function prepararSugerenciaGasto(form) {
     const opcionCategoria = categoriaGuardada && [...categoria.options].find(o =>
       o.value && o.value !== categoria.value && !o.disabled &&
       claveCategoriaGasto(o.value) === categoriaGuardada);
-    const origenGuardado = gasto.tarjetaId != null ? "credito:" + gasto.tarjetaId : String(gasto.cuentaId ?? "");
+    const origenGuardado = valorOrigenMovimiento(gasto);
     const opcionCuenta = [...cuenta.options].find(o =>
       o.value && o.value === origenGuardado && o.value !== cuenta.value && !o.disabled);
     const sugerencias = [];
@@ -10698,8 +10726,8 @@ function prepararSugerenciaGasto(form) {
   return actualizar;
 }
 
-function abrirMovVentana() {
-  if (page !== "inicio") return;
+function abrirMovVentana(copia = null) {
+  if (copia ? page !== "historialMovimientos" || !gastoDuplicable(copia) : page !== "inicio") return;
   const ventana = document.getElementById("movVentana");
   if (!ventana.classList.contains("hidden")) return;
 
@@ -10721,12 +10749,17 @@ function abrirMovVentana() {
 
   focoAntesVentana = document.activeElement;
   const form = document.getElementById("movVentanaForm");
+  const categoria = form.elements.categoria;
+  categoria.querySelector("[data-categoria-copia]")?.remove();
   form.reset();
+  delete form.dataset.guardado;
   document.getElementById("movCategoriaSelector").open = false;
-  actualizarSelectorCategoria();
-  importeVentana = "";
-  document.getElementById("movVentanaMonto").textContent = "$0.00";
+  importeVentana = copia && validAmount(Number(copia.monto)) ? round(Number(copia.monto)).toFixed(2) : "";
+  document.getElementById("movVentanaMonto").textContent = "$" + (importeVentana || "0.00");
   document.getElementById("movVentanaFecha").value = today();
+  document.getElementById("movVentanaTitulo").textContent = copia
+    ? textoApp("Duplicar gasto", "Duplicate expense")
+    : textoApp("Nuevo movimiento", "New transaction");
 
   const selector = document.getElementById("movVentanaCuenta");
   const tipo = document.getElementById("movVentanaTipo");
@@ -10736,6 +10769,21 @@ function abrirMovVentana() {
     if ([...selector.options].some(o=>o.value===previo)) selector.value=previo;
   };
   actualizarOrigen();
+  if (copia) {
+    form.elements.nombre.value = String(copia.nombre ?? "");
+    const valor = String(copia.categoria ?? "");
+    if (valor && !Array.from(categoria.options).some(o => o.value === valor)) {
+      const opcion = document.createElement("option");
+      opcion.value = valor;
+      opcion.textContent = valor;
+      opcion.setAttribute("data-categoria-copia", "");
+      categoria.append(opcion);
+    }
+    categoria.value = valor;
+    const origen = valorOrigenMovimiento(copia);
+    if (Array.from(selector.options).some(o => o.value === origen)) selector.value = origen;
+  }
+  actualizarSelectorCategoria();
   const actualizarSugerencia = prepararSugerenciaGasto(form);
   tipo.onchange = () => {
     actualizarOrigen();
@@ -10784,7 +10832,9 @@ const tecladoVentana = document.getElementById("movVentanaTeclado");
 document.getElementById("movVentanaForm").onsubmit = event => {
   event.preventDefault();
 
-  const campos = new FormData(event.target);
+  const formulario = event.currentTarget;
+  if (formulario.dataset.guardado === "si") return;
+  const campos = new FormData(formulario);
   const monto = round(Number(importeVentana));
   const nombre = String(campos.get("nombre") || "").trim();
   const fecha = String(campos.get("fecha") || "");
@@ -10813,6 +10863,7 @@ document.getElementById("movVentanaForm").onsubmit = event => {
 
   if (!guardarMovimientoBanco(null, movimiento)) return;
 
+  formulario.dataset.guardado = "si";
   cerrarMovVentana();
   render();
 };
@@ -14893,6 +14944,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
