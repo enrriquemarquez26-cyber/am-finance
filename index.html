@@ -3907,57 +3907,6 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 }
 .credito-meta-pago-importes small {font-size:inherit}
 .credito-meta-quitar {width:100%;margin-top:8px}
-.tarjetas-billetera {max-width:520px;margin-inline:auto;--billetera-acento:var(--balanceone-color,#ff7900)}
-.billetera-marca {display:flex;justify-content:center;align-items:center;gap:10px;margin:4px 0 20px;font-weight:800;font-size:1.2rem}
-.billetera-marca > span {display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--billetera-acento);color:white}
-.tarjetas-billetera .credito-cabecera h2 {font-size:clamp(1.25rem,6vw,1.85rem);letter-spacing:-.045em;line-height:1.08}
-.billetera-resumen {display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(46px,.74fr);align-items:center;margin:18px 0 28px;padding:9px 3px;border:1px solid #84909d70;border-radius:25px;background:#fff}
-.billetera-resumen > div {display:grid;justify-items:center;align-content:center;text-align:center;gap:3px;padding:0 3px;min-width:0;min-height:50px}
-.billetera-resumen > div + div {border-inline-start:1px solid #84909d42}
-.billetera-resumen svg {width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.billetera-resumen span {font-size:.63rem;line-height:1.12}
-.billetera-resumen strong {font-size:clamp(.66rem,3.25vw,1rem);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;max-width:100%}
-.billetera-resumen > div:not(.billetera-uso)::after {content:"";width:34%;height:2px;border-radius:999px;background:var(--billetera-acento);margin-top:3px}
-.billetera-anillo {display:grid;place-items:center;width:clamp(32px,10vw,47px);aspect-ratio:1;border-radius:50%;background:conic-gradient(var(--billetera-acento) var(--uso),#84909d40 0)}
-.billetera-anillo > span {display:grid;place-items:center;width:calc(100% - 7px);height:calc(100% - 7px);border-radius:50%;background:white;font-size:clamp(.6rem,2.7vw,.82rem)}
-.billetera-lista {display:grid;isolation:isolate}
-.billetera-tarjeta {position:relative;display:block;width:100%;aspect-ratio:2.6;min-height:118px;padding:14px clamp(12px,4vw,22px);overflow:hidden;text-align:start;border:1px solid #ffffff9c;border-radius:24px;color:white;font:inherit;cursor:pointer;isolation:isolate}
-.billetera-tarjeta:not(:first-child) {margin-top:-12px}
-.billetera-tarjeta:focus-visible {z-index:1;outline:3px solid var(--billetera-acento);outline-offset:1px}
-.billetera-tarjeta--grafito {background:linear-gradient(145deg,#3b3e43 0 47%,#242628 47% 62%,#141617 62%)}
-.billetera-tarjeta--azul {background:linear-gradient(145deg,#046ac1 0 50%,#0053a2 50% 61%,#05346b 61%)}
-.billetera-tarjeta--verde {background:linear-gradient(145deg,#147969 0 51%,#0c5d52 51% 63%,#083f37 63%)}
-.billetera-tarjeta--plata {color:#17202c;border-color:var(--billetera-acento);background:linear-gradient(145deg,#f9fafc 0 45%,#e3e8f5 45%,#fff0d9 83%)}
-.billetera-tarjeta--imagen {color:white}
-.billetera-tarjeta--imagen::after {content:"";position:absolute;inset:0;background:linear-gradient(180deg,#000b,#0004 70%,#0006);z-index:-1}
-.billetera-arte {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
-.billetera-arte[hidden] {display:none}
-.billetera-tarjeta-datos {position:absolute;inset:14px clamp(12px,4vw,22px) auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:6px}
-.billetera-tarjeta-datos > span {min-width:0;overflow-wrap:anywhere}
-.billetera-tarjeta-datos strong {display:block;line-height:1.12;font-size:clamp(.86rem,4vw,1.24rem);font-variant-numeric:tabular-nums}
-.billetera-tarjeta-datos small {display:block;margin-top:3px;font-size:clamp(.62rem,2.8vw,.84rem);opacity:.85;line-height:1.12}
-.billetera-nombre {display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-.billetera-tarjeta-saldo {text-align:end}
-.billetera-chip {position:absolute;left:clamp(12px,4vw,22px);bottom:20px;width:34px;fill:none;stroke:#706553;stroke-width:1}
-.billetera-chip rect {fill:#d9cbb7}
-.billetera-marca-apple {position:absolute;right:24%;bottom:18px;width:clamp(32px,12vw,62px);fill:#fff;opacity:.72;z-index:-1}
-.billetera-ayuda {width:fit-content;max-width:100%;margin:20px auto 0;padding:8px 14px;border-radius:999px;background:#84909d17;text-align:center;font-size:.75rem}
-.billetera-detalle {position:fixed;inset:auto 0 max(12px, env(safe-area-inset-bottom));margin:0 auto;width:min(460px,calc(100% - 24px));max-height:calc(100dvh - 32px);padding:0;border:1px solid #84909d44;border-radius:30px;background:#fff;color:inherit;overflow:auto;overscroll-behavior:contain;box-shadow:none}
-.billetera-detalle::backdrop {background:rgba(15,20,28,.5)}
-.billetera-detalle .credito-detalle {margin:0;padding-top:51px;border:0;box-shadow:none}
-.billetera-detalle .credito-acciones {margin-top:14px}
-.billetera-cerrar {position:absolute;inset:9px 12px auto auto;width:38px;height:38px;border:0;border-radius:50%;background:#84909d23;color:inherit;font:inherit;font-size:1.35rem;cursor:pointer}
-.billetera-detalle-saldo {display:flex;flex-wrap:wrap;gap:10px 16px;font-size:.82rem}
-.billetera-detalle-saldo strong {display:block}
-body:has(.billetera-detalle[open]) {overflow:hidden}
-html.tema-oscuro :is(.billetera-resumen,.billetera-anillo > span,.billetera-detalle) {background:#202630}
-@media (min-width:600px) {.billetera-marca {display:none}}
-@media (min-width:800px) {
-  .billetera-detalle {inset:0;margin:auto;max-height:calc(100dvh - 48px)}
-}
-@media (prefers-reduced-motion:no-preference) {
-  .billetera-detalle[open] {animation:ajustesVentanaEntrada 210ms ease-out}
-}
 </style>
 </head>
 <body>
@@ -8261,79 +8210,13 @@ function abrirMetaPagoTarjeta(indice) {
   };
 }
 
-const CLAVE_DISENO_TARJETAS = "balanceone-diseno-tarjetas";
-
-function disenoTarjetasActual() {
-  return localStorage.getItem(CLAVE_DISENO_TARJETAS) === "billetera" ? "billetera" : "actual";
-}
-
-function resumenBilleteraCredito(tarjetas) {
-  const t = textoApp;
-  let deuda = 0, limite = 0, deudaConLimite = 0, disponible = 0;
-  for (const tarjeta of tarjetas) {
-    const saldo = Number(tarjeta.saldo) || 0;
-    const linea = Math.max(0, Number(tarjeta.limite) || 0);
-    deuda += saldo;
-    if (linea > 0) {
-      limite += linea;
-      deudaConLimite += saldo;
-      disponible += Math.max(0, linea - saldo);
-    }
-  }
-  const uso = limite ? Math.round(deudaConLimite / limite * 100) : null;
-  return `<section class="billetera-resumen" aria-label="${t("Resumen de tarjetas","Card overview")}">
-    <div>${iconoAjuste("dinero")}<span>${t("Disponible","Available")}</span><strong>${limite ? money(disponible) : "—"}</strong></div>
-    <div>${iconoAjuste("respaldo")}<span>${t("Deuda total","Total debt")}</span><strong>${money(deuda)}</strong></div>
-    <div>${iconoAjuste("ordenCredito")}<span>${t("Límite total","Total limit")}</span><strong>${limite ? money(limite) : "—"}</strong></div>
-    <div class="billetera-uso" title="${t("Utilización de las tarjetas con límite configurado","Usage for cards with a configured limit")}">
-      <strong class="billetera-anillo" style="--uso:${Math.min(100, uso ?? 0)}%"><span>${uso === null ? "—" : uso + "%"}</span></strong>
-      <span>${t("Utilizado","Used")}</span>
-    </div>
-  </section>`;
-}
-
-function tarjetaBilleteraCredito(tarjeta, indice) {
-  const t = textoApp;
-  const banco = String(tarjeta.banco || tarjeta.nombre || "").toLowerCase();
-  const imagen = imagenMostradaCredito(tarjeta);
-  const apple = mostrarAppleCardAutomatica(tarjeta);
-  const tono = apple ? "plata" : /bbva|chase|amex|american express|citi/.test(banco) ? "azul"
-    : /santander|wells fargo|capital one/.test(banco) ? "grafito" : ["grafito","azul","verde"][indice % 3];
-  return `<button type="button" class="billetera-tarjeta billetera-tarjeta--${tono}${imagen ? " billetera-tarjeta--imagen" : ""}"
-    id="creditoResumen${indice}" onclick="mostrarDetalleCredito(${indice})" aria-haspopup="dialog"
-    aria-controls="billeteraDetalle${indice}">
-    ${imagen ? `<img class="billetera-arte" src="${safe(imagen)}" alt="" loading="lazy" onerror="this.hidden=true;this.parentElement.classList.remove('billetera-tarjeta--imagen')">` : ""}
-    ${apple ? `<svg class="billetera-marca-apple" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.48 7.82 8.46 7.53c1.25.07 2.12.69 2.86.74.74.01 2.11-.81 3.56-.7 1.53.12 2.69.73 3.44 1.83-3.15 1.93-2.4 6.03.48 7.18-.55 1.42-1.27 2.82-2.35 3.7zM12.03 7.25C11.88 5.12 13.6 3.35 15.6 3.18c.23 2.15-1.96 4.12-3.57 4.07z"/></svg>` : ""}
-    <span class="billetera-tarjeta-datos">
-      <span><strong class="billetera-nombre">${safe(tarjeta.nombre)}</strong>
-      ${tarjeta.ultimos4 ? `<small>•••• ${safe(tarjeta.ultimos4)}</small>` : ""}</span>
-      <span class="billetera-tarjeta-saldo"><strong>${money(tarjeta.saldo)}</strong>
-      <small>${Number(tarjeta.limite) > 0 ? t("de ", "of ") + money(tarjeta.limite) : t("Sin límite registrado","Limit not set")}</small></span>
-    </span>
-    ${imagen ? "" : `<svg class="billetera-chip" viewBox="0 0 40 30" aria-hidden="true"><rect x="1" y="1" width="38" height="28" rx="6"/><path d="M14 1v28m12-28v28M1 10h12m-12 10h12m14-10h12m-12 10h12m-13-9-6 4 6 4m-12-8 6 4-6 4"/></svg>`}
-  </button>`;
-}
-
-function mostrarDetalleCredito(indice) {
-  const detalle = document.getElementById("detalleCredito" + indice);
-  if (!detalle) return;
-  const ventana = detalle.closest(".billetera-detalle");
-  if (ventana) {
-    if (!ventana.open) ventana.showModal();
-  } else {
-    detalle.classList.remove("hidden");
-  }
-}
-
 function tarjetas(){
- const billetera = disenoTarjetasActual() === "billetera";
  el().innerHTML=`
-<div class="tarjetas-pantalla${billetera ? " tarjetas-billetera" : ""}">
-  ${billetera ? `<div class="billetera-marca"><span aria-hidden="true">B</span> Balance One</div>` : ""}
+<div class="tarjetas-pantalla">
   <div class="credito-cabecera">
   <div>
         <h2>${textoApp("Tarjetas de crédito", "Credit cards")}</h2>
-        ${billetera ? "" : `<p class="tarjetas-ayuda">${textoApp("Gestiona tus tarjetas y pagos", "Manage your cards and payments")}</p>`}
+        <p class="tarjetas-ayuda">${textoApp("Gestiona tus tarjetas y pagos", "Manage your cards and payments")}</p>
   </div>
 
   <button type="button" class="credito-agregar"
@@ -8384,10 +8267,7 @@ function tarjetas(){
     </form>
   </div>
 
- ${billetera && data.tarjetas.length ? resumenBilleteraCredito(data.tarjetas) : ""}
- ${billetera ? '<div class="billetera-lista">' : ""}
  ${data.tarjetas.map((t,i)=>`
-  ${billetera ? tarjetaBilleteraCredito(t,i) : `
   <button type="button" class="credito-fila" id="creditoResumen${i}"
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
     onclick="toggle('detalleCredito${i}')"
@@ -8470,25 +8350,18 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
                 ${textoApp("Ver opciones", "View options")} ›
       </div>
     </div>
-  </button>`}
+  </button>
 
-  ${billetera ? `<dialog class="billetera-detalle" id="billeteraDetalle${i}" aria-labelledby="billeteraTitulo${i}">
-    <button type="button" class="billetera-cerrar" onclick="this.closest('dialog').close()"
-      aria-label="${textoApp("Cerrar detalles", "Close details")}" autofocus>×</button>` : ""}
-  <div class="tarjeta-detalle credito-detalle${billetera ? "" : " hidden"}" id="detalleCredito${i}">
+  <div class="tarjeta-detalle credito-detalle hidden" id="detalleCredito${i}">
     <div class="credito-detalle-cabecera">
       <div>
         <span class="credito-detalle-sobretitulo">${textoApp("Opciones de tarjeta", "Card options")}</span>
-        <h3 id="billeteraTitulo${i}">${safe(t.nombre)}</h3>
+        <h3>${safe(t.nombre)}</h3>
       </div>
       <span class="credito-detalle-apr">APR ${safe(t.apr)}%</span>
     </div>
 
 
-    ${billetera ? `<div class="billetera-detalle-saldo">
-      <span>${textoApp("Deuda actual","Current debt")} <strong>${money(t.saldo)}</strong></span>
-      <span>${textoApp("Límite","Limit")} <strong>${Number(t.limite) > 0 ? money(t.limite) : "—"}</strong></span>
-    </div>${bloqueMetaPagoTarjeta(t)}` : ""}
     <div class="credito-acciones">
       <div class="credito-accion credito-accion--datos">
         <button type="button" class="credito-accion-boton"
@@ -8628,9 +8501,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
       ${textoApp("Eliminar tarjeta", "Delete card")}
     </button>
   </div>
-  ${billetera ? "</dialog>" : ""}
   `).join("")}
-  ${billetera ? `</div>${data.tarjetas.length ? `<p class="billetera-ayuda">${textoApp("Toca una tarjeta para ver sus detalles", "Tap a card to see its details")}</p>` : ""}` : ""}
 
   ${data.tarjetas.length === 0 ? `
     <div class="tarjetas-vacio">
@@ -8644,7 +8515,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
     </div>
   ` : ""}
   
-${!billetera && data.tarjetas.length > 0 ? `
+${data.tarjetas.length > 0 ? `
   <div class="credito-resumen">
     <div>
             <span class="credito-etiqueta">${textoApp("Deuda total", "Total debt")}</span>
@@ -9423,9 +9294,8 @@ function abrirPagoPendiente(tipo, indice, fecha) {
     document.getElementById("auto" + indice)?.scrollIntoView({block:"center",behavior:"smooth"});
   } else if (tipo === "tarjeta" && data.tarjetas[indice]) {
     go("tarjetas");
-    mostrarDetalleCredito(indice);
-    const boton = document.querySelector(`[aria-controls="tarjeta${indice}"]`);
-    if (boton) toggleCreditoPanel(boton, "tarjeta" + indice);
+    toggle("detalleCredito" + indice);
+    toggle("tarjeta" + indice);
     document.getElementById("tarjeta" + indice)?.scrollIntoView({block:"center",behavior:"smooth"});
   } else if (tipo === "prestamo" && data.prestamos?.[indice] && validDate(fecha)) {
     go("movimientos");
@@ -9546,7 +9416,6 @@ const CLAVES_PREFERENCIAS_RESPALDO = Object.freeze([
   CLAVE_FORMATO_IMPORTES,
   CLAVE_MONEDA_IMPORTES,
   "balanceone-diseno-inicio",
-  CLAVE_DISENO_TARJETAS,
   CLAVE_TARJETAS_INICIO,
   "balanceone-tamano-texto",
   "amfinance-tema",
@@ -10692,11 +10561,11 @@ function abrirAjuste(tipo) {
           </span><span aria-hidden="true">›</span>
         </button>
 
-        <button type="button" class="ajustes-fila" onclick="abrirOpcionApariencia('tarjetas')">
+        <button type="button" class="ajustes-fila" onclick="abrirDisenoTarjetas()">
           <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("ordenCredito")}</span>
           <span class="ajustes-texto">
             <strong>${t("Diseño de tarjetas de crédito", "Credit card layout")}</strong>
-            <small data-diseno-tarjetas-elegido>${disenoTarjetasActual() === "billetera" ? t("Billetera", "Wallet") : t("Actual", "Current")}</small>
+            <small>${t("Actual", "Current")}</small>
           </span><span aria-hidden="true">›</span>
         </button>
 
@@ -12666,6 +12535,20 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false) {
 
   return ventana;
 }
+function abrirDisenoTarjetas() {
+  const t = textoApp;
+  const ventana = crearVentanaApariencia(t("Diseño de tarjetas de crédito", "Credit card layout"), `
+    <div class="card">
+      <strong>${t("Actual", "Current")}</strong>
+      <p class="note">${t("Vista en lista", "List view")}</p>
+    </div>
+  `, true);
+  if (!ventana) return;
+  const botonVer = ventana.querySelector(".apariencia-listo");
+  botonVer.textContent = t("Ver tarjetas", "View cards");
+  botonVer.onclick = () => cerrarVentanaApariencia(ventana, () => go("tarjetas"));
+}
+
 function abrirOpcionApariencia(tipo) {
   const configuraciones = {
     inicio: {
@@ -12678,17 +12561,7 @@ function abrirOpcionApariencia(tipo) {
         ["nuevo", textoApp("Nuevo · Tarjetas y gráficos", "New · Cards and charts")]
       ]
     },
-    tarjetas: {
-      titulo: textoApp("Diseño de tarjetas de crédito", "Credit card layout"),
-      clave: CLAVE_DISENO_TARJETAS,
-      defecto: "actual",
-      aplicar: valor => localStorage.setItem(CLAVE_DISENO_TARJETAS, valor),
-      opciones: [
-        ["actual", textoApp("Actual · Vista en lista", "Current · List view")],
-        ["billetera", textoApp("Billetera · Tarjetas superpuestas", "Wallet · Stacked cards")]
-      ]
-    },
-    forma: {
+            forma: {
       titulo: textoApp("Forma", "Shape"),
       clave: "balanceone-forma",
       defecto: "ovalada",
@@ -12790,17 +12663,6 @@ function abrirOpcionApariencia(tipo) {
   );
 
   if (!ventana) return;
-
-  if (tipo === "tarjetas") {
-    const detalle = el().querySelector("[data-diseno-tarjetas-elegido]");
-    ventana.addEventListener("close", () => {
-      if (detalle?.isConnected) detalle.textContent = disenoTarjetasActual() === "billetera"
-        ? textoApp("Billetera","Wallet") : textoApp("Actual","Current");
-    }, {once:true});
-    const botonVer = ventana.querySelector(".apariencia-listo");
-    botonVer.textContent = textoApp("Ver tarjetas", "View cards");
-    botonVer.onclick = () => cerrarVentanaApariencia(ventana, () => go("tarjetas"));
-  }
 
   if (tipo === "inicio") {
     const detalle = el().querySelector("[data-diseno-inicio-elegido]");
@@ -14380,11 +14242,7 @@ function abrirDetallePagoDelMes(destino, identificador) {
   go(destino);
   let objetivo;
   if (destino === "tarjetas") {
-    if (disenoTarjetasActual() === "billetera") {
-      mostrarDetalleCredito(indice);
-      return;
-    }
-    mostrarDetalleCredito(indice);
+    document.getElementById("detalleCredito" + indice)?.classList.remove("hidden");
     objetivo = document.getElementById("creditoResumen" + indice);
   } else {
     objetivo = document.getElementById("vehiculoResumen" + indice);
