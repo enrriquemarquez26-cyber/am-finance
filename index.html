@@ -3896,6 +3896,17 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   from {opacity:0}
   to {opacity:1}
 }
+.credito-meta-pago {
+  display:grid;gap:7px;margin-top:12px;padding:10px 12px;border-radius:16px;
+  background:rgba(130,140,155,.10);text-align:start;
+}
+.credito-meta-pago > strong {font-size:.82rem}
+.credito-meta-pago-importes {
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 10px;
+  font-size:.73rem;overflow-wrap:anywhere;
+}
+.credito-meta-pago-importes small {font-size:inherit}
+.credito-meta-quitar {width:100%;margin-top:8px}
 </style>
 </head>
 <body>
@@ -6523,6 +6534,11 @@ function prepararPagoConOrigen(datos, cuentas, anterior, nuevo) {
   if (nuevo) {
     const registro = {...nuevo};
     if (registro.tipo === "vehiculo") registro.saldoRestante=copia.vehiculos.find(v => String(v.id)===String(registro.cuentaId)).saldo;
+    if (!anterior && registro.tipo === "tarjeta") {
+      const tarjeta = copia.tarjetas.find(t => String(t.id) === String(registro.cuentaId));
+      const meta = metaPagoTarjetaValida(tarjeta);
+      if (meta) registro.metaPagoId = meta.id;
+    }
     copia.pagos.push(registro);
   }
   return {datos:copia,cuentas:bancos};
@@ -8103,6 +8119,97 @@ function actualizarModelosCredito(indice) {
   modelo.value = "";
 }
 
+function metaPagoTarjetaValida(tarjeta) {
+  const meta = tarjeta?.metaPago;
+  return meta && typeof meta.id === "string" && meta.id &&
+    Number.isSafeInteger(meta.objetivoCentavos) && meta.objetivoCentavos > 0 ? meta : null;
+}
+
+function resumenMetaPagoTarjeta(tarjeta) {
+  const meta = metaPagoTarjetaValida(tarjeta);
+  if (!meta) return null;
+  const pagado = data.pagos.reduce((total, pago) => {
+    const centavos = Math.round(Number(pago.monto) * 100);
+    return pago.tipo === "tarjeta" && String(pago.cuentaId) === String(tarjeta.id) &&
+      pago.metaPagoId === meta.id && Number.isSafeInteger(centavos) && centavos > 0
+      ? total + centavos : total;
+  }, 0);
+  return {objetivo:meta.objetivoCentavos, pagado, falta:Math.max(0, meta.objetivoCentavos-pagado)};
+}
+
+function bloqueMetaPagoTarjeta(tarjeta) {
+  const resumen = resumenMetaPagoTarjeta(tarjeta);
+  if (!resumen) return "";
+  const t = textoApp;
+  const {objetivo,pagado,falta} = resumen;
+  return `<div class="credito-meta-pago">
+    <strong>${falta ? t("Meta de pago","Payment goal") : t("Meta cumplida","Goal reached")}</strong>
+    ${barraProgreso(pagado / objetivo * 100)}
+    <div class="credito-meta-pago-importes">
+      <span>${t("Pagado", "Paid")} <strong>${money(pagado / 100)}</strong> / ${money(objetivo / 100)}</span>
+      <small>${t("Falta", "Remaining")} ${money(falta / 100)}</small>
+    </div>
+  </div>`;
+}
+
+function abrirMetaPagoTarjeta(indice) {
+  const tarjeta = data.tarjetas[indice];
+  if (!tarjeta) return;
+  const t = textoApp;
+  const meta = metaPagoTarjetaValida(tarjeta);
+  const ventana = crearVentanaApariencia(t("Meta de pago", "Payment goal"), `
+    <form class="cuenta-nueva-form">
+      <p class="note"><strong>${safe(tarjeta.nombre)}</strong></p>
+      <label>${textoImporte("Cantidad que quieres pagar","Amount you want to pay")}
+        <input name="objetivo" type="number" min="0.01" step="0.01" inputmode="decimal"
+          placeholder="0.00" value="${meta ? (meta.objetivoCentavos / 100).toFixed(2) : ""}" required>
+      </label>
+      <p class="note">${t(
+        "Suma cada pago que registres para esta tarjeta desde que creas la meta. Puedes abonar cantidades diferentes.",
+        "Each payment recorded for this card after you create the goal counts toward it. You can pay different amounts."
+      )}</p>
+      <p class="cuenta-nueva-error" role="alert" hidden></p>
+      <button type="submit" class="cuenta-nueva-guardar">${t("Guardar meta","Save goal")}</button>
+      ${meta ? `<button type="button" class="secondary credito-meta-quitar">${t("Quitar meta","Remove goal")}</button>` : ""}
+    </form>`, true);
+  if (!ventana) return;
+  ventana.classList.add("cuenta-nueva");
+  const form = ventana.querySelector("form");
+  const error = form.querySelector("[role=alert]");
+  function guardar(metaNueva) {
+    if (form.dataset.guardado) return;
+    const actual = data.tarjetas.find(t => String(t.id) === String(tarjeta.id));
+    if (!actual || metaPagoTarjetaValida(actual)?.id !== meta?.id) {
+      error.textContent = t("La meta cambió. Cierra esta ventana y vuelve a abrirla.", "The goal changed. Close and reopen this window.");
+      error.hidden = false;
+      return;
+    }
+    const actualizada = {...actual};
+    if (metaNueva) actualizada.metaPago = metaNueva;
+    else delete actualizada.metaPago;
+    if (!guardarDatosExtra({tarjetas:data.tarjetas.map(t => t === actual ? actualizada : t)})) return;
+    form.dataset.guardado = "si";
+    cerrarVentanaApariencia(ventana, render);
+  }
+  form.onsubmit = evento => {
+    evento.preventDefault();
+    let objetivoCentavos;
+    try {
+      objetivoCentavos = centavosMeta(form.elements.objetivo.value);
+    } catch (e) {
+      error.textContent = e.message;
+      error.hidden = false;
+      return;
+    }
+    error.hidden = true;
+    guardar({id:meta?.id || id(), objetivoCentavos});
+  };
+  const quitar = form.querySelector(".credito-meta-quitar");
+  if (quitar) quitar.onclick = () => {
+    if (confirm(t("¿Quitar la meta de pago? Tus pagos registrados se conservarán.", "Remove the payment goal? Your recorded payments will be kept."))) guardar(null);
+  };
+}
+
 function tarjetas(){
  el().innerHTML=`
 <div class="tarjetas-pantalla">
@@ -8235,6 +8342,8 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
                         : textoApp("Sin configurar", "Not set")
         }
       </div>
+
+      ${bloqueMetaPagoTarjeta(t)}
 
       <div class="credito-texto"
         style="text-align:right;color:#F28C28">
@@ -8372,6 +8481,18 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
             <button class="primary" type="submit">${textoApp("Confirmar pago", "Confirm payment")}</button>
           </form>
         </div>
+      </div>
+      <div class="credito-accion">
+        <button type="button" class="credito-accion-boton" onclick="abrirMetaPagoTarjeta(${i})">
+          <span class="credito-accion-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>
+          </span>
+          <span class="credito-accion-copy">
+            <strong>${metaPagoTarjetaValida(t) ? textoApp("Editar meta de pago", "Edit payment goal") : textoApp("Crear meta de pago", "Create payment goal")}</strong>
+            <small>${textoApp("Avanza con abonos de cualquier importe", "Make progress with payments of any amount")}</small>
+          </span>
+          <span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+        </button>
       </div>
     </div>
 
