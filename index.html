@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.3.9 Beta</title>
+<title>Balance One 0.4.2 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3792,13 +3792,40 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .inicio-ojo[aria-pressed="true"] {background:rgba(130,140,155,.24)}
 .inicio-ojo:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
 </style>
+<style id="balance-one-resumen-anual">
+.comparacion-ver-anio {margin-top:10px}
+.anual-dialogo h3 {margin:15px 0 8px;font-size:.9rem;text-transform:capitalize}
+.anual-dialogo h4 {margin:12px 0 6px;font-size:.78rem}
+.anual-dialogo .note {margin:7px 0;font-size:.68rem}
+.anual-selector {margin:0 0 9px}
+.anual-totales {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:12px 0}
+.anual-totales > div {min-width:0;padding:8px 6px;border-radius:14px;background:rgba(130,140,155,.1)}
+.anual-totales dt {font-size:.61rem}
+.anual-totales dd {margin:5px 0 0;font-weight:700;font-size:.77rem;overflow-wrap:anywhere}
+.anual-leyenda {display:flex;gap:12px;flex-wrap:wrap;font-size:.65rem;margin:0 0 6px}
+.anual-leyenda span::before {display:inline-block;content:"";width:8px;height:8px;margin-right:4px;border-radius:50%;background:#1a9f79}
+.anual-leyenda span:nth-child(2)::before {background:#d44d56}
+.anual-grafico {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.anual-grafico button {display:grid;justify-items:center;align-content:end;gap:4px;min-width:0;padding:5px 2px;border:1px solid transparent;border-radius:9px;background:rgba(130,140,155,.08);color:inherit;font:inherit;font-size:.62rem;cursor:pointer;text-transform:capitalize}
+.anual-grafico button[aria-pressed="true"] {border-color:var(--balanceone-color,#ff7900)}
+.anual-barras {display:flex;align-items:flex-end;justify-content:center;gap:3px;width:100%;height:43px;border-bottom:1px solid rgba(130,140,155,.25)}
+.anual-barras span {display:block;width:22%;max-width:12px;border-radius:3px 3px 0 0;background:#1a9f79}
+.anual-barras span:nth-child(2) {background:#d44d56}
+.anual-filas {display:grid;gap:3px}
+.anual-fila {display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border-radius:12px;background:rgba(130,140,155,.08);font-size:.73rem;overflow-wrap:anywhere}
+.anual-fila small {display:block;margin-top:3px;opacity:.8;font-size:.62rem}
+.anual-fila > strong {text-align:right}
+.anual-dialogo [data-anual-ver-mas] {margin-top:8px}
+.anual-dialogo [hidden] {display:none!important}
+@media(min-width:680px) {.anual-grafico {grid-template-columns:repeat(12,minmax(0,1fr))}}
+</style>
 </head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.3.9 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.4.2 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4010,8 +4037,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.3.9 Beta",
-      "Smart control of your finances · 0.3.9 Beta"
+      "Control inteligente de tus finanzas · 0.4.2 Beta",
+      "Smart control of your finances · 0.4.2 Beta"
     );
   }
 }
@@ -4950,21 +4977,21 @@ function etiquetaMesComparacion(mes, corto = false) {
     idiomaActual() === "en" ? "en-US" : "es", {month:corto ? "short" : "long", year:"numeric"});
 }
 
+function resumenMesRegistrado(datos, mes) {
+  const registros = movimientosGastoDelMes(datos, mes);
+  const gastos = resumenCategoriasInicio(datos, mes, registros);
+  const ingresosRegistrados = (datos.movimientos || []).filter(m => {
+    const fecha = String(m.fecha || "").slice(0,10);
+    return m.tipo === "ingreso" && fecha.slice(0,7) === mes && validDate(fecha) && validAmount(Number(m.monto));
+  });
+  const ingresos = ingresosRegistrados.reduce((suma,m) => suma + Math.round(Number(m.monto) * 100),0);
+  const gastado = Math.round(gastos.total * 100);
+  return {mes, ingresos, gastos:gastado, balance:ingresos - gastado, categorias:gastos.categorias, registros, ingresosRegistrados};
+}
+
 function compararMeses(datos, base, elegido) {
-  function totales(mes) {
-    const registros = movimientosGastoDelMes(datos, mes);
-    const gastos = resumenCategoriasInicio(datos, mes, registros);
-    const ingresos = (datos.movimientos || []).reduce((suma, m) => {
-      const fecha = String(m.fecha || "").slice(0,10);
-      const monto = Number(m.monto);
-      return m.tipo === "ingreso" && fecha.slice(0,7) === mes && validDate(fecha) && validAmount(monto)
-        ? suma + Math.round(monto * 100) : suma;
-    }, 0);
-    const gastado = Math.round(gastos.total * 100);
-    return {mes, ingresos, gastos:gastado, balance:ingresos - gastado, categorias:gastos.categorias, registros};
-  }
-  const anterior = totales(base);
-  const actual = totales(elegido);
+  const anterior = resumenMesRegistrado(datos,base);
+  const actual = resumenMesRegistrado(datos,elegido);
   const categorias = new Map();
   for (const [lado, resumen] of [["anterior",anterior], ["actual",actual]]) {
     for (const c of resumen.categorias) {
@@ -5019,26 +5046,34 @@ function detalleComparacionMensual(comparacion) {
     }).join("") || `<p class="note">${textoApp("No hay gastos registrados en estos meses.", "No expenses recorded in these months.")}</p>`}`;
 }
 
-function abrirComparacionMensual() {
+function abrirComparacionMensual(seleccion = null) {
   const actual = month();
   const meses = new Set(Array.from({length:12},(_,i) => mesComparacionDesplazado(actual,-i)));
   for (const registro of [...data.movimientos,...data.pagos]) {
     const fecha = String(registro.fecha || "").slice(0,10);
     if (validDate(fecha)) meses.add(fecha.slice(0,7));
   }
+  const baseInicial = meses.has(seleccion?.base) ? seleccion.base : mesComparacionDesplazado(actual,-1);
+  const mesInicial = meses.has(seleccion?.elegido) ? seleccion.elegido : actual;
   const opciones = seleccionado => [...meses].sort().reverse().map(mes =>
     `<option value="${safe(mes)}" ${mes === seleccionado ? "selected" : ""}>${safe(etiquetaMesComparacion(mes))}</option>`).join("");
   const ventana = crearVentanaApariencia(textoApp("Comparación mensual", "Monthly comparison"), `
     <div class="cuenta-nueva-form comparacion-selectores">
-      <label>${textoApp("Mes de referencia", "Reference month")}<select data-mes-base>${opciones(mesComparacionDesplazado(actual,-1))}</select></label>
-      <label>${textoApp("Mes a comparar", "Comparison month")}<select data-mes-elegido>${opciones(actual)}</select></label>
+      <label>${textoApp("Mes de referencia", "Reference month")}<select data-mes-base>${opciones(baseInicial)}</select></label>
+      <label>${textoApp("Mes a comparar", "Comparison month")}<select data-mes-elegido>${opciones(mesInicial)}</select></label>
     </div>
+    <button type="button" class="comparacion-enlace comparacion-ver-anio" data-ver-anio>${textoApp("Ver año", "View year")} ›</button>
     <div data-comparacion-detalle></div>`,true);
   if (!ventana) return;
   ventana.classList.add("comparacion-dialogo");
   const base = ventana.querySelector("[data-mes-base]");
   const elegido = ventana.querySelector("[data-mes-elegido]");
   const contenido = ventana.querySelector("[data-comparacion-detalle]");
+  ventana.querySelector("[data-ver-anio]").onclick = () => {
+    const regreso = {base:base.value,elegido:elegido.value};
+    ventana.addEventListener("close", () => abrirResumenAnual(elegido.value.slice(0,4),regreso), {once:true});
+    ventana.close();
+  };
   function actualizar() {
     if (base.value === elegido.value) {
       contenido.innerHTML = `<p class="note" role="status">${textoApp("Elige dos meses distintos.", "Choose two different months.")}</p>`;
@@ -5066,6 +5101,158 @@ function abrirComparacionMensual() {
   base.addEventListener("change",actualizar);
   elegido.addEventListener("change",actualizar);
   actualizar();
+}
+
+function resumenAnual(datos, anio) {
+  const porMes = new Map(Array.from({length:12},(_,i) => [
+    anio + "-" + String(i+1).padStart(2,"0"), {movimientos:[],pagos:[]}
+  ]));
+  for (const tipo of ["movimientos","pagos"]) {
+    for (const registro of datos[tipo] || []) {
+      porMes.get(String(registro.fecha || "").slice(0,7))?.[tipo].push(registro);
+    }
+  }
+  const meses = Array.from(porMes, ([mes,grupo]) => resumenMesRegistrado(grupo,mes));
+  const ingresos = meses.reduce((suma,mes) => suma + mes.ingresos,0);
+  const gastos = meses.reduce((suma,mes) => suma + mes.gastos,0);
+  const categorias = new Map();
+  let mayorGasto = null;
+  for (const mes of meses) {
+    if (mes.gastos > (mayorGasto?.gastos || 0)) mayorGasto = mes;
+    for (const c of mes.categorias) {
+      const centavos = Math.round(c.monto * 100);
+      const acumulado = categorias.get(c.clave) || {clave:c.clave,nombre:c.nombre,total:0,mesMayor:mes.mes,maximo:0};
+      acumulado.total += centavos;
+      if (centavos > acumulado.maximo) {
+        acumulado.mesMayor = mes.mes;
+        acumulado.maximo = centavos;
+      }
+      categorias.set(c.clave,acumulado);
+    }
+  }
+  return {meses,ingresos,gastos,balance:ingresos-gastos,mayorGasto,
+    categorias:[...categorias.values()].sort((a,b) => b.total-a.total || a.clave.localeCompare(b.clave))};
+}
+
+function totalesResumenAnual(resumen) {
+  return `<dl class="anual-totales">${[
+    ["ingresos",textoApp("Ingresos","Income")],
+    ["gastos",textoApp("Gastos y pagos","Expenses and payments")],
+    ["balance",textoApp("Balance","Balance")]
+  ].map(([clave,nombre]) => `<div><dt>${nombre}</dt><dd>${money(resumen[clave]/100)}</dd></div>`).join("")}</dl>`;
+}
+
+function graficoResumenAnual(resumen) {
+  const escala = Math.max(1,...resumen.meses.flatMap(m => [m.ingresos,m.gastos]));
+  const abreviar = new Intl.DateTimeFormat(idiomaActual() === "en" ? "en-US" : "es",{month:"short"});
+  return `
+    <div class="anual-leyenda"><span>${textoApp("Ingresos","Income")}</span><span>${textoApp("Gastos y pagos","Expenses and payments")}</span></div>
+    <div class="anual-grafico" role="group" aria-label="${textoApp("Ingresos y gastos por mes","Income and expenses by month")}">
+      ${resumen.meses.map((m,i) => {
+        const titulo = etiquetaMesComparacion(m.mes) + " · " +
+          textoApp("Ingresos","Income") + " " + money(m.ingresos/100) + " · " +
+          textoApp("Gastos y pagos","Expenses and payments") + " " + money(m.gastos/100);
+        return `<button type="button" data-anual-mes="${i}" aria-pressed="false" aria-label="${safe(titulo)}" title="${safe(titulo)}">
+          <span class="anual-barras" aria-hidden="true">
+            <span style="height:${m.ingresos/escala*100}%"></span>
+            <span style="height:${m.gastos/escala*100}%"></span>
+          </span>
+          <span>${safe(abreviar.format(new Date(m.mes + "-01T12:00:00")))}</span>
+        </button>`;
+      }).join("")}
+    </div>`;
+}
+
+function filasCategoriasAnuales(categorias, anual = false) {
+  const detalles = detallesCategoriasGasto();
+  if (!categorias.length) return `<p class="note">${textoApp("Sin gastos registrados.","No recorded expenses.")}</p>`;
+  return categorias.map(c => {
+    const nombre = Object.hasOwn(detalles,c.clave) ? detalles[c.clave][0] : c.nombre || c.clave;
+    const importe = anual ? c.total/100 : c.monto;
+    return `<div class="anual-fila"><span><strong>${safe(nombre)}</strong>
+      ${anual ? `<small>${textoApp("Mayor gasto en","Highest spending in")} ${safe(etiquetaMesComparacion(c.mesMayor,true))} · ${money(c.maximo/100)}</small>` : ""}
+      </span><strong>${money(importe)}</strong></div>`;
+  }).join("");
+}
+
+function abrirResumenAnual(anioInicial, regreso) {
+  const actual = month().slice(0,4);
+  const anios = new Set([actual,anioInicial]);
+  for (const registro of [...data.movimientos,...data.pagos]) {
+    const fecha = String(registro.fecha || "").slice(0,10);
+    if (validDate(fecha)) anios.add(fecha.slice(0,4));
+  }
+  const ventana = crearVentanaApariencia(textoApp("Resumen anual","Annual summary"), `
+    <div class="cuenta-nueva-form anual-selector">
+      <label>${textoApp("Año","Year")}<select data-anual-anio>
+        ${[...anios].sort().reverse().map(anio => `<option value="${safe(anio)}" ${anio === anioInicial ? "selected" : ""}>${safe(anio)}</option>`).join("")}
+      </select></label>
+    </div>
+    <button type="button" class="comparacion-enlace" data-anual-volver>‹ ${textoApp("Comparación mensual","Monthly comparison")}</button>
+    <div data-anual-contenido></div>`,true);
+  if (!ventana) return;
+  ventana.classList.add("anual-dialogo");
+  const selector = ventana.querySelector("[data-anual-anio]");
+  const contenido = ventana.querySelector("[data-anual-contenido]");
+  ventana.querySelector("[data-anual-volver]").onclick = () => {
+    ventana.addEventListener("close", () => abrirComparacionMensual(regreso),{once:true});
+    ventana.close();
+  };
+
+  function dibujarAnio() {
+    const resumen = resumenAnual(data,selector.value);
+    const pico = resumen.mayorGasto;
+    contenido.innerHTML = `
+      ${totalesResumenAnual(resumen)}
+      ${selector.value === actual ? `<p class="note">${textoApp("Año en curso · Movimientos registrados", "Year in progress · Recorded transactions")}</p>` : ""}
+      <h3>${textoApp("Enero a diciembre","January to December")}</h3>
+      ${graficoResumenAnual(resumen)}
+      <p class="note">${pico ? textoApp("Mes con más gastos","Highest spending month") + " · " + safe(etiquetaMesComparacion(pico.mes)) + " · " + money(pico.gastos/100) : textoApp("Todavía no hay gastos registrados para este año.","No expenses recorded for this year yet.")}</p>
+      <p class="note">${textoApp("Toca un mes para ver sus movimientos y categorías.","Tap a month to see its transactions and categories.")}</p>
+      <section data-anual-detalle hidden></section>
+      <h3>${textoApp("Gastos del año por categoría","Yearly expenses by category")}</h3>
+      <div class="anual-filas">${filasCategoriasAnuales(resumen.categorias,true)}</div>`;
+    const detalle = contenido.querySelector("[data-anual-detalle]");
+    for (const boton of contenido.querySelectorAll("[data-anual-mes]")) {
+      boton.onclick = () => {
+        for (const b of contenido.querySelectorAll("[data-anual-mes]")) {
+          b.setAttribute("aria-pressed",String(b === boton));
+        }
+        dibujarDetalleMesAnual(detalle,resumen.meses[Number(boton.dataset.anualMes)]);
+      };
+    }
+  }
+  selector.onchange = dibujarAnio;
+  dibujarAnio();
+}
+
+function dibujarDetalleMesAnual(detalle,mes) {
+  const movimientos = [...mes.ingresosRegistrados,...mes.registros].sort(ordenarMovimientosVista);
+  detalle.hidden = false;
+  detalle.innerHTML = `
+    <h3 tabindex="-1">${safe(etiquetaMesComparacion(mes.mes))}</h3>
+    ${totalesResumenAnual(mes)}
+    <h4>${textoApp("Gastos por categoría","Expenses by category")}</h4>
+    <div class="anual-filas">${filasCategoriasAnuales(mes.categorias)}</div>
+    <h4>${textoApp("Movimientos del mes","Monthly transactions")}</h4>
+    <div class="anual-filas" data-anual-movimientos>${movimientos.length ? "" : `<p class="note">${textoApp("Sin movimientos registrados.","No recorded transactions.")}</p>`}</div>
+    <button type="button" class="comparacion-enlace" data-anual-ver-mas hidden>${textoApp("Ver más","Show more")}</button>`;
+  const lista = detalle.querySelector("[data-anual-movimientos]");
+  const verMas = detalle.querySelector("[data-anual-ver-mas]");
+  let mostrados = 0;
+  function mostrarBloque() {
+    const bloque = movimientos.slice(mostrados,mostrados+TAMANO_PAGINA_HISTORIAL);
+    lista.insertAdjacentHTML("beforeend",bloque.map(m => {
+      const ingreso = m.tipo === "ingreso";
+      return `<div class="anual-fila"><span><strong>${safe(m.nombre || textoApp("Movimiento","Transaction"))}</strong><small>${safe(fechaMetaAhorro(String(m.fecha).slice(0,10)))}</small></span>
+        <strong>${ingreso ? "+" : "−"}${money(Number(m.monto))}</strong></div>`;
+    }).join(""));
+    mostrados += bloque.length;
+    verMas.hidden = mostrados >= movimientos.length;
+  }
+  verMas.onclick = mostrarBloque;
+  mostrarBloque();
+  detalle.querySelector("h3").focus();
 }
 
 function cambiarVistaTransaccionesConTeclado(evento) {
@@ -9324,7 +9511,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.3.9 Beta</p>
+      <p class="ajustes-version">Balance One · 0.4.2 Beta</p>
     </section>
   `;
 }
@@ -9610,7 +9797,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.3.9 Beta
+        ${textoApp("Versión", "Version")} 0.4.2 Beta
       </p>
     </section>
   `;
@@ -9857,7 +10044,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.3.9 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.4.2 Beta</p>
         </div>`
     }
   };
