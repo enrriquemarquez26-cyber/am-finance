@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.3.2 Beta</title>
+<title>Balance One 0.3.3 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3770,13 +3770,18 @@ html.tema-oscuro .presupuestos-fila:is([data-estado="limite"],[data-estado="exce
 .comparacion-movimientos > div {padding:6px 0;border-top:1px solid rgba(130,140,155,.16);overflow-wrap:anywhere}
 .comparacion-movimientos small {display:block;opacity:.8;font-size:.62rem}
 </style>
+<style id="historial-paginado">
+.hist-paginacion {display:grid;justify-items:center;gap:6px;margin:12px 0 0}
+.hist-paginacion .note {margin:0;font-size:.68rem}
+.hist-paginacion[hidden],.hist-paginacion button[hidden] {display:none!important}
+</style>
 </head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.3.2 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.3.3 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -3988,8 +3993,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.3.2 Beta",
-      "Smart control of your finances · 0.3.2 Beta"
+      "Control inteligente de tus finanzas · 0.3.3 Beta",
+      "Smart control of your finances · 0.3.3 Beta"
     );
   }
 }
@@ -4085,12 +4090,17 @@ if(changed)save();
 
 let page="inicio";
 let openEdit=null;
+const TAMANO_PAGINA_HISTORIAL = 30;
+const estadoHistorial = {filtro:"todos", busqueda:"", buscando:false, limite:TAMANO_PAGINA_HISTORIAL};
 
 function go(p){
  if (p !== "inicio" && !document.getElementById("movVentana").classList.contains("hidden")) cerrarMovVentana();
  cerrarPanelAvisos();
  page=p;
  openEdit=null;
+ if (p === "historialMovimientos") {
+   Object.assign(estadoHistorial, {filtro:"todos", busqueda:"", buscando:false, limite:TAMANO_PAGINA_HISTORIAL});
+ }
  const pestañaActiva = (p === "movimientos" || p === "historialMovimientos")
    ? "transferencias" : p;
  document.querySelectorAll("nav button").forEach(b=>
@@ -5987,14 +5997,6 @@ function ordenarMovimientosVista(a,b) {
 }
 
 function movimientos(){
- const items=[
-  ...movimientosTransferenciasBanco(),
-  ...data.movimientos.map(m=>({...m,origen:"movimiento"})),
-  ...data.pagos.map(p=>({
-   ...movimientoVistaPago(p),origen:"pago"
-  }))
- ].sort(ordenarMovimientosVista);
-
  el().innerHTML=`
 <div class="mov-pantalla mov28">
     <div data-cabecera-mov class="mov28-cabecera">
@@ -6100,191 +6102,15 @@ function movimientos(){
     <button type="button" data-filtro-hist="pago-tarjeta">${textoApp("Pagos de tarjeta","Card payments")}</button>
   </div>
 
-  <div id="histLista">
-    ${items.map((m,i)=>`
-      ${i === 0 || String(items[i-1].fecha) !== String(m.fecha) ? `
-        <h4 class="hist-dia-titulo" data-hist-dia="${safe(m.fecha)}">${safe(
-          validDate(String(m.fecha))
-            ? (() => {
-                const titulo = new Date(m.fecha + "T12:00:00").toLocaleDateString(
-                  idiomaActual() === "en" ? "en-US" : "es",
-                  {weekday:"long", day:"numeric", month:"long", year:"numeric"}
-                );
-                return titulo.charAt(0).toLocaleUpperCase() + titulo.slice(1);
-              })()
-            : textoApp("Fecha no disponible", "Date unavailable")
-        )}</h4>
-      ` : ""}
-      <div class="hist-registro"
-        data-hist-fecha="${safe(m.fecha)}"
-        data-hist-tipo="${m.tipo}"
-        data-hist-nombre="${safe(m.nombre + " " + nombreOrigenPago(m))}">
-
-        <div class="hist-fila">
-         <div class="hist-icono" aria-hidden="true"
-  style="position:relative">
-
-  ${iconoRegistroFinanciero(m)}
-</div>
-
-          <div class="hist-info">
-            <strong>${safe(m.nombre)}</strong>
-            ${nombreOrigenPago(m) ? `<small style="display:block;color:#84909d;font-size:.65rem;margin-top:3px">${safe(nombreOrigenPago(m))}</small>` : ""}
-            <div class="hist-meta"><span class="hist-fecha">${
-              validDate(String(m.fecha))
-                ? new Date(m.fecha+"T12:00:00").toLocaleDateString(
-                    idiomaActual() === "en" ? "en-US" : "es", {
-                      day:"numeric",
-                      month:"short",
-                      year:"numeric"
-                    }
-                  )
-                : safe(m.fecha)
-            }</span>
-            <span class="hist-tipo ${m.esTransferencia || m.pagoTarjeta ? "transferencia" : m.tipo==="ingreso"?"ingreso":"gasto"}">
-              ${m.pagoTarjeta ? textoApp("Pago de tarjeta","Card payment") : m.esTransferencia ? textoApp("Transferencia","Transfer") : m.tipo==="ingreso"?textoApp("Ingreso","Income"):textoApp("Gasto","Expense")}
-            </span></div>
-          </div>
-
-          <strong class="hist-importe ${
-            m.esTransferencia || m.pagoTarjeta ? "transferencia-importe" : m.tipo==="ingreso"?"green":"red"
-          }">
-            ${m.esTransferencia || m.pagoTarjeta ? "" : m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
-          </strong>
-
-          ${!m.esTransferencia ? `<button type="button" class="hist-menu"
-            data-hist-menu="${i}"
-            aria-label="${textoApp("Opciones de ", "Options for ")}${safe(m.nombre)}"
-            aria-expanded="false">⋯</button>` : ""}
-        </div>
-
-        ${!m.esTransferencia ? `<div id="histOpciones${i}" class="hidden">
-          <div class="hist-acciones">
-            <button type="button"
-              data-hist-editar="${i}">${textoApp("Editar", "Edit")}</button>
-            <button type="button"
-              data-hist-eliminar="${i}">${textoApp("Eliminar", "Delete")}</button>
-          </div>
-        </div>
-
-        ${openEdit===m.origen+":"+m.id?editor(m):""}` : ""}
-      </div>
-    `).join("")}
+  <div id="histLista"></div>
+  <p id="histSinResultados" class="mov-vacio" hidden></p>
+  <div class="hist-paginacion" id="histPaginacion" hidden>
+    <p id="histCantidad" class="note" role="status"></p>
+    <button type="button" class="mov28-enlace" id="histVerMas" aria-controls="histLista">${textoApp("Ver más", "Show more")}</button>
   </div>
-
-  <p id="histSinResultados" class="mov-vacio"
-    ${items.length?'hidden':''}>
-    ${textoApp("Sin movimientos", "No transactions")}
-  </p>
 </div>
 </div>`;
-transferencias();
-const botonBusqueda = document.getElementById("histBuscarBoton");
-const cajaBusqueda = document.getElementById("histBusqueda");
-const textoBusqueda = document.getElementById("histBuscarTexto");
-const botonesFiltro = document.querySelectorAll("[data-filtro-hist]");
-const registrosHistorial = document.querySelectorAll(".hist-registro");
-const avisoHistorial = document.getElementById("histSinResultados");
-
-let filtroHistorial = "todos";
-
-const normalizarBusqueda = texto => String(texto)
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .toLowerCase()
-  .trim();
-
-function filtrarHistorial() {
-  const busqueda = normalizarBusqueda(textoBusqueda.value);
-  let visibles = 0;
-
-  registrosHistorial.forEach(registro => {
-    const coincideTipo = filtroHistorial === "todos" ||
-      registro.dataset.histTipo === filtroHistorial;
-
-    const coincideTexto = normalizarBusqueda(
-      registro.dataset.histNombre
-    ).includes(busqueda);
-
-    registro.hidden = !(coincideTipo && coincideTexto);
-
-    if (!registro.hidden) visibles++;
-  });
-
-  document.querySelectorAll("[data-hist-dia]").forEach(titulo => {
-    titulo.hidden = !Array.from(registrosHistorial).some(registro =>
-      !registro.hidden && registro.dataset.histFecha === titulo.dataset.histDia
-    );
-  });
-
-  avisoHistorial.hidden = visibles > 0;
-  avisoHistorial.textContent = items.length
-    ? textoApp("No hay movimientos que coincidan.", "No matching transactions.")
-    : textoApp("Sin movimientos", "No transactions");
-}
-
-botonBusqueda.onclick = () => {
-  const abrir = cajaBusqueda.classList.contains("hidden");
-
-  cajaBusqueda.classList.toggle("hidden", !abrir);
-  botonBusqueda.setAttribute("aria-expanded", String(abrir));
-
-  if (abrir) {
-    textoBusqueda.focus();
-  } else {
-    textoBusqueda.value = "";
-    filtrarHistorial();
-  }
-};
-
-textoBusqueda.oninput = filtrarHistorial;
-
-botonesFiltro.forEach(boton => {
-  boton.onclick = () => {
-    filtroHistorial = boton.dataset.filtroHist;
-
-    botonesFiltro.forEach(b => {
-      b.classList.toggle("activo", b === boton);
-    });
-
-    filtrarHistorial();
-  };
-});
-
-document.querySelectorAll("[data-hist-menu]").forEach(boton => {
-  boton.onclick = () => {
-    const opciones = document.getElementById(
-      "histOpciones" + boton.dataset.histMenu
-    );
-
-    const abrir = opciones.classList.contains("hidden");
-
-    opciones.classList.toggle("hidden", !abrir);
-    boton.setAttribute("aria-expanded", String(abrir));
-  };
-});
-
-document.querySelectorAll("[data-hist-editar]").forEach(boton => {
-  boton.onclick = () => {
-    const movimiento = items[Number(boton.dataset.histEditar)];
-
-    if (movimiento) {
-      editar(movimiento.origen, movimiento.id);
-    }
-  };
-});
-
-document.querySelectorAll("[data-hist-eliminar]").forEach(boton => {
-  boton.onclick = () => {
-    const movimiento = items[Number(boton.dataset.histEliminar)];
-
-    if (movimiento) {
-      eliminar(movimiento.origen, movimiento.id);
-    }
-  };
-});
-
-filtrarHistorial();
+if (page !== "historialMovimientos") transferencias();
 
 const formulario = document.getElementById("formMov");
 const selectorCuenta = document.getElementById("movCuenta");
@@ -6425,6 +6251,186 @@ if (ventanaDia && ventanaDia.open) {
 
 render();
 };
+}
+
+function filaHistorial(m, i, anterior) {
+  return `
+      ${anterior == null || String(anterior.fecha) !== String(m.fecha) ? `
+        <h4 class="hist-dia-titulo">${safe(
+          validDate(String(m.fecha))
+            ? (() => {
+                const titulo = new Date(m.fecha + "T12:00:00").toLocaleDateString(
+                  idiomaActual() === "en" ? "en-US" : "es",
+                  {weekday:"long", day:"numeric", month:"long", year:"numeric"}
+                );
+                return titulo.charAt(0).toLocaleUpperCase() + titulo.slice(1);
+              })()
+            : textoApp("Fecha no disponible", "Date unavailable")
+        )}</h4>
+      ` : ""}
+      <div class="hist-registro">
+
+        <div class="hist-fila">
+         <div class="hist-icono" aria-hidden="true"
+  style="position:relative">
+
+  ${iconoRegistroFinanciero(m)}
+</div>
+
+          <div class="hist-info">
+            <strong>${safe(m.nombre)}</strong>
+            ${nombreOrigenPago(m) ? `<small style="display:block;color:#84909d;font-size:.65rem;margin-top:3px">${safe(nombreOrigenPago(m))}</small>` : ""}
+            <div class="hist-meta"><span class="hist-fecha">${
+              validDate(String(m.fecha))
+                ? new Date(m.fecha+"T12:00:00").toLocaleDateString(
+                    idiomaActual() === "en" ? "en-US" : "es", {
+                      day:"numeric",
+                      month:"short",
+                      year:"numeric"
+                    }
+                  )
+                : safe(m.fecha)
+            }</span>
+            <span class="hist-tipo ${m.esTransferencia || m.pagoTarjeta ? "transferencia" : m.tipo==="ingreso"?"ingreso":"gasto"}">
+              ${m.pagoTarjeta ? textoApp("Pago de tarjeta","Card payment") : m.esTransferencia ? textoApp("Transferencia","Transfer") : m.tipo==="ingreso"?textoApp("Ingreso","Income"):textoApp("Gasto","Expense")}
+            </span></div>
+          </div>
+
+          <strong class="hist-importe ${
+            m.esTransferencia || m.pagoTarjeta ? "transferencia-importe" : m.tipo==="ingreso"?"green":"red"
+          }">
+            ${m.esTransferencia || m.pagoTarjeta ? "" : m.tipo==="ingreso"?"+":"−"}${money(m.monto)}
+          </strong>
+
+          ${!m.esTransferencia ? `<button type="button" class="hist-menu"
+            data-hist-menu="${i}"
+            aria-label="${textoApp("Opciones de ", "Options for ")}${safe(m.nombre)}"
+            aria-expanded="false">⋯</button>` : ""}
+        </div>
+
+        ${!m.esTransferencia ? `<div id="histOpciones${i}" class="hidden">
+          <div class="hist-acciones">
+            <button type="button"
+              data-hist-editar="${i}">${textoApp("Editar", "Edit")}</button>
+            <button type="button"
+              data-hist-eliminar="${i}">${textoApp("Eliminar", "Delete")}</button>
+          </div>
+        </div>
+
+        ${openEdit===m.origen+":"+m.id?editor(m):""}` : ""}
+      </div>
+  `;
+}
+
+function iniciarHistorialMovimientos() {
+ const items=[
+  ...movimientosTransferenciasBanco(),
+  ...data.movimientos.map(m=>({...m,origen:"movimiento"})),
+  ...data.pagos.map(p=>({
+   ...movimientoVistaPago(p),origen:"pago"
+  }))
+ ].sort(ordenarMovimientosVista);
+
+  const normalizar = texto => String(texto ?? "").normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const indiceBusqueda = items.map((m,i) => ({
+    m, i, texto:normalizar(m.nombre + " " + nombreOrigenPago(m))
+  }));
+  const lista = document.getElementById("histLista");
+  const aviso = document.getElementById("histSinResultados");
+  const paginacion = document.getElementById("histPaginacion");
+  const cantidad = document.getElementById("histCantidad");
+  const verMas = document.getElementById("histVerMas");
+  const botonBusqueda = document.getElementById("histBuscarBoton");
+  const cajaBusqueda = document.getElementById("histBusqueda");
+  const textoBusqueda = document.getElementById("histBuscarTexto");
+  const botonesFiltro = document.querySelectorAll("[data-filtro-hist]");
+  let coincidencias = [];
+  let mostrados = 0;
+
+  function mostrarSiguienteBloque() {
+    const desde = mostrados;
+    const hasta = Math.min(estadoHistorial.limite,coincidencias.length);
+    if (hasta > desde) {
+      lista.insertAdjacentHTML("beforeend", coincidencias.slice(desde,hasta).map(({m,i},pos) =>
+        filaHistorial(m,i,coincidencias[desde+pos-1]?.m)).join(""));
+    }
+    mostrados = hasta;
+    aviso.hidden = mostrados > 0;
+    aviso.textContent = items.length
+      ? textoApp("No hay movimientos que coincidan.", "No matching transactions.")
+      : textoApp("Sin movimientos", "No transactions");
+    paginacion.hidden = coincidencias.length <= TAMANO_PAGINA_HISTORIAL;
+    verMas.hidden = mostrados >= coincidencias.length;
+    cantidad.textContent = textoApp(
+      `Mostrando ${mostrados} de ${coincidencias.length}`, `Showing ${mostrados} of ${coincidencias.length}`);
+  }
+
+  function filtrar(reiniciar = true) {
+    if (reiniciar) {
+      estadoHistorial.limite = TAMANO_PAGINA_HISTORIAL;
+      openEdit = null;
+    }
+    const texto = normalizar(estadoHistorial.busqueda);
+    coincidencias = indiceBusqueda.filter(({m,texto:descripcion}) =>
+      (estadoHistorial.filtro === "todos" || m.tipo === estadoHistorial.filtro) && descripcion.includes(texto));
+    lista.replaceChildren();
+    mostrados = 0;
+    mostrarSiguienteBloque();
+  }
+
+  function mostrarBusqueda() {
+    cajaBusqueda.classList.toggle("hidden",!estadoHistorial.buscando);
+    botonBusqueda.setAttribute("aria-expanded",String(estadoHistorial.buscando));
+  }
+  textoBusqueda.value = estadoHistorial.busqueda;
+  mostrarBusqueda();
+  botonBusqueda.onclick = () => {
+    estadoHistorial.buscando = !estadoHistorial.buscando;
+    mostrarBusqueda();
+    if (estadoHistorial.buscando) textoBusqueda.focus();
+    else {
+      textoBusqueda.value = "";
+      estadoHistorial.busqueda = "";
+      filtrar();
+    }
+  };
+  textoBusqueda.oninput = () => {
+    estadoHistorial.busqueda = textoBusqueda.value;
+    filtrar();
+  };
+  for (const boton of botonesFiltro) {
+    boton.classList.toggle("activo", boton.dataset.filtroHist === estadoHistorial.filtro);
+    boton.onclick = () => {
+      estadoHistorial.filtro = boton.dataset.filtroHist;
+      botonesFiltro.forEach(b => b.classList.toggle("activo",b === boton));
+      filtrar();
+    };
+  }
+  verMas.onclick = () => {
+    estadoHistorial.limite = mostrados + TAMANO_PAGINA_HISTORIAL;
+    mostrarSiguienteBloque();
+    if (verMas.hidden) {
+      cantidad.tabIndex = -1;
+      cantidad.focus({preventScroll:true});
+    }
+  };
+  lista.onclick = evento => {
+    const boton = evento.target.closest("[data-hist-menu], [data-hist-editar], [data-hist-eliminar]");
+    if (!boton) return;
+    if (boton.dataset.histMenu !== undefined) {
+      const opciones = document.getElementById("histOpciones" + boton.dataset.histMenu);
+      const abrir = opciones.classList.toggle("hidden") === false;
+      boton.setAttribute("aria-expanded",String(abrir));
+      return;
+    }
+    const editarRegistro = boton.dataset.histEditar !== undefined;
+    const movimiento = items[Number(editarRegistro ? boton.dataset.histEditar : boton.dataset.histEliminar)];
+    if (!movimiento || movimiento.esTransferencia) return;
+    if (editarRegistro) editar(movimiento.origen,movimiento.id);
+    else eliminar(movimiento.origen,movimiento.id);
+  };
+  filtrar(false);
 }
 
 function editor(m){
@@ -9083,7 +9089,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.3.2 Beta</p>
+      <p class="ajustes-version">Balance One · 0.3.3 Beta</p>
     </section>
   `;
 }
@@ -9369,7 +9375,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.3.2 Beta
+        ${textoApp("Versión", "Version")} 0.3.3 Beta
       </p>
     </section>
   `;
@@ -9616,7 +9622,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.3.2 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.3.3 Beta</p>
         </div>`
     }
   };
@@ -11124,9 +11130,10 @@ function logoCompaniaIntegrado(nombre) {
   else if (/\b(?:american express|americanexpress|amex)\b/.test(normalizado)) marca = "americanexpress";
   else if (/\b(?:verizon|veraizon|verision)\b/.test(normalizado)) marca = "verizon";
   else if (/\b(?:cash app|cashapp|square cash)\b/.test(normalizado)) marca = "cashapp";
+  else if (/\b(?:afterpay|after pay)\b/.test(normalizado)) marca = "afterpay";
   else if (/\b(?:github|git hub)\b/.test(normalizado)) marca = "github";
   else if (/\b(?:mcdonalds?|mc donalds?)(?: s)?\b/.test(normalizado)) marca = "mcdonalds";
-  const logos = {"github":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#ffffff\"/><g transform=\"translate(18 18) scale(3.8333333333333335)\" fill=\"#181717\"><path d=\"M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12\"/></g></svg>","americanexpress":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>American Express</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#016fd0\"/><svg x=\"9\" y=\"40\" width=\"110\" height=\"48\" viewBox=\"0.08 7 23.84 10.47\"><rect y=\"7\" width=\"24\" height=\"10.47\" fill=\"#fff\"/><path d=\"M16.015 14.378c0-.32-.135-.496-.344-.622-.21-.12-.464-.135-.81-.135h-1.543v2.82h.675v-1.027h.72c.24 0 .39.024.478.125.12.13.104.38.104.55v.35h.66v-.555c-.002-.25-.017-.376-.108-.516-.06-.08-.18-.18-.33-.234l.02-.008c.18-.072.48-.297.48-.747zm-.87.407l-.028-.002c-.09.053-.195.058-.33.058h-.81v-.63h.824c.12 0 .24 0 .33.05.098.048.156.147.15.255 0 .12-.045.215-.134.27zM20.297 15.837H19v.6h1.304c.676 0 1.05-.278 1.05-.884 0-.28-.066-.448-.187-.582-.153-.133-.392-.193-.73-.207l-.376-.015c-.104 0-.18 0-.255-.03-.09-.03-.15-.105-.15-.21 0-.09.017-.166.09-.21.083-.046.177-.066.272-.06h1.23v-.602h-1.35c-.704 0-.958.437-.958.84 0 .9.776.855 1.407.87.104 0 .18.015.225.06.046.03.082.106.082.18 0 .077-.035.15-.08.18-.06.053-.15.07-.277.07zM0 0v10.096L.81 8.22h1.75l.225.464V8.22h2.043l.45 1.02.437-1.013h6.502c.295 0 .56.057.756.236v-.23h1.787v.23c.307-.17.686-.23 1.12-.23h2.606l.24.466v-.466h1.918l.254.465v-.466h1.858v3.948H20.87l-.36-.6v.585h-2.353l-.256-.63h-.583l-.27.614h-1.213c-.48 0-.84-.104-1.08-.24v.24h-2.89v-.884c0-.12-.03-.12-.105-.135h-.105v1.036H6.067v-.48l-.21.48H4.69l-.202-.48v.465H2.235l-.256-.624H1.4l-.256.624H0V24h23.786v-7.108c-.27.135-.613.18-.973.18H21.09v-.255c-.21.165-.57.255-.914.255H14.71v-.9c0-.12-.018-.12-.12-.12h-.075v1.022h-1.8v-1.066c-.298.136-.643.15-.928.136h-.214v.915h-2.18l-.54-.617-.57.6H4.742v-3.93h3.61l.518.602.554-.6h2.412c.28 0 .74.03.942.225v-.24h2.177c.202 0 .644.045.903.225v-.24h3.265v.24c.163-.164.508-.24.803-.24h1.89v.24c.194-.15.464-.24.84-.24h1.176V0H0zM21.156 14.955c.004.005.006.012.01.016.01.01.024.01.032.02l-.042-.035zM23.828 13.082h.065v.555h-.065zM23.865 15.03v-.005c-.03-.025-.046-.048-.075-.07-.15-.153-.39-.215-.764-.225l-.36-.012c-.12 0-.194-.007-.27-.03-.09-.03-.15-.105-.15-.21 0-.09.03-.16.09-.204.076-.045.15-.05.27-.05h1.223v-.588h-1.283c-.69 0-.96.437-.96.84 0 .9.78.855 1.41.87.104 0 .18.015.224.06.046.03.076.106.076.18 0 .07-.034.138-.09.18-.045.056-.136.07-.27.07h-1.288v.605h1.287c.42 0 .734-.118.9-.36h.03c.09-.134.135-.3.135-.523 0-.24-.045-.39-.135-.526zM18.597 14.208v-.583h-2.235V16.458h2.235v-.585h-1.57v-.57h1.533v-.584h-1.532v-.51M13.51 8.787h.685V11.6h-.684zM13.126 9.543l-.007.006c0-.314-.13-.5-.34-.624-.217-.125-.47-.135-.81-.135H10.43v2.82h.674v-1.034h.72c.24 0 .39.03.487.12.122.136.107.378.107.548v.354h.677v-.553c0-.25-.016-.375-.11-.516-.09-.107-.202-.19-.33-.237.172-.07.472-.3.472-.75zm-.855.396h-.015c-.09.054-.195.056-.33.056H11.1v-.623h.825c.12 0 .24.004.33.05.09.04.15.128.15.25s-.047.22-.134.266zM15.92 9.373h.632v-.6h-.644c-.464 0-.804.105-1.02.33-.286.3-.362.69-.362 1.11 0 .512.123.833.36 1.074.232.238.645.31.97.31h.78l.255-.627h1.39l.262.627h1.36v-2.11l1.272 2.11h.95l.002.002V8.786h-.684v1.963l-1.18-1.96h-1.02V11.4L18.11 8.744h-1.004l-.943 2.22h-.3c-.177 0-.362-.03-.468-.134-.125-.15-.186-.36-.186-.662 0-.285.08-.51.194-.63.133-.135.272-.165.516-.165zm1.668-.108l.464 1.118v.002h-.93l.466-1.12zM2.38 10.97l.254.628H4V9.393l.972 2.205h.584l.973-2.202.015 2.202h.69v-2.81H6.118l-.807 1.904-.876-1.905H3.343v2.663L2.205 8.787h-.997L.01 11.597h.72l.26-.626h1.39zm-.688-1.705l.46 1.118-.003.002h-.915l.457-1.12zM11.856 13.62H9.714l-.85.923-.825-.922H5.346v2.82H8l.855-.932.824.93h1.302v-.94h.838c.6 0 1.17-.164 1.17-.945l-.006-.003c0-.78-.598-.93-1.128-.93zM7.67 15.853l-.014-.002H6.02v-.557h1.47v-.574H6.02v-.51H7.7l.733.82-.764.824zm2.642.33l-1.03-1.147 1.03-1.108v2.253zm1.553-1.258h-.885v-.717h.885c.24 0 .42.098.42.344 0 .243-.15.372-.42.372zM9.967 9.373v-.586H7.73V11.6h2.237v-.58H8.4v-.564h1.527V9.88H8.4v-.507\" fill=\"#016fd0\"/></svg></svg>","mcdonalds":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#DA291C\"/><g transform=\"translate(24 19) scale(3.3333333333333335)\" fill=\"#FFC72C\"><path d=\"M17.243 3.006c2.066 0 3.742 8.714 3.742 19.478H24c0-11.588-3.042-20.968-6.766-20.968-2.127 0-4.007 2.81-5.248 7.227-1.241-4.416-3.121-7.227-5.231-7.227C3.031 1.516 0 10.888 0 22.476h3.014c0-10.763 1.658-19.47 3.724-19.47 2.066 0 3.741 8.05 3.741 17.98h2.997c0-9.93 1.684-17.98 3.75-17.98Z\"/></g></svg>","spectrum":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#fff\"/><text x=\"60\" y=\"61\" text-anchor=\"middle\" fill=\"#003057\" font-family=\"Arial,Helvetica,sans-serif\" font-size=\"20\" font-weight=\"700\" letter-spacing=\"-1\">Spectrum</text><path d=\"m108 46 10 9-10 9z\" fill=\"#0099D8\"/><text x=\"64\" y=\"82\" text-anchor=\"middle\" fill=\"#003057\" font-family=\"Arial,Helvetica,sans-serif\" font-size=\"14\" letter-spacing=\"3\">MOBILE</text></svg>","verizon":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>Verizon</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#fff\"/><path d=\"M18.302 0H22v.003L10.674 24H7.662L2 12h3.727l3.449 7.337z\" fill=\"#e31b23\" transform=\"translate(19 19) scale(3.75)\"/></svg>","cashapp":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>Cash App</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#00D632\"/><path fill=\"#fff\" d=\"M17.42 8.105l-.93.93a.5.5 0 01-.67.01 5 5 0 00-3.22-1.18c-.97 0-1.94.32-1.94 1.21 0 .9 1.04 1.2 2.24 1.65 2.1.7 3.84 1.58 3.84 3.64 0 2.24-1.74 3.78-4.58 3.95l-.26 1.2a.49.49 0 01-.48.39H9.63l-.09-.01a.5.5 0 01-.38-.59l.28-1.27a6.54 6.54 0 01-2.88-1.57v-.01a.48.48 0 010-.68l1-.97a.49.49 0 01.67 0c.91.86 2.13 1.34 3.39 1.32 1.3 0 2.17-.55 2.17-1.42 0-.87-.88-1.1-2.54-1.72-1.76-.63-3.43-1.52-3.43-3.6 0-2.42 2.01-3.6 4.39-3.71l.25-1.23a.48.48 0 01.48-.38h1.78l.1.01c.26.06.43.31.37.57l-.27 1.37c.9.3 1.75.77 2.48 1.39l.02.02c.19.2.19.5 0 .68z\" transform=\"translate(19 19) scale(3.75)\"/></svg>"};
+  const logos = {"github":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#ffffff\"/><g transform=\"translate(18 18) scale(3.8333333333333335)\" fill=\"#181717\"><path d=\"M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12\"/></g></svg>","americanexpress":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>American Express</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#016fd0\"/><svg x=\"9\" y=\"40\" width=\"110\" height=\"48\" viewBox=\"0.08 7 23.84 10.47\"><rect y=\"7\" width=\"24\" height=\"10.47\" fill=\"#fff\"/><path d=\"M16.015 14.378c0-.32-.135-.496-.344-.622-.21-.12-.464-.135-.81-.135h-1.543v2.82h.675v-1.027h.72c.24 0 .39.024.478.125.12.13.104.38.104.55v.35h.66v-.555c-.002-.25-.017-.376-.108-.516-.06-.08-.18-.18-.33-.234l.02-.008c.18-.072.48-.297.48-.747zm-.87.407l-.028-.002c-.09.053-.195.058-.33.058h-.81v-.63h.824c.12 0 .24 0 .33.05.098.048.156.147.15.255 0 .12-.045.215-.134.27zM20.297 15.837H19v.6h1.304c.676 0 1.05-.278 1.05-.884 0-.28-.066-.448-.187-.582-.153-.133-.392-.193-.73-.207l-.376-.015c-.104 0-.18 0-.255-.03-.09-.03-.15-.105-.15-.21 0-.09.017-.166.09-.21.083-.046.177-.066.272-.06h1.23v-.602h-1.35c-.704 0-.958.437-.958.84 0 .9.776.855 1.407.87.104 0 .18.015.225.06.046.03.082.106.082.18 0 .077-.035.15-.08.18-.06.053-.15.07-.277.07zM0 0v10.096L.81 8.22h1.75l.225.464V8.22h2.043l.45 1.02.437-1.013h6.502c.295 0 .56.057.756.236v-.23h1.787v.23c.307-.17.686-.23 1.12-.23h2.606l.24.466v-.466h1.918l.254.465v-.466h1.858v3.948H20.87l-.36-.6v.585h-2.353l-.256-.63h-.583l-.27.614h-1.213c-.48 0-.84-.104-1.08-.24v.24h-2.89v-.884c0-.12-.03-.12-.105-.135h-.105v1.036H6.067v-.48l-.21.48H4.69l-.202-.48v.465H2.235l-.256-.624H1.4l-.256.624H0V24h23.786v-7.108c-.27.135-.613.18-.973.18H21.09v-.255c-.21.165-.57.255-.914.255H14.71v-.9c0-.12-.018-.12-.12-.12h-.075v1.022h-1.8v-1.066c-.298.136-.643.15-.928.136h-.214v.915h-2.18l-.54-.617-.57.6H4.742v-3.93h3.61l.518.602.554-.6h2.412c.28 0 .74.03.942.225v-.24h2.177c.202 0 .644.045.903.225v-.24h3.265v.24c.163-.164.508-.24.803-.24h1.89v.24c.194-.15.464-.24.84-.24h1.176V0H0zM21.156 14.955c.004.005.006.012.01.016.01.01.024.01.032.02l-.042-.035zM23.828 13.082h.065v.555h-.065zM23.865 15.03v-.005c-.03-.025-.046-.048-.075-.07-.15-.153-.39-.215-.764-.225l-.36-.012c-.12 0-.194-.007-.27-.03-.09-.03-.15-.105-.15-.21 0-.09.03-.16.09-.204.076-.045.15-.05.27-.05h1.223v-.588h-1.283c-.69 0-.96.437-.96.84 0 .9.78.855 1.41.87.104 0 .18.015.224.06.046.03.076.106.076.18 0 .07-.034.138-.09.18-.045.056-.136.07-.27.07h-1.288v.605h1.287c.42 0 .734-.118.9-.36h.03c.09-.134.135-.3.135-.523 0-.24-.045-.39-.135-.526zM18.597 14.208v-.583h-2.235V16.458h2.235v-.585h-1.57v-.57h1.533v-.584h-1.532v-.51M13.51 8.787h.685V11.6h-.684zM13.126 9.543l-.007.006c0-.314-.13-.5-.34-.624-.217-.125-.47-.135-.81-.135H10.43v2.82h.674v-1.034h.72c.24 0 .39.03.487.12.122.136.107.378.107.548v.354h.677v-.553c0-.25-.016-.375-.11-.516-.09-.107-.202-.19-.33-.237.172-.07.472-.3.472-.75zm-.855.396h-.015c-.09.054-.195.056-.33.056H11.1v-.623h.825c.12 0 .24.004.33.05.09.04.15.128.15.25s-.047.22-.134.266zM15.92 9.373h.632v-.6h-.644c-.464 0-.804.105-1.02.33-.286.3-.362.69-.362 1.11 0 .512.123.833.36 1.074.232.238.645.31.97.31h.78l.255-.627h1.39l.262.627h1.36v-2.11l1.272 2.11h.95l.002.002V8.786h-.684v1.963l-1.18-1.96h-1.02V11.4L18.11 8.744h-1.004l-.943 2.22h-.3c-.177 0-.362-.03-.468-.134-.125-.15-.186-.36-.186-.662 0-.285.08-.51.194-.63.133-.135.272-.165.516-.165zm1.668-.108l.464 1.118v.002h-.93l.466-1.12zM2.38 10.97l.254.628H4V9.393l.972 2.205h.584l.973-2.202.015 2.202h.69v-2.81H6.118l-.807 1.904-.876-1.905H3.343v2.663L2.205 8.787h-.997L.01 11.597h.72l.26-.626h1.39zm-.688-1.705l.46 1.118-.003.002h-.915l.457-1.12zM11.856 13.62H9.714l-.85.923-.825-.922H5.346v2.82H8l.855-.932.824.93h1.302v-.94h.838c.6 0 1.17-.164 1.17-.945l-.006-.003c0-.78-.598-.93-1.128-.93zM7.67 15.853l-.014-.002H6.02v-.557h1.47v-.574H6.02v-.51H7.7l.733.82-.764.824zm2.642.33l-1.03-1.147 1.03-1.108v2.253zm1.553-1.258h-.885v-.717h.885c.24 0 .42.098.42.344 0 .243-.15.372-.42.372zM9.967 9.373v-.586H7.73V11.6h2.237v-.58H8.4v-.564h1.527V9.88H8.4v-.507\" fill=\"#016fd0\"/></svg></svg>","mcdonalds":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#DA291C\"/><g transform=\"translate(24 19) scale(3.3333333333333335)\" fill=\"#FFC72C\"><path d=\"M17.243 3.006c2.066 0 3.742 8.714 3.742 19.478H24c0-11.588-3.042-20.968-6.766-20.968-2.127 0-4.007 2.81-5.248 7.227-1.241-4.416-3.121-7.227-5.231-7.227C3.031 1.516 0 10.888 0 22.476h3.014c0-10.763 1.658-19.47 3.724-19.47 2.066 0 3.741 8.05 3.741 17.98h2.997c0-9.93 1.684-17.98 3.75-17.98Z\"/></g></svg>","spectrum":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"64\" fill=\"#fff\"/><text x=\"60\" y=\"61\" text-anchor=\"middle\" fill=\"#003057\" font-family=\"Arial,Helvetica,sans-serif\" font-size=\"20\" font-weight=\"700\" letter-spacing=\"-1\">Spectrum</text><path d=\"m108 46 10 9-10 9z\" fill=\"#0099D8\"/><text x=\"64\" y=\"82\" text-anchor=\"middle\" fill=\"#003057\" font-family=\"Arial,Helvetica,sans-serif\" font-size=\"14\" letter-spacing=\"3\">MOBILE</text></svg>","verizon":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>Verizon</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#fff\"/><path d=\"M18.302 0H22v.003L10.674 24H7.662L2 12h3.727l3.449 7.337z\" fill=\"#e31b23\" transform=\"translate(19 19) scale(3.75)\"/></svg>","cashapp":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><title>Cash App</title><circle cx=\"64\" cy=\"64\" r=\"64\" fill=\"#00D632\"/><path fill=\"#fff\" d=\"M17.42 8.105l-.93.93a.5.5 0 01-.67.01 5 5 0 00-3.22-1.18c-.97 0-1.94.32-1.94 1.21 0 .9 1.04 1.2 2.24 1.65 2.1.7 3.84 1.58 3.84 3.64 0 2.24-1.74 3.78-4.58 3.95l-.26 1.2a.49.49 0 01-.48.39H9.63l-.09-.01a.5.5 0 01-.38-.59l.28-1.27a6.54 6.54 0 01-2.88-1.57v-.01a.48.48 0 010-.68l1-.97a.49.49 0 01.67 0c.91.86 2.13 1.34 3.39 1.32 1.3 0 2.17-.55 2.17-1.42 0-.87-.88-1.1-2.54-1.72-1.76-.63-3.43-1.52-3.43-3.6 0-2.42 2.01-3.6 4.39-3.71l.25-1.23a.48.48 0 01.48-.38h1.78l.1.01c.26.06.43.31.37.57l-.27 1.37c.9.3 1.75.77 2.48 1.39l.02.02c.19.2.19.5 0 .68z\" transform=\"translate(19 19) scale(3.75)\"/></svg>","afterpay":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><title>Afterpay</title><circle cx=\"12\" cy=\"12\" r=\"12\" fill=\"#B2FCE4\"/><path fill=\"#111\" d=\"M13.236 4.924a2.21 2.21 0 0 1 1.15.299l4.457 2.557c1.495.857 1.495 3.013 0 3.87l-4.457 2.558c-1.488.854-3.342-.22-3.342-1.935v-.34a.441.441 0 0 0-.66-.383L6.287 13.9a.441.441 0 0 0 0 .765l4.096 2.35a.44.44 0 0 0 .661-.382v-.685c0-.333.36-.542.649-.376l1.041.597a.441.441 0 0 1 .222.383v.29c0 1.715-1.854 2.789-3.342 1.935L5.157 16.22c-1.495-.857-1.495-3.013 0-3.87l4.457-2.558c1.488-.854 3.342.22 3.342 1.935v.34c0 .34.366.551.66.383l4.097-2.35a.441.441 0 0 0 0-.765l-4.096-2.351a.441.441 0 0 0-.661.382v.685c0 .333-.36.541-.649.375l-1.041-.597a.442.442 0 0 1-.222-.383v-.29c0-1.285 1.043-2.21 2.192-2.233z\"/></svg>"};
   return marca ? "data:image/svg+xml," + encodeURIComponent(logos[marca]) : "";
 }
 
@@ -12911,6 +12918,7 @@ function historialMovimientos() {
   calendario.hidden = true;
   formulario.style.display = "none";
   historial.style.display = "block";
+  iniciarHistorialMovimientos();
 
   cabecera.innerHTML = `
     <button type="button" onclick="go('movimientos')"
@@ -14746,6 +14754,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
