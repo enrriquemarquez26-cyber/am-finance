@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.4.2 Beta</title>
+<title>Balance One 0.4.7 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3819,13 +3819,34 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .anual-dialogo [hidden] {display:none!important}
 @media(min-width:680px) {.anual-grafico {grid-template-columns:repeat(12,minmax(0,1fr))}}
 </style>
+<style>
+[data-bloque-inicio][hidden], .bo047-campos [hidden] {display:none!important}
+#movVentanaForm > :is(#movVentanaFavoritos,#movVentanaExtras) {grid-column:1/-1;min-width:0}
+.bo047-extras {border:1px solid rgba(130,140,155,.28);border-radius:18px;padding:0 12px}
+.bo047-extras > summary {cursor:pointer;padding:11px 0;font-size:.82rem;font-weight:700}
+.bo047-campos {display:grid;gap:10px;padding:0 0 12px}
+.bo047-campos label {display:grid;gap:5px;font-size:.78rem}
+.bo047-campos input:not([type=checkbox]) {display:block;box-sizing:border-box;width:100%;min-width:0;font-size:16px}
+.bo047-campos input[type=file] {font-size:.78rem;max-width:100%;padding:7px}
+.bo047-campos .bo047-quitar {display:flex;align-items:center}
+.bo047-campos input[type=checkbox], .bo047-orden-fila input[type=checkbox] {width:auto;min-width:auto;accent-color:var(--balanceone-color,#ff7900)}
+.bo047-orden {display:grid;gap:6px;margin:12px 0}
+.bo047-orden-fila {display:flex;align-items:center;gap:6px;min-width:0}
+.bo047-orden-fila label,.bo047-orden-fila [data-usar] {flex:1;min-width:0;overflow-wrap:anywhere;text-align:start}
+.bo047-orden-fila label {font-size:.86rem}
+.bo047-orden-fila button:not([data-usar]) {border:0;border-radius:50%;background:rgba(130,140,155,.17);color:inherit;width:42px;height:42px;flex:none;font-size:1.15rem}
+.bo047-orden-fila button:disabled {opacity:.35}
+.bo047-icono svg {width:28px;height:28px}
+.bo047-recibo {display:block;max-width:100%;max-height:60dvh;margin:auto;object-fit:contain;border-radius:12px}
+.bo047-proyecto {display:block;font-size:.69rem;color:inherit;opacity:.8;overflow-wrap:anywhere}
+</style>
 </head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.4.2 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.4.7 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -3858,6 +3879,8 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
     <div id="movVentanaTeclado"
          style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px">
     </div>
+
+    <details id="movVentanaFavoritos" class="bo047-extras" hidden></details>
 
     <label class="label" for="movVentanaTipo">Tipo</label>
     <select id="movVentanaTipo" name="tipo">
@@ -3905,6 +3928,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
       <option value="">Seleccionar cuenta</option>
     </select>
 
+    <div id="movVentanaExtras"></div>
     <button class="mov-guardar" type="submit">Guardar</button>
   </form>
 </section>
@@ -3997,6 +4021,321 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 <script>
 const KEY="amfinance-demo-v1";
 let data;
+function categoriasPersonales(datos = data) {
+  return Array.isArray(datos.categoriasPersonales) ? datos.categoriasPersonales : [];
+}
+
+function nombreCategoriaPersonal(clave, datos = data) {
+  return categoriasPersonales(datos).find(c => c.id === clave)?.nombre;
+}
+
+function guardarDatosExtra(cambios) {
+  const nuevos = {...data, ...cambios};
+  try {
+    localStorage.setItem(KEY, JSON.stringify(nuevos));
+    data = nuevos;
+    return true;
+  } catch {
+    alert(textoApp("No se pudo guardar. Revisa el espacio disponible.", "Could not save. Check available storage."));
+    return false;
+  }
+}
+
+function abrirCategoriasPersonales() {
+  const t = textoApp;
+  const categorias = categoriasPersonales();
+  const iconos = [...trazosCategoriasMovimiento().keys()];
+  const selector = document.getElementById("movVentanaCategoria");
+  const ventana = crearVentanaApariencia(t("Categorías personales", "Custom categories"), `
+    <form class="cuenta-nueva-form">
+      <label>${t("Categoría", "Category")}<select name="editar">
+        <option value="">${t("Nueva categoría", "New category")}</option>
+        ${categorias.map(c => `<option value="${safe(c.id)}">${safe(c.nombre)}</option>`).join("")}
+      </select></label>
+      <label>${t("Nombre", "Name")}<input name="nombre" maxlength="40" required></label>
+      <label>${t("Icono", "Icon")}<select name="icono">
+        ${iconos.map(icono => `<option value="${safe(icono)}">${safe([...selector.options].find(o => o.value === icono)?.textContent || icono)}</option>`).join("")}
+      </select></label>
+      <div class="bo047-icono" data-vista-icono></div>
+      <p class="note">${t("Puedes ponerle un límite mensual desde Presupuestos.", "Set a monthly limit from Budgets.")}</p>
+      <p class="cuenta-nueva-error" role="alert" hidden></p>
+      <button class="cuenta-nueva-guardar">${t("Guardar categoría", "Save category")}</button>
+    </form>`, true);
+  if (!ventana) return;
+  const form = ventana.querySelector("form");
+  const {editar, nombre, icono} = form.elements;
+  const error = form.querySelector("[role=alert]");
+  icono.onchange = () => { form.querySelector("[data-vista-icono]").innerHTML = iconoCategoriaMovimiento(icono.value); };
+  editar.onchange = () => {
+    const categoria = categorias.find(c => c.id === editar.value);
+    nombre.value = categoria?.nombre || "";
+    icono.value = categoria?.icono || "Otros";
+    error.hidden = true;
+    icono.onchange();
+  };
+  editar.onchange();
+  form.onsubmit = event => {
+    event.preventDefault();
+    const etiqueta = nombre.value.trim();
+    const clave = claveCategoriaGasto(etiqueta);
+    const repetida = Object.hasOwn(detallesCategoriasGasto({}), clave) ||
+      categorias.some(c => c.id !== editar.value && claveCategoriaGasto(c.nombre) === clave);
+    if (!etiqueta || etiqueta.length > 40 || repetida || !iconos.includes(icono.value)) {
+      error.textContent = t("Escribe un nombre diferente para la categoría.", "Enter a different category name.");
+      error.hidden = false;
+      return;
+    }
+    const categoria = {id:editar.value || "personal-" + id(), nombre:etiqueta, icono:icono.value};
+    const actualizadas = editar.value ? categorias.map(c => c.id === categoria.id ? categoria : c) : [...categorias, categoria];
+    if (guardarDatosExtra({categoriasPersonales:actualizadas})) {
+      traducirMenusVentana();
+      ventana.close();
+    }
+  };
+}
+
+const CLAVE_TARJETAS_INICIO = "balanceone-tarjetas-inicio";
+function opcionesTarjetasInicio(diseno) {
+  const t = textoApp;
+  return diseno === "nuevo" ? {
+    cuentasTarjetas:t("Cuentas y tarjetas","Accounts and cards"), presupuestos:t("Presupuestos","Budgets"),
+    categorias:t("Gastos por categoría","Expenses by category"), comparacion:t("Comparación mensual","Monthly comparison"),
+    pagos:t("Suscripciones y próximos pagos","Subscriptions and upcoming payments")
+  } : {
+    resumen:t("Ingresos y gastos","Income and expenses"), presupuestos:t("Presupuestos","Budgets"),
+    deudas:t("Mis deudas pendientes","Outstanding debts"), transacciones:t("Últimas transacciones","Recent transactions"),
+    cuentas:t("Cuentas bancarias","Bank accounts"), tarjetas:t("Tarjetas de crédito","Credit cards"),
+    vehiculos:t("Vehículos","Vehicles")
+  };
+}
+
+function preferenciasTarjetasInicio() {
+  try {
+    const valor = JSON.parse(localStorage.getItem(CLAVE_TARJETAS_INICIO));
+    return valor && typeof valor === "object" && !Array.isArray(valor) ? valor : {};
+  } catch { return {}; }
+}
+
+function ordenTarjetasInicio(diseno, preferencias) {
+  const opciones = opcionesTarjetasInicio(diseno);
+  const orden = new Map();
+  for (const item of Array.isArray(preferencias) ? preferencias : []) {
+    if (item && Object.hasOwn(opciones, item.clave) && typeof item.visible === "boolean" && !orden.has(item.clave)) {
+      orden.set(item.clave, item.visible);
+    }
+  }
+  for (const clave of Object.keys(opciones)) {
+    if (!orden.has(clave)) orden.set(clave, true);
+  }
+  return [...orden].map(([clave,visible]) => ({clave,visible}));
+}
+
+function aplicarTarjetasInicio(diseno) {
+  const preferencias = preferenciasTarjetasInicio()[diseno];
+  if (!Array.isArray(preferencias)) return;
+  const inicio = el().querySelector(diseno === "nuevo" ? ".inicio-nuevo" : ".inicio-adaptable");
+  if (!inicio) return;
+  const bloques = [...inicio.children].filter(nodo => nodo.hasAttribute("data-bloque-inicio"));
+  for (const {clave,visible} of ordenTarjetasInicio(diseno, preferencias)) {
+    for (const nodo of bloques.filter(nodo => nodo.dataset.bloqueInicio === clave)) {
+      nodo.hidden = !visible;
+      inicio.append(nodo);
+    }
+  }
+}
+
+function abrirTarjetasInicio() {
+  const abierta = document.querySelector(".apariencia-ventana[open]");
+  if (abierta) {
+    abierta.addEventListener("close", abrirTarjetasInicio, {once:true});
+    abierta.close();
+    return;
+  }
+  const t = textoApp;
+  const diseno = disenoInicioActual();
+  const opciones = opcionesTarjetasInicio(diseno);
+  let orden = ordenTarjetasInicio(diseno, preferenciasTarjetasInicio()[diseno]);
+  const ventana = crearVentanaApariencia(t("Tarjetas de Inicio","Home cards"), `
+    <p class="note">${t("Elige qué tarjetas ves y en qué orden en el diseño de Inicio que usas ahora.", "Choose which cards you see and their order in your current Home layout.")}</p>
+    <div class="bo047-orden"></div>
+    <button type="button" class="secondary" data-restablecer>${t("Restablecer","Reset")}</button>
+    <button type="button" class="cuenta-nueva-guardar" data-guardar>${t("Guardar tarjetas","Save cards")}</button>
+  `, true);
+  if (!ventana) return;
+  const lista = ventana.querySelector(".bo047-orden");
+  const dibujar = () => {
+    lista.innerHTML = orden.map(({clave,visible}, i) => `
+      <div class="bo047-orden-fila">
+        <label><input type="checkbox" data-visible="${i}" ${visible ? "checked" : ""}> ${safe(opciones[clave])}</label>
+        <button type="button" data-pos="${i}" data-dir="-1" ${i === 0 ? "disabled" : ""} aria-label="${t("Subir","Move up")} ${safe(opciones[clave])}">↑</button>
+        <button type="button" data-pos="${i}" data-dir="1" ${i === orden.length - 1 ? "disabled" : ""} aria-label="${t("Bajar","Move down")} ${safe(opciones[clave])}">↓</button>
+      </div>`).join("");
+  };
+  lista.onchange = event => {
+    const i = Number(event.target.dataset.visible);
+    if (orden[i]) orden[i].visible = event.target.checked;
+  };
+  lista.onclick = event => {
+    const boton = event.target.closest("[data-pos]");
+    if (!boton || boton.disabled) return;
+    const i = Number(boton.dataset.pos);
+    const siguiente = i + Number(boton.dataset.dir);
+    [orden[i], orden[siguiente]] = [orden[siguiente], orden[i]];
+    dibujar();
+    const destino = lista.querySelector(`[data-pos="${siguiente}"][data-dir="${boton.dataset.dir}"]`);
+    (destino.disabled ? lista.querySelector(`[data-visible="${siguiente}"]`) : destino).focus();
+  };
+  ventana.querySelector("[data-restablecer]").onclick = () => { orden = ordenTarjetasInicio(diseno); dibujar(); };
+  ventana.querySelector("[data-guardar]").onclick = () => {
+    try {
+      localStorage.setItem(CLAVE_TARJETAS_INICIO, JSON.stringify({...preferenciasTarjetasInicio(), [diseno]:orden}));
+      ventana.close();
+    } catch { alert(t("No se pudieron guardar las tarjetas.", "Could not save the cards.")); }
+  };
+  dibujar();
+}
+
+function reciboValido(recibo) {
+  return typeof recibo === "string" && recibo.length <= 180000 &&
+    /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(recibo);
+}
+
+async function comprimirRecibo(archivo) {
+  if (archivo.size > 20 * 1024 * 1024 || (archivo.type && !archivo.type.startsWith("image/"))) throw new Error();
+  const url = URL.createObjectURL(archivo);
+  try {
+    const foto = new Image();
+    foto.src = url;
+    await foto.decode();
+    const lienzo = document.createElement("canvas");
+    const contexto = lienzo.getContext("2d");
+    for (const maximo of [1200, 960, 720, 540]) {
+      const escala = Math.min(1, maximo / Math.max(foto.naturalWidth, foto.naturalHeight));
+      lienzo.width = Math.max(1, Math.round(foto.naturalWidth * escala));
+      lienzo.height = Math.max(1, Math.round(foto.naturalHeight * escala));
+      contexto.fillStyle = "#fff";
+      contexto.fillRect(0,0,lienzo.width,lienzo.height);
+      contexto.drawImage(foto,0,0,lienzo.width,lienzo.height);
+      for (const calidad of [.82, .66, .50]) {
+        const recibo = lienzo.toDataURL("image/jpeg", calidad);
+        if (reciboValido(recibo)) return recibo;
+      }
+    }
+    throw new Error();
+  } finally { URL.revokeObjectURL(url); }
+}
+
+function claveProyecto(nombre) {
+  return claveNotaGasto(nombre) || String(nombre || "").trim();
+}
+
+function proyectosMovimientos() {
+  return new Map(data.movimientos.filter(m => typeof m.proyecto === "string" && m.proyecto.trim())
+    .map(m => [claveProyecto(m.proyecto), m.proyecto.trim()]));
+}
+
+function camposExtraMovimiento(m = {}) {
+  const t = textoApp;
+  const tieneRecibo = reciboValido(m.recibo);
+  const lista = m.id ? "histProyectosDisponibles" : "movProyectosDisponibles";
+  const proyectos = [...proyectosMovimientos().values()];
+  return `<details class="bo047-extras" ${m.proyecto || tieneRecibo ? "open" : ""}>
+    <summary>${t("Proyecto y recibo","Project and receipt")}</summary>
+    <div class="bo047-campos">
+      <label>${t("Proyecto (opcional)","Project (optional)")}<input name="proyecto" maxlength="60" list="${lista}"
+        value="${safe(m.proyecto || "")}" placeholder="${t("Ej. Viaje a Detroit","E.g. Detroit trip")}"></label>
+      <datalist id="${lista}">${proyectos.map(nombre => `<option value="${safe(nombre)}"></option>`).join("")}</datalist>
+      <label data-campo-recibo ${m.tipo === "ingreso" ? "hidden" : ""}>${t("Foto del recibo","Receipt photo")}
+        <input type="file" name="recibo" accept="image/*"></label>
+      ${tieneRecibo ? `<label class="bo047-quitar"><input type="checkbox" name="quitarRecibo"> ${t("Quitar recibo guardado","Remove saved receipt")}</label>` : ""}
+    </div>
+  </details>`;
+}
+
+async function leerExtrasMovimiento(campos, tipo, anterior) {
+  const proyecto = String(campos.get("proyecto") || "").trim().slice(0,60);
+  const archivo = campos.get("recibo");
+  let recibo = !campos.has("quitarRecibo") && reciboValido(anterior?.recibo) ? anterior.recibo : "";
+  if (tipo === "gasto" && archivo?.size) recibo = await comprimirRecibo(archivo);
+  return {proyecto, recibo};
+}
+
+function mostrarErrorRecibo() {
+  alert(textoApp("No se pudo leer la foto. Prueba con una imagen JPG o PNG de hasta 20 MB.", "Could not read the photo. Try a JPG or PNG image up to 20 MB."));
+}
+
+function verReciboMovimiento(m) {
+  if (!reciboValido(m.recibo)) return;
+  crearVentanaApariencia(textoApp("Recibo","Receipt"), `
+    <p class="note">${safe(m.nombre)}</p>
+    <img class="bo047-recibo" src="${safe(m.recibo)}" alt="${textoApp("Foto del recibo","Receipt photo")}">
+  `, true);
+}
+
+function favoritosGasto() {
+  return Array.isArray(data.favoritosGasto) ? data.favoritosGasto : [];
+}
+
+function guardarFavoritoGasto(m) {
+  if (!gastoDuplicable(m)) return;
+  const t = textoApp;
+  const favoritos = favoritosGasto();
+  const favorito = {nombre:String(m.nombre).trim().slice(0,80),
+    categoria:String(m.categoria || ""), origen:valorOrigenMovimiento(m)};
+  if (favoritos.some(f => claveNotaGasto(f.nombre) === claveNotaGasto(favorito.nombre) &&
+      f.categoria === favorito.categoria && f.origen === favorito.origen)) {
+    alert(t("Este gasto ya está en tus favoritos.", "This expense is already in your favorites."));
+    return;
+  }
+  if (guardarDatosExtra({favoritosGasto:[...favoritos, favorito]})) alert(t("Gasto añadido a tus favoritos.", "Expense added to your favorites."));
+}
+
+function aplicarCategoriaBorrador(selector, valor) {
+  selector.querySelector("[data-categoria-copia]")?.remove();
+  if (valor && ![...selector.options].some(o => o.value === valor)) {
+    const opcion = new Option(valor, valor);
+    opcion.setAttribute("data-categoria-copia", "");
+    selector.append(opcion);
+  }
+  selector.value = valor;
+}
+
+function prepararFavoritosGasto(form, actualizarSugerencia) {
+  const panel = document.getElementById("movVentanaFavoritos");
+  const t = textoApp;
+  const {tipo, nombre, categoria, cuentaId} = form.elements;
+  const actualizar = () => {
+    const favoritos = favoritosGasto();
+    panel.hidden = tipo.value !== "gasto" || !favoritos.length;
+    panel.innerHTML = panel.hidden ? "" : `
+      <summary>${t("Gastos favoritos","Favorite expenses")}</summary>
+      <div class="bo047-campos">${favoritos.map((f,i) => `<div class="bo047-orden-fila">
+        <button type="button" class="secondary" data-usar="${i}">${safe(f.nombre)}</button>
+        <button type="button" data-quitar="${i}" aria-label="${t("Quitar favorito","Remove favorite")} ${safe(f.nombre)}">×</button>
+      </div>`).join("")}</div>`;
+  };
+  panel.open = false;
+  panel.onclick = event => {
+    const boton = event.target.closest("[data-usar], [data-quitar]");
+    if (!boton) return;
+    const favoritos = favoritosGasto();
+    const favorito = favoritos[Number(boton.dataset.usar ?? boton.dataset.quitar)];
+    if (!favorito) return;
+    if (boton.hasAttribute("data-quitar")) {
+      if (guardarDatosExtra({favoritosGasto:favoritos.filter(f => f !== favorito)})) actualizar();
+      return;
+    }
+    nombre.value = favorito.nombre;
+    aplicarCategoriaBorrador(categoria, favorito.categoria);
+    cuentaId.value = favorito.origen || "";
+    actualizarSelectorCategoria();
+    actualizarSugerencia();
+    panel.open = false;
+  };
+  actualizar();
+  return actualizar;
+}
+
 try{
  data=JSON.parse(localStorage.getItem(KEY));
 }catch(e){}
@@ -4037,8 +4376,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.4.2 Beta",
-      "Smart control of your finances · 0.4.2 Beta"
+      "Control inteligente de tus finanzas · 0.4.7 Beta",
+      "Smart control of your finances · 0.4.7 Beta"
     );
   }
 }
@@ -4166,7 +4505,10 @@ function dibujarInicio() {
   // Solo los importes que se dibujan en Inicio se enmascaran.
   ocultarImportesAlDibujarInicio = modoDiscretoInicio;
   try {
-    return disenoInicioActual() === "nuevo" ? inicioNuevo() : inicio();
+    const diseno = disenoInicioActual();
+    if (diseno === "nuevo") inicioNuevo();
+    else inicio();
+    aplicarTarjetasInicio(diseno);
   } finally {
     ocultarImportesAlDibujarInicio = false;
   }
@@ -4724,7 +5066,7 @@ function resumenCategoriasInicio(datos, mes, registros = movimientosGastoDelMes(
   };
 }
 
-function detallesCategoriasGasto() {
+function detallesCategoriasGasto(datos = data) {
   return {
     renta:[textoApp("Renta", "Rent"), "#28d873"],
     supermercado:[textoApp("Supermercado", "Groceries"), "#ffa20c"],
@@ -4741,13 +5083,15 @@ function detallesCategoriasGasto() {
     seguros:[textoApp("Seguros", "Insurance"), "#739e86"],
     educacion:[textoApp("Educación", "Education"), "#b89b7e"],
     suscripciones:[textoApp("Suscripciones", "Subscriptions"), "#838cc6"],
-    otros:[textoApp("Otros", "Other"), "#a8b1c0"]
+    otros:[textoApp("Otros", "Other"), "#a8b1c0"],
+    ...Object.fromEntries(categoriasPersonales(datos).map((c,i) =>
+      [c.id, [c.nombre, ["#557adb", "#309688", "#ba65a0", "#be7740", "#8872c1"][i % 5]]]))
   };
 }
 
-function presupuestosValidos(lista) {
+function presupuestosValidos(lista, datos = data) {
   if (!Array.isArray(lista)) return false;
-  const categorias = detallesCategoriasGasto();
+  const categorias = detallesCategoriasGasto(datos);
   const claves = new Set();
   return lista.every(p => {
     if (!p || typeof p.categoria !== "string" || !Object.hasOwn(categorias, p.categoria) ||
@@ -4759,7 +5103,7 @@ function presupuestosValidos(lista) {
 
 function resumenPresupuestos(datos, mes) {
   const lista = datos.presupuestos ?? [];
-  if (!presupuestosValidos(lista)) return [];
+  if (!presupuestosValidos(lista, datos)) return [];
   const gastado = new Map(resumenCategoriasInicio(datos, mes).categorias
     .map(c => [c.clave, Math.round(c.monto * 100)]));
   return lista.map(p => {
@@ -4807,7 +5151,7 @@ function filasPresupuestos(lista) {
 function widgetPresupuestos() {
   const lista = presupuestosPorPrioridad();
   const nombreMes = etiquetaMesComparacion(month());
-  return `<section class="card inicio-capsula presupuestos-widget" aria-labelledby="presupuestosTitulo">
+  return `<section class="card inicio-capsula presupuestos-widget" data-bloque-inicio="presupuestos" aria-labelledby="presupuestosTitulo">
     <div class="presupuestos-cabecera">
       <div><h3 id="presupuestosTitulo">${textoApp("Presupuestos", "Budgets")}</h3><small class="label">${safe(nombreMes)}</small></div>
       ${lista.length < Object.keys(detallesCategoriasGasto()).length ? `<button type="button" class="presupuestos-agregar" onclick="abrirPresupuesto()">+ ${textoApp("Agregar", "Add")}</button>` : ""}
@@ -4851,7 +5195,7 @@ function abrirPresupuesto(categoria = "", volverALista = false) {
     `<form class="cuenta-nueva-form">
       <label>${textoApp("Categoría", "Category")}<select name="categoria" required>
         ${actual ? "" : `<option value="">${textoApp("Elige una categoría", "Choose a category")}</option>`}
-        ${opciones.map(([clave,[nombre]]) => `<option value="${clave}" ${clave === categoria ? "selected" : ""}>${safe(nombre)}</option>`).join("")}
+        ${opciones.map(([clave,[nombre]]) => `<option value="${safe(clave)}" ${clave === categoria ? "selected" : ""}>${safe(nombre)}</option>`).join("")}
       </select></label>
       <label>${textoApp("Límite mensual ($)", "Monthly limit ($)")}<input name="limite" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" value="${actual ? (actual.limiteCentavos / 100).toFixed(2) : ""}" required></label>
       <p class="note">${textoApp("El límite se repite cada mes. La barra se actualiza con tus gastos registrados.", "The limit repeats every month. The bar updates with your recorded expenses.")}</p>
@@ -5417,7 +5761,7 @@ const banco = String(c.nombre || "").toLowerCase();
   <div class="amount">${money(ingresos-gastos-pagos)}</div>
 </div>
 
-<div class="row inicio-resumen-adaptable">
+<div class="row inicio-resumen-adaptable" data-bloque-inicio="resumen">
   <div class="card resumen-ovalado" style="width:50%">
     <div class="label">${textoApp("Ingresos", "Income")}</div>
     <div class="smallamount green">${money(ingresos)}</div>
@@ -5434,7 +5778,7 @@ const banco = String(c.nombre || "").toLowerCase();
 ${widgetPresupuestos()}
 
 ${autos + tarjetas + prestamos > 0 ? `
-  <div class="card inicio-capsula inicio-deudas-adaptable" style="border-radius:40px">
+  <div class="card inicio-capsula inicio-deudas-adaptable" data-bloque-inicio="deudas" style="border-radius:40px">
     <div class="label">
       ${textoApp("Mis deudas pendientes", "Outstanding debts")}
     </div>
@@ -5446,7 +5790,7 @@ ${autos + tarjetas + prestamos > 0 ? `
     </div>
   </div>
 ` : ""}
-<section class="card inicio-capsula cal-fin-028 inicio-transacciones"
+<section class="card inicio-capsula cal-fin-028 inicio-transacciones" data-bloque-inicio="transacciones"
   style="padding:17px 13px 10px;margin-bottom:16px">
   <div class="cal-movs-cabecera">
     <h3>${textoApp("Últimas transacciones", "Recent transactions")}</h3>
@@ -5553,7 +5897,7 @@ ${autos + tarjetas + prestamos > 0 ? `
   </div>
 </section>
 
-<div id="cuentasInicio" class="inicio-capsula">
+<div id="cuentasInicio" class="inicio-capsula" data-bloque-inicio="cuentas">
   <div class="cuentas-cabecera">
     <h2>${textoApp("Cuentas bancarias", "Bank accounts")}</h2>
 
@@ -5571,7 +5915,7 @@ ${autos + tarjetas + prestamos > 0 ? `
     </p>
   ` : ""}
 </div>
-<div class="card inicio-capsula inicio-creditos-adaptable"
+<div class="card inicio-capsula inicio-creditos-adaptable" data-bloque-inicio="tarjetas"
   style="padding:0;border:0;border-radius:30px;overflow:hidden;margin-top:16px">
 
   <div class="cuentas-cabecera">
@@ -5674,7 +6018,7 @@ ${data.vehiculos.map(v => {
   const nombre = [v.nombre, v.modelo].filter(Boolean).join(" ");
 
   return `
-    <button type="button" class="card inicio-capsula"
+    <button type="button" class="card inicio-capsula" data-bloque-inicio="vehiculos"
       onclick="go('vehiculos')"
       style="display:block;width:100%;padding:20px;
       border-radius:42px;text-align:left;color:inherit;
@@ -5807,7 +6151,7 @@ function inicioNuevo() {
   for (const movimiento of gastosMes) {
     const monto = Number(movimiento.monto);
     if (!Number.isFinite(monto) || monto <= 0) continue;
-    const categoria = String(movimiento.categoria || textoApp("Otros", "Other"));
+    const categoria = String(nombreCategoriaPersonal(movimiento.categoria) || movimiento.categoria || textoApp("Otros", "Other"));
     categorias.set(categoria, (categorias.get(categoria) || 0) + monto);
   }
   const totalGastos = [...categorias.values()].reduce((suma, valor) => suma + valor, 0);
@@ -5847,7 +6191,7 @@ function inicioNuevo() {
         <p class="inicio-nuevo-subtitulo">${textoApp("Tus finanzas, a tu manera", "Your finances, your way")}</p>
       </div>
 
-      <div class="inicio-nuevo-resumen">
+      <div class="inicio-nuevo-resumen" data-bloque-inicio="cuentasTarjetas">
         <div class="inicio-nuevo-escena inicio-nuevo-escena--naranja">
           <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--naranja"
             onclick="go('tarjetas')">
@@ -5868,7 +6212,7 @@ function inicioNuevo() {
 
       ${widgetPresupuestos()}
 
-      <div class="inicio-nuevo-panel">
+      <div class="inicio-nuevo-panel" data-bloque-inicio="categorias">
         <div class="row">
           <h3>${textoApp("Gastos por categoría", "Expenses by category")}</h3>
           <button type="button" class="inicio-nuevo-enlace" onclick="go('movimientos')">
@@ -5894,9 +6238,9 @@ function inicioNuevo() {
         </div>
       </div>
 
-      <div class="inicio-nuevo-panel">${vistaComparacionMensual()}</div>
+      <div class="inicio-nuevo-panel" data-bloque-inicio="comparacion">${vistaComparacionMensual()}</div>
 
-      <div class="inicio-nuevo-resumen">
+      <div class="inicio-nuevo-resumen" data-bloque-inicio="pagos">
         <div class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--menta">
           <div class="inicio-nuevo-label"><span class="inicio-nuevo-icono">↻</span>${textoApp("Suscripciones", "Subscriptions")}</div>
           <strong>${money(totalSuscripciones)}</strong>
@@ -6410,6 +6754,7 @@ function movimientos(){
     <button type="button" data-filtro-hist="pago-tarjeta">${textoApp("Pagos de tarjeta","Card payments")}</button>
   </div>
 
+  <p id="histProyectoTotal" class="note" aria-live="polite" hidden></p>
   <div id="histLista"></div>
   <p id="histSinResultados" class="mov-vacio" hidden></p>
   <div class="hist-paginacion" id="histPaginacion" hidden>
@@ -6543,7 +6888,7 @@ formulario.onsubmit = e => {
     fecha
   };
 
-  if (formulario.dataset.guardado === "si") return;
+  if (formulario.dataset.guardado === "si" || formulario.dataset.procesando) return;
 
 if (!guardarMovimientoBanco(null, movimiento)) return;
 
@@ -6592,6 +6937,7 @@ function filaHistorial(m, i, anterior) {
           <div class="hist-info">
             <strong>${safe(m.nombre)}</strong>
             ${nombreOrigenPago(m) ? `<small style="display:block;color:#84909d;font-size:.65rem;margin-top:3px">${safe(nombreOrigenPago(m))}</small>` : ""}
+            ${m.proyecto ? `<small class="bo047-proyecto">${safe(m.proyecto)}</small>` : ""}
             <div class="hist-meta"><span class="hist-fecha">${
               validDate(String(m.fecha))
                 ? new Date(m.fecha+"T12:00:00").toLocaleDateString(
@@ -6625,6 +6971,8 @@ function filaHistorial(m, i, anterior) {
             <button type="button"
               data-hist-editar="${i}">${textoApp("Editar", "Edit")}</button>
             ${gastoDuplicable(m) ? `<button type="button" data-hist-duplicar="${i}">${textoApp("Duplicar", "Duplicate")}</button>` : ""}
+            ${gastoDuplicable(m) ? `<button type="button" data-hist-favorito="${i}">${textoApp("Guardar favorito", "Save favorite")}</button>` : ""}
+            ${reciboValido(m.recibo) ? `<button type="button" data-hist-recibo="${i}">${textoApp("Ver recibo", "View receipt")}</button>` : ""}
             <button type="button"
               data-hist-eliminar="${i}">${textoApp("Eliminar", "Delete")}</button>
           </div>
@@ -6656,7 +7004,8 @@ function cuentasDelRegistroHistorial(registro) {
 
 function coincideAlcanceHistorial(registro, cuentas, alcance) {
   if (!alcance) return true;
-  const {desde,hasta,cuenta} = alcance;
+  const {desde,hasta,cuenta,proyecto} = alcance;
+  if (proyecto && claveProyecto(registro.proyecto) !== proyecto) return false;
   if (cuenta && !cuentas.includes(cuenta)) return false;
   if (!desde && !hasta) return true;
   const fecha = String(registro.fecha || "").slice(0,10);
@@ -6670,6 +7019,8 @@ function abrirFiltrosHistorial(aplicar) {
     if (Array.isArray(guardadas)) cuentas = guardadas;
   } catch {}
   const alcance = estadoHistorial.alcance ?? {};
+  const proyectos = proyectosMovimientos();
+  if (alcance.proyecto && !proyectos.has(alcance.proyecto)) proyectos.set(alcance.proyecto, alcance.proyecto);
   const opciones = [
     ...cuentas.map(c => ({valor:"banco:" + c.id, nombre:c.nombre + " · " + (c.tipo === "ahorro" ? textoApp("Ahorros","Savings") : textoApp("Cheques","Checking"))})),
     ...data.tarjetas.map(t => ({valor:"credito:" + t.id, nombre:t.nombre + " · " + textoApp("Crédito","Credit")}))
@@ -6679,6 +7030,11 @@ function abrirFiltrosHistorial(aplicar) {
       <label>${textoApp("Cuenta o tarjeta","Account or card")}<select name="cuenta">
         <option value="">${textoApp("Todas","All")}</option>
         ${opciones.map(o => `<option value="${safe(o.valor)}" ${o.valor === alcance.cuenta ? "selected" : ""}>${safe(o.nombre)}</option>`).join("")}
+      </select></label>
+      <label>${textoApp("Proyecto","Project")}<select name="proyecto">
+        <option value="">${textoApp("Todos","All")}</option>
+        ${[...proyectos].sort((a,b) => a[1].localeCompare(b[1])).map(([clave,nombre]) =>
+          `<option value="${safe(clave)}" ${clave === alcance.proyecto ? "selected" : ""}>${safe(nombre)}</option>`).join("")}
       </select></label>
       <div class="hist-filtro-fechas">
         <label>${textoApp("Desde","From")}<input name="desde" type="date" value="${safe(alcance.desde || "")}"></label>
@@ -6690,12 +7046,12 @@ function abrirFiltrosHistorial(aplicar) {
       </div>
       <p data-error-filtro-hist class="cuenta-nueva-error" role="alert" hidden></p>
       <button type="submit" class="cuenta-nueva-guardar">${textoApp("Aplicar filtros","Apply filters")}</button>
-      ${estadoHistorial.alcance ? `<button type="button" class="hist-filtro-limpiar" data-limpiar-filtro-hist>${textoApp("Quitar filtros de fecha y cuenta","Clear date and account filters")}</button>` : ""}
+      ${estadoHistorial.alcance ? `<button type="button" class="hist-filtro-limpiar" data-limpiar-filtro-hist>${textoApp("Quitar filtros","Clear filters")}</button>` : ""}
     </form>`, true);
   if (!ventana) return;
   ventana.classList.add("cuenta-nueva","hist-filtros-dialogo");
   const form = ventana.querySelector("form");
-  const {desde,hasta,cuenta} = form.elements;
+  const {desde,hasta,cuenta,proyecto} = form.elements;
   const aviso = form.querySelector("[data-error-filtro-hist]");
   const actualizar = filtro => {
     estadoHistorial.alcance = filtro;
@@ -6710,7 +7066,8 @@ function abrirFiltrosHistorial(aplicar) {
       aviso.hidden = false;
       return;
     }
-    actualizar(desde.value || hasta.value || cuenta.value ? {desde:desde.value,hasta:hasta.value,cuenta:cuenta.value} : null);
+    actualizar(desde.value || hasta.value || cuenta.value || proyecto.value
+      ? {desde:desde.value,hasta:hasta.value,cuenta:cuenta.value,proyecto:proyecto.value} : null);
   };
   form.addEventListener("input", () => { aviso.hidden = true; });
   for (const boton of form.querySelectorAll("[data-hist-mes]")) {
@@ -6738,9 +7095,10 @@ function iniciarHistorialMovimientos() {
   const normalizar = texto => String(texto ?? "").normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const indiceBusqueda = items.map((m,i) => ({
-    m, i, cuentas:cuentasDelRegistroHistorial(m), texto:normalizar(m.nombre + " " + nombreOrigenPago(m))
+    m, i, cuentas:cuentasDelRegistroHistorial(m), texto:normalizar(m.nombre + " " + nombreOrigenPago(m) + " " + (m.proyecto || ""))
   }));
   const lista = document.getElementById("histLista");
+  const totalProyecto = document.getElementById("histProyectoTotal");
   const aviso = document.getElementById("histSinResultados");
   const paginacion = document.getElementById("histPaginacion");
   const cantidad = document.getElementById("histCantidad");
@@ -6781,7 +7139,14 @@ function iniciarHistorialMovimientos() {
     coincidencias = indiceBusqueda.filter(({m,cuentas,texto:descripcion}) =>
       (estadoHistorial.filtro === "todos" || m.tipo === estadoHistorial.filtro) &&
       descripcion.includes(texto) && coincideAlcanceHistorial(m,cuentas,alcance));
-    const activos = Number(Boolean(alcance?.desde || alcance?.hasta)) + Number(Boolean(alcance?.cuenta));
+    totalProyecto.hidden = !alcance?.proyecto;
+    if (alcance?.proyecto) {
+      const centavos = coincidencias.reduce((total, {m}) =>
+        m.tipo === "gasto" && !m.esTransferencia && validAmount(Number(m.monto))
+          ? total + Math.round(Number(m.monto) * 100) : total, 0);
+      totalProyecto.textContent = textoApp("Gasto del proyecto en estos resultados", "Project spending in these results") + " · " + money(centavos / 100);
+    }
+    const activos = Number(Boolean(alcance?.desde || alcance?.hasta)) + Number(Boolean(alcance?.cuenta)) + Number(Boolean(alcance?.proyecto));
     botonFiltrar.textContent = textoApp("Filtrar","Filter") + (activos ? ` (${activos})` : "");
     lista.replaceChildren();
     mostrados = 0;
@@ -6826,7 +7191,7 @@ function iniciarHistorialMovimientos() {
     }
   };
   lista.onclick = evento => {
-    const boton = evento.target.closest("[data-hist-menu], [data-hist-editar], [data-hist-duplicar], [data-hist-eliminar]");
+    const boton = evento.target.closest("[data-hist-menu], [data-hist-editar], [data-hist-duplicar], [data-hist-favorito], [data-hist-recibo], [data-hist-eliminar]");
     if (!boton) return;
     if (boton.dataset.histMenu !== undefined) {
       const opciones = document.getElementById("histOpciones" + boton.dataset.histMenu);
@@ -6834,11 +7199,13 @@ function iniciarHistorialMovimientos() {
       boton.setAttribute("aria-expanded",String(abrir));
       return;
     }
-    const {histEditar,histDuplicar,histEliminar} = boton.dataset;
-    const movimiento = items[Number(histEditar ?? histDuplicar ?? histEliminar)];
+    const {histEditar,histDuplicar,histFavorito,histRecibo,histEliminar} = boton.dataset;
+    const movimiento = items[Number(histEditar ?? histDuplicar ?? histFavorito ?? histRecibo ?? histEliminar)];
     if (!movimiento || movimiento.esTransferencia) return;
     if (histEditar !== undefined) editar(movimiento.origen,movimiento.id);
     else if (histDuplicar !== undefined) abrirMovVentana(movimiento);
+    else if (histFavorito !== undefined) guardarFavoritoGasto(movimiento);
+    else if (histRecibo !== undefined) verReciboMovimiento(movimiento);
     else eliminar(movimiento.origen,movimiento.id);
   };
   filtrar(false);
@@ -6866,7 +7233,7 @@ function editor(m){
           <input type="hidden" name="tipo" value="gasto">
         ` : `
         <label class="label">${textoApp("Tipo", "Type")}</label>
-    <select name="tipo">
+    <select name="tipo" onchange="this.form.querySelector('[data-campo-recibo]').hidden = this.value !== 'gasto'">
           <option value="ingreso" ${m.tipo==="ingreso"?"selected":""}>${textoApp("Ingreso", "Income")}</option>
      <option value="gasto" ${m.tipo==="gasto"?"selected":""}>${textoApp("Gasto", "Expense")}</option>
     </select>
@@ -6875,6 +7242,7 @@ function editor(m){
     <input name="nombre" maxlength="80" value="${safe(m.nombre)}" required>
     <label class="label" for="histEditarCategoria">${textoApp("Categoría", "Category")}</label>
     <select id="histEditarCategoria" name="categoria">${opcionesCategoriaEdicion(m.categoria)}</select>
+    ${camposExtraMovimiento(m)}
    `}
       <label class="label">${textoApp("Cantidad ($)", "Amount ($)")}</label>
    <input name="monto" type="number" min="0.01" step="0.01" value="${m.monto}" required>
@@ -6925,12 +7293,14 @@ function ajustarSaldo(cuenta,delta){
  return true;
 }
 
-function guardarEdicion(e,origen,ident){
+async function guardarEdicion(e,origen,ident){
  e.preventDefault();
+ const formulario = e.currentTarget;
+ if (formulario.dataset.procesando) return;
  const datosAnteriores = JSON.stringify(data);
  const item=findItem(origen,ident);
  if(!item)return;
- const f=new FormData(e.target);
+ const f=new FormData(formulario);
  const monto=round(f.get("monto"));
  const fecha=String(f.get("fecha"));
 
@@ -6960,8 +7330,18 @@ if (
  if(origen==="movimiento"){
   const nombre=String(f.get("nombre")).trim();
   if(!nombre)return;
+  let extras;
+  formulario.dataset.procesando = "si";
+  try {
+    extras = await leerExtrasMovimiento(f, f.get("tipo"), item);
+  } catch {
+    if (formulario.isConnected) mostrarErrorRecibo();
+    return;
+  } finally { delete formulario.dataset.procesando; }
+  if (!formulario.isConnected || findItem(origen,ident) !== item) return;
 const corregido = {
   ...item,
+  ...extras,
   nombre,
   tipo: f.get("tipo"),
   monto,
@@ -8773,6 +9153,7 @@ const CLAVES_PREFERENCIAS_RESPALDO = Object.freeze([
   "balanceone-idioma",
   "balanceone-formato-importes",
   "balanceone-diseno-inicio",
+  CLAVE_TARJETAS_INICIO,
   "balanceone-tamano-texto",
   "amfinance-tema",
   "balanceone-progreso",
@@ -8940,7 +9321,24 @@ async function restaurarCopia(event){
       return;
     }
 
-    if (respaldo.datos.presupuestos !== undefined && !presupuestosValidos(respaldo.datos.presupuestos)) {
+    const categorias = respaldo.datos.categoriasPersonales;
+    if (categorias !== undefined) {
+      const iconos = trazosCategoriasMovimiento();
+      if (!Array.isArray(categorias) || !categorias.every(c => c && typeof c.id === "string" &&
+          /^personal-[a-z0-9]{1,40}$/.test(c.id) && typeof c.nombre === "string" &&
+          c.nombre.trim() && c.nombre.length <= 40 && iconos.has(c.icono)) ||
+          new Set(categorias.map(c => c.id)).size !== categorias.length) throw new Error("Invalid categories");
+    }
+    const favoritos = respaldo.datos.favoritosGasto;
+    if (favoritos !== undefined && (!Array.isArray(favoritos) || !favoritos.every(f => f &&
+        typeof f.nombre === "string" && f.nombre.trim() && f.nombre.length <= 80 &&
+        typeof f.categoria === "string" && typeof f.origen === "string"))) throw new Error("Invalid favorites");
+    if (respaldo.datos.movimientos.some(m => (m?.recibo && !reciboValido(m.recibo)) ||
+        (m?.proyecto != null && (typeof m.proyecto !== "string" || m.proyecto.length > 60)))) {
+      throw new Error("Invalid transaction attachments");
+    }
+
+    if (respaldo.datos.presupuestos !== undefined && !presupuestosValidos(respaldo.datos.presupuestos, respaldo.datos)) {
       alert(textoApp("Los presupuestos de esta copia no son válidos.", "The budgets in this backup are invalid."));
       return;
     }
@@ -9511,7 +9909,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.4.2 Beta</p>
+      <p class="ajustes-version">Balance One · 0.4.7 Beta</p>
     </section>
   `;
 }
@@ -9797,7 +10195,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.4.2 Beta
+        ${textoApp("Versión", "Version")} 0.4.7 Beta
       </p>
     </section>
   `;
@@ -9832,7 +10230,21 @@ function abrirAjuste(tipo) {
           <span aria-hidden="true">›</span>
         </button>
 
-                <button type="button" class="ajustes-fila"
+        <button type="button" class="ajustes-fila" onclick="abrirTarjetasInicio()">
+          <span class="ajustes-icono" aria-hidden="true">▤</span>
+          <span class="ajustes-texto">
+            <strong>${t("Tarjetas de Inicio", "Home cards")}</strong>
+            <small>${t("Visibilidad y orden", "Visibility and order")}</small>
+          </span><span aria-hidden="true">›</span>
+        </button>
+        <button type="button" class="ajustes-fila" onclick="abrirCategoriasPersonales()">
+          <span class="ajustes-icono" aria-hidden="true">${iconoCategoriaMovimiento("Compras")}</span>
+          <span class="ajustes-texto">
+            <strong>${t("Categorías personales", "Custom categories")}</strong>
+            <small>${t("Crea categorías con su propio icono", "Create categories with their own icon")}</small>
+          </span><span aria-hidden="true">›</span>
+        </button>
+        <button type="button" class="ajustes-fila"
           onclick="abrirOpcionApariencia('tema')">
           <span class="ajustes-icono" aria-hidden="true">
             ${iconoAjuste("apariencia")}
@@ -10044,7 +10456,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.4.2 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.4.7 Beta</p>
         </div>`
     }
   };
@@ -10860,9 +11272,11 @@ activarOrdenCuentasInicio();
 
 activarOrdenHerramientas();
 let importeVentana = "";
+let aperturaMovimiento = 0;
 let focoAntesVentana = null;
 
 function cerrarMovVentana() {
+  aperturaMovimiento++;
   document.getElementById("movVentana").classList.add("hidden");
   document.getElementById("movVentanaFondo").classList.add("hidden");
   document.body.style.overflow = "";
@@ -10874,8 +11288,9 @@ function trazosCategoriasMovimiento() { return new Map([["Alimentación", "<path
 }
 function iconoCategoriaMovimiento(nombre) {
   const trazosCategorias = trazosCategoriasMovimiento();
+  const personal = categoriasPersonales().find(c => c.id === nombre);
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    (trazosCategorias.get(nombre) || trazosCategorias.get("Otros")) + '</svg>';
+    (trazosCategorias.get(personal?.icono || nombre) || trazosCategorias.get("Otros")) + '</svg>';
 }
 function actualizarSelectorCategoria() {
   const select = document.getElementById("movVentanaCategoria");
@@ -10995,6 +11410,9 @@ function abrirMovVentana(copia = null) {
   categoria.querySelector("[data-categoria-copia]")?.remove();
   form.reset();
   delete form.dataset.guardado;
+  delete form.dataset.procesando;
+  const extras = document.getElementById("movVentanaExtras");
+  extras.innerHTML = camposExtraMovimiento();
   document.getElementById("movCategoriaSelector").open = false;
   importeVentana = copia && validAmount(Number(copia.monto)) ? round(Number(copia.monto)).toFixed(2) : "";
   document.getElementById("movVentanaMonto").textContent = "$" + (importeVentana || "0.00");
@@ -11013,23 +11431,18 @@ function abrirMovVentana(copia = null) {
   actualizarOrigen();
   if (copia) {
     form.elements.nombre.value = String(copia.nombre ?? "");
-    const valor = String(copia.categoria ?? "");
-    if (valor && !Array.from(categoria.options).some(o => o.value === valor)) {
-      const opcion = document.createElement("option");
-      opcion.value = valor;
-      opcion.textContent = valor;
-      opcion.setAttribute("data-categoria-copia", "");
-      categoria.append(opcion);
-    }
-    categoria.value = valor;
+    aplicarCategoriaBorrador(categoria, String(copia.categoria ?? ""));
     const origen = valorOrigenMovimiento(copia);
     if (Array.from(selector.options).some(o => o.value === origen)) selector.value = origen;
   }
   actualizarSelectorCategoria();
   const actualizarSugerencia = prepararSugerenciaGasto(form);
+  const actualizarFavoritos = prepararFavoritosGasto(form, actualizarSugerencia);
   tipo.onchange = () => {
     actualizarOrigen();
     actualizarSugerencia();
+    actualizarFavoritos();
+    extras.querySelector("[data-campo-recibo]").hidden = tipo.value !== "gasto";
   };
 
   ventana.classList.remove("hidden");
@@ -11071,7 +11484,7 @@ const tecladoVentana = document.getElementById("movVentanaTeclado");
   tecladoVentana.appendChild(boton);
 });
 
-document.getElementById("movVentanaForm").onsubmit = event => {
+document.getElementById("movVentanaForm").onsubmit = async event => {
   event.preventDefault();
 
   const formulario = event.currentTarget;
@@ -11093,8 +11506,21 @@ document.getElementById("movVentanaForm").onsubmit = event => {
     return;
   }
 
+  const apertura = aperturaMovimiento;
+  let extras;
+  formulario.dataset.procesando = "si";
+  try {
+    extras = await leerExtrasMovimiento(campos, tipo);
+  } catch {
+    if (apertura === aperturaMovimiento) mostrarErrorRecibo();
+    return;
+  } finally {
+    if (apertura === aperturaMovimiento) delete formulario.dataset.procesando;
+  }
+  if (apertura !== aperturaMovimiento) return;
   const movimiento = {
     id: id(),
+    ...extras,
     ...origenPagoSeleccionado(cuentaId),
     nombre,
     tipo,
@@ -11545,7 +11971,7 @@ function iconoRegistroFinanciero(registro) {
   let icono;
   if (registro.esTransferencia || registro.tipo === "transferencia") {
     icono = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18m-4-4 4 4-4 4M21 17H3m4-4-4 4 4 4"/></svg>';
-  } else if (registro.categoria && trazosCategoriasMovimiento().has(registro.categoria)) {
+  } else if (registro.categoria && (nombreCategoriaPersonal(registro.categoria) || trazosCategoriasMovimiento().has(registro.categoria))) {
     icono = iconoCategoriaMovimiento(registro.categoria);
   } else {
     const ingreso = registro.tipo === "ingreso";
@@ -12268,14 +12694,21 @@ function traducirMenusVentana() {
     ["Suscripciones", "Suscripciones", "Subscriptions"]
   ];
 
-  document.querySelectorAll(
-    "#movVentanaCategoria option"
-  ).forEach((opcion, i) => {
+  const selectCategoria = document.getElementById("movVentanaCategoria");
+  const valorCategoria = selectCategoria.value;
+  selectCategoria.querySelectorAll("[data-categoria-personal]").forEach(o => o.remove());
+  selectCategoria.querySelectorAll("option:not([data-categoria-copia])").forEach((opcion, i) => {
     const categoria = categorias[i];
     if (!categoria) return;
     opcion.value = categoria[0];
     opcion.textContent = textoApp(categoria[1], categoria[2]);
   });
+  for (const categoria of categoriasPersonales()) {
+    const opcion = new Option(categoria.nombre, categoria.id);
+    opcion.setAttribute("data-categoria-personal", "");
+    selectCategoria.append(opcion);
+  }
+  if ([...selectCategoria.options].some(o => o.value === valorCategoria)) selectCategoria.value = valorCategoria;
   actualizarSelectorCategoria();
 
   const herramientas = {
