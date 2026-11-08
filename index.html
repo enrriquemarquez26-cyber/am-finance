@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.3.3 Beta</title>
+<title>Balance One 0.3.4 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3733,8 +3733,10 @@ main#content {padding-left:max(16px,env(safe-area-inset-left));padding-right:max
 .presupuestos-lista > .note {margin:0 0 4px}
 .presupuestos-fila {display:grid;gap:7px;min-width:0;padding:11px 13px;border-radius:23px;background:rgba(130,140,155,.09)}
 .presupuestos-fila-cabecera strong {font-size:.86rem;overflow-wrap:anywhere}
-.presupuestos-widget button,.presupuestos-eliminar {border:0;border-radius:999px;padding:8px 11px;background:rgba(130,140,155,.11);color:inherit;font:inherit;font-size:.73rem;font-weight:650;cursor:pointer}
+.presupuestos-widget button,.presupuestos-dialogo .presupuestos-fila button,.presupuestos-eliminar {border:0;border-radius:999px;padding:8px 11px;background:rgba(130,140,155,.11);color:inherit;font:inherit;font-size:.73rem;font-weight:650;cursor:pointer}
 .presupuestos-widget .presupuestos-agregar {color:var(--balanceone-color,#ff7900);background:rgba(255,121,0,.09)}
+.presupuestos-widget .presupuestos-ver-todos {display:block;margin:12px 0 0 auto;color:var(--balanceone-color,#ff7900)}
+.presupuestos-dialogo .presupuestos-mes {margin:0;text-transform:capitalize}
 .presupuestos-importes {font-size:.8rem;font-weight:700;overflow-wrap:anywhere}
 .presupuestos-importes small,.presupuestos-pie {color:#657181;font-size:.66rem;font-weight:550}
 .presupuestos-estado {color:#9c5800;font-weight:700}
@@ -3781,7 +3783,7 @@ html.tema-oscuro .presupuestos-fila:is([data-estado="limite"],[data-estado="exce
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.3.3 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.3.4 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -3993,8 +3995,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.3.3 Beta",
-      "Smart control of your finances · 0.3.3 Beta"
+      "Control inteligente de tus finanzas · 0.3.4 Beta",
+      "Smart control of your finances · 0.3.4 Beta"
     );
   }
 }
@@ -4683,25 +4685,21 @@ function resumenPresupuestos(datos, mes) {
   });
 }
 
-function widgetPresupuestos() {
+const LIMITE_PRESUPUESTOS_INICIO = 3;
+
+function presupuestosPorPrioridad() {
+  return resumenPresupuestos(data,month()).sort((a,b) => b.porcentaje - a.porcentaje);
+}
+
+function filasPresupuestos(lista) {
   const detalles = detallesCategoriasGasto();
-  const mes = month();
-  const nombreMes = new Date(mes + "-01T12:00:00").toLocaleDateString(
-    idiomaActual() === "en" ? "en-US" : "es", {month:"long", year:"numeric"});
-  const lista = resumenPresupuestos(data, mes);
   const estados = {
     normal:"",
     cerca:textoApp("Ya usaste el 80 % o más", "80% or more used"),
     limite:textoApp("Límite alcanzado", "Limit reached"),
     excedido:textoApp("Límite superado", "Over budget")
   };
-  return `<section class="card inicio-capsula presupuestos-widget" aria-labelledby="presupuestosTitulo">
-    <div class="presupuestos-cabecera">
-      <div><h3 id="presupuestosTitulo">${textoApp("Presupuestos", "Budgets")}</h3><small class="label">${safe(nombreMes)}</small></div>
-      ${lista.length < Object.keys(detalles).length ? `<button type="button" class="presupuestos-agregar" onclick="abrirPresupuesto()">+ ${textoApp("Agregar", "Add")}</button>` : ""}
-    </div>
-    <div class="presupuestos-lista">
-    ${lista.map(p => {
+  return lista.map(p => {
       const [nombre, color] = detalles[p.categoria];
       const usado = money(p.usado / 100);
       const limite = money(p.limiteCentavos / 100);
@@ -4717,12 +4715,41 @@ function widgetPresupuestos() {
         <div aria-hidden="true">${barraProgreso(p.porcentaje, colorBarra)}</div>
         <div class="presupuestos-pie"><span>${saldo}</span>${estados[p.estado] ? `<span class="presupuestos-estado">${estados[p.estado]}</span>` : ""}</div>
       </article>`;
-    }).join("") || `<p class="note">${textoApp("Pon un límite mensual para gasolina, comida o cualquier categoría.", "Set a monthly limit for fuel, food or any category.")}</p>`}
+    }).join("");
+}
+
+function widgetPresupuestos() {
+  const lista = presupuestosPorPrioridad();
+  const nombreMes = etiquetaMesComparacion(month());
+  return `<section class="card inicio-capsula presupuestos-widget" aria-labelledby="presupuestosTitulo">
+    <div class="presupuestos-cabecera">
+      <div><h3 id="presupuestosTitulo">${textoApp("Presupuestos", "Budgets")}</h3><small class="label">${safe(nombreMes)}</small></div>
+      ${lista.length < Object.keys(detallesCategoriasGasto()).length ? `<button type="button" class="presupuestos-agregar" onclick="abrirPresupuesto()">+ ${textoApp("Agregar", "Add")}</button>` : ""}
     </div>
+    <div class="presupuestos-lista">
+      ${filasPresupuestos(lista.slice(0,LIMITE_PRESUPUESTOS_INICIO)) || `<p class="note">${textoApp("Pon un límite mensual para gasolina, comida o cualquier categoría.", "Set a monthly limit for fuel, food or any category.")}</p>`}
+    </div>
+    ${lista.length > LIMITE_PRESUPUESTOS_INICIO ? `<button type="button" class="presupuestos-ver-todos" onclick="abrirListaPresupuestos()">${textoApp("Ver todos", "View all")} (${lista.length}) ›</button>` : ""}
   </section>`;
 }
 
-function abrirPresupuesto(categoria = "") {
+function abrirListaPresupuestos() {
+  const lista = presupuestosPorPrioridad();
+  const ventana = crearVentanaApariencia(textoApp("Todos los presupuestos", "All budgets"), `
+    <p class="label presupuestos-mes">${safe(etiquetaMesComparacion(month()))}</p>
+    <div class="presupuestos-lista">
+      ${filasPresupuestos(lista) || `<p class="note">${textoApp("Todavía no hay presupuestos.", "No budgets yet.")}</p>`}
+    </div>`, true);
+  if (ventana) ventana.classList.add("presupuestos-dialogo");
+}
+
+function abrirPresupuesto(categoria = "", volverALista = false) {
+  const listaAbierta = document.querySelector("dialog.presupuestos-dialogo[open]");
+  if (listaAbierta) {
+    listaAbierta.addEventListener("close", () => abrirPresupuesto(categoria, true), {once:true});
+    listaAbierta.close();
+    return;
+  }
   const lista = data.presupuestos ?? [];
   if (!presupuestosValidos(lista)) {
     alert(textoApp("No se pudieron leer los presupuestos.", "Could not read budgets."));
@@ -4748,6 +4775,7 @@ function abrirPresupuesto(categoria = "") {
     </form>`, true);
   if (!ventana) return;
   ventana.classList.add("cuenta-nueva");
+  if (volverALista) ventana.addEventListener("close", abrirListaPresupuestos, {once:true});
   const form = ventana.querySelector("form");
   function guardar(eliminar) {
     if (form.dataset.guardado) return;
@@ -9089,7 +9117,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.3.3 Beta</p>
+      <p class="ajustes-version">Balance One · 0.3.4 Beta</p>
     </section>
   `;
 }
@@ -9375,7 +9403,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.3.3 Beta
+        ${textoApp("Versión", "Version")} 0.3.4 Beta
       </p>
     </section>
   `;
@@ -9622,7 +9650,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.3.3 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.3.4 Beta</p>
         </div>`
     }
   };
@@ -14754,6 +14782,7 @@ function simplificarPagoPrestamo(form) {
 
 </body>
 </html>
+
 
 
 
