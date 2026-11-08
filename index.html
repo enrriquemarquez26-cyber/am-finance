@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.4.8 Beta</title>
+<title>Balance One 0.4.9 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3832,11 +3832,12 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .bo047-campos input[type=checkbox], .bo047-orden-fila input[type=checkbox] {width:auto;min-width:auto;accent-color:var(--balanceone-color,#ff7900)}
 .bo047-orden {display:grid;gap:6px;margin:12px 0}
 .bo047-orden-fila {display:flex;align-items:center;gap:6px;min-width:0}
-.bo047-orden-fila label,.bo047-orden-fila [data-usar] {flex:1;min-width:0;overflow-wrap:anywhere;text-align:start}
+.bo047-orden-fila label,.bo047-orden-fila [data-usar],.bo047-orden-fila .bo049-nombre-orden {flex:1;min-width:0;overflow-wrap:anywhere;text-align:start}
 .bo047-orden-fila label {font-size:.86rem}
 .bo047-orden-fila button:not([data-usar]) {border:0;border-radius:50%;background:rgba(130,140,155,.17);color:inherit;width:42px;height:42px;flex:none;font-size:1.15rem}
 .bo047-orden-fila button:disabled {opacity:.35}
 .bo047-icono svg {width:28px;height:28px}
+.bo049-modo-discreto input {width:20px;height:20px;flex:none;margin:0;accent-color:var(--balanceone-color,#ff7900)}
 .bo047-recibo {display:block;max-width:100%;max-height:60dvh;margin:auto;object-fit:contain;border-radius:12px}
 .bo047-proyecto {display:block;font-size:.69rem;color:inherit;opacity:.8;overflow-wrap:anywhere}
 </style>
@@ -3846,7 +3847,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.4.8 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.4.9 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4163,27 +4164,11 @@ function abrirTarjetasInicio() {
   `, true);
   if (!ventana) return;
   const lista = ventana.querySelector(".bo047-orden");
-  const dibujar = () => {
-    lista.innerHTML = orden.map(({clave,visible}, i) => `
-      <div class="bo047-orden-fila">
-        <label><input type="checkbox" data-visible="${i}" ${visible ? "checked" : ""}> ${safe(opciones[clave])}</label>
-        <button type="button" data-pos="${i}" data-dir="-1" ${i === 0 ? "disabled" : ""} aria-label="${t("Subir","Move up")} ${safe(opciones[clave])}">↑</button>
-        <button type="button" data-pos="${i}" data-dir="1" ${i === orden.length - 1 ? "disabled" : ""} aria-label="${t("Bajar","Move down")} ${safe(opciones[clave])}">↓</button>
-      </div>`).join("");
-  };
+  const dibujar = conectarOrdenInicio(lista, () => orden, item => opciones[item.clave],
+    (item, i) => `<label><input type="checkbox" data-visible="${i}" ${item.visible ? "checked" : ""}> ${safe(opciones[item.clave])}</label>`);
   lista.onchange = event => {
-    const i = Number(event.target.dataset.visible);
-    if (orden[i]) orden[i].visible = event.target.checked;
-  };
-  lista.onclick = event => {
-    const boton = event.target.closest("[data-pos]");
-    if (!boton || boton.disabled) return;
-    const i = Number(boton.dataset.pos);
-    const siguiente = i + Number(boton.dataset.dir);
-    [orden[i], orden[siguiente]] = [orden[siguiente], orden[i]];
-    dibujar();
-    const destino = lista.querySelector(`[data-pos="${siguiente}"][data-dir="${boton.dataset.dir}"]`);
-    (destino.disabled ? lista.querySelector(`[data-visible="${siguiente}"]`) : destino).focus();
+    const item = orden[Number(event.target.dataset.visible)];
+    if (item) item.visible = event.target.checked;
   };
   ventana.querySelector("[data-restablecer]").onclick = () => { orden = ordenTarjetasInicio(diseno); dibujar(); };
   ventana.querySelector("[data-guardar]").onclick = () => {
@@ -4191,6 +4176,72 @@ function abrirTarjetasInicio() {
       localStorage.setItem(CLAVE_TARJETAS_INICIO, JSON.stringify({...preferenciasTarjetasInicio(), [diseno]:orden}));
       ventana.close();
     } catch { alert(t("No se pudieron guardar las tarjetas.", "Could not save the cards.")); }
+  };
+  dibujar();
+}
+
+function conectarOrdenInicio(lista, obtenerOrden, nombre, contenidoFila) {
+  const t = textoApp;
+  const dibujar = () => {
+    const orden = obtenerOrden();
+    lista.innerHTML = orden.map((item, i) => `
+      <div class="bo047-orden-fila">
+        ${contenidoFila(item, i)}
+        <button type="button" data-pos="${i}" data-dir="-1" ${i === 0 ? "disabled" : ""} aria-label="${t("Subir","Move up")} ${safe(nombre(item))}">↑</button>
+        <button type="button" data-pos="${i}" data-dir="1" ${i === orden.length - 1 ? "disabled" : ""} aria-label="${t("Bajar","Move down")} ${safe(nombre(item))}">↓</button>
+      </div>`).join("");
+  };
+  lista.onclick = event => {
+    const boton = event.target.closest("[data-pos]");
+    if (!boton || boton.disabled) return;
+    const orden = obtenerOrden();
+    const i = Number(boton.dataset.pos);
+    const siguiente = i + Number(boton.dataset.dir);
+    [orden[i], orden[siguiente]] = [orden[siguiente], orden[i]];
+    dibujar();
+    const destino = lista.querySelector(`[data-pos="${siguiente}"][data-dir="${boton.dataset.dir}"]`);
+    (destino.disabled ? destino.parentElement.querySelector("input, button:not(:disabled)") : destino)?.focus();
+  };
+  return dibujar;
+}
+
+function abrirOrdenFinancieroInicio(grupo) {
+  const t = textoApp;
+  let elementos;
+  let titulo;
+  if (grupo === "bancos") {
+    titulo = t("Orden de cuentas bancarias", "Bank account order");
+    try {
+      elementos = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
+      if (!Array.isArray(elementos)) throw new Error();
+    } catch {
+      alert(t("No se pudieron leer las cuentas.", "Could not load the accounts."));
+      return;
+    }
+  } else if (grupo === "credito") {
+    titulo = t("Orden de tarjetas de crédito", "Credit card order");
+    elementos = data.tarjetas;
+  } else return;
+
+  const orden = ordenarElementosInicio(elementos, grupo);
+  const ventana = crearVentanaApariencia(titulo, orden.length < 2 ? `
+    <p class="note">${t("Agrega al menos dos para poder cambiar el orden.", "Add at least two to change their order.")}</p>
+  ` : `
+    <p class="note">${t("Este orden se aplica a la lista del diseño clásico de Inicio.", "This order applies to the list in the Classic Home layout.")}</p>
+    <div class="bo047-orden"></div>
+    <button type="button" class="cuenta-nueva-guardar" data-guardar-orden>${t("Guardar orden","Save order")}</button>
+  `, true);
+  if (!ventana || orden.length < 2) return;
+
+  const dibujar = conectarOrdenInicio(ventana.querySelector(".bo047-orden"), () => orden,
+    item => item.nombre, item => `<span class="bo049-nombre-orden">${safe(item.nombre)}</span>`);
+  ventana.querySelector("[data-guardar-orden]").onclick = () => {
+    try {
+      guardarOrdenElementosInicio(grupo, orden.map(item => String(item.id)));
+      ventana.close();
+    } catch {
+      alert(t("No se pudo guardar el orden.", "Could not save the order."));
+    }
   };
   dibujar();
 }
@@ -4376,8 +4427,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.4.8 Beta",
-      "Smart control of your finances · 0.4.8 Beta"
+      "Control inteligente de tus finanzas · 0.4.9 Beta",
+      "Smart control of your finances · 0.4.9 Beta"
     );
   }
 }
@@ -4540,12 +4591,16 @@ function dibujarInicio() {
   }
 }
 
+function guardarModoDiscretoInicio(activo) {
+  modoDiscretoInicio = activo;
+  try {
+    localStorage.setItem(CLAVE_MODO_DISCRETO_INICIO, activo ? "1" : "0");
+  } catch {}
+}
+
 function alternarModoDiscretoInicio() {
   if (page !== "inicio") return;
-  modoDiscretoInicio = !modoDiscretoInicio;
-  try {
-    localStorage.setItem(CLAVE_MODO_DISCRETO_INICIO, modoDiscretoInicio ? "1" : "0");
-  } catch {}
+  guardarModoDiscretoInicio(!modoDiscretoInicio);
   dibujarInicio();
   document.getElementById("modoDiscretoInicioBoton")?.focus({preventScroll:true});
 }
@@ -6145,6 +6200,10 @@ function disenoInicioActual() {
   } catch {
     return "clasico";
   }
+}
+
+function etiquetaDisenoInicio() {
+  return disenoInicioActual() === "nuevo" ? textoApp("Nuevo", "New") : textoApp("Clásico", "Classic");
 }
 
 function cambiarDisenoInicio(diseno) {
@@ -9936,7 +9995,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.4.8 Beta</p>
+      <p class="ajustes-version">Balance One · 0.4.9 Beta</p>
     </section>
   `;
 }
@@ -10232,7 +10291,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.4.8 Beta
+        ${textoApp("Versión", "Version")} 0.4.9 Beta
       </p>
     </section>
   `;
@@ -10255,17 +10314,15 @@ function abrirAjuste(tipo) {
         </div>`
     },
 
-    apariencia: {
-      titulo: t("Apariencia", "Appearance"),
+    inicio: {
+      titulo: t("Diseño de inicio", "Home layout"),
       contenido: `
-        <button type="button" class="ajustes-fila"
-          onclick="abrirOpcionApariencia('inicio')">
+        <button type="button" class="ajustes-fila" onclick="abrirOpcionApariencia('inicio')">
           <span class="ajustes-icono" aria-hidden="true">⌂</span>
           <span class="ajustes-texto">
-            <strong>${t("Diseño de inicio", "Home layout")}</strong>
-            <small>${t("Clásico o nuevo · Puedes cambiar cuando quieras", "Classic or new · Switch anytime")}</small>
-          </span>
-          <span aria-hidden="true">›</span>
+            <strong>${t("Elegir diseño", "Choose layout")}</strong>
+            <small data-diseno-inicio-elegido>${etiquetaDisenoInicio()}</small>
+          </span><span aria-hidden="true">›</span>
         </button>
 
         <button type="button" class="ajustes-fila" onclick="abrirTarjetasInicio()">
@@ -10275,6 +10332,46 @@ function abrirAjuste(tipo) {
             <small>${t("Visibilidad y orden", "Visibility and order")}</small>
           </span><span aria-hidden="true">›</span>
         </button>
+
+        <button type="button" class="ajustes-fila" onclick="abrirOrdenFinancieroInicio('bancos')">
+          <span class="ajustes-icono" aria-hidden="true">↕</span>
+          <span class="ajustes-texto">
+            <strong>${t("Orden de cuentas bancarias", "Bank account order")}</strong>
+            <small>${t("Lista del diseño clásico", "Classic layout list")}</small>
+          </span><span aria-hidden="true">›</span>
+        </button>
+
+        <button type="button" class="ajustes-fila" onclick="abrirOrdenFinancieroInicio('credito')">
+          <span class="ajustes-icono" aria-hidden="true">↕</span>
+          <span class="ajustes-texto">
+            <strong>${t("Orden de tarjetas de crédito", "Credit card order")}</strong>
+            <small>${t("Lista del diseño clásico", "Classic layout list")}</small>
+          </span><span aria-hidden="true">›</span>
+        </button>
+
+        <label class="ajustes-fila bo049-modo-discreto">
+          <span class="ajustes-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M2 12s3.7-6 10-6 10 6 10 6-3.7 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          </span>
+          <span class="ajustes-texto">
+            <strong>${t("Modo discreto", "Discreet mode")}</strong>
+            <small>${t("Oculta los importes de Inicio", "Hide amounts on Home")}</small>
+          </span>
+          <input type="checkbox" ${modoDiscretoInicio ? "checked" : ""} onchange="guardarModoDiscretoInicio(this.checked)">
+        </label>`
+    },
+
+    apariencia: {
+      titulo: t("Apariencia", "Appearance"),
+      contenido: `
+        <button type="button" class="ajustes-fila" onclick="abrirAjuste('inicio')">
+          <span class="ajustes-icono" aria-hidden="true">⌂</span>
+          <span class="ajustes-texto">
+            <strong>${t("Diseño de inicio", "Home layout")}</strong>
+            <small>${t("Diseño, tarjetas, orden y modo discreto", "Layout, cards, order and discreet mode")}</small>
+          </span><span aria-hidden="true">›</span>
+        </button>
+
         <button type="button" class="ajustes-fila" onclick="abrirCategoriasPersonales()">
           <span class="ajustes-icono" aria-hidden="true">${iconoCategoriaMovimiento("Compras")}</span>
           <span class="ajustes-texto">
@@ -10494,7 +10591,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.4.8 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.4.9 Beta</p>
         </div>`
     }
   };
@@ -10504,8 +10601,8 @@ function abrirAjuste(tipo) {
 
   el().innerHTML = `
     <section class="ajustes-pantalla">
-      <button class="ajustes-volver" onclick="ajustes()">
-        ‹ ${t("Ajustes", "Settings")}
+      <button class="ajustes-volver" onclick="${tipo === "inicio" ? "abrirAjuste('apariencia')" : "ajustes()"}">
+        ‹ ${tipo === "inicio" ? t("Apariencia", "Appearance") : t("Ajustes", "Settings")}
       </button>
       <h2>${pantalla.titulo}</h2>
       <div style="margin-top:20px">
@@ -11216,14 +11313,18 @@ function ordenarElementosInicio(elementos, grupo) {
   return elementos.slice().sort((a,b) =>
     (posiciones.get(String(a.id)) ?? Infinity) - (posiciones.get(String(b.id)) ?? Infinity));
 }
+function guardarOrdenElementosInicio(grupo, ids) {
+  localStorage.setItem("balanceone-orden-inicio-" + grupo, JSON.stringify(ids));
+}
+
 function activarOrdenCuentasInicio() {
   let pendiente = null, activo = null, lista = null, timer = null, modo = "";
   let x0 = 0, y0 = 0, bloquearHasta = 0, previo = [];
   const cancelarTimer = () => { clearTimeout(timer); timer = null; };
   const guardar = contenedor => {
     try {
-      localStorage.setItem("balanceone-orden-inicio-" + contenedor.dataset.ordenLista,
-        JSON.stringify([...contenedor.children].map(n => n.dataset.ordenId)));
+      guardarOrdenElementosInicio(contenedor.dataset.ordenLista,
+        [...contenedor.children].map(n => n.dataset.ordenId));
     } catch {
       previo.forEach(n => contenedor.appendChild(n));
       alert(textoApp("No se pudo guardar el orden.", "Could not save the order."));
@@ -12339,6 +12440,10 @@ function abrirOpcionApariencia(tipo) {
   if (!ventana) return;
 
   if (tipo === "inicio") {
+    const detalle = el().querySelector("[data-diseno-inicio-elegido]");
+    ventana.addEventListener("close", () => {
+      if (detalle?.isConnected) detalle.textContent = etiquetaDisenoInicio();
+    }, {once:true});
     const botonVer = ventana.querySelector(".apariencia-listo");
     botonVer.textContent = textoApp("Ver inicio elegido", "View selected home");
     botonVer.onclick = () => {
