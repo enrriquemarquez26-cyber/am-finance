@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.6 Beta</title>
+<title>Balance One 0.5.7 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3988,7 +3988,10 @@ html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4
 .carrusel-montos > div:first-child {padding-inline-end:12px}
 .carrusel-montos dt {margin-bottom:4px}
 .carrusel-montos dd {margin:0;font-size:clamp(.92rem,4.3vw,1.18rem);font-weight:750}
-.carrusel-filtro {display:block;margin:12px 0 4px;font-size:.8rem}
+.carrusel-todas .credito-accion-copy {overflow-wrap:anywhere}
+.carrusel-todas-saldo {
+  max-width:40%;font-size:.81rem;text-align:end;overflow-wrap:anywhere
+}
 .carrusel-credito-detalle {
   --credito-margen-lateral:max(9px,env(safe-area-inset-left),env(safe-area-inset-right));
   position:fixed;inset:auto 0 max(8px,calc(env(safe-area-inset-bottom) - 16px));margin:0 auto;
@@ -4036,7 +4039,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.6 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.7 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4617,8 +4620,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.6 Beta",
-      "Smart control of your finances · 0.5.6 Beta"
+      "Control inteligente de tus finanzas · 0.5.7 Beta",
+      "Smart control of your finances · 0.5.7 Beta"
     );
   }
 }
@@ -8541,38 +8544,79 @@ function activarCarruselCredito() {
 }
 
 function abrirTodasTarjetasCredito() {
+  if (document.getElementById("dialogoTodasTarjetas")) return;
   const t = textoApp;
-  const bancos = [...new Set(data.tarjetas.map(tarjeta => String(tarjeta.banco || "").trim()).filter(Boolean))];
-  const ventana = crearVentanaApariencia(t("Mis tarjetas","My cards"), `
-    <button type="button" class="primary" data-agregar-credito>+ ${t("Agregar tarjeta","Add card")}</button>
-    ${bancos.length ? `<label class="carrusel-filtro" for="carruselBanco">${t("Banco","Bank")}</label>
-      <select id="carruselBanco"><option value="">${t("Todos los bancos","All banks")}</option>
-        ${bancos.map(banco => `<option value="${safe(banco)}">${safe(banco)}</option>`).join("")}
-      </select>` : ""}
-    <div class="carrusel-todas" data-lista-credito>
-      ${data.tarjetas.map((tarjeta,i) => `<button type="button" class="apariencia-opcion" data-indice-credito="${i}">
-        <span>${safe(tarjeta.nombre)}${tarjeta.ultimos4 ? `<small> · •••• ${safe(tarjeta.ultimos4)}</small>` : ""}</span>
-        <strong>${money(tarjeta.saldo)}</strong>
-      </button>`).join("") || `<p class="note">${t("Aún no tienes tarjetas registradas.","You have no cards added yet.")}</p>`}
-    </div>`, true);
-  if (!ventana) return;
+  const bancoDe = tarjeta => String(tarjeta.banco || "").trim();
+  const bancos = [...new Set(data.tarjetas.map(bancoDe).filter(Boolean))];
+  const iconoTarjeta = iconoAjuste("dinero");
+  const flecha = `<span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>`;
+  const ventana = document.createElement("dialog");
+  ventana.id = "dialogoTodasTarjetas";
+  ventana.className = "carrusel-credito-detalle carrusel-todas";
+  ventana.setAttribute("aria-labelledby", "tituloTodasTarjetas");
+  ventana.innerHTML = `
+    <button type="button" class="carrusel-cerrar" data-boton-x aria-label="${t("Cerrar","Close")}"
+      onclick="animarBotonX(this, () => this.closest('dialog').close())" autofocus>×</button>
+    <div class="tarjeta-detalle credito-detalle">
+      <div class="credito-detalle-cabecera">
+        <div>
+          <span class="credito-detalle-sobretitulo">${t("Tarjetas de crédito","Credit cards")}</span>
+          <h3 id="tituloTodasTarjetas">${t("Mis tarjetas","My cards")}</h3>
+        </div>
+      </div>
+      <div class="credito-acciones">
+        <div class="credito-accion">
+          <button type="button" class="credito-accion-boton" data-agregar-credito>
+            <span class="credito-accion-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+            <span class="credito-accion-copy"><strong>${t("Agregar tarjeta","Add card")}</strong></span>
+            ${flecha}
+          </button>
+        </div>
+        ${bancos.length ? `<div class="credito-form-campo">
+          <label for="carruselBanco">${t("Banco","Bank")}</label>
+          <select id="carruselBanco">
+            <option value="">${t("Todos los bancos","All banks")}</option>
+            ${bancos.map(banco => `<option value="${safe(banco)}">${safe(banco)}</option>`).join("")}
+          </select>
+        </div>` : ""}
+        <div class="credito-acciones" data-lista-credito>
+          ${data.tarjetas.map((tarjeta,i) => `<div class="credito-accion" data-banco-credito="${safe(bancoDe(tarjeta))}">
+            <button type="button" class="credito-accion-boton" data-indice-credito="${i}" aria-haspopup="dialog">
+              <span class="credito-accion-icono" aria-hidden="true">${iconoTarjeta}</span>
+              <span class="credito-accion-copy">
+                <strong>${safe(tarjeta.nombre)}</strong>
+                ${/^\d{4}$/.test(String(tarjeta.ultimos4 || "")) ? `<small>•••• ${safe(tarjeta.ultimos4)}</small>` : ""}
+              </span>
+              <strong class="carrusel-todas-saldo">${money(tarjeta.saldo)}</strong>
+              ${flecha}
+            </button>
+          </div>`).join("") || `<p class="note">${t("Aún no tienes tarjetas registradas.","You have no cards added yet.")}</p>`}
+        </div>
+      </div>
+    </div>`;
   const filtro = ventana.querySelector("#carruselBanco");
   const lista = ventana.querySelector("[data-lista-credito]");
   if (filtro) filtro.onchange = () => {
-    lista.querySelectorAll("[data-indice-credito]").forEach(fila => {
-      fila.hidden = Boolean(filtro.value) && String(data.tarjetas[Number(fila.dataset.indiceCredito)].banco || "").trim() !== filtro.value;
+    lista.querySelectorAll("[data-banco-credito]").forEach(fila => {
+      fila.hidden = Boolean(filtro.value) && fila.dataset.bancoCredito !== filtro.value;
     });
   };
   lista.onclick = e => {
     const fila = e.target.closest("[data-indice-credito]");
-    if (fila) cerrarVentanaApariencia(ventana, () => mostrarDetalleCredito(Number(fila.dataset.indiceCredito)));
+    if (!fila) return;
+    ventana.close();
+    mostrarDetalleCredito(Number(fila.dataset.indiceCredito));
   };
-  ventana.querySelector("[data-agregar-credito]").onclick = () => cerrarVentanaApariencia(ventana, () => {
+  ventana.querySelector("[data-agregar-credito]").onclick = () => {
+    ventana.close();
     const formulario = document.getElementById("formularioNuevaTarjeta");
     formulario.classList.remove("hidden");
     formulario.scrollIntoView({block:"nearest"});
     formulario.querySelector("input").focus({preventScroll:true});
-  });
+  };
+  ventana.addEventListener("close", () => ventana.remove(), {once:true});
+  el().querySelector(".tarjetas-pantalla").appendChild(ventana);
+  ventana.showModal();
 }
 
 function mostrarDetalleCredito(indice) {
@@ -8727,7 +8771,7 @@ function tarjetas(){
         ${carrusel ? "" : `<p class="tarjetas-ayuda">${textoApp("Gestiona tus tarjetas y pagos", "Manage your cards and payments")}</p>`}
   </div>
 
-  ${carrusel ? `<button type="button" class="carrusel-ver-todas" onclick="abrirTodasTarjetasCredito()">
+  ${carrusel ? `<button type="button" class="carrusel-ver-todas" onclick="abrirTodasTarjetasCredito()" aria-haspopup="dialog">
     ${textoApp("Ver todas","View all")} · ${data.tarjetas.length}
   </button>` : `<button type="button" class="credito-agregar"
     onclick="toggle('formularioNuevaTarjeta')">
@@ -10669,7 +10713,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.6 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.7 Beta</p>
     </section>
   `;
 }
@@ -10983,7 +11027,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.6 Beta
+        ${textoApp("Versión", "Version")} 0.5.7 Beta
       </p>
     </section>
   `;
@@ -11274,7 +11318,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.6 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.7 Beta</p>
         </div>`
     }
   };
