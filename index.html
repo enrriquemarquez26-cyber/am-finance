@@ -1647,11 +1647,19 @@ html.tema-oscuro .credito-accion-copy small {color: #a4aebc;}
   line-height: 1.4;
 }
 
+.tarjetas-pantalla {
+  --credito-superficie: #fff;
+}
+
+html.tema-oscuro .tarjetas-pantalla {
+  --credito-superficie: #20242b;
+}
+
 .credito-resumen {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  background: #fff;
+  background: var(--credito-superficie, #fff);
   border-radius: 26px;
   padding: 16px;
 }
@@ -1668,8 +1676,7 @@ html.tema-oscuro .credito-accion-copy small {color: #a4aebc;}
   padding-inline-start: 12px;
 }
 
-html.tema-oscuro .credito-fila,
-html.tema-oscuro .credito-resumen {
+html.tema-oscuro .credito-fila {
   background: #20242b;
 }
 
@@ -3926,6 +3933,9 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   min-height:40px;border:1px solid #84909d33;border-radius:999px;padding:6px 13px;
   color:inherit;background:#84909d16;font:inherit;font-size:.8rem;cursor:pointer
 }
+.carrusel-tamanos button,.carrusel-credito-nav button,.carrusel-ver-todas {
+  appearance:none;border:0;background:var(--credito-superficie);box-shadow:none
+}
 .carrusel-tamanos button[aria-pressed="true"] {background:#20252c;color:white;border-color:transparent}
 html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4f6;color:#20252c}
 .carrusel-credito-lista {display:grid;gap:12px}
@@ -3938,10 +3948,14 @@ html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4
   min-width:0;display:grid;gap:6px;width:100%;padding:0;align-items:center;text-align:start;
   background:transparent;border:0;border-radius:22px;color:inherit;font:inherit;cursor:pointer
 }
-.carrusel-credito:not([data-tamano="grande"]) .carrusel-credito-tarjeta[aria-current="true"]:not(:focus-visible) {
+[data-tamano="compacta"] .carrusel-credito-tarjeta[aria-current="true"]:not(:focus-visible) {
   outline:2px solid var(--balanceone-color,#ff7900);outline-offset:-2px
 }
+[data-tamano="mediana"] .carrusel-credito-tarjeta[aria-current="true"] .credito-visual {
+  outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px
+}
 .carrusel-credito-tarjeta:focus-visible {outline:2px solid currentColor;outline-offset:-3px}
+[data-tamano="mediana"] .carrusel-credito-tarjeta:focus-visible {outline-offset:2px}
 .carrusel-credito-tarjeta .credito-marco {width:100%;margin:0}
 .carrusel-credito-tarjeta .credito-visual--imagen img {pointer-events:none}
 [data-tamano="grande"] .carrusel-credito-tarjeta {flex:0 0 100%;scroll-snap-align:start}
@@ -3963,10 +3977,10 @@ html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4
 .carrusel-credito-nav[hidden],.carrusel-todas [hidden] {display:none}
 .carrusel-credito-nav button {min-width:44px;min-height:44px;font-size:1.35rem}
 .carrusel-credito-nav button:disabled {opacity:.35}
-.carrusel-montos {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:12px 0;padding:11px 4px;border:1px solid #84909d40;border-radius:20px}
-.carrusel-montos > div {padding:0 8px;text-align:center;overflow-wrap:anywhere}
-.carrusel-montos > div + div {border-inline-start:1px solid #84909d40}
-.carrusel-montos dt {font-size:.71rem;margin-bottom:4px}
+.carrusel-montos {margin:12px 0}
+.carrusel-montos > div {text-align:center;overflow-wrap:anywhere}
+.carrusel-montos > div:first-child {padding-inline-end:12px}
+.carrusel-montos dt {margin-bottom:4px}
 .carrusel-montos dd {margin:0;font-size:clamp(.92rem,4.3vw,1.18rem);font-weight:750}
 .carrusel-filtro {display:block;margin:12px 0 4px;font-size:.8rem}
 .carrusel-credito-detalle {
@@ -8375,9 +8389,9 @@ function etiquetaDisenoCredito() {
 function montosTarjetaCarrusel(tarjeta) {
   const t = textoApp;
   const disponible = Number(tarjeta.limite) > 0 ? money(Math.max(0, round(tarjeta.limite - tarjeta.saldo))) : "—";
-  return `<dl class="carrusel-montos">
-    <div><dt>${t("Deuda actual","Current debt")}</dt><dd>${money(tarjeta.saldo)}</dd></div>
-    <div><dt>${t("Crédito disponible","Available credit")}</dt><dd>${disponible}</dd></div>
+  return `<dl class="credito-resumen carrusel-montos">
+    <div><dt class="credito-etiqueta">${t("Deuda actual","Current debt")}</dt><dd>${money(tarjeta.saldo)}</dd></div>
+    <div><dt class="credito-etiqueta">${t("Crédito disponible","Available credit")}</dt><dd>${disponible}</dd></div>
   </dl>`;
 }
 
