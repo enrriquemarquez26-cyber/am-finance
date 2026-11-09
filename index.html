@@ -1509,6 +1509,25 @@ html.tema-oscuro .tarjetas-pantalla select {
 .credito-config-form,
 .credito-form-panel form {display: grid;gap: 11px;}
 .credito-form-campo {display: grid;gap: 6px;min-width: 0;}
+.credito-pago-rapido {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.credito-pago-rapido button {
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid #84909d33;
+  border-radius: 999px;
+  background: var(--credito-superficie, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 650;
+}
+html.tema-oscuro .credito-pago-rapido button {background: #20242b;}
+.credito-pago-rapido button:focus-visible {outline: 2px solid #ff8a26;outline-offset: 2px;}
+.credito-pago-rapido button:disabled {opacity: .48;cursor: default;}
 .tarjeta-detalle .credito-form-campo > label {
   display: block;
   margin: 0;
@@ -8627,7 +8646,16 @@ function arteTarjetaCredito(t) {
 `}</div>`;
 }
 
+function elegirImportePagoTarjeta(boton) {
+  const campo = boton.form.elements.monto;
+  campo.value = boton.dataset.importe;
+  if (!campo.value) campo.focus();
+}
+
 function panelPagoTarjeta(t,i) {
+  const saldo = round(t.saldo);
+  const minimo = round(t.pagoMinimo);
+  const importeMinimo = validAmount(minimo) ? Math.min(minimo, saldo) : 0;
   return `<div class="credito-accion credito-accion--pago">
         <button type="button" class="credito-accion-boton"
           onclick="toggleCreditoPanel(this,'tarjeta${i}')"
@@ -8643,6 +8671,14 @@ function panelPagoTarjeta(t,i) {
             <div class="credito-form-campo">
               <label for="cuentaPagoTarjeta${i}">${textoApp("Cuenta de origen", "Source account")}</label>
               <select id="cuentaPagoTarjeta${i}" name="bancoId" required>${opcionesCuentasPago(t.id)}</select>
+            </div>
+            <div class="credito-pago-rapido" role="group" aria-label="${textoApp("Importes rápidos", "Quick amounts")}">
+              <button type="button" data-importe="${validAmount(importeMinimo) ? importeMinimo.toFixed(2) : ""}"
+                onclick="elegirImportePagoTarjeta(this)" ${validAmount(importeMinimo) ? "" : "disabled"}>${textoApp("Pago mínimo", "Minimum payment")}</button>
+              <button type="button" data-importe="${validAmount(saldo) ? saldo.toFixed(2) : ""}"
+                onclick="elegirImportePagoTarjeta(this)" ${validAmount(saldo) ? "" : "disabled"}>${textoApp("Saldo completo", "Full balance")}</button>
+              <button type="button" data-importe=""
+                onclick="elegirImportePagoTarjeta(this)">${textoApp("Otro importe", "Other amount")}</button>
             </div>
             <div class="credito-form-campo">
               <label for="montoPagoTarjeta${i}">${textoImporte("Cantidad pagada", "Amount paid")}</label>
