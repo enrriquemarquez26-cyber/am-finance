@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.5 Beta</title>
+<title>Balance One 0.5.6 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4036,7 +4036,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.5 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.6 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4617,8 +4617,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.5 Beta",
-      "Smart control of your finances · 0.5.5 Beta"
+      "Control inteligente de tus finanzas · 0.5.6 Beta",
+      "Smart control of your finances · 0.5.6 Beta"
     );
   }
 }
@@ -8427,20 +8427,28 @@ function montosTarjetaCarrusel(tarjeta) {
   </dl>`;
 }
 
-function proximoPagoTarjetaCarrusel(tarjeta) {
-  const dia = Number(tarjeta.vencimiento);
-  const fecha = Number.isInteger(dia) && dia >= 1 && dia <= 31
+function diaMensualValido(dia) {
+  return Number.isInteger(dia) && dia >= 1 && dia <= 31;
+}
+
+function proximaFechaTarjeta(dia) {
+  return diaMensualValido(dia)
     ? siguienteFechaAviso(diasParaVencer(dia)) : "";
+}
+
+function proximasFechasTarjeta(tarjeta) {
+  const vencimiento = proximaFechaTarjeta(Number(tarjeta.vencimiento));
+  const corte = proximaFechaTarjeta(Number(tarjeta.diaCorte));
   const entrada = String(tarjeta.pagoMinimo ?? "").trim();
   const minimo = entrada ? Number(entrada) : NaN;
   const tieneMinimo = Number.isFinite(minimo) && minimo >= 0;
-  if (!fecha && !tieneMinimo) return "";
+  if (!vencimiento && !corte && !tieneMinimo) return "";
 
-  const fechaCorta = fecha ? new Date(fecha + "T12:00:00").toLocaleDateString(
-    idiomaActual() === "en" ? "en-US" : "es", {day:"numeric",month:"short"}
-  ) : "";
+  const formato = new Intl.DateTimeFormat(idiomaActual() === "en" ? "en-US" : "es", {day:"numeric",month:"short"});
+  const fechaCorta = fecha => `<time datetime="${fecha}">${formato.format(new Date(fecha + "T12:00:00"))}</time>`;
   return `<p class="credito-proximo-pago">
-    ${fecha ? `<span>${textoApp("Próximo vencimiento", "Next due date")} <strong><time datetime="${fecha}">${fechaCorta}</time></strong></span>` : ""}
+    ${corte ? `<span>${textoApp("Próximo corte", "Next statement closing date")} <strong>${fechaCorta(corte)}</strong></span>` : ""}
+    ${vencimiento ? `<span>${textoApp("Próximo vencimiento", "Next due date")} <strong>${fechaCorta(vencimiento)}</strong></span>` : ""}
     ${tieneMinimo ? `<span>${textoApp("Pago mínimo", "Minimum payment")} <strong>${money(minimo)}</strong></span>` : ""}
   </p>`;
 }
@@ -8652,10 +8660,26 @@ function elegirImportePagoTarjeta(boton) {
   if (!campo.value) campo.focus();
 }
 
+function ultimoPagoTarjeta(tarjeta) {
+  let ultimo = null;
+  for (const pago of data.pagos) {
+    if (pago.tipo !== "tarjeta" || !validDate(pago.fecha) || !validAmount(Number(pago.monto))) continue;
+    const corresponde = pago.cuentaId
+      ? String(pago.cuentaId) === String(tarjeta.id)
+      : cuentaDePago(pago) === tarjeta;
+    if (corresponde && (!ultimo || pago.fecha >= ultimo.fecha)) ultimo = pago;
+  }
+  return ultimo;
+}
+
 function panelPagoTarjeta(t,i) {
   const saldo = round(t.saldo);
   const minimo = round(t.pagoMinimo);
   const importeMinimo = validAmount(minimo) ? Math.min(minimo, saldo) : 0;
+  const ultimo = ultimoPagoTarjeta(t);
+  const ayuda = ultimo
+    ? `${textoApp("Último pago registrado", "Last recorded payment")} · ${money(ultimo.monto)} · <time datetime="${ultimo.fecha}">${fechaMetaAhorro(ultimo.fecha)}</time>`
+    : textoApp("Descontar desde una cuenta", "Deduct from an account");
   return `<div class="credito-accion credito-accion--pago">
         <button type="button" class="credito-accion-boton"
           onclick="toggleCreditoPanel(this,'tarjeta${i}')"
@@ -8663,7 +8687,7 @@ function panelPagoTarjeta(t,i) {
           <span class="credito-accion-icono" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M7 15h6M17 14v4m-2-2h4"/></svg>
           </span>
-          <span class="credito-accion-copy"><strong>${textoApp("Registrar pago", "Record payment")}</strong><small>${textoApp("Descontar desde una cuenta", "Deduct from an account")}</small></span>
+          <span class="credito-accion-copy"><strong>${textoApp("Registrar pago", "Record payment")}</strong><small>${ayuda}</small></span>
           <span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
         </button>
         <div class="payment credito-form-panel hidden" id="tarjeta${i}">
@@ -8816,7 +8840,8 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
     </div>
 
 
-    ${carrusel ? montosTarjetaCarrusel(t) + proximoPagoTarjetaCarrusel(t) : ""}
+    ${carrusel ? montosTarjetaCarrusel(t) : ""}
+    ${proximasFechasTarjeta(t)}
     <div class="credito-acciones">
       ${carrusel ? panelPagoTarjeta(t,i) : ""}
       ${carrusel && metaPagoTarjetaValida(t) ? `<div class="carrusel-plan">${bloqueMetaPagoTarjeta(t)}</div>` : ""}
@@ -8912,7 +8937,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
           <span class="credito-accion-icono" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18M8 15h3"/></svg>
           </span>
-          <span class="credito-accion-copy"><strong>${carrusel ? textoApp("Fechas de pago","Payment dates") : textoApp("Vencimiento", "Due date")}</strong><small>${t.vencimiento ? textoApp("Cada mes, día ", "Every month, day ") + safe(t.vencimiento) : textoApp("Configurar fecha de pago", "Set payment date")}</small></span>
+          <span class="credito-accion-copy"><strong>${textoApp("Fechas de pago", "Payment dates")}</strong><small>${textoApp("Vencimiento y corte", "Due date and statement closing")}</small></span>
           <span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
         </button>
         <div class="payment credito-form-panel hidden" id="venceTarjeta${i}">
@@ -8920,10 +8945,18 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
             <div class="credito-form-campo">
               <label for="diaCredito${i}">${textoApp("Día de vencimiento mensual", "Monthly payment due day")}</label>
               <select id="diaCredito${i}" name="dia" required>
+                <option value="">${textoApp("Seleccionar día", "Select day")}</option>
                 ${Array.from({length:31},(_,j)=>`<option value="${j+1}" ${Number(t.vencimiento)===j+1?"selected":""}>${textoApp("Día", "Day")} ${j+1}</option>`).join("")}
               </select>
             </div>
-            <button class="primary" type="submit">${textoApp("Guardar vencimiento", "Save due date")}</button>
+            <div class="credito-form-campo">
+              <label for="diaCorteCredito${i}">${textoApp("Día de corte mensual", "Monthly statement closing day")}</label>
+              <select id="diaCorteCredito${i}" name="diaCorte">
+                <option value="">${textoApp("Sin configurar", "Not set")}</option>
+                ${Array.from({length:31},(_,j)=>`<option value="${j+1}" ${Number(t.diaCorte)===j+1?"selected":""}>${textoApp("Día", "Day")} ${j+1}</option>`).join("")}
+              </select>
+            </div>
+            <button class="primary" type="submit">${textoApp("Guardar fechas", "Save dates")}</button>
           </form>
         </div>
       </div>
@@ -9058,30 +9091,40 @@ async function guardarDatosTarjeta(event, indice) {
   }
 }
 
-function guardarVencimiento(e,tipo,i){
-e.preventDefault();
+function guardarVencimiento(e, tipo, i) {
+  e.preventDefault();
 
-const dia=Number(new FormData(e.target).get("dia"));
+  const campos = new FormData(e.target);
+  const dia = Number(campos.get("dia"));
+  if (!diaMensualValido(dia)) {
+    alert(textoApp("Selecciona un día de vencimiento válido.", "Select a valid due day."));
+    return;
+  }
 
-if(!Number.isInteger(dia)||dia<1||dia>31){
-alert(textoApp("Selecciona un día válido.", "Select a valid day."));
-return;
-}
+  const grupo = tipo === "tarjeta" ? "tarjetas" : "vehiculos";
+  const cuenta = data[grupo][i];
+  if (!cuenta) {
+    alert(textoApp("No se encontró la cuenta.", "Account not found."));
+    return;
+  }
 
-const cuenta=tipo==="tarjeta"
-?data.tarjetas[i]
-:data.vehiculos[i];
+  const actualizada = {...cuenta, vencimiento:dia};
+  const guardaCorte = tipo === "tarjeta" && campos.has("diaCorte");
+  if (guardaCorte) {
+    const entrada = campos.get("diaCorte");
+    const corte = entrada === "" ? null : Number(entrada);
+    if (corte !== null && !diaMensualValido(corte)) {
+      alert(textoApp("Selecciona un día de corte válido.", "Select a valid closing day."));
+      return;
+    }
+    actualizada.diaCorte = corte;
+  }
 
-if(!cuenta){
-alert(textoApp("No se encontró la cuenta.", "Account not found."));
-return;
-}
-
-cuenta.vencimiento=dia;
-save();
-render();
-
-alert(textoApp("Vencimiento guardado: día "+dia+" de cada mes.", "Due date saved: day "+dia+" of each month."));
+  if (!guardarDatosExtra({[grupo]:data[grupo].map((item, indice) => indice === i ? actualizada : item)})) return;
+  render();
+  alert(guardaCorte
+    ? textoApp("Fechas de la tarjeta guardadas.", "Card dates saved.")
+    : textoApp("Vencimiento guardado: día " + dia + " de cada mes.", "Due date saved: day " + dia + " of each month."));
 }
 function toggle(ident){
  const element=document.getElementById(ident);
@@ -10626,7 +10669,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.5 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.6 Beta</p>
     </section>
   `;
 }
@@ -10940,7 +10983,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.5 Beta
+        ${textoApp("Versión", "Version")} 0.5.6 Beta
       </p>
     </section>
   `;
@@ -11231,7 +11274,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.5 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.6 Beta</p>
         </div>`
     }
   };
