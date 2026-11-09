@@ -4005,7 +4005,17 @@ html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4
 .carrusel-credito-detalle .credito-accion-boton {border-radius:inherit}
 .carrusel-credito-detalle .carrusel-plan .credito-meta-pago {margin-top:0;border-radius:26px}
 .carrusel-credito-detalle .credito-accion-icono svg {fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
-.carrusel-cerrar {position:absolute;inset:8px 18px auto auto;font-size:1.25rem}
+.carrusel-cerrar {
+  position:absolute;inset:8px 18px auto auto;display:grid;place-items:center;
+  width:44px;height:44px;padding:0;border:0;background:transparent;font-size:1.25rem;line-height:1
+}
+.carrusel-cerrar:active,.carrusel-cerrar.cerrando {
+  background:#c62828;color:#fff
+}
+@media(prefers-reduced-motion:no-preference) {
+  .carrusel-cerrar {transition:background-color 100ms ease,color 100ms ease,transform 100ms ease}
+  .carrusel-cerrar:active,.carrusel-cerrar.cerrando {transform:scale(.92)}
+}
 html.tema-oscuro .carrusel-credito-detalle {background:#202630;color:#f2f4f6}
 body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 @media(min-width:800px) {.carrusel-credito-detalle {inset:0;margin:auto}}
@@ -8560,6 +8570,19 @@ function mostrarDetalleCredito(indice) {
   if (!dialogo.open) dialogo.showModal();
 }
 
+function cerrarDetalleCredito(boton) {
+  const dialogo = boton.closest("dialog");
+  if (!dialogo?.open || boton.classList.contains("cerrando")) return;
+  boton.classList.add("cerrando");
+  const espera = setTimeout(() => {
+    if (dialogo.open) dialogo.close();
+  }, 170);
+  dialogo.addEventListener("close", () => {
+    clearTimeout(espera);
+    boton.classList.remove("cerrando");
+  }, {once:true});
+}
+
 function verMovimientosCredito(indice, boton) {
   const tarjeta = data.tarjetas[indice];
   if (!tarjeta) return;
@@ -8704,7 +8727,7 @@ function tarjetas(){
  ${data.tarjetas.map((t,i)=>`
   ${carrusel ? `<dialog class="carrusel-credito-detalle" id="dialogoCredito${i}" aria-labelledby="tituloCredito${i}">
     <button type="button" class="carrusel-cerrar" aria-label="${textoApp("Cerrar detalles","Close details")}"
-      onclick="this.closest('dialog').close()" autofocus>×</button>` : `
+      onclick="cerrarDetalleCredito(this)" autofocus>×</button>` : `
   <button type="button" class="credito-fila" id="creditoResumen${i}"
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
     onclick="toggle('detalleCredito${i}')"
