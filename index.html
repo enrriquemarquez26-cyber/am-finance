@@ -3998,6 +3998,10 @@ html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4
 }
 .carrusel-credito-detalle .credito-accion,
 .carrusel-credito-detalle .carrusel-montos {border-radius:30px}
+.credito-proximo-pago {
+  display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;
+  margin:0 0 15px;text-align:center;font-size:.75rem
+}
 .carrusel-credito-detalle .credito-accion-boton {border-radius:inherit}
 .carrusel-credito-detalle .carrusel-plan .credito-meta-pago {margin-top:0;border-radius:26px}
 .carrusel-credito-detalle .credito-accion-icono svg {fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
@@ -8403,6 +8407,24 @@ function montosTarjetaCarrusel(tarjeta) {
   </dl>`;
 }
 
+function proximoPagoTarjetaCarrusel(tarjeta) {
+  const dia = Number(tarjeta.vencimiento);
+  const fecha = Number.isInteger(dia) && dia >= 1 && dia <= 31
+    ? siguienteFechaAviso(diasParaVencer(dia)) : "";
+  const entrada = String(tarjeta.pagoMinimo ?? "").trim();
+  const minimo = entrada ? Number(entrada) : NaN;
+  const tieneMinimo = Number.isFinite(minimo) && minimo >= 0;
+  if (!fecha && !tieneMinimo) return "";
+
+  const fechaCorta = fecha ? new Date(fecha + "T12:00:00").toLocaleDateString(
+    idiomaActual() === "en" ? "en-US" : "es", {day:"numeric",month:"short"}
+  ) : "";
+  return `<p class="credito-proximo-pago">
+    ${fecha ? `<span>${textoApp("Próximo vencimiento", "Next due date")} <strong><time datetime="${fecha}">${fechaCorta}</time></strong></span>` : ""}
+    ${tieneMinimo ? `<span>${textoApp("Pago mínimo", "Minimum payment")} <strong>${money(minimo)}</strong></span>` : ""}
+  </p>`;
+}
+
 function resumenTarjetasCredito() {
   if (!data.tarjetas.length) return "";
   const deuda = data.tarjetas.reduce((total, tarjeta) => total + (Number(tarjeta.saldo) || 0), 0);
@@ -8741,7 +8763,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
     </div>
 
 
-    ${carrusel ? montosTarjetaCarrusel(t) : ""}
+    ${carrusel ? montosTarjetaCarrusel(t) + proximoPagoTarjetaCarrusel(t) : ""}
     <div class="credito-acciones">
       ${carrusel ? panelPagoTarjeta(t,i) : ""}
       ${carrusel && metaPagoTarjetaValida(t) ? `<div class="carrusel-plan">${bloqueMetaPagoTarjeta(t)}</div>` : ""}
