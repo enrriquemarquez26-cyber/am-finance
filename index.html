@@ -682,7 +682,7 @@ overscroll-behavior: contain;
   letter-spacing: -.6px;
 }
 
-#amMenu button {
+#amMenu button:not([data-boton-x]) {
   width: 100%;
   min-width: 0;
   margin: 0;
@@ -744,17 +744,6 @@ overscroll-behavior: contain;
   position: absolute;
   top: 15px;
   right: 20px;
-  width: 34px;
-  height: 34px;
-  min-height: 34px;
-  padding: 7px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(255,255,255,.55);
-  border: 1px solid rgba(255,255,255,.85);
-  color: #111d32;
-  box-shadow: 0 2px 7px rgba(31,43,66,.05);
 }
 
 .am-herramienta-icono {
@@ -1693,7 +1682,7 @@ html.tema-oscuro #amMenu {
     0 4px 14px rgba(0,0,0,.2);
 }
 
-html.tema-oscuro #amMenu button {
+html.tema-oscuro #amMenu button:not([data-boton-x]) {
   background: rgba(255,255,255,.11);
   color: #f5f6f8;
   border-color: rgba(255,255,255,.12);
@@ -1701,7 +1690,6 @@ html.tema-oscuro #amMenu button {
 html.tema-oscuro #amMenu .am-herramienta-titulo {color:#f4f5f8;}
 html.tema-oscuro #amMenu .am-herramienta-subtitulo {color:#bac3d0;}
 html.tema-oscuro #amMenu .am-herramienta-flecha {color:#121923;background:rgba(255,255,255,.86);}
-html.tema-oscuro #amMenu #amMenuCerrar {color:#f4f5f8;background:rgba(255,255,255,.15);}
 
 /* Paneles de vehículos */
 .vehiculo-panel {
@@ -1774,7 +1762,7 @@ html.tema-oscuro #amMenu #amMenuCerrar {color:#f4f5f8;background:rgba(255,255,25
   border-color: rgba(130,140,155,.25);
 }
 
-#movVentana button {
+#movVentana button:not([data-boton-x]) {
   font: inherit;
 }
 
@@ -3618,7 +3606,6 @@ html.tema-oscuro #movVentana #movCategoriaResumen {background:rgba(255,255,255,.
 .meta-historia-fila > div {flex:1;min-width:0;overflow-wrap:anywhere}
 .meta-historia-fila strong {font-size:.8rem}
 .meta-historia-fila small {display:block;font-size:.68rem;margin-top:5px;line-height:1.45}
-.meta-historia-fila > button {flex-shrink:0;min-width:36px;min-height:36px;border-radius:50%;border:0;background:rgba(130,140,155,.12);color:inherit;font:inherit}
 .metas-pantalla button:focus-visible,.metas-dialogo button:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
 @media(max-width:370px){.metas-cabecera{align-items:flex-start;flex-wrap:wrap}.metas-pantalla .card{padding:17px}.meta-acciones{gap:5px}.meta-avance{padding:11px 12px;font-size:.75rem}}
 
@@ -3863,7 +3850,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .bo047-orden-fila {display:flex;align-items:center;gap:6px;min-width:0}
 .bo047-orden-fila label,.bo047-orden-fila [data-usar],.bo047-orden-fila .bo049-nombre-orden {flex:1;min-width:0;overflow-wrap:anywhere;text-align:start}
 .bo047-orden-fila label {font-size:.86rem}
-.bo047-orden-fila button:not([data-usar]) {border:0;border-radius:50%;background:rgba(130,140,155,.17);color:inherit;width:42px;height:42px;flex:none;font-size:1.15rem}
+.bo047-orden-fila button:not([data-usar],[data-boton-x]) {border:0;border-radius:50%;background:rgba(130,140,155,.17);color:inherit;width:42px;height:42px;flex:none;font-size:1.15rem}
 .bo047-orden-fila button:disabled {opacity:.35}
 .bo047-icono svg {width:28px;height:28px}
 .bo049-modo-discreto input {width:20px;height:20px;flex:none;margin:0;accent-color:var(--balanceone-color,#ff7900)}
@@ -3929,7 +3916,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .carrusel-credito {width:min(100%,620px);margin-inline:auto}
 .carrusel-credito > .credito-resumen {margin-bottom:18px}
 .carrusel-tamanos,.carrusel-credito-nav {display:flex;justify-content:center;align-items:center;gap:8px;margin:0 0 18px}
-.carrusel-tamanos button,.carrusel-credito-nav button,.carrusel-ver-todas,.carrusel-cerrar {
+.carrusel-tamanos button,.carrusel-credito-nav button,.carrusel-ver-todas {
   min-height:40px;border:1px solid #84909d33;border-radius:999px;padding:6px 13px;
   color:inherit;background:#84909d16;font:inherit;font-size:.8rem;cursor:pointer
 }
@@ -4005,16 +3992,19 @@ html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4
 .carrusel-credito-detalle .credito-accion-boton {border-radius:inherit}
 .carrusel-credito-detalle .carrusel-plan .credito-meta-pago {margin-top:0;border-radius:26px}
 .carrusel-credito-detalle .credito-accion-icono svg {fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
-.carrusel-cerrar {
-  position:absolute;inset:8px 18px auto auto;display:grid;place-items:center;
-  width:44px;height:44px;padding:0;border:0;background:transparent;font-size:1.25rem;line-height:1
+button[data-boton-x] {
+  display:grid;place-items:center;flex:none;box-sizing:border-box;
+  width:36px;height:36px;min-height:36px;padding:0;border:0;border-radius:50%;
+  background:transparent;color:inherit;box-shadow:none;font:inherit;font-size:1.25rem;line-height:1;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent
 }
-.carrusel-cerrar:active,.carrusel-cerrar.cerrando {
+.carrusel-cerrar[data-boton-x] {position:absolute;inset:8px 18px auto auto;width:44px;height:44px}
+button[data-boton-x]:active,button[data-boton-x].x-activada {
   background:#c62828;color:#fff
 }
 @media(prefers-reduced-motion:no-preference) {
-  .carrusel-cerrar {transition:background-color 100ms ease,color 100ms ease,transform 100ms ease}
-  .carrusel-cerrar:active,.carrusel-cerrar.cerrando {transform:scale(.92)}
+  button[data-boton-x] {transition:background-color 100ms ease,color 100ms ease,transform 100ms ease}
+  button[data-boton-x]:active,button[data-boton-x].x-activada {transform:scale(.92)}
 }
 html.tema-oscuro .carrusel-credito-detalle {background:#202630;color:#f2f4f6}
 body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
@@ -4045,9 +4035,8 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
     <h3 id="movVentanaTitulo" style="margin:0;font-size:1rem">
       Nuevo movimiento
     </h3>
-    <button type="button" onclick="cerrarMovVentana()"
-            aria-label="Cerrar"
-            style="border:0;border-radius:50%;width:34px;height:34px;background:rgba(130,140,155,.15);color:inherit">
+    <button type="button" data-boton-x onclick="animarBotonX(this, cerrarMovVentana)"
+            aria-label="Cerrar">
       ✕
     </button>
   </div>
@@ -4146,7 +4135,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div id="amMenu">
   <div id="amMenuTirador"></div>
   <h3>Herramientas</h3>
-  <button type="button" id="amMenuCerrar" onclick="cerrarAmMenu()" aria-label="Cerrar herramientas">
+  <button type="button" id="amMenuCerrar" data-boton-x onclick="animarBotonX(this, cerrarAmMenu)" aria-label="Cerrar herramientas">
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
       <path d="M5 5l14 14M19 5L5 19"/>
     </svg>
@@ -4542,7 +4531,7 @@ function prepararFavoritosGasto(form, actualizarSugerencia) {
       <summary>${t("Gastos favoritos","Favorite expenses")}</summary>
       <div class="bo047-campos">${favoritos.map((f,i) => `<div class="bo047-orden-fila">
         <button type="button" class="secondary" data-usar="${i}">${safe(f.nombre)}</button>
-        <button type="button" data-quitar="${i}" aria-label="${t("Quitar favorito","Remove favorite")} ${safe(f.nombre)}">×</button>
+        <button type="button" data-boton-x data-quitar="${i}" aria-label="${t("Quitar favorito","Remove favorite")} ${safe(f.nombre)}">×</button>
       </div>`).join("")}</div>`;
   };
   panel.open = false;
@@ -4553,7 +4542,9 @@ function prepararFavoritosGasto(form, actualizarSugerencia) {
     const favorito = favoritos[Number(boton.dataset.usar ?? boton.dataset.quitar)];
     if (!favorito) return;
     if (boton.hasAttribute("data-quitar")) {
-      if (guardarDatosExtra({favoritosGasto:favoritos.filter(f => f !== favorito)})) actualizar();
+      animarBotonX(boton, () => {
+        if (guardarDatosExtra({favoritosGasto:favoritosGasto().filter(f => f !== favorito)})) actualizar();
+      });
       return;
     }
     nombre.value = favorito.nombre;
@@ -8570,17 +8561,20 @@ function mostrarDetalleCredito(indice) {
   if (!dialogo.open) dialogo.showModal();
 }
 
-function cerrarDetalleCredito(boton) {
+function animarBotonX(boton, accion) {
   const dialogo = boton.closest("dialog");
-  if (!dialogo?.open || boton.classList.contains("cerrando")) return;
-  boton.classList.add("cerrando");
-  const espera = setTimeout(() => {
-    if (dialogo.open) dialogo.close();
-  }, 170);
-  dialogo.addEventListener("close", () => {
+  if ((dialogo && !dialogo.open) || boton.classList.contains("x-activada")) return;
+  boton.classList.add("x-activada");
+  const cancelar = () => {
     clearTimeout(espera);
-    boton.classList.remove("cerrando");
-  }, {once:true});
+    boton.classList.remove("x-activada");
+  };
+  const espera = setTimeout(() => {
+    dialogo?.removeEventListener("close", cancelar);
+    cancelar();
+    if (boton.isConnected && (!dialogo || dialogo.open) && !boton.closest("[hidden], .hidden")) accion();
+  }, 170);
+  dialogo?.addEventListener("close", cancelar, {once:true});
 }
 
 function verMovimientosCredito(indice, boton) {
@@ -8726,8 +8720,8 @@ function tarjetas(){
  ${carrusel ? pantallaCarruselCredito(tamano) : ""}
  ${data.tarjetas.map((t,i)=>`
   ${carrusel ? `<dialog class="carrusel-credito-detalle" id="dialogoCredito${i}" aria-labelledby="tituloCredito${i}">
-    <button type="button" class="carrusel-cerrar" aria-label="${textoApp("Cerrar detalles","Close details")}"
-      onclick="cerrarDetalleCredito(this)" autofocus>×</button>` : `
+    <button type="button" class="carrusel-cerrar" data-boton-x aria-label="${textoApp("Cerrar detalles","Close details")}"
+      onclick="animarBotonX(this, () => this.closest('dialog').close())" autofocus>×</button>` : `
   <button type="button" class="credito-fila" id="creditoResumen${i}"
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
     onclick="toggle('detalleCredito${i}')"
@@ -9594,9 +9588,24 @@ function abrirHistorialMetaAhorro(ident) {
     if(v)v.classList.add('metas-dialogo');return;
   }
   const aportes=Array.isArray(meta.aportes)?meta.aportes:[];
-  const v=crearVentanaApariencia(textoApp("Historial de la meta","Goal history"),`<div class="meta-historial"><strong>${safe(meta.nombre)}</strong><p class="note">${textoApp("Avances registrados manualmente.","Manually recorded progress.")}</p>${aportes.map((a,i)=>({a,i})).sort((x,y)=>String(y.a.fecha).localeCompare(String(x.a.fecha))||y.i-x.i).map(({a,i})=>`<div class="meta-historia-fila"><div><strong>${a.tipo==='retiro'?textoApp('Reducción','Reduction'):textoApp('Aporte','Contribution')}</strong><small class="label">${safe(fechaMetaAhorro(a.fecha))}${a.nota?' · '+safe(a.nota):''}</small></div><strong>${a.tipo==='retiro'?'−':'+'}${money(a.monto)}</strong><button type="button" data-quitar-aporte="${i}" aria-label="${safe(textoApp('Eliminar avance del ','Delete entry from ')+fechaMetaAhorro(a.fecha))}">×</button></div>`).join('')||`<p class="note">${textoApp('Aún no hay avances registrados.','No progress entries yet.')}</p>`}<p data-meta-error class="cuenta-nueva-error" role="alert" hidden></p></div>`,true);
+  const v=crearVentanaApariencia(textoApp("Historial de la meta","Goal history"),`<div class="meta-historial"><strong>${safe(meta.nombre)}</strong><p class="note">${textoApp("Avances registrados manualmente.","Manually recorded progress.")}</p>${aportes.map((a,i)=>({a,i})).sort((x,y)=>String(y.a.fecha).localeCompare(String(x.a.fecha))||y.i-x.i).map(({a,i})=>`<div class="meta-historia-fila"><div><strong>${a.tipo==='retiro'?textoApp('Reducción','Reduction'):textoApp('Aporte','Contribution')}</strong><small class="label">${safe(fechaMetaAhorro(a.fecha))}${a.nota?' · '+safe(a.nota):''}</small></div><strong>${a.tipo==='retiro'?'−':'+'}${money(a.monto)}</strong><button type="button" data-boton-x data-quitar-aporte="${i}" aria-label="${safe(textoApp('Eliminar avance del ','Delete entry from ')+fechaMetaAhorro(a.fecha))}">×</button></div>`).join('')||`<p class="note">${textoApp('Aún no hay avances registrados.','No progress entries yet.')}</p>`}<p data-meta-error class="cuenta-nueva-error" role="alert" hidden></p></div>`,true);
   if(!v)return;v.classList.add('metas-dialogo');
-  v.querySelectorAll('[data-quitar-aporte]').forEach(b=>{b.onclick=()=>{const a=aportes[Number(b.dataset.quitarAporte)];if(!a||!confirm(textoApp('¿Eliminar este avance de la meta?','Delete this progress entry?')))return;try{guardarCambioMetaAhorro('quitarAporte',ident,{aporteId:a.id});v.addEventListener('close',()=>abrirHistorialMetaAhorro(ident),{once:true});v.close();render();}catch(error){const aviso=v.querySelector('[data-meta-error]');aviso.textContent=error.message;aviso.hidden=false;}};});
+  v.querySelectorAll('[data-quitar-aporte]').forEach(boton => {
+    boton.onclick = () => animarBotonX(boton, () => {
+      const aporte = aportes[Number(boton.dataset.quitarAporte)];
+      if (!aporte || !confirm(textoApp('¿Eliminar este avance de la meta?', 'Delete this progress entry?'))) return;
+      try {
+        guardarCambioMetaAhorro('quitarAporte', ident, {aporteId:aporte.id});
+        v.addEventListener('close', () => abrirHistorialMetaAhorro(ident), {once:true});
+        v.close();
+        render();
+      } catch (error) {
+        const aviso = v.querySelector('[data-meta-error]');
+        aviso.textContent = error.message;
+        aviso.hidden = false;
+      }
+    });
+  });
 }
 
 
@@ -13459,7 +13468,7 @@ function traducirMenusVentana() {
   if (nota) nota.placeholder = textoApp("Agregar nota…", "Add a note…");
 
   const cerrar = document.querySelector(
-    '#movVentana button[onclick="cerrarMovVentana()"]'
+    '#movVentana button[data-boton-x]:not([data-quitar])'
   );
   if (cerrar) cerrar.setAttribute(
     "aria-label", textoApp("Cerrar", "Close")
@@ -14252,10 +14261,8 @@ function abrirDiaCalendario(fecha) {
             <svg class="cal-icono-reducir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h5V3m8 0v5h5M8 21v-5H3m18 0h-5v5"/></svg>
           </button>
 
-          <button type="button" data-cerrar-dia
-            aria-label="${textoApp("Cerrar", "Close")}"
-            style="border:0;border-radius:50%;padding:10px;
-            background:rgba(130,140,155,.12);color:inherit">
+          <button type="button" data-boton-x data-cerrar-dia
+            aria-label="${textoApp("Cerrar", "Close")}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
           </button>
         </div>
@@ -14312,11 +14319,9 @@ function abrirDiaCalendario(fecha) {
 
   const overflowAnterior = document.body.style.overflow;
 
-  ventana.querySelectorAll(
-    "[data-cerrar-dia], [data-listo-dia]"
-  ).forEach(boton => {
-    boton.onclick = () => ventana.close();
-  });
+  const botonCerrar = ventana.querySelector("[data-cerrar-dia]");
+  botonCerrar.onclick = () => animarBotonX(botonCerrar, () => ventana.close());
+  ventana.querySelector("[data-listo-dia]").onclick = () => ventana.close();
 
   ventana.addEventListener("close", () => {
     document.body.style.overflow = overflowAnterior;
@@ -14937,9 +14942,8 @@ function mostrarGestionSuscripcionesCalendario() {
             style="border:0;background:#fff;color:#e98530;padding:8px 10px;border-radius:999px;font:inherit;font-size:.72rem">
             ${textoApp("Editar", "Edit")}
           </button>
-          <button type="button" aria-label="${textoApp("Eliminar", "Delete")} ${safe(registro.nombre)}"
-            onclick="eliminarSuscripcionCalendario(${indice})"
-            style="border:0;background:rgba(212,77,86,.09);color:#c4535c;padding:8px;border-radius:999px;font:inherit;font-size:.72rem">×</button>
+          <button type="button" data-boton-x aria-label="${textoApp("Eliminar", "Delete")} ${safe(registro.nombre)}"
+            onclick="animarBotonX(this, () => eliminarSuscripcionCalendario(${indice}))">×</button>
         </div>
       `).join("") || `<p class="note">${textoApp("Todavía no hay suscripciones registradas.", "No subscriptions added yet.")}</p>`}
       <button type="button" class="primary"
