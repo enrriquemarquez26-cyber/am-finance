@@ -1332,10 +1332,11 @@ html.tema-oscuro .tarjetas-pantalla select {
 
 /* El marco conserva la proporción de la imagen de American Express. */
 .credito-marco {
+  --credito-proporcion: 1.586;
   position: relative;
   min-width: 0;
   width: calc(100% - 7px);
-  aspect-ratio: 1.586;
+  aspect-ratio: var(--credito-proporcion);
   align-self: center;
   margin-left: 7px;
 }
@@ -8092,6 +8093,79 @@ function imagenMostradaCredito(tarjeta) {
   return imagenCredito(tarjeta);
 }
 
+function bordesFotoCredito(pixeles, ancho, alto, horizontal) {
+  const longitud = horizontal ? ancho : alto;
+  const profundidad = horizontal ? alto : ancho;
+  const inicio = Math.ceil(longitud * .15);
+  const fin = Math.floor(longitud * .85);
+  if (fin <= inicio) return [0, 0];
+
+  // Omite las esquinas redondeadas al buscar franjas blancas o negras.
+  function tonoLinea(linea) {
+    let claros = 0;
+    let oscuros = 0;
+    for (let punto = inicio; punto < fin; punto++) {
+      const i = 4 * (horizontal ? linea * ancho + punto : punto * ancho + linea);
+      const minimo = Math.min(pixeles[i], pixeles[i + 1], pixeles[i + 2]);
+      const maximo = Math.max(pixeles[i], pixeles[i + 1], pixeles[i + 2]);
+      if (minimo >= 238 && maximo - minimo <= 12) claros++;
+      if (maximo <= 28 && maximo - minimo <= 10) oscuros++;
+    }
+    const umbral = (fin - inicio) * .95;
+    return claros >= umbral ? "claro" : oscuros >= umbral ? "oscuro" : "";
+  }
+
+  // La primera línea puede incluir antialiasing o un píxel de fondo.
+  const tono = tonoLinea(1);
+  if (!tono || tonoLinea(profundidad - 2) !== tono) return [0, 0];
+
+  function medir(desde, paso) {
+    const limite = Math.floor(profundidad * .18);
+    for (let margen = 2; margen <= limite; margen++) {
+      const linea = desde + margen * paso;
+      if (tonoLinea(linea) !== tono) {
+        return tonoLinea(linea + paso) !== tono ? margen : 0;
+      }
+    }
+    return 0;
+  }
+
+  const primero = medir(0, 1);
+  const segundo = medir(profundidad - 1, -1);
+  return primero && segundo ? [primero, segundo] : [0, 0];
+}
+
+function encuadrarFotoCredito(imagen) {
+  const escala = Math.min(1, 240 / Math.max(imagen.naturalWidth, imagen.naturalHeight));
+  const ancho = Math.round(imagen.naturalWidth * escala);
+  const alto = Math.round(imagen.naturalHeight * escala);
+  if (ancho < 24 || alto < 24) return;
+
+  const lienzo = document.createElement("canvas");
+  lienzo.width = ancho;
+  lienzo.height = alto;
+  const contexto = lienzo.getContext("2d", {willReadFrequently: true});
+  if (!contexto) return;
+  contexto.drawImage(imagen, 0, 0, ancho, alto);
+  const pixeles = contexto.getImageData(0, 0, ancho, alto).data;
+  const [arriba, abajo] = bordesFotoCredito(pixeles, ancho, alto, true);
+  const [izquierda, derecha] = bordesFotoCredito(pixeles, ancho, alto, false);
+  if (!(arriba || izquierda)) return;
+
+  const anchoUtil = (ancho - izquierda - derecha) / ancho;
+  const altoUtil = (alto - arriba - abajo) / alto;
+  const proporcionFoto = imagen.naturalWidth / imagen.naturalHeight;
+  const proporcionMarco = parseFloat(getComputedStyle(imagen).getPropertyValue("--credito-proporcion"));
+  // Centra la zona recortada con la misma proporción que la foto original.
+  const anchoImagen = Math.max(1 / anchoUtil, proporcionFoto / (proporcionMarco * altoUtil));
+  const altoImagen = anchoImagen * proporcionMarco / proporcionFoto;
+  imagen.style.inset = "auto";
+  imagen.style.width = (anchoImagen * 100) + "%";
+  imagen.style.height = (altoImagen * 100) + "%";
+  imagen.style.left = (50 - (izquierda / ancho + anchoUtil / 2) * anchoImagen * 100) + "%";
+  imagen.style.top = (50 - (arriba / alto + altoUtil / 2) * altoImagen * 100) + "%";
+}
+
 function mostrarAppleCardAutomatica(tarjeta) {
   if (imagenMostradaCredito(tarjeta)) return false;
   const banco = String(tarjeta?.banco || tarjeta?.nombre || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -8416,10 +8490,12 @@ function verMovimientosCredito(indice, boton) {
 }
 
 function arteTarjetaCredito(t) {
-  return `<div class="credito-marco">${imagenMostradaCredito(t) ? `
+  const imagen = imagenMostradaCredito(t);
+  return `<div class="credito-marco">${imagen ? `
   <div class="credito-visual credito-visual--imagen">
-    <img src="${safe(imagenMostradaCredito(t))}"
+    <img src="${safe(imagen)}"
       alt="${safe(t.banco || t.nombre)} ${safe(t.modelo || "")}" loading="lazy"
+      ${imagen === t.imagenPersonalizada ? 'onload="encuadrarFotoCredito(this)"' : ""}
       onerror="this.hidden=true;this.nextElementSibling.hidden=false">
     <div class="credito-imagen-reserva" hidden>
       <span class="credito-marca">${safe(t.nombre)}</span>
