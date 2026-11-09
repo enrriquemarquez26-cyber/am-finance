@@ -3985,19 +3985,19 @@ html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4
 .carrusel-filtro {display:block;margin:12px 0 4px;font-size:.8rem}
 .carrusel-credito-detalle {
   --credito-margen-lateral:max(9px,env(safe-area-inset-left),env(safe-area-inset-right));
-  position:fixed;inset:auto 0 max(12px,env(safe-area-inset-bottom));margin:0 auto;
+  position:fixed;inset:auto 0 max(8px,calc(env(safe-area-inset-bottom) - 16px));margin:0 auto;
   width:min(520px,calc(100% - var(--credito-margen-lateral) - var(--credito-margen-lateral)));
   max-width:none;max-height:calc(100dvh - 34px);padding:0;overflow:auto;
   overscroll-behavior:contain;border:1px solid #84909d44;border-radius:36px;background:white;color:inherit
 }
 .carrusel-credito-detalle::backdrop {background:#10162080}
-.carrusel-credito-detalle .credito-detalle {margin:0;padding-top:49px;border:0;box-shadow:none}
+.carrusel-credito-detalle .credito-detalle {margin:0;padding:49px 21px 14px;border:0;box-shadow:none}
 .carrusel-credito-detalle .credito-accion,
 .carrusel-credito-detalle .carrusel-montos {border-radius:30px}
 .carrusel-credito-detalle .credito-accion-boton {border-radius:inherit}
 .carrusel-credito-detalle .carrusel-plan .credito-meta-pago {margin-top:0;border-radius:26px}
 .carrusel-credito-detalle .credito-accion-icono svg {fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
-.carrusel-cerrar {position:absolute;inset:8px 12px auto auto;font-size:1.25rem}
+.carrusel-cerrar {position:absolute;inset:8px 18px auto auto;font-size:1.25rem}
 html.tema-oscuro .carrusel-credito-detalle {background:#202630;color:#f2f4f6}
 body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 @media(min-width:800px) {.carrusel-credito-detalle {inset:0;margin:auto}}
