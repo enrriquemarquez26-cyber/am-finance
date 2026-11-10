@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.8 Beta</title>
+<title>Balance One 0.5.9 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -34,6 +34,16 @@ h3{margin:0 0 14px}
 input,select{width:100%;padding:13px;border:1px solid #dce2e7;border-radius:12px;font-size:16px;background:white;margin:7px 0 13px}
 button{cursor:pointer}
 /* Barra flotante Balance One */
+:root {
+  --nav-activo-fondo: rgba(155,165,185,.26);
+  --nav-activo-texto: #252525;
+  --nav-activo-borde: inset 0 0 0 1px rgba(145,155,175,.12);
+}
+html.tema-oscuro {
+  --nav-activo-fondo: rgba(205,214,230,.19);
+  --nav-activo-texto: #f5f6f8;
+  --nav-activo-borde: inset 0 0 0 1px rgba(255,255,255,.08);
+}
 nav {
   position: fixed;
   bottom: env(safe-area-inset-bottom);
@@ -66,8 +76,8 @@ nav button {
 
 /* Burbuja ovalada visible para la pestaña seleccionada, en ambos temas. */
 nav button.active {
-  background: rgba(155,165,185,.26);
-  box-shadow: inset 0 0 0 1px rgba(145,155,175,.12);
+  background: var(--nav-activo-fondo);
+  box-shadow: var(--nav-activo-borde);
 }
 
 /* Barra adaptable a modo claro y oscuro */
@@ -452,9 +462,9 @@ html.tema-oscuro nav button {
 }
 
 html.tema-oscuro nav button.active {
-  color: #f5f6f8;
-  background: rgba(205,214,230,.19);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+  color: var(--nav-activo-texto);
+  background: var(--nav-activo-fondo);
+  box-shadow: var(--nav-activo-borde);
 }
 
 html.tema-oscuro .logo span {
@@ -513,8 +523,8 @@ html.tema-claro nav button {
 }
 
 html.tema-claro nav button.active {
-  color: #252525;
-  background: rgba(155,165,185,.26);
+  color: var(--nav-activo-texto);
+  background: var(--nav-activo-fondo);
 }
 
 html.tema-claro .logo span {
@@ -3943,8 +3953,9 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .carrusel-tamanos button,.carrusel-credito-nav button,.carrusel-ver-todas {
   appearance:none;border:0;background:var(--credito-superficie);box-shadow:none
 }
-.carrusel-tamanos button[aria-pressed="true"] {background:#20252c;color:white;border-color:transparent}
-html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4f6;color:#20252c}
+.carrusel-tamanos button[aria-pressed="true"] {
+  background:var(--nav-activo-fondo);color:var(--nav-activo-texto);box-shadow:var(--nav-activo-borde)
+}
 .carrusel-credito-lista {display:grid;gap:12px}
 [data-tamano="grande"] .carrusel-credito-lista {
   display:flex;gap:0;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;
@@ -3968,10 +3979,19 @@ html.tema-oscuro .carrusel-tamanos button[aria-pressed="true"] {background:#f2f4
 [data-tamano="grande"] .carrusel-credito-tarjeta {flex:0 0 100%;scroll-snap-align:start}
 [data-tamano="grande"] .carrusel-identidad {display:none}
 @media(prefers-reduced-motion:no-preference) {
-  .carrusel-credito-tarjeta .credito-marco {transition:transform 130ms ease-out}
-  .carrusel-credito-tarjeta:is(:active,.credito-tocada) .credito-marco {transform:scale(.97)}
+  .carrusel-tamanos button {transition:transform 140ms ease-out}
+  .carrusel-tamanos button:active {transform:scale(.96)}
+  .carrusel-credito-tarjeta .credito-marco {transition:transform 150ms cubic-bezier(.2,.75,.3,1)}
+  .carrusel-credito-tarjeta:active .credito-marco {transform:scale(.98)}
+  .carrusel-credito-tarjeta.credito-tocada .credito-marco {animation:creditoToque 185ms ease-out both}
   [data-tamano="grande"] .carrusel-credito-tarjeta .credito-visual {
-    transform:perspective(850px) rotateY(var(--credito-giro,0deg)) scale(var(--credito-escala,1));
+    transform:perspective(900px) translateY(var(--credito-desnivel,0px)) rotateY(var(--credito-giro,0deg)) scale(var(--credito-escala,1));
+  }
+  @keyframes creditoToque {
+    0% {transform:scale(.98)}
+    38% {transform:scale(.95)}
+    78% {transform:scale(1.012)}
+    100% {transform:scale(1)}
   }
 }
 [data-tamano="mediana"] .carrusel-credito-lista {grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -4047,7 +4067,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.8 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.9 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4628,8 +4648,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.8 Beta",
-      "Smart control of your finances · 0.5.8 Beta"
+      "Control inteligente de tus finanzas · 0.5.9 Beta",
+      "Smart control of your finances · 0.5.9 Beta"
     );
   }
 }
@@ -8511,11 +8531,19 @@ function pantallaCarruselCredito(tamano) {
 }
 
 function cambiarTamanoCredito(tamano) {
-  if (!["grande","mediana","compacta"].includes(tamano)) return;
+  const tamanos = ["grande","mediana","compacta"];
+  const actual = el().querySelector(".carrusel-credito")?.dataset.tamano;
+  if (!tamanos.includes(tamano) || tamano === actual) return;
   try { localStorage.setItem(CLAVE_TAMANO_CREDITO, tamano); }
   catch { alert(textoApp("No se pudo guardar el tamaño.","The size could not be saved.")); return; }
   tarjetas();
   el().querySelector(`[data-tamano-credito="${tamano}"]`)?.focus({preventScroll:true});
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const escala = tamanos.indexOf(tamano) < tamanos.indexOf(actual) ? .94 : 1.025;
+  document.getElementById("carruselCredito")?.animate?.([
+    {opacity:.55, transform:`translateY(7px) scale(${escala})`},
+    {opacity:1, transform:"translateY(0) scale(1)"}
+  ], {duration:260, easing:"cubic-bezier(.2,.75,.3,1)"});
 }
 
 function activarCarruselCredito() {
@@ -8556,10 +8584,13 @@ function activarCarruselCredito() {
     if (!lista.clientWidth) return;
     const progreso = lista.scrollLeft / lista.clientWidth;
     if (animar) {
-      for (const [posicion, tarjeta] of Array.from(lista.children).entries()) {
-        const distancia = Math.max(-1, Math.min(1, posicion - progreso));
-        tarjeta.style.setProperty("--credito-giro", (-distancia * 9) + "deg");
-        tarjeta.style.setProperty("--credito-escala", 1 - Math.abs(distancia) * .045);
+      for (let i = 0; i < lista.children.length; i++) {
+        const distancia = Math.max(-1, Math.min(1, i - progreso));
+        const giro = Math.sin(distancia * Math.PI / 2);
+        const estilo = lista.children[i].style;
+        estilo.setProperty("--credito-giro", (-giro * 14) + "deg");
+        estilo.setProperty("--credito-escala", 1 - Math.abs(giro) * .07);
+        estilo.setProperty("--credito-desnivel", (Math.abs(giro) * 6) + "px");
       }
     }
     const nuevo = Math.max(0, Math.min(data.tarjetas.length - 1, Math.round(progreso)));
@@ -8581,7 +8612,7 @@ function tocarTarjetaCarrusel(boton, indice) {
   setTimeout(() => {
     boton.classList.remove("credito-tocada");
     if (boton.isConnected) mostrarDetalleCredito(indice);
-  }, 125);
+  }, 185);
 }
 
 function abrirTodasTarjetasCredito() {
@@ -10754,7 +10785,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.8 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.9 Beta</p>
     </section>
   `;
 }
@@ -11068,7 +11099,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.8 Beta
+        ${textoApp("Versión", "Version")} 0.5.9 Beta
       </p>
     </section>
   `;
@@ -11359,7 +11390,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.8 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.9 Beta</p>
         </div>`
     }
   };
