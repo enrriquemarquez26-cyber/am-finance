@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.31 Beta</title>
+<title>Balance One 0.5.32 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3976,6 +3976,11 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .credito-meta-quitar {width:100%;margin-top:8px}
 .carrusel-credito {width:min(100%,620px);margin-inline:auto}
 .carrusel-credito > .credito-resumen {margin-bottom:18px}
+.carrusel-uso-total {
+  grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  margin:0;padding-top:9px;border-top:1px solid #84909d33
+}
+.carrusel-uso-total b {font-size:.82rem;font-variant-numeric:tabular-nums}
 .carrusel-credito-nav {display:flex;justify-content:center;align-items:center;gap:8px;margin:0 0 18px}
 .carrusel-credito-nav button,.carrusel-ver-todas {
   min-height:40px;border:1px solid #84909d33;border-radius:999px;padding:6px 13px;
@@ -3992,6 +3997,10 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 }
 .carrusel-vistas summary::-webkit-details-marker {display:none}
 .carrusel-vistas summary svg {width:19px;height:19px}
+.carrusel-vistas[open] > summary rect:nth-child(1) {transform:translate(1.2px,1.2px)}
+.carrusel-vistas[open] > summary rect:nth-child(2) {transform:translate(-1.2px,1.2px)}
+.carrusel-vistas[open] > summary rect:nth-child(3) {transform:translate(1.2px,-1.2px)}
+.carrusel-vistas[open] > summary rect:nth-child(4) {transform:translate(-1.2px,-1.2px)}
 .carrusel-vistas-opciones {
   position:absolute;z-index:2;inset:calc(100% + 7px) 0 auto auto;min-width:145px;
   display:grid;gap:4px;padding:9px;border:1px solid #84909d40;border-radius:32px;
@@ -4042,6 +4051,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .carrusel-credito-tarjeta .credito-visual--imagen img {pointer-events:none}
 [data-tamano="grande"] .carrusel-credito-tarjeta {flex:0 0 100%;scroll-snap-align:start}
 @media(prefers-reduced-motion:no-preference) {
+  .carrusel-vistas summary rect {transition:transform 200ms cubic-bezier(.2,.75,.3,1)}
   .carrusel-vistas[open] .carrusel-vistas-opciones {
     transform-origin:top right;
     animation:creditoMenuVistasEntrada 200ms cubic-bezier(.2,.75,.3,1) both
@@ -4234,7 +4244,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.31 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.32 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4820,8 +4830,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.31 Beta",
-      "Smart control of your finances · 0.5.31 Beta"
+      "Control inteligente de tus finanzas · 0.5.32 Beta",
+      "Smart control of your finances · 0.5.32 Beta"
     );
   }
 }
@@ -8712,6 +8722,8 @@ function resumenTarjetasCredito() {
   if (!data.tarjetas.length) return "";
   const deuda = data.tarjetas.reduce((total, tarjeta) => total + (Number(tarjeta.saldo) || 0), 0);
   const limite = data.tarjetas.reduce((total, tarjeta) => total + (Number(tarjeta.limite) || 0), 0);
+  const limitesCompletos = data.tarjetas.every(tarjeta => Number.isFinite(Number(tarjeta.limite)) && Number(tarjeta.limite) > 0);
+  const uso = limitesCompletos ? usoCreditoTarjeta({saldo:deuda, limite}, 2) : null;
   return `<div class="credito-resumen">
     <div>
       <span class="credito-etiqueta">${textoApp("Deuda total", "Total debt")}</span>
@@ -8721,6 +8733,10 @@ function resumenTarjetasCredito() {
       <span class="credito-etiqueta">${textoApp("Límite total de crédito", "Total credit limit")}</span>
       <strong>${money(limite)}</strong>
     </div>
+    <p class="carrusel-uso-total">
+      <span class="credito-etiqueta">${textoApp("Uso total del crédito", "Total credit utilization")}</span>
+      <b>${uso?.porcentaje ?? textoApp("Límites incompletos", "Incomplete limits")}</b>
+    </p>
   </div>`;
 }
 
@@ -11228,7 +11244,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.31 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.32 Beta</p>
     </section>
   `;
 }
@@ -11542,7 +11558,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.31 Beta
+        ${textoApp("Versión", "Version")} 0.5.32 Beta
       </p>
     </section>
   `;
@@ -11833,7 +11849,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.31 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.32 Beta</p>
         </div>`
     }
   };
