@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.23 Beta</title>
+<title>Balance One 0.5.24 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3976,17 +3976,50 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .credito-meta-quitar {width:100%;margin-top:8px}
 .carrusel-credito {width:min(100%,620px);margin-inline:auto}
 .carrusel-credito > .credito-resumen {margin-bottom:18px}
-.carrusel-tamanos,.carrusel-credito-nav {display:flex;justify-content:center;align-items:center;gap:8px;margin:0 0 18px}
-.carrusel-tamanos button,.carrusel-credito-nav button,.carrusel-ver-todas {
+.carrusel-credito-nav {display:flex;justify-content:center;align-items:center;gap:8px;margin:0 0 18px}
+.carrusel-credito-nav button,.carrusel-ver-todas {
   min-height:40px;border:1px solid #84909d33;border-radius:999px;padding:6px 13px;
   color:inherit;background:#84909d16;font:inherit;font-size:.8rem;cursor:pointer
 }
-.carrusel-tamanos button,.carrusel-credito-nav button,.carrusel-ver-todas {
+.carrusel-credito-nav button,.carrusel-ver-todas {
   appearance:none;border:0;background:var(--credito-superficie);box-shadow:none
 }
-.carrusel-tamanos button[aria-pressed="true"] {
+.credito-cabecera-acciones {display:flex;align-items:center;gap:8px;flex:none}
+.carrusel-vistas {position:relative}
+.carrusel-vistas summary {
+  display:grid;place-items:center;width:44px;height:44px;list-style:none;cursor:pointer;
+  border-radius:50%;background:var(--credito-superficie)
+}
+.carrusel-vistas summary::-webkit-details-marker {display:none}
+.carrusel-vistas summary svg {width:19px;height:19px}
+.carrusel-vistas-opciones {
+  position:absolute;z-index:2;inset:calc(100% + 7px) 0 auto auto;min-width:145px;
+  display:grid;gap:4px;padding:6px;border:1px solid #84909d40;border-radius:20px;
+  background:var(--credito-superficie);box-shadow:0 8px 24px #10162024
+}
+.carrusel-vistas:not([open]) .carrusel-vistas-opciones {display:none}
+.carrusel-vistas-opciones button {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;
+  padding:6px 12px;border:0;border-radius:999px;background:transparent;color:inherit;
+  font:inherit;font-size:.8rem;text-align:start
+}
+.carrusel-vistas-opciones button[aria-pressed="true"] {
   background:var(--nav-activo-fondo);color:var(--nav-activo-texto);box-shadow:var(--nav-activo-borde)
 }
+.carrusel-proximos {
+  margin-top:18px;padding:15px;border-radius:26px;background:var(--credito-superficie)
+}
+.carrusel-proximos h3 {margin:0 0 9px;font-size:.95rem}
+.carrusel-proximos .note {margin:0}
+.carrusel-proximos-lista {display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.carrusel-proximos-lista button {
+  display:grid;grid-template-columns:minmax(0,1fr) auto 14px;align-items:center;gap:8px;
+  width:100%;min-height:48px;padding:7px 10px;border:0;border-radius:18px;
+  background:#84909d1a;color:inherit;font:inherit;font-size:.8rem;text-align:start
+}
+.carrusel-proximos-lista button > span:first-child {min-width:0;overflow-wrap:anywhere}
+.carrusel-proximos-lista time {display:block}
+.carrusel-proximos-lista :is(time,small) {font-size:.69rem;opacity:.8}
 .carrusel-credito-lista {display:grid;gap:12px}
 [data-tamano="grande"] .carrusel-credito-lista {
   display:flex;gap:0;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;
@@ -4009,10 +4042,10 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .carrusel-credito-tarjeta .credito-visual--imagen img {pointer-events:none}
 [data-tamano="grande"] .carrusel-credito-tarjeta {flex:0 0 100%;scroll-snap-align:start}
 @media(prefers-reduced-motion:no-preference) {
-  .tarjetas-pantalla :is(.carrusel-tamanos button,.carrusel-credito-nav button,
+  .tarjetas-pantalla :is(.carrusel-vistas-opciones button,.carrusel-credito-nav button,
     .carrusel-ver-todas,.credito-agregar,.credito-fila,.credito-accion-boton,
     .credito-pago-rapido button) {transition:transform 140ms ease-out}
-  .tarjetas-pantalla :is(.carrusel-tamanos button,.carrusel-credito-nav button,
+  .tarjetas-pantalla :is(.carrusel-vistas-opciones button,.carrusel-credito-nav button,
     .carrusel-ver-todas,.credito-agregar,.credito-fila,.credito-accion-boton,
     .credito-pago-rapido button):enabled:active {transform:scale(.98)}
   .tarjetas-pantalla .credito-accion-flecha,
@@ -4182,7 +4215,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.23 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.24 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4768,8 +4801,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.23 Beta",
-      "Smart control of your finances · 0.5.23 Beta"
+      "Control inteligente de tus finanzas · 0.5.24 Beta",
+      "Smart control of your finances · 0.5.24 Beta"
     );
   }
 }
@@ -8736,6 +8769,62 @@ function cambiarOrdenMedianaCredito(orden) {
   document.getElementById("ordenMedianaCredito")?.focus({preventScroll:true});
 }
 
+function menuVistasCredito(tamano) {
+  const t = textoApp;
+  const vistas = [["grande",t("Grande","Large")],["mediana",t("Mediana","Medium")],["compacta",t("Compacta","Compact")]];
+  return `<details class="carrusel-vistas">
+    <summary id="carruselBotonVistas" aria-label="${t("Cambiar vista de tarjetas","Change card view")} · ${vistas.find(([valor]) => valor === tamano)[1]}">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="3" y="3" width="5" height="5" rx="1"/><rect x="12" y="3" width="5" height="5" rx="1"/>
+        <rect x="3" y="12" width="5" height="5" rx="1"/><rect x="12" y="12" width="5" height="5" rx="1"/>
+      </svg>
+    </summary>
+    <div class="carrusel-vistas-opciones" role="group" aria-label="${t("Tamaño de tarjetas","Card size")}">
+      ${vistas.map(([valor,nombre]) => `<button type="button" aria-pressed="${valor === tamano}"
+        data-tamano-credito="${valor}" onclick="cambiarTamanoCredito(this.dataset.tamanoCredito)">
+        ${nombre}${valor === tamano ? ' <span aria-hidden="true">✓</span>' : ''}
+      </button>`).join("")}
+    </div>
+  </details>`;
+}
+
+document.addEventListener("click", evento => {
+  const menu = document.querySelector(".carrusel-vistas[open]");
+  if (menu && !menu.contains(evento.target)) menu.open = false;
+});
+
+document.addEventListener("keydown", evento => {
+  if (evento.key !== "Escape") return;
+  const menu = document.querySelector(".carrusel-vistas[open]");
+  if (!menu) return;
+  menu.open = false;
+  if (menu.contains(evento.target)) menu.querySelector("summary").focus({preventScroll:true});
+});
+
+function proximosPagosTarjetas(orden) {
+  if (!orden.length) return "";
+  const t = textoApp;
+  const pagos = orden.flatMap(({tarjeta,indice}) => {
+    const fecha = proximaFechaTarjeta(Number(tarjeta.vencimiento));
+    const minimo = Number(tarjeta.pagoMinimo);
+    return fecha && validAmount(Number(tarjeta.saldo)) && !registradoEnPeriodo("tarjeta",tarjeta.id,fecha,minimo)
+      ? [{tarjeta,indice,fecha,minimo}] : [];
+  }).sort((a,b) => a.fecha.localeCompare(b.fecha)).slice(0,2);
+  const formato = new Intl.DateTimeFormat(idiomaActual() === "en" ? "en-US" : "es", {day:"numeric",month:"short"});
+  return `<section class="carrusel-proximos" aria-labelledby="carruselProximosTitulo">
+    <h3 id="carruselProximosTitulo">${t("Próximos pagos","Upcoming payments")}</h3>
+    ${pagos.length ? `<ul class="carrusel-proximos-lista">${pagos.map(({tarjeta,indice,fecha,minimo}) => `
+      <li><button type="button" aria-haspopup="dialog" aria-controls="dialogoCredito${indice}"
+        onclick="abrirPagoPendiente('tarjeta',${indice})">
+        <span><strong>${safe(tarjeta.nombre)}</strong>
+          <time datetime="${fecha}">${formato.format(new Date(fecha + "T12:00:00"))}</time>
+        </span>
+        <small>${validAmount(minimo) ? t("Mínimo","Minimum") + " " + money(minimo) : t("Sin mínimo registrado","No minimum set")}</small>
+        <span aria-hidden="true">›</span>
+      </button></li>`).join("")}</ul>` : `<p class="note">${t("No hay vencimientos pendientes para mostrar.","No pending due dates to show.")}</p>`}
+  </section>`;
+}
+
 function pantallaCarruselCredito(tamano, orden) {
   const t = textoApp;
   const mediana = tamano === "mediana";
@@ -8743,10 +8832,6 @@ function pantallaCarruselCredito(tamano, orden) {
   const tarjetasVisibles = mediana ? ordenarTarjetasMedianas(orden) : orden;
   return `<div class="carrusel-credito" data-tamano="${tamano}">
     ${resumenTarjetasCredito()}
-    <div class="carrusel-tamanos" role="group" aria-label="${t("Tamaño de tarjetas","Card size")}">
-      ${[["grande",t("Grande","Large")],["mediana",t("Mediana","Medium")],["compacta",t("Compacta","Compact")]].map(([valor,nombre]) =>
-        `<button type="button" aria-pressed="${valor === tamano}" data-tamano-credito="${valor}" onclick="cambiarTamanoCredito(this.dataset.tamanoCredito)">${nombre}</button>`).join("")}
-    </div>
     ${mediana && orden.length > 1 ? `<label class="carrusel-mediana-orden">
       ${t("Ordenar por","Sort by")}
       <select id="ordenMedianaCredito" onchange="cambiarOrdenMedianaCredito(this.value)">
@@ -8771,6 +8856,7 @@ function pantallaCarruselCredito(tamano, orden) {
         </button>`;
       }).join("")}
     </div>
+    ${compacta ? proximosPagosTarjetas(orden) : ""}
     ${tamano === "grande" && orden.length ? `<div class="carrusel-credito-nav"${orden.length === 1 ? " hidden" : ""}>
       <button type="button" data-credito-anterior aria-label="${t("Tarjeta anterior","Previous card")}">‹</button>
       <span data-credito-pos aria-live="polite"></span>
@@ -8782,12 +8868,18 @@ function pantallaCarruselCredito(tamano, orden) {
 function cambiarTamanoCredito(tamano) {
   const tamanos = ["grande","mediana","compacta"];
   const actual = el().querySelector(".carrusel-credito")?.dataset.tamano;
-  if (!tamanos.includes(tamano) || tamano === actual) return;
-  try { localStorage.setItem(CLAVE_TAMANO_CREDITO, tamano); }
-  catch { alert(textoApp("No se pudo guardar el tamaño.","The size could not be saved.")); return; }
-  tarjetas();
-  el().querySelector(`[data-tamano-credito="${tamano}"]`)?.focus({preventScroll:true});
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!tamanos.includes(tamano)) return;
+  if (tamano !== actual) {
+    try { localStorage.setItem(CLAVE_TAMANO_CREDITO, tamano); }
+    catch { alert(textoApp("No se pudo guardar el tamaño.","The size could not be saved.")); return; }
+    tarjetas();
+  }
+  const botonVistas = document.getElementById("carruselBotonVistas");
+  if (botonVistas) {
+    botonVistas.parentElement.open = false;
+    botonVistas.focus({preventScroll:true});
+  }
+  if (tamano === actual || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const escala = tamanos.indexOf(tamano) < tamanos.indexOf(actual) ? .94 : 1.025;
   document.getElementById("carruselCredito")?.animate?.([
     {opacity:.55, transform:`translateY(7px) scale(${escala})`},
@@ -9115,9 +9207,12 @@ function tarjetas(){
         ${carrusel ? "" : `<p class="tarjetas-ayuda">${textoApp("Gestiona tus tarjetas y pagos", "Manage your cards and payments")}</p>`}
   </div>
 
-  ${carrusel ? `<button type="button" class="carrusel-ver-todas" onclick="abrirTodasTarjetasCredito()" aria-haspopup="dialog">
+  ${carrusel ? `<div class="credito-cabecera-acciones">
+  <button type="button" class="carrusel-ver-todas" onclick="abrirTodasTarjetasCredito()" aria-haspopup="dialog">
     ${textoApp("Ver todas","View all")} · ${data.tarjetas.length}
-  </button>` : `<button type="button" class="credito-agregar"
+  </button>
+  ${menuVistasCredito(tamano)}
+  </div>` : `<button type="button" class="credito-agregar"
     onclick="toggle('formularioNuevaTarjeta')">
         + ${textoApp("Agregar", "Add")}
   </button>`}
@@ -11082,7 +11177,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.23 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.24 Beta</p>
     </section>
   `;
 }
@@ -11396,7 +11491,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.23 Beta
+        ${textoApp("Versión", "Version")} 0.5.24 Beta
       </p>
     </section>
   `;
@@ -11687,7 +11782,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.23 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.24 Beta</p>
         </div>`
     }
   };
