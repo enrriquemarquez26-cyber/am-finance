@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.22 Beta</title>
+<title>Balance One 0.5.23 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4050,7 +4050,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .tarjetas-pantalla .carrusel-mediana-orden select,
 html.tema-oscuro .tarjetas-pantalla .carrusel-mediana-orden select {
   width:auto;max-width:100%;min-width:0;min-height:44px;margin:0;padding:8px 12px;
-  border:0;border-radius:999px;background:var(--credito-superficie);color:inherit;font-size:16px
+  border:0;border-radius:999px;background:var(--credito-superficie);color:inherit;font-size:14px
 }
 [data-tamano="mediana"] .carrusel-credito-tarjeta {align-content:start}
 .carrusel-mediana-datos {
@@ -4064,13 +4064,15 @@ html.tema-oscuro .tarjetas-pantalla .carrusel-mediana-orden select {
 .carrusel-mediana-datos small {font-size:.72rem;opacity:.8}
 .carrusel-mediana-deuda b {font-size:.85rem}
 .carrusel-mediana-uso {display:grid;gap:3px}
-.carrusel-mediana-barra {
-  height:4px;border-radius:999px;background:#84909d40;overflow:hidden
+.carrusel-mediana-barra {height:4px}
+.carrusel-credito-barra {border-radius:999px;overflow:hidden;background:#d9dde3}
+.carrusel-credito-barra::before {
+  content:"";display:block;width:var(--credito-uso);height:100%;border-radius:inherit;background:#27885a
 }
-.carrusel-mediana-barra::before {
-  content:"";display:block;width:var(--credito-uso);height:100%;border-radius:inherit;
-  background:var(--balanceone-color,#ff7900)
-}
+.carrusel-credito-barra[data-uso-alto]::before {background:#d58e27}
+html.tema-oscuro .carrusel-credito-barra {background:#444c59}
+html.tema-oscuro .carrusel-credito-barra::before {background:#4bbd83}
+html.tema-oscuro .carrusel-credito-barra[data-uso-alto]::before {background:#f3ac42}
 [data-tamano="compacta"] .carrusel-credito-tarjeta {
   grid-template-columns:clamp(48px,15vw,68px) minmax(0,1.3fr) minmax(0,1fr) 14px;
   min-height:52px;padding:7px 10px;gap:8px;background:#eef0f4;
@@ -4085,16 +4087,7 @@ html.tema-oscuro [data-tamano="compacta"] .carrusel-credito-tarjeta {
 .carrusel-compacta-nombre {grid-template-columns:minmax(2.5rem,max-content) minmax(0,1fr);align-items:center;column-gap:8px}
 .carrusel-compacta-nombre strong {grid-column:1/-1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .carrusel-compacta-nombre small,.carrusel-compacta-deuda small {font-size:.69rem;opacity:.8}
-.carrusel-compacta-barra {
-  grid-column:2;width:min(90%,74px);height:7px;border-radius:999px;overflow:hidden;background:#d9dde3
-}
-.carrusel-compacta-barra::before {
-  content:"";display:block;width:var(--credito-uso);height:100%;border-radius:inherit;background:#27885a
-}
-.carrusel-compacta-barra[data-uso-alto]::before {background:#d58e27}
-html.tema-oscuro .carrusel-compacta-barra {background:#444c59}
-html.tema-oscuro .carrusel-compacta-barra::before {background:#4bbd83}
-html.tema-oscuro .carrusel-compacta-barra[data-uso-alto]::before {background:#f3ac42}
+.carrusel-compacta-barra {grid-column:2;width:min(90%,74px);height:7px}
 .carrusel-compacta-deuda {text-align:end;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .carrusel-compacta-flecha {width:14px;height:14px;opacity:.7}
 [data-tamano="compacta"] .credito-visual {border-radius:8px;padding:5px}
@@ -4189,7 +4182,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.22 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.23 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4775,8 +4768,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.22 Beta",
-      "Smart control of your finances · 0.5.22 Beta"
+      "Control inteligente de tus finanzas · 0.5.23 Beta",
+      "Smart control of your finances · 0.5.23 Beta"
     );
   }
 }
@@ -8677,7 +8670,7 @@ function usoCreditoTarjeta(tarjeta) {
   const proporcion = Math.max(0, deuda / limite);
   if (!Number.isFinite(proporcion)) return null;
   const porcentaje = new Intl.NumberFormat(idiomaActual() === "en" ? "en-US" : "es", {style:"percent"}).format(proporcion);
-  return {porcentaje, ancho:Math.min(1, proporcion) * 100};
+  return {porcentaje, ancho:Math.min(1, proporcion) * 100, alto:proporcion > .3};
 }
 
 function datosTarjetaMediana(tarjeta, indice, digitos) {
@@ -8691,7 +8684,7 @@ function datosTarjetaMediana(tarjeta, indice, digitos) {
         <small>${t("Deuda actual","Current debt")}</small><b>${money(tarjeta.saldo)}</b>
       </span>
       ${uso ? `<span class="carrusel-mediana-uso">
-        <span class="carrusel-mediana-barra" style="--credito-uso:${uso.ancho}%" aria-hidden="true"></span>
+        <span class="carrusel-credito-barra carrusel-mediana-barra" style="--credito-uso:${uso.ancho}%"${uso.alto ? " data-uso-alto" : ""} aria-hidden="true"></span>
         <small>${uso.porcentaje} ${t("utilizado","used")}</small>
       </span>` : ""}
     </span>
@@ -8707,8 +8700,8 @@ function datosTarjetaCompacta(tarjeta, indice, digitos) {
   return `<span class="carrusel-compacta-nombre">
     <strong>${safe(tarjeta.nombre)}</strong>
     ${digitos ? `<small aria-hidden="true">•• ${digitos}</small>` : ""}
-    ${uso ? `<span class="carrusel-compacta-barra" aria-hidden="true" title="${safe(descripcionUso)}"
-      style="--credito-uso:${uso.ancho}%"${uso.ancho > 30 ? " data-uso-alto" : ""}></span>` : ""}
+    ${uso ? `<span class="carrusel-credito-barra carrusel-compacta-barra" aria-hidden="true" title="${safe(descripcionUso)}"
+      style="--credito-uso:${uso.ancho}%"${uso.alto ? " data-uso-alto" : ""}></span>` : ""}
     <span id="creditoCompactaUso${indice}" hidden>${safe(descripcionUso)}</span>
   </span>
   <span id="creditoCompactaDatos${indice}" class="carrusel-compacta-deuda">
@@ -11089,7 +11082,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.22 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.23 Beta</p>
     </section>
   `;
 }
@@ -11403,7 +11396,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.22 Beta
+        ${textoApp("Versión", "Version")} 0.5.23 Beta
       </p>
     </section>
   `;
@@ -11694,7 +11687,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.22 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.23 Beta</p>
         </div>`
     }
   };
