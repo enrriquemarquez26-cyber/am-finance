@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.14 Beta</title>
+<title>Balance One 0.5.15 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3995,12 +3995,22 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   }
 }
 [data-tamano="mediana"] .carrusel-credito-lista {grid-template-columns:repeat(2,minmax(0,1fr))}
+.carrusel-mediana-orden {
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  margin:0 0 14px;font-size:.78rem;font-weight:650
+}
+.tarjetas-pantalla .carrusel-mediana-orden select,
+html.tema-oscuro .tarjetas-pantalla .carrusel-mediana-orden select {
+  width:auto;max-width:100%;min-width:0;min-height:44px;margin:0;padding:8px 12px;
+  border:0;border-radius:999px;background:var(--credito-superficie);color:inherit;font-size:16px
+}
 .carrusel-identidad {min-width:0;padding:0 6px;overflow-wrap:anywhere;line-height:1.25}
 .carrusel-identidad small {display:block}
 [data-tamano="mediana"] .carrusel-credito-tarjeta {align-content:start}
 .carrusel-mediana-datos {
   display:grid;gap:4px;min-width:0;padding:0 6px;line-height:1.25;overflow-wrap:anywhere
 }
+.carrusel-mediana-digitos {white-space:nowrap;font-variant-numeric:tabular-nums}
 .carrusel-mediana-resumen {display:grid;gap:4px}
 .carrusel-mediana-deuda {
   display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:1px 6px
@@ -4106,7 +4116,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.14 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.15 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4692,8 +4702,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.14 Beta",
-      "Smart control of your finances · 0.5.14 Beta"
+      "Control inteligente de tus finanzas · 0.5.15 Beta",
+      "Smart control of your finances · 0.5.15 Beta"
     );
   }
 }
@@ -8492,6 +8502,7 @@ function abrirMetaPagoTarjeta(indice) {
 const CLAVE_DISENO_CREDITO = "balanceone-diseno-credito";
 const CLAVE_TAMANO_CREDITO = "balanceone-tamano-credito";
 let tarjetaActualCarrusel;
+let ordenMedianaCredito = "personalizado";
 
 function disenoCreditoActual() {
   return localStorage.getItem(CLAVE_DISENO_CREDITO) === "carrusel" ? "carrusel" : "actual";
@@ -8586,7 +8597,7 @@ function tarjetasEnOrden() {
   return ordenarElementosInicio(data.tarjetas, "credito").map(tarjeta => ({tarjeta, indice:indices.get(tarjeta)}));
 }
 
-function datosTarjetaMediana(tarjeta, indice) {
+function datosTarjetaMediana(tarjeta, indice, digitos) {
   const t = textoApp;
   const limite = Number(tarjeta.limite);
   const deuda = Number(tarjeta.saldo);
@@ -8595,7 +8606,8 @@ function datosTarjetaMediana(tarjeta, indice) {
   const porcentaje = Number.isFinite(uso)
     ? new Intl.NumberFormat(idiomaActual() === "en" ? "en-US" : "es", {style:"percent"}).format(uso) : "";
   return `<span class="carrusel-mediana-datos">
-    <strong>${safe(tarjeta.nombre)}</strong>
+    <span><strong>${safe(tarjeta.nombre)}</strong>${digitos
+      ? ` <small class="carrusel-mediana-digitos" aria-hidden="true">•• ${digitos}</small>` : ""}</span>
     <span id="creditoMedianaDatos${indice}" class="carrusel-mediana-resumen">
       <span class="carrusel-mediana-deuda">
         <small>${t("Deuda actual","Current debt")}</small><b>${money(tarjeta.saldo)}</b>
@@ -8608,22 +8620,60 @@ function datosTarjetaMediana(tarjeta, indice) {
   </span>`;
 }
 
+function ordenarTarjetasMedianas(orden) {
+  if (ordenMedianaCredito === "personalizado") return orden;
+  const prioridad = ordenMedianaCredito === "vencimiento"
+    ? tarjeta => {
+        const dia = Number(tarjeta.vencimiento);
+        return diaMensualValido(dia) ? diasParaVencer(dia) : Infinity;
+      }
+    : tarjeta => {
+        const saldo = Number(tarjeta.saldo);
+        return Number.isFinite(saldo) ? -saldo : Infinity;
+      };
+  return orden.map(entrada => ({entrada, prioridad:prioridad(entrada.tarjeta)}))
+    .sort((a,b) => a.prioridad - b.prioridad || 0)
+    .map(({entrada}) => entrada);
+}
+
+function cambiarOrdenMedianaCredito(orden) {
+  ordenMedianaCredito = orden;
+  tarjetas();
+  document.getElementById("ordenMedianaCredito")?.focus({preventScroll:true});
+}
+
 function pantallaCarruselCredito(tamano, orden) {
   const t = textoApp;
+  const mediana = tamano === "mediana";
+  const tarjetasVisibles = mediana ? ordenarTarjetasMedianas(orden) : orden;
   return `<div class="carrusel-credito" data-tamano="${tamano}">
     ${resumenTarjetasCredito()}
     <div class="carrusel-tamanos" role="group" aria-label="${t("Tamaño de tarjetas","Card size")}">
       ${[["grande",t("Grande","Large")],["mediana",t("Mediana","Medium")],["compacta",t("Compacta","Compact")]].map(([valor,nombre]) =>
         `<button type="button" aria-pressed="${valor === tamano}" data-tamano-credito="${valor}" onclick="cambiarTamanoCredito(this.dataset.tamanoCredito)">${nombre}</button>`).join("")}
     </div>
+    ${mediana && orden.length > 1 ? `<label class="carrusel-mediana-orden">
+      ${t("Ordenar por","Sort by")}
+      <select id="ordenMedianaCredito" onchange="cambiarOrdenMedianaCredito(this.value)">
+        ${[["personalizado",t("Orden personalizado","Custom order")],
+          ["vencimiento",t("Próximo vencimiento","Next due date")],
+          ["deuda",t("Mayor deuda","Highest debt")]].map(([valor, nombre]) =>
+            `<option value="${valor}"${valor === ordenMedianaCredito ? " selected" : ""}>${nombre}</option>`).join("")}
+      </select>
+    </label>` : ""}
     <div id="carruselCredito" class="carrusel-credito-lista">
-      ${orden.map(({tarjeta, indice:i}) => `<button type="button" class="carrusel-credito-tarjeta" id="creditoResumen${i}" data-indice-credito="${i}"
-        onclick="tocarTarjetaCarrusel(this,${i})" aria-haspopup="dialog" aria-controls="dialogoCredito${i}"
-        aria-label="${t("Abrir opciones de ","Open options for ")}${safe(tarjeta.nombre)}"${tamano === "mediana" ? ` aria-describedby="creditoMedianaDatos${i}"` : ""}>
-        ${arteTarjetaCredito(tarjeta)}
-        ${tamano === "mediana" ? datosTarjetaMediana(tarjeta, i)
-          : `<span class="carrusel-identidad"><strong>${safe(tarjeta.nombre)}</strong><small>${money(tarjeta.saldo)}</small></span>`}
-      </button>`).join("")}
+      ${tarjetasVisibles.map(({tarjeta, indice:i}) => {
+        const final = String(tarjeta.ultimos4 ?? "");
+        const digitos = mediana && /^\d{4}$/.test(final) ? final : "";
+        const terminacion = digitos ? t(", terminada en ", ", ending in ") + digitos : "";
+        return `<button type="button" class="carrusel-credito-tarjeta" id="creditoResumen${i}" data-indice-credito="${i}"
+          onclick="tocarTarjetaCarrusel(this,${i})" aria-haspopup="dialog" aria-controls="dialogoCredito${i}"
+          aria-label="${t("Abrir opciones de ","Open options for ")}${safe(tarjeta.nombre)}${terminacion}"${mediana ? ` aria-describedby="creditoMedianaDatos${i}"` : ""}>
+          ${arteTarjetaCredito(tarjeta)}
+          ${mediana ? datosTarjetaMediana(tarjeta, i, digitos)
+            : `<span class="carrusel-identidad"><strong>${safe(tarjeta.nombre)}</strong><small>${money(tarjeta.saldo)}</small></span>`}
+        </button>`;
+      }).join("")}
     </div>
     ${tamano === "grande" && orden.length ? `<div class="carrusel-credito-nav"${orden.length === 1 ? " hidden" : ""}>
       <button type="button" data-credito-anterior aria-label="${t("Tarjeta anterior","Previous card")}">‹</button>
@@ -10906,7 +10956,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.14 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.15 Beta</p>
     </section>
   `;
 }
@@ -11220,7 +11270,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.14 Beta
+        ${textoApp("Versión", "Version")} 0.5.15 Beta
       </p>
     </section>
   `;
@@ -11511,7 +11561,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.14 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.15 Beta</p>
         </div>`
     }
   };
