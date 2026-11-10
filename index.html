@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.32 Beta</title>
+<title>Balance One 0.5.33 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3506,6 +3506,7 @@ html.tema-oscuro .inicio-transacciones .inicio-categorias-mes {color:#c3c9d4}
 .subs-identidad small {display:block;margin-top:3px;color:#84909d;font-size:.65rem}
 .subs-importe {font-size:.87rem;overflow-wrap:anywhere;max-width:45%}
 .subs-detalle {font-size:.65rem;color:#84909d;line-height:1.5;margin:11px 0 6px}
+.subs-total-pagado {font-size:.76rem;margin:8px 0}
 .subs-estado {display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(130,140,155,.08);font-size:.62rem;color:#84909d}
 .subs-acciones {display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;padding-top:9px;border-top:1px solid rgba(130,140,155,.12)}
 .subs-acciones button {border:0;border-radius:999px;padding:7px 9px;background:rgba(130,140,155,.08);color:inherit;font:inherit;font-size:.63rem;min-height:34px}
@@ -4244,7 +4245,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.32 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.33 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4830,8 +4831,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.32 Beta",
-      "Smart control of your finances · 0.5.32 Beta"
+      "Control inteligente de tus finanzas · 0.5.33 Beta",
+      "Smart control of your finances · 0.5.33 Beta"
     );
   }
 }
@@ -10005,9 +10006,45 @@ function guardarSuscripcionFormulario(form, indice = null) {
   return true;
 }
 
+function pagosRegistradosPlan(identificador, campo) {
+  return data.movimientos.filter(m => m.tipo === "gasto" && m[campo] != null &&
+    String(m[campo]) === String(identificador) && validAmount(Number(m.monto)));
+}
+
+function totalPagadoPlan(pagos) {
+  return pagos.reduce((centavos, pago) => centavos + Math.round(Number(pago.monto) * 100), 0) / 100;
+}
+
+function resumenCuotasProgramadas(registro) {
+  if (registro.categoria !== "cuotas" && registro.categoria !== "prestamo") return null;
+  const pagos = pagosRegistradosPlan(registro.id, "suscripcionId");
+  const total = totalPagadoPlan(pagos);
+  if (!pagos.length || registro.canceladaEn || !validDate(registro.inicio) ||
+      !validDate(registro.fin) || registro.fin < registro.inicio) {
+    return {total, completada:false};
+  }
+
+  const centavosPagados = Math.round(total * 100);
+  const mes = new Date(registro.inicio.slice(0,7) + "-01T12:00:00Z");
+  const fin = new Date(registro.fin.slice(0,7) + "-01T12:00:00Z");
+  let centavosProgramados = 0;
+  while (mes <= fin) {
+    for (const cuota of suscripcionesDelMes(mes.toISOString().slice(0,7), [registro])) {
+      if (!validAmount(Number(cuota.monto))) return {total, completada:false};
+      centavosProgramados += Math.round(Number(cuota.monto) * 100);
+      if (centavosProgramados > centavosPagados) {
+        return {total, completada:false};
+      }
+    }
+    mes.setUTCMonth(mes.getUTCMonth() + 1);
+  }
+  return {total, completada:centavosProgramados > 0};
+}
+
 function suscripciones() {
   const lista = Array.isArray(data.suscripciones) ? data.suscripciones : [];
-  const activas = lista.filter(s => !s.canceladaEn && (!s.fin || s.fin >= today())).length;
+  const cuotas = lista.map(resumenCuotasProgramadas);
+  const activas = lista.filter((s,i) => !cuotas[i]?.completada && !s.canceladaEn && (!s.fin || s.fin >= today())).length;
   el().innerHTML = `
     <section class="subs-pantalla">
       <header class="subs-cabecera"><span class="subs-emblema" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="4"/><path d="M7 3v4m10-4v4M3 11h18m-13 5h3m4 0h1"/></svg></span>
@@ -10045,7 +10082,8 @@ function suscripciones() {
               <div class="subs-identidad"><strong>${safe(registro.nombre)}</strong><small>${registro.frecuencia === "anual" ? textoApp("Anual", "Yearly") : registro.frecuencia === "cada14dias" ? textoApp("Cada 14 días", "Every 14 days") : textoApp("Mensual", "Monthly")}</small></div>
               <strong class="subs-importe">${importeProgramado(registro)}</strong></div>
             <p class="subs-detalle">${resumenPreciosSuscripcion(registro)}</p>
-            <span class="subs-estado">${registro.canceladaEn ? textoApp("Cancelada", "Cancelled") : registro.fin ? textoApp("Último cobro: ", "Last charge: ") + safe(registro.fin) : textoApp("Hasta que canceles", "Until cancelled")}</span>
+            ${cuotas[i] ? `<p class="subs-total-pagado">${textoApp("Total pagado", "Total paid")} <strong>${money(cuotas[i].total)}</strong></p>` : ""}
+            <span class="subs-estado">${cuotas[i]?.completada ? textoApp("Completada", "Completed") : registro.canceladaEn ? textoApp("Cancelada", "Cancelled") : registro.fin ? textoApp("Último cobro: ", "Last charge: ") + safe(registro.fin) : textoApp("Hasta que canceles", "Until cancelled")}</span>
             <div class="subs-acciones">${!registro.canceladaEn ? `<button type="button" onclick="registrarCobroProgramado(${safe(JSON.stringify(String(registro.id)))}, '${today()}')">${textoApp("Registrar gasto", "Record expense")}</button>` : ""}<button type="button" onclick="abrirFormularioSuscripcionCalendario(${i})">${textoApp("Editar", "Edit")}</button>
               ${!registro.canceladaEn ? `<button type="button" onclick="cancelarSuscripcionRegistrada(${safe(JSON.stringify(String(registro.id)))})">${textoApp("Cancelar suscripción", "Cancel subscription")}</button>` : ""}
               <button class="subs-eliminar" type="button" onclick="eliminarRegistroProgramado('suscripcion', ${i})">${textoApp("Eliminar", "Delete")}</button></div>
@@ -11002,14 +11040,16 @@ function deudas() {
             ${safe(p.nombre)}
           </strong>
           <small class="label">
-            ${textoApp("Vence: ", "Due: ")}${safe(p.proximo)}
+            ${Number(p.saldo) === 0 ? textoApp("Liquidado", "Paid off") : textoApp("Vence: ", "Due: ") + safe(p.proximo)}
           </small>
         </span>
 
         <span style="text-align:right;flex-shrink:0">
           <strong style="display:block">${money(p.saldo)}</strong>
           <small class="label">
-            ${textoApp("Cuota ", "Payment ")}${money(p.cuota)}
+            ${Number(p.saldo) === 0
+              ? textoApp("Total pagado ", "Total paid ") + money(totalPagadoPlan(pagosRegistradosPlan(p.id, "prestamoId")))
+              : textoApp("Cuota ", "Payment ") + money(p.cuota)}
           </small>
         </span>
         <span aria-hidden="true">›</span>
@@ -11137,6 +11177,7 @@ function verPrestamoCompacto(indice) {
         ${textoApp("Saldo pendiente", "Outstanding balance")}
       </span>
       <h2>${money(p.saldo)}</h2>
+      <p>${textoApp("Total pagado", "Total paid")} <strong>${money(totalPagadoPlan(pagosRegistradosPlan(p.id, "prestamoId")))}</strong></p>
       ${resumenContratoPrestamo(p)}
 
       <p>${textoApp("Cuota: ", "Installment: ")}${money(p.cuota)}</p>
@@ -11244,7 +11285,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.32 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.33 Beta</p>
     </section>
   `;
 }
@@ -11558,7 +11599,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.32 Beta
+        ${textoApp("Versión", "Version")} 0.5.33 Beta
       </p>
     </section>
   `;
@@ -11849,7 +11890,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.32 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.33 Beta</p>
         </div>`
     }
   };
@@ -15596,6 +15637,7 @@ function abrirSuscripcionesDesdeCalendario() {
 
 function mostrarGestionSuscripcionesCalendario() {
   const lista = Array.isArray(data.suscripciones) ? data.suscripciones : [];
+  const cuotas = lista.map(resumenCuotasProgramadas);
   crearVentanaApariencia(
     textoApp("Suscripciones y pagos fijos", "Subscriptions and fixed payments"),
     `<div style="display:grid;gap:10px">
@@ -15607,6 +15649,8 @@ function mostrarGestionSuscripcionesCalendario() {
           <span style="flex:1;min-width:0;overflow-wrap:anywhere">
             <strong style="font-size:.8rem">${safe(registro.nombre)}</strong>
             <small style="display:block;color:#84909d;font-size:.68rem">${resumenPreciosSuscripcion(registro)}</small>
+            ${cuotas[indice] ? `<small style="display:block;font-size:.72rem">${cuotas[indice].completada
+              ? textoApp("Completada", "Completed") + " · " : ""}${textoApp("Total pagado", "Total paid")} <strong>${money(cuotas[indice].total)}</strong></small>` : ""}
           </span>
           <button type="button" aria-label="${textoApp("Editar", "Edit")} ${safe(registro.nombre)}"
             onclick="abrirFormularioSuscripcionCalendario(${indice})"
