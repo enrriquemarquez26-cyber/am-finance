@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.16 Beta</title>
+<title>Balance One 0.5.17 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -1621,6 +1621,7 @@ html.tema-oscuro .credito-accion .credito-form-panel {border-color: #404753;}
 html.tema-oscuro .tarjeta-detalle .credito-form-campo > label {color: #b3bdca;}
 html.tema-oscuro .tarjeta-detalle .credito-form-campo > input,
 html.tema-oscuro .tarjeta-detalle .credito-form-campo > select {background: #333b46;color: #fff;border-color: #505b6b;}
+html.tema-oscuro .tarjeta-detalle .credito-form-campo > input[type="date"] {color-scheme:dark;}
 html.tema-oscuro .credito-accion-copy small {color: #a4aebc;}
 
 .credito-marca {
@@ -4121,7 +4122,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.16 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.17 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4707,8 +4708,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.16 Beta",
-      "Smart control of your finances · 0.5.16 Beta"
+      "Control inteligente de tus finanzas · 0.5.17 Beta",
+      "Smart control of your finances · 0.5.17 Beta"
     );
   }
 }
@@ -8983,6 +8984,7 @@ function panelPagoTarjeta(t,i) {
   const saldo = round(t.saldo);
   const minimo = round(t.pagoMinimo);
   const importeMinimo = validAmount(minimo) ? Math.min(minimo, saldo) : 0;
+  const fechaActual = today();
   const ultimo = ultimoPagoTarjeta(t);
   const ayuda = ultimo
     ? `${textoApp("Último pago registrado", "Last recorded payment")} · ${money(ultimo.monto)} · <time datetime="${ultimo.fecha}">${fechaMetaAhorro(ultimo.fecha)}</time>`
@@ -9015,6 +9017,10 @@ function panelPagoTarjeta(t,i) {
               <label for="montoPagoTarjeta${i}">${textoImporte("Cantidad pagada", "Amount paid")}</label>
               <input id="montoPagoTarjeta${i}" name="monto" type="number"
                 min="0.01" step="0.01" placeholder="0.00" required>
+            </div>
+            <div class="credito-form-campo">
+              <label for="fechaPagoTarjeta${i}">${textoApp("Fecha del pago", "Payment date")}</label>
+              <input id="fechaPagoTarjeta${i}" name="fecha" type="date" value="${fechaActual}" max="${fechaActual}" required>
             </div>
             <button class="primary" type="submit">${textoApp("Confirmar pago", "Confirm payment")}</button>
           </form>
@@ -9144,7 +9150,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
         <h3 id="tituloCredito${i}">${safe(t.nombre)}</h3>
         ${carrusel && (t.banco || t.ultimos4) ? `<small>${[safe(t.banco || ""),t.ultimos4 ? "•••• " + safe(t.ultimos4) : ""].filter(Boolean).join(" · ")}</small>` : ""}
       </div>
-      <span class="credito-detalle-apr">APR ${safe(t.apr)}%</span>
+      ${t.apr != null && t.apr !== "" ? `<span class="credito-detalle-apr">APR ${safe(t.apr)}%</span>` : ""}
     </div>
 
 
@@ -9160,7 +9166,7 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
           <span class="credito-accion-icono" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M7 15h4"/></svg>
           </span>
-          <span class="credito-accion-copy"><strong>${carrusel ? textoApp("Editar tarjeta","Edit card") : textoApp("Datos de la tarjeta", "Card details")}</strong><small>${textoApp("Banco, imagen y pago mínimo", "Bank, image and minimum")}</small></span>
+          <span class="credito-accion-copy"><strong>${carrusel ? textoApp("Editar tarjeta","Edit card") : textoApp("Datos de la tarjeta", "Card details")}</strong><small>${textoApp("Banco, imagen, APR y pago mínimo", "Bank, image, APR and minimum payment")}</small></span>
           <span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
         </button>
         <div class="payment credito-form-panel hidden" id="datosCredito${i}">
@@ -9228,6 +9234,11 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
                 <input id="minimoCredito${i}" name="pagoMinimo" type="number" min="0" step="0.01"
                   placeholder="0.00" value="${safe(t.pagoMinimo ?? "")}">
               </div>
+            </div>
+            <div class="credito-form-campo">
+              <label for="editarAprCredito${i}">APR (%)</label>
+              <input id="editarAprCredito${i}" name="apr" type="number" min="0" step="any"
+                inputmode="decimal" placeholder="0.00" value="${safe(t.apr ?? "")}">
             </div>
             <button class="primary" type="submit">${textoApp("Guardar datos", "Save details")}</button>
           </form>
@@ -9341,6 +9352,15 @@ async function guardarDatosTarjeta(event, indice) {
     }
     try { cambios.limite = centavosMeta(campos.get("limite"), true) / 100; }
     catch (error) { alert(error.message); return; }
+  }
+  if (campos.has("apr")) {
+    const entradaApr = String(campos.get("apr")).trim();
+    const apr = entradaApr === "" ? null : Number(entradaApr);
+    if (apr !== null && (!Number.isFinite(apr) || apr < 0)) {
+      alert(textoApp("Introduce un APR válido.", "Enter a valid APR."));
+      return;
+    }
+    cambios.apr = apr;
   }
   const modelo = String(campos.get("modelo") || "").trim();
   const ultimos4 = String(campos.get("ultimos4") || "").trim();
@@ -9556,9 +9576,15 @@ function pagarTarjeta(e, i) {
   const campos = new FormData(e.target);
   const monto = round(campos.get("monto"));
   const bancoId = String(campos.get("bancoId") || "");
+  const fecha = String(campos.get("fecha") || "");
 
   if (!validAmount(monto)) {
         alert(textoApp("Introduce una cantidad válida.", "Enter a valid amount."));
+    return;
+  }
+
+  if (!validDate(fecha) || fecha > today()) {
+    alert(textoApp("Elige la fecha de hoy o una fecha anterior.", "Choose today's date or an earlier date."));
     return;
   }
 
@@ -9572,7 +9598,12 @@ function pagarTarjeta(e, i) {
     return;
   }
 
-    if (!confirm(textoApp("¿Registrar pago de ", "Record a payment of ") + money(monto) + "?")) {
+  const importe = money(monto);
+  const fechaLegible = fechaMetaAhorro(fecha);
+  if (!confirm(textoApp(
+    `¿Registrar el pago de ${importe} del ${fechaLegible}?`,
+    `Record the payment of ${importe} dated ${fechaLegible}?`
+  ))) {
     return;
   }
 
@@ -9583,7 +9614,7 @@ function pagarTarjeta(e, i) {
     nombre: tarjeta.nombre,
     monto,
     tipo: "tarjeta",
-    fecha: today()
+    fecha
   };
 
   if (!guardarPagoTarjetaBanco(null, pago)) return;
@@ -10977,7 +11008,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.16 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.17 Beta</p>
     </section>
   `;
 }
@@ -11291,7 +11322,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.16 Beta
+        ${textoApp("Versión", "Version")} 0.5.17 Beta
       </p>
     </section>
   `;
@@ -11582,7 +11613,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.16 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.17 Beta</p>
         </div>`
     }
   };
