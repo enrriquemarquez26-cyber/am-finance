@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.20 Beta</title>
+<title>Balance One 0.5.21 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4073,13 +4073,28 @@ html.tema-oscuro .tarjetas-pantalla .carrusel-mediana-orden select {
 }
 [data-tamano="compacta"] .carrusel-credito-tarjeta {
   grid-template-columns:clamp(48px,15vw,68px) minmax(0,1.3fr) minmax(0,1fr) 14px;
-  min-height:52px;padding:7px 10px;gap:8px;background:#84909d13
+  min-height:52px;padding:7px 10px;gap:8px;background:#eef0f4;
+  box-shadow:inset 0 0 0 1px #84909d29
+}
+html.tema-oscuro [data-tamano="compacta"] .carrusel-credito-tarjeta {
+  background:#1c2027;box-shadow:inset 0 0 0 1px #363c47
 }
 .carrusel-compacta-nombre,.carrusel-compacta-deuda {
   display:grid;gap:2px;min-width:0;line-height:1.2;font-size:.84rem
 }
-.carrusel-compacta-nombre strong {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.carrusel-compacta-nombre {grid-template-columns:minmax(2.5rem,max-content) minmax(0,1fr);align-items:center;column-gap:8px}
+.carrusel-compacta-nombre strong {grid-column:1/-1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .carrusel-compacta-nombre small,.carrusel-compacta-deuda small {font-size:.69rem;opacity:.8}
+.carrusel-compacta-barra {
+  grid-column:2;width:min(100%,84px);height:7px;border-radius:999px;overflow:hidden;background:#d9dde3
+}
+.carrusel-compacta-barra::before {
+  content:"";display:block;width:var(--credito-uso);height:100%;border-radius:inherit;background:#27885a
+}
+.carrusel-compacta-barra[data-uso-alto]::before {background:#d58e27}
+html.tema-oscuro .carrusel-compacta-barra {background:#444c59}
+html.tema-oscuro .carrusel-compacta-barra::before {background:#4bbd83}
+html.tema-oscuro .carrusel-compacta-barra[data-uso-alto]::before {background:#f3ac42}
 .carrusel-compacta-deuda {text-align:end;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .carrusel-compacta-flecha {width:14px;height:14px;opacity:.7}
 [data-tamano="compacta"] .credito-visual {border-radius:8px;padding:5px}
@@ -4174,7 +4189,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.20 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.21 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4760,8 +4775,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.20 Beta",
-      "Smart control of your finances · 0.5.20 Beta"
+      "Control inteligente de tus finanzas · 0.5.21 Beta",
+      "Smart control of your finances · 0.5.21 Beta"
     );
   }
 }
@@ -8655,14 +8670,19 @@ function tarjetasEnOrden() {
   return ordenarElementosInicio(data.tarjetas, "credito").map(tarjeta => ({tarjeta, indice:indices.get(tarjeta)}));
 }
 
-function datosTarjetaMediana(tarjeta, indice, digitos) {
-  const t = textoApp;
+function usoCreditoTarjeta(tarjeta) {
   const limite = Number(tarjeta.limite);
   const deuda = Number(tarjeta.saldo);
-  const uso = limite > 0 && Number.isFinite(limite) && Number.isFinite(deuda)
-    ? Math.max(0, deuda / limite) : NaN;
-  const porcentaje = Number.isFinite(uso)
-    ? new Intl.NumberFormat(idiomaActual() === "en" ? "en-US" : "es", {style:"percent"}).format(uso) : "";
+  if (!(limite > 0) || !Number.isFinite(limite) || !Number.isFinite(deuda)) return null;
+  const proporcion = Math.max(0, deuda / limite);
+  if (!Number.isFinite(proporcion)) return null;
+  const porcentaje = new Intl.NumberFormat(idiomaActual() === "en" ? "en-US" : "es", {style:"percent"}).format(proporcion);
+  return {porcentaje, ancho:Math.min(1, proporcion) * 100};
+}
+
+function datosTarjetaMediana(tarjeta, indice, digitos) {
+  const t = textoApp;
+  const uso = usoCreditoTarjeta(tarjeta);
   return `<span class="carrusel-mediana-datos">
     <span><strong>${safe(tarjeta.nombre)}</strong>${digitos
       ? ` <small class="carrusel-mediana-digitos" aria-hidden="true">•• ${digitos}</small>` : ""}</span>
@@ -8670,21 +8690,29 @@ function datosTarjetaMediana(tarjeta, indice, digitos) {
       <span class="carrusel-mediana-deuda">
         <small>${t("Deuda actual","Current debt")}</small><b>${money(tarjeta.saldo)}</b>
       </span>
-      ${porcentaje ? `<span class="carrusel-mediana-uso">
-        <span class="carrusel-mediana-barra" style="--credito-uso:${Math.min(1, uso) * 100}%" aria-hidden="true"></span>
-        <small>${porcentaje} ${t("utilizado","used")}</small>
+      ${uso ? `<span class="carrusel-mediana-uso">
+        <span class="carrusel-mediana-barra" style="--credito-uso:${uso.ancho}%" aria-hidden="true"></span>
+        <small>${uso.porcentaje} ${t("utilizado","used")}</small>
       </span>` : ""}
     </span>
   </span>`;
 }
 
 function datosTarjetaCompacta(tarjeta, indice, digitos) {
+  const t = textoApp;
+  const uso = usoCreditoTarjeta(tarjeta);
+  const descripcionUso = uso
+    ? t("Crédito utilizado", "Credit used") + " " + uso.porcentaje
+    : t("Límite de crédito sin configurar", "No credit limit set");
   return `<span class="carrusel-compacta-nombre">
     <strong>${safe(tarjeta.nombre)}</strong>
     ${digitos ? `<small aria-hidden="true">•• ${digitos}</small>` : ""}
+    ${uso ? `<span class="carrusel-compacta-barra" aria-hidden="true" title="${safe(descripcionUso)}"
+      style="--credito-uso:${uso.ancho}%"${uso.ancho > 30 ? " data-uso-alto" : ""}></span>` : ""}
+    <span id="creditoCompactaUso${indice}" hidden>${safe(descripcionUso)}</span>
   </span>
   <span id="creditoCompactaDatos${indice}" class="carrusel-compacta-deuda">
-    <small>${textoApp("Deuda actual","Current debt")}</small>
+    <small>${t("Deuda actual","Current debt")}</small>
     <strong>${money(tarjeta.saldo)}</strong>
   </span>
   <svg class="carrusel-compacta-flecha" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -8740,7 +8768,7 @@ function pantallaCarruselCredito(tamano, orden) {
         const final = String(tarjeta.ultimos4 ?? "");
         const digitos = (mediana || compacta) && /^\d{4}$/.test(final) ? final : "";
         const terminacion = digitos ? t(", terminada en ", ", ending in ") + digitos : "";
-        const descripcion = mediana ? `creditoMedianaDatos${i}` : compacta ? `creditoCompactaDatos${i}` : "";
+        const descripcion = mediana ? `creditoMedianaDatos${i}` : compacta ? `creditoCompactaDatos${i} creditoCompactaUso${i}` : "";
         return `<button type="button" class="carrusel-credito-tarjeta" id="creditoResumen${i}" data-indice-credito="${i}"
           onclick="tocarTarjetaCarrusel(this,${i})" aria-haspopup="dialog" aria-controls="dialogoCredito${i}"
           aria-label="${t("Abrir opciones de ","Open options for ")}${safe(tarjeta.nombre)}${terminacion}"${descripcion ? ` aria-describedby="${descripcion}"` : ""}>
@@ -11061,7 +11089,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.20 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.21 Beta</p>
     </section>
   `;
 }
@@ -11375,7 +11403,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.20 Beta
+        ${textoApp("Versión", "Version")} 0.5.21 Beta
       </p>
     </section>
   `;
@@ -11666,7 +11694,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.20 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.21 Beta</p>
         </div>`
     }
   };
