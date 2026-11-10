@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.26 Beta</title>
+<title>Balance One 0.5.27 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4007,14 +4007,14 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   background:var(--nav-activo-fondo);color:var(--nav-activo-texto);box-shadow:var(--nav-activo-borde)
 }
 .carrusel-proximos {
-  margin-top:18px;padding:15px;border-radius:26px;background:var(--credito-superficie)
+  margin-top:18px;padding:15px
 }
 .carrusel-proximos h3 {margin:0 0 9px;font-size:.95rem}
 .carrusel-proximos .note {margin:0}
 .carrusel-proximos-lista {display:grid;gap:6px;margin:0;padding:0;list-style:none}
 .carrusel-proximos-lista button {
   display:grid;grid-template-columns:minmax(0,1fr) auto 14px;align-items:center;gap:8px;
-  width:100%;min-height:48px;padding:7px 10px;border:0;border-radius:18px;
+  width:100%;min-height:48px;padding:7px 10px;border:0;
   background:#84909d1a;color:inherit;font:inherit;font-size:.8rem;text-align:start
 }
 .carrusel-proximos-lista button > span:first-child {min-width:0;overflow-wrap:anywhere}
@@ -4145,7 +4145,8 @@ html.tema-oscuro [data-tamano="compacta"] .carrusel-credito-tarjeta {
 .carrusel-montos > div:first-child {padding-inline-end:12px}
 .carrusel-montos dt {margin-bottom:4px}
 .carrusel-montos dd {margin:0;font-size:clamp(.92rem,4.3vw,1.18rem);font-weight:750}
-.carrusel-resumen-activo {margin:12px 0;background:var(--credito-superficie);border-radius:36px}
+.carrusel-resumen-activo,.carrusel-proximos {background:var(--credito-superficie);border-radius:36px}
+.carrusel-resumen-activo {margin:12px 0}
 .carrusel-resumen-activo .carrusel-montos {margin:0;padding:18px 16px;background:transparent}
 .carrusel-resumen-activo .carrusel-montos dt {font-weight:650}
 .carrusel-resumen-activo .carrusel-montos dd {font-weight:800}
@@ -4157,9 +4158,10 @@ html.tema-oscuro [data-tamano="compacta"] .carrusel-credito-tarjeta {
   flex:none;min-height:44px;padding:0 3px;border:0;background:none;color:inherit;font:inherit;font-size:.76rem;font-weight:650
 }
 .carrusel-movimientos-lista {list-style:none;display:grid;gap:6px;margin:0;padding:0}
+.carrusel-movimiento,.carrusel-proximos-lista button {border-radius:25px}
 .carrusel-movimiento {
   display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:8px;
-  min-height:52px;padding:7px 10px;border-radius:25px;background:#84909d13
+  min-height:52px;padding:7px 10px;background:#84909d13
 }
 .carrusel-movimiento .cal-mov-logo {position:relative;display:grid;place-items:center;width:34px;height:34px}
 .carrusel-movimiento-texto {display:grid;gap:2px;min-width:0}
@@ -4222,7 +4224,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.26 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.27 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4808,8 +4810,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.26 Beta",
-      "Smart control of your finances · 0.5.26 Beta"
+      "Control inteligente de tus finanzas · 0.5.27 Beta",
+      "Smart control of your finances · 0.5.27 Beta"
     );
   }
 }
@@ -11203,7 +11205,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.26 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.27 Beta</p>
     </section>
   `;
 }
@@ -11517,7 +11519,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.26 Beta
+        ${textoApp("Versión", "Version")} 0.5.27 Beta
       </p>
     </section>
   `;
@@ -11808,7 +11810,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.26 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.27 Beta</p>
         </div>`
     }
   };
