@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.15 Beta</title>
+<title>Balance One 0.5.16 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3977,7 +3977,6 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .carrusel-credito-tarjeta .credito-marco {width:100%;margin:0}
 .carrusel-credito-tarjeta .credito-visual--imagen img {pointer-events:none}
 [data-tamano="grande"] .carrusel-credito-tarjeta {flex:0 0 100%;scroll-snap-align:start}
-[data-tamano="grande"] .carrusel-identidad {display:none}
 @media(prefers-reduced-motion:no-preference) {
   .carrusel-tamanos button {transition:transform 140ms ease-out}
   .carrusel-tamanos button:active {transform:scale(.96)}
@@ -4004,8 +4003,6 @@ html.tema-oscuro .tarjetas-pantalla .carrusel-mediana-orden select {
   width:auto;max-width:100%;min-width:0;min-height:44px;margin:0;padding:8px 12px;
   border:0;border-radius:999px;background:var(--credito-superficie);color:inherit;font-size:16px
 }
-.carrusel-identidad {min-width:0;padding:0 6px;overflow-wrap:anywhere;line-height:1.25}
-.carrusel-identidad small {display:block}
 [data-tamano="mediana"] .carrusel-credito-tarjeta {align-content:start}
 .carrusel-mediana-datos {
   display:grid;gap:4px;min-width:0;padding:0 6px;line-height:1.25;overflow-wrap:anywhere
@@ -4026,8 +4023,16 @@ html.tema-oscuro .tarjetas-pantalla .carrusel-mediana-orden select {
   background:var(--balanceone-color,#ff7900)
 }
 [data-tamano="compacta"] .carrusel-credito-tarjeta {
-  grid-template-columns:68px minmax(0,1fr);padding:7px;gap:10px;background:#84909d13
+  grid-template-columns:clamp(48px,15vw,68px) minmax(0,1.3fr) minmax(0,1fr) 14px;
+  min-height:52px;padding:7px 10px;gap:8px;background:#84909d13
 }
+.carrusel-compacta-nombre,.carrusel-compacta-deuda {
+  display:grid;gap:2px;min-width:0;line-height:1.2;font-size:.84rem
+}
+.carrusel-compacta-nombre strong {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.carrusel-compacta-nombre small,.carrusel-compacta-deuda small {font-size:.69rem;opacity:.8}
+.carrusel-compacta-deuda {text-align:end;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.carrusel-compacta-flecha {width:14px;height:14px;opacity:.7}
 [data-tamano="compacta"] .credito-visual {border-radius:8px;padding:5px}
 [data-tamano="compacta"] .credito-visual--imagen {padding:0}
 [data-tamano="compacta"] .credito-visual :is(.credito-marca,.credito-modelo,.credito-final,.credito-apple-marca,.credito-apple-chip) {display:none}
@@ -4116,7 +4121,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.15 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.16 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4702,8 +4707,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.15 Beta",
-      "Smart control of your finances · 0.5.15 Beta"
+      "Control inteligente de tus finanzas · 0.5.16 Beta",
+      "Smart control of your finances · 0.5.16 Beta"
     );
   }
 }
@@ -8620,6 +8625,20 @@ function datosTarjetaMediana(tarjeta, indice, digitos) {
   </span>`;
 }
 
+function datosTarjetaCompacta(tarjeta, indice, digitos) {
+  return `<span class="carrusel-compacta-nombre">
+    <strong>${safe(tarjeta.nombre)}</strong>
+    ${digitos ? `<small aria-hidden="true">•• ${digitos}</small>` : ""}
+  </span>
+  <span id="creditoCompactaDatos${indice}" class="carrusel-compacta-deuda">
+    <small>${textoApp("Deuda actual","Current debt")}</small>
+    <strong>${money(tarjeta.saldo)}</strong>
+  </span>
+  <svg class="carrusel-compacta-flecha" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
 function ordenarTarjetasMedianas(orden) {
   if (ordenMedianaCredito === "personalizado") return orden;
   const prioridad = ordenMedianaCredito === "vencimiento"
@@ -8645,6 +8664,7 @@ function cambiarOrdenMedianaCredito(orden) {
 function pantallaCarruselCredito(tamano, orden) {
   const t = textoApp;
   const mediana = tamano === "mediana";
+  const compacta = tamano === "compacta";
   const tarjetasVisibles = mediana ? ordenarTarjetasMedianas(orden) : orden;
   return `<div class="carrusel-credito" data-tamano="${tamano}">
     ${resumenTarjetasCredito()}
@@ -8664,14 +8684,15 @@ function pantallaCarruselCredito(tamano, orden) {
     <div id="carruselCredito" class="carrusel-credito-lista">
       ${tarjetasVisibles.map(({tarjeta, indice:i}) => {
         const final = String(tarjeta.ultimos4 ?? "");
-        const digitos = mediana && /^\d{4}$/.test(final) ? final : "";
+        const digitos = (mediana || compacta) && /^\d{4}$/.test(final) ? final : "";
         const terminacion = digitos ? t(", terminada en ", ", ending in ") + digitos : "";
+        const descripcion = mediana ? `creditoMedianaDatos${i}` : compacta ? `creditoCompactaDatos${i}` : "";
         return `<button type="button" class="carrusel-credito-tarjeta" id="creditoResumen${i}" data-indice-credito="${i}"
           onclick="tocarTarjetaCarrusel(this,${i})" aria-haspopup="dialog" aria-controls="dialogoCredito${i}"
-          aria-label="${t("Abrir opciones de ","Open options for ")}${safe(tarjeta.nombre)}${terminacion}"${mediana ? ` aria-describedby="creditoMedianaDatos${i}"` : ""}>
+          aria-label="${t("Abrir opciones de ","Open options for ")}${safe(tarjeta.nombre)}${terminacion}"${descripcion ? ` aria-describedby="${descripcion}"` : ""}>
           ${arteTarjetaCredito(tarjeta)}
           ${mediana ? datosTarjetaMediana(tarjeta, i, digitos)
-            : `<span class="carrusel-identidad"><strong>${safe(tarjeta.nombre)}</strong><small>${money(tarjeta.saldo)}</small></span>`}
+            : compacta ? datosTarjetaCompacta(tarjeta, i, digitos) : ""}
         </button>`;
       }).join("")}
     </div>
@@ -10956,7 +10977,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.15 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.16 Beta</p>
     </section>
   `;
 }
@@ -11270,7 +11291,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.15 Beta
+        ${textoApp("Versión", "Version")} 0.5.16 Beta
       </p>
     </section>
   `;
@@ -11561,7 +11582,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.15 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.16 Beta</p>
         </div>`
     }
   };
