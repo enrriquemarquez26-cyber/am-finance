@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.19 Beta</title>
+<title>Balance One 0.5.20 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -1205,6 +1205,12 @@ html.tema-oscuro .hist-importe.red {
 /* Pantalla de tarjetas */
 body:has(.tarjetas-pantalla) > header {
   display: none;
+}
+
+html.tema-oscuro:has(#content > .tarjetas-pantalla),
+html.tema-oscuro body:has(#content > .tarjetas-pantalla),
+html.tema-oscuro body:has(#content > .tarjetas-pantalla) > header {
+  background: #000;
 }
 
 .tarjetas-pantalla > h2 {
@@ -4154,6 +4160,7 @@ button[data-boton-x]:active,button[data-boton-x].x-activada {
   button[data-boton-x]:active,button[data-boton-x].x-activada {transform:scale(.92)}
 }
 html.tema-oscuro .carrusel-credito-detalle {background:#202630;color:#f2f4f6}
+html.tema-oscuro .tarjetas-pantalla .carrusel-credito-detalle::backdrop {background:#0008}
 body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 @media(min-width:800px) {.carrusel-credito-detalle {inset:0;margin:auto}}
 @media(prefers-reduced-motion:no-preference) {
@@ -4167,7 +4174,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.19 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.20 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4753,8 +4760,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.19 Beta",
-      "Smart control of your finances · 0.5.19 Beta"
+      "Control inteligente de tus finanzas · 0.5.20 Beta",
+      "Smart control of your finances · 0.5.20 Beta"
     );
   }
 }
@@ -11054,7 +11061,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.19 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.20 Beta</p>
     </section>
   `;
 }
@@ -11368,7 +11375,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.19 Beta
+        ${textoApp("Versión", "Version")} 0.5.20 Beta
       </p>
     </section>
   `;
@@ -11659,7 +11666,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.19 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.20 Beta</p>
         </div>`
     }
   };
