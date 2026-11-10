@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.17 Beta</title>
+<title>Balance One 0.5.18 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -1505,7 +1505,6 @@ html.tema-oscuro .tarjetas-pantalla select {
   border-radius: 50%;
   background: #fff;
   color: #7d8898;
-  transition: transform .2s ease;
 }
 .credito-accion-flecha svg {width: 15px;height: 15px;}
 .credito-accion-boton[aria-expanded="true"] .credito-accion-flecha {transform: rotate(180deg);}
@@ -3979,8 +3978,22 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
 .carrusel-credito-tarjeta .credito-visual--imagen img {pointer-events:none}
 [data-tamano="grande"] .carrusel-credito-tarjeta {flex:0 0 100%;scroll-snap-align:start}
 @media(prefers-reduced-motion:no-preference) {
-  .carrusel-tamanos button {transition:transform 140ms ease-out}
-  .carrusel-tamanos button:active {transform:scale(.96)}
+  .tarjetas-pantalla :is(.carrusel-tamanos button,.carrusel-credito-nav button,
+    .carrusel-ver-todas,.credito-agregar,.credito-fila,.credito-accion-boton,
+    .credito-pago-rapido button) {transition:transform 140ms ease-out}
+  .tarjetas-pantalla :is(.carrusel-tamanos button,.carrusel-credito-nav button,
+    .carrusel-ver-todas,.credito-agregar,.credito-fila,.credito-accion-boton,
+    .credito-pago-rapido button):enabled:active {transform:scale(.98)}
+  .tarjetas-pantalla .credito-accion-flecha,
+  .carrusel-compacta-flecha {transition:transform 180ms ease-out}
+  [data-tamano="compacta"] .carrusel-credito-tarjeta:active .carrusel-compacta-flecha {
+    transform:translateX(2px)
+  }
+  .tarjetas-pantalla > .credito-detalle:not(.hidden),
+  .tarjetas-pantalla .credito-form-panel:not(.hidden),
+  #formularioNuevaTarjeta:not(.hidden),
+  .carrusel-credito-lista.credito-orden-cambiado,
+  .carrusel-resumen-activo > * {animation:creditoContenidoEntrada 180ms ease-out}
   .carrusel-credito-tarjeta .credito-marco {transition:transform 150ms cubic-bezier(.2,.75,.3,1)}
   .carrusel-credito-tarjeta:active .credito-marco {transform:scale(.98)}
   .carrusel-credito-tarjeta.credito-tocada .credito-marco {animation:creditoToque 185ms ease-out both}
@@ -3992,6 +4005,10 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
     38% {transform:scale(.95)}
     78% {transform:scale(1.012)}
     100% {transform:scale(1)}
+  }
+  @keyframes creditoContenidoEntrada {
+    from {opacity:.72;translate:0 5px}
+    to {opacity:1;translate:0 0}
   }
 }
 [data-tamano="mediana"] .carrusel-credito-lista {grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -4114,7 +4131,10 @@ button[data-boton-x]:active,button[data-boton-x].x-activada {
 html.tema-oscuro .carrusel-credito-detalle {background:#202630;color:#f2f4f6}
 body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 @media(min-width:800px) {.carrusel-credito-detalle {inset:0;margin:auto}}
-@media(prefers-reduced-motion:no-preference) {.carrusel-credito-detalle[open] {animation:ajustesVentanaEntrada 210ms ease-out}}
+@media(prefers-reduced-motion:no-preference) {
+  .carrusel-credito-detalle[open] {animation:ajustesVentanaEntrada 210ms ease-out}
+  .carrusel-credito-detalle[open]::backdrop {animation:ajustesFondoEntrada 210ms ease-out}
+}
 </style>
 </head>
 <body>
@@ -4122,7 +4142,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.17 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.5.18 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4708,8 +4728,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.17 Beta",
-      "Smart control of your finances · 0.5.17 Beta"
+      "Control inteligente de tus finanzas · 0.5.18 Beta",
+      "Smart control of your finances · 0.5.18 Beta"
     );
   }
 }
@@ -8659,6 +8679,7 @@ function ordenarTarjetasMedianas(orden) {
 function cambiarOrdenMedianaCredito(orden) {
   ordenMedianaCredito = orden;
   tarjetas();
+  document.getElementById("carruselCredito")?.classList.add("credito-orden-cambiado");
   document.getElementById("ordenMedianaCredito")?.focus({preventScroll:true});
 }
 
@@ -11008,7 +11029,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.17 Beta</p>
+      <p class="ajustes-version">Balance One · 0.5.18 Beta</p>
     </section>
   `;
 }
@@ -11322,7 +11343,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.17 Beta
+        ${textoApp("Versión", "Version")} 0.5.18 Beta
       </p>
     </section>
   `;
@@ -11613,7 +11634,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.17 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.5.18 Beta</p>
         </div>`
     }
   };
