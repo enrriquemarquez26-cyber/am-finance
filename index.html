@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.24</title>
+<title>Balance One 0.6.25</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -2120,6 +2120,29 @@ html.tema-oscuro #movVentana {
   padding: 8px 4px;
   margin-bottom: 12px;
 }
+
+.ajustes-volver.ajustes-volver-capsula {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px 0 10px;
+  border: 1px solid #e1e4e9;
+  border-radius: 999px;
+  background: #fff;
+  color: #182230;
+  font-size: .84rem;
+  font-weight: 650;
+}
+
+.ajustes-volver-capsula svg { color: #b65400; }
+.ajustes-volver-capsula:focus-visible { outline: 2px solid #ff7900; outline-offset: 3px; }
+html.tema-oscuro .ajustes-volver.ajustes-volver-capsula {
+  background: #20242b;
+  border-color: #343943;
+  color: #f5f6f8;
+}
+html.tema-oscuro .ajustes-volver-capsula svg { color: #ffad66; }
 
 html.tema-oscuro .ajustes-fila {
   background: #20242b;
@@ -4490,7 +4513,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.24</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.25</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5076,8 +5099,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.24",
-      "Smart control of your finances · 0.6.24"
+      "Control inteligente de tus finanzas · 0.6.25",
+      "Smart control of your finances · 0.6.25"
     );
   }
 }
@@ -11635,7 +11658,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.24</p>
+      <p class="ajustes-version">Balance One · 0.6.25</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -11912,7 +11935,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.24 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.25 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -11921,7 +11944,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.24</p>
+    <p class="note">Balance One 0.6.25</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Ajustes muestra el tema y los días de anticipación elegidos.",
               "Settings shows your selected theme and reminder lead time.")}</li>
@@ -12237,7 +12260,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.24</span>
+          <span class="note">${t("Versión", "Version")} 0.6.25</span>
         </div>`
     }
   };
@@ -12247,8 +12270,9 @@ function abrirAjuste(tipo, desdePerfil = false) {
 
   el().innerHTML = `
     <section class="ajustes-pantalla" data-animar-ajustes>
-      <button class="ajustes-volver" onclick="${desdePerfil ? "perfil()" : tipo === "inicio" ? "abrirAjuste('apariencia')" : "ajustes()"}">
-        ‹ ${desdePerfil ? t("Mi perfil", "My profile") : tipo === "inicio" ? t("Apariencia", "Appearance") : t("Ajustes", "Settings")}
+      <button type="button" class="ajustes-volver ajustes-volver-capsula" onclick="${desdePerfil ? "perfil()" : tipo === "inicio" ? "abrirAjuste('apariencia')" : "ajustes()"}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+        ${desdePerfil ? t("Mi perfil", "My profile") : tipo === "inicio" ? t("Apariencia", "Appearance") : t("Ajustes", "Settings")}
       </button>
       <h2>${pantalla.titulo}</h2>
       <div style="margin-top:20px">
