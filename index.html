@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.9</title>
+<title>Balance One 0.6.10</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -156,8 +156,7 @@ nav button span {
 .asistente-voz-boton:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
 html.tema-oscuro .asistente-voz-boton {background:#252b36;color:#f5f7fa}
 .avisos-vencimiento.is-abierto + .asistente-voz-boton {visibility:hidden}
-.asistente-voz-form :is([data-escuchar],[data-probar-voz]) {background:rgba(135,145,160,.14);color:inherit}
-.asistente-voz-form [data-escuchar]:disabled {opacity:.55}
+.asistente-voz-form [data-probar-voz] {background:rgba(135,145,160,.14);color:inherit}
 .asistente-voz-form [data-estado-voz] {white-space:pre-line;overflow-wrap:anywhere}
 .asistente-voz-opciones:not([hidden]) {display:grid;gap:8px}
 .asistente-voz-ajustes summary {cursor:pointer;font-size:.8rem;font-weight:650;padding:8px 0}
@@ -4281,6 +4280,49 @@ html.tema-oscuro .cal-dia-resumen-gastos {color:#ff818c}
 }
 .cal-dia-ventana .editbox .acciones-vidrio {margin-top:10px}
 .calendario-dialogo .calendario-suscripcion-editar {flex:none}
+
+.carrusel-credito-detalle.asistente-voz-dialogo {
+  box-sizing:border-box;max-width:none;padding:50px clamp(16px,5vw,26px) 22px;
+  box-shadow:none;transform:none
+}
+.asistente-voz-dialogo.carrusel-credito-detalle::backdrop {
+  backdrop-filter:none;-webkit-backdrop-filter:none
+}
+.asistente-voz-dialogo h2 {margin:0 0 16px;text-align:center}
+.asistente-voz-orbe {
+  position:relative;isolation:isolate;display:grid;place-items:center;margin:0 auto;
+  width:86px;height:86px;padding:0;border:1px solid #bd4b05;border-radius:50%;
+  background:radial-gradient(circle at 35% 22%,#ffb770,#e87123 47%,#a83f0a 100%);
+  color:white;box-shadow:0 0 0 7px #e9772824;cursor:pointer
+}
+.asistente-voz-orbe svg {width:31px;height:31px}
+.asistente-voz-orbe:disabled {opacity:.5;cursor:default}
+.asistente-voz-orbe:focus-visible {outline:2px solid currentColor;outline-offset:5px}
+.asistente-voz-dialogo [data-estado-voz] {
+  text-align:center;min-height:1.4em;margin:0;color:inherit;
+}
+.asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-orbe {
+  box-shadow:0 0 0 7px #e9772845;
+}
+@media(prefers-reduced-motion:no-preference) {
+  .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-orbe::after {
+    content:"";position:absolute;inset:-7px;border:2px solid #e97728;
+    border-radius:50%;pointer-events:none;animation:asistente-voz-pulso 1.35s ease-out infinite;
+  }
+}
+@keyframes asistente-voz-pulso {
+  from {transform:scale(1);opacity:.7}
+  to {transform:scale(1.25);opacity:0}
+}
+.asistente-voz-ejemplos {display:grid;gap:7px}
+.asistente-voz-ejemplos h3 {margin:0;font-size:.8rem}
+.asistente-voz-ejemplos button {
+  min-height:44px;padding:9px 13px;border:1px solid #84909d33;border-radius:22px;
+  background:#84909d15;color:inherit;text-align:start;font:inherit;font-size:.75rem;
+}
+.asistente-voz-form input {border-radius:24px}
+.asistente-voz-form [data-enviar-voz]:disabled {opacity:.6;cursor:default}
+
 body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 @media(min-width:800px) {.carrusel-credito-detalle {inset:0;margin:auto}}
 @media(prefers-reduced-motion:no-preference) {
@@ -4294,7 +4336,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.9</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.10</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4880,8 +4922,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.9",
-      "Smart control of your finances · 0.6.9"
+      "Control inteligente de tus finanzas · 0.6.10",
+      "Smart control of your finances · 0.6.10"
     );
   }
 }
@@ -11397,7 +11439,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.9</p>
+      <p class="ajustes-version">Balance One · 0.6.10</p>
     </section>
   `;
 }
@@ -11711,7 +11753,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.9
+        ${textoApp("Versión", "Version")} 0.6.10
       </p>
     </section>
   `;
@@ -12002,7 +12044,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.9</p>
+          <p class="note">${t("Versión", "Version")} 0.6.10</p>
         </div>`
     }
   };
@@ -13198,26 +13240,78 @@ function configurarVozAsistente(ventana, detenerEscucha) {
   return {decir, detener};
 }
 
+function prepararSonidoAsistente() {
+  const ContextoAudio = window.AudioContext || window.webkitAudioContext;
+  let contexto;
+
+  return {
+    activar() {
+      if (!ContextoAudio) return;
+      try {
+        contexto ??= new ContextoAudio();
+        if (contexto.state === "suspended") contexto.resume().catch(() => {});
+      } catch {}
+    },
+    sonar() {
+      if (contexto?.state !== "running") return;
+      const ahora = contexto.currentTime;
+      const tono = contexto.createOscillator();
+      const volumen = contexto.createGain();
+      tono.type = "sine";
+      tono.frequency.setValueAtTime(510, ahora);
+      tono.frequency.exponentialRampToValueAtTime(740, ahora + .11);
+      volumen.gain.setValueAtTime(0, ahora);
+      volumen.gain.linearRampToValueAtTime(.045, ahora + .025);
+      volumen.gain.linearRampToValueAtTime(0, ahora + .16);
+      tono.connect(volumen);
+      volumen.connect(contexto.destination);
+      tono.start(ahora);
+      tono.stop(ahora + .17);
+    },
+    cerrar() {
+      if (contexto && contexto.state !== "closed") contexto.close().catch(() => {});
+      contexto = null;
+    }
+  };
+}
+
 function abrirAsistenteVoz() {
   if (page !== "inicio" || !document.getElementById("movVentana").classList.contains("hidden")) return;
   cerrarPanelAvisos();
   const t = textoApp;
+  const ejemplos = [
+    t("¿Cuánto dinero tengo en total en mis cuentas?", "How much money do I have in all my accounts?"),
+    t("¿Cuánto debo entre todas mis tarjetas?", "How much do I owe across all my cards?"),
+    t("¿Qué pagos vencen esta semana?", "What payments are due this week?"),
+    t("Gasté 35 en gasolina", "I spent 35 on fuel")
+  ];
   const ventana = crearVentanaApariencia(t("Asistente de voz", "Voice assistant"), `
     <form class="cuenta-nueva-form asistente-voz-form">
-      <label>${t("Tu mensaje", "Your message")}
-        <input name="frase" maxlength="240" autocomplete="off"
-          placeholder="${t("Gasté 35 en gasolina con Chase", "I spent 35 on fuel with Chase")}">
-      </label>
+      <button type="button" class="asistente-voz-orbe" data-escuchar aria-label="${t("Escuchar", "Listen")}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4m-3 0h6"/>
+        </svg>
+      </button>
       <p class="note" data-estado-voz role="status" aria-live="polite"></p>
       <div class="asistente-voz-opciones" data-opciones-saldo-voz hidden></div>
-      <button type="button" class="cuenta-nueva-guardar" data-escuchar>${t("Escuchar", "Listen")}</button>
-      <button type="submit" class="cuenta-nueva-guardar">${t("Continuar", "Continue")}</button>
+      <label>${t("Tu mensaje", "Your message")}
+        <input name="frase" maxlength="240" autocomplete="off"
+          placeholder="${t("Habla o escribe aquí", "Speak or type here")}">
+      </label>
+      <div class="acciones-vidrio">
+        <button type="submit" class="vidrio-principal" data-enviar-voz disabled>${t("Continuar", "Continue")}</button>
+      </div>
+      <section class="asistente-voz-ejemplos" aria-labelledby="ejemplosAsistenteVoz">
+        <h3 id="ejemplosAsistenteVoz">${t("Prueba decir", "Try saying")}</h3>
+        ${ejemplos.map((ejemplo, i) => `<button type="button" data-ejemplo-voz="${i}">${safe(ejemplo)}</button>`).join("")}
+      </section>
       <details class="asistente-voz-ajustes">
         <summary>${t("Voz de respuesta", "Response voice")}</summary>
         <label>${t("Elige una voz", "Choose a voice")}<select></select></label>
         <button type="button" class="cuenta-nueva-guardar" data-probar-voz>${t("Probar voz", "Preview voice")}</button>
       </details>
-    </form>`, true);
+    </form>`, true, "asistente-voz-dialogo");
   if (!ventana) return;
 
   const form = ventana.querySelector("form");
@@ -13225,48 +13319,97 @@ function abrirAsistenteVoz() {
   const estado = form.querySelector("[data-estado-voz]");
   const opcionesSaldo = form.querySelector("[data-opciones-saldo-voz]");
   const boton = form.querySelector("[data-escuchar]");
+  const enviar = form.querySelector("[data-enviar-voz]");
   const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const sonido = prepararSonidoAsistente();
   let reconocimiento = null;
   const alternativo = t("Puedes escribir o usar el dictado del teclado.", "You can type or use keyboard dictation.");
-  const escuchando = t("Escuchando…", "Listening…");
+  const listo = t("Toca el micrófono para hablar.", "Tap the microphone to speak.");
+  const revisar = t("Revisa el mensaje y toca Continuar.", "Review the message and tap Continue.");
+  function actualizarMicrofono(fase = "listo") {
+    ventana.dataset.vozEstado = fase;
+    boton.disabled = !Reconocimiento || fase === "cerrando";
+    boton.setAttribute("aria-label", fase === "listo" ? t("Escuchar", "Listen") : t("Detener escucha", "Stop listening"));
+  }
+  function actualizarEnvio() {
+    enviar.disabled = !entrada.value.trim();
+  }
   const terminar = () => {
     const actual = reconocimiento;
     reconocimiento = null;
-    boton.disabled = !Reconocimiento;
-    actual?.abort();
+    actualizarMicrofono();
+    if (actual) {
+      try { actual.abort(); } catch {}
+    }
   };
   const voz = configurarVozAsistente(ventana, terminar);
+  entrada.addEventListener("input", actualizarEnvio);
+  for (const ejemplo of form.querySelectorAll("[data-ejemplo-voz]")) {
+    ejemplo.onclick = () => {
+      terminar();
+      voz.detener();
+      opcionesSaldo.hidden = true;
+      entrada.value = ejemplos[Number(ejemplo.dataset.ejemploVoz)];
+      actualizarEnvio();
+      estado.textContent = revisar;
+    };
+  }
 
   boton.onclick = () => {
-    if (!Reconocimiento || reconocimiento) return;
+    if (!Reconocimiento) return;
+    if (reconocimiento) {
+      if (ventana.dataset.vozEstado === "escuchando") {
+        actualizarMicrofono("cerrando");
+        estado.textContent = t("Procesando…", "Processing…");
+        try { reconocimiento.stop(); }
+        catch { terminar(); estado.textContent = listo; }
+      } else {
+        terminar();
+        estado.textContent = listo;
+      }
+      return;
+    }
     voz.detener();
+    sonido.activar();
     try {
       const actual = new Reconocimiento();
       reconocimiento = actual;
       actual.lang = idiomaActual() === "en" ? "en-US" : "es-US";
+      actual.onstart = () => {
+        if (reconocimiento !== actual || !ventana.open) return;
+        actualizarMicrofono("escuchando");
+        estado.textContent = t("Escuchando…", "Listening…");
+        sonido.sonar();
+      };
       actual.onresult = evento => {
         if (reconocimiento !== actual || !ventana.open) return;
         entrada.value = evento.results[evento.resultIndex][0].transcript.trim().slice(0,240);
-        estado.textContent = t("Revisa el mensaje y toca Continuar.", "Review the message and tap Continue.");
+        actualizarEnvio();
+        estado.textContent = revisar;
       };
       actual.onerror = () => {
-        if (reconocimiento === actual && ventana.open) estado.textContent = alternativo;
+        if (reconocimiento !== actual || !ventana.open) return;
+        terminar();
+        estado.textContent = alternativo;
       };
       actual.onend = () => {
         if (reconocimiento !== actual) return;
         reconocimiento = null;
-        boton.disabled = false;
-        if (estado.textContent === escuchando) estado.textContent = alternativo;
+        actualizarMicrofono();
+        if (estado.textContent !== revisar) estado.textContent = listo;
       };
-      boton.disabled = true;
-      estado.textContent = escuchando;
+      actualizarMicrofono("iniciando");
+      estado.textContent = t("Activando micrófono…", "Starting microphone…");
       actual.start();
     } catch {
       terminar();
       estado.textContent = alternativo;
     }
   };
-  ventana.addEventListener("close", terminar, {once:true});
+  ventana.addEventListener("close", () => {
+    terminar();
+    sonido.cerrar();
+  }, {once:true});
   form.onsubmit = evento => {
     evento.preventDefault();
     terminar();
@@ -13317,7 +13460,7 @@ function abrirAsistenteVoz() {
 
   if (Reconocimiento) boton.click();
   else {
-    boton.disabled = true;
+    actualizarMicrofono();
     estado.textContent = alternativo;
   }
 }
@@ -14134,12 +14277,12 @@ function botonVidrioCalendario(etiqueta, variante, atributos = 'type="button"') 
   return `<button ${atributos} class="vidrio-${variante}">${etiqueta}</button>`;
 }
 
-function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloCalendario = false) {
+function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloPanel = false) {
   if (document.querySelector(".apariencia-ventana")) return null;
 
   const ventana = document.createElement("dialog");
   ventana.className = "apariencia-ventana";
-  if (estiloCalendario) ventana.classList.add("carrusel-credito-detalle", "calendario-dialogo");
+  if (estiloPanel) ventana.classList.add("carrusel-credito-detalle", typeof estiloPanel === "string" ? estiloPanel : "calendario-dialogo");
   if (el().querySelector("[data-animar-ajustes]")) {
     ventana.classList.add("ajustes-ventana");
     ventana.addEventListener("cancel", event => {
@@ -14150,7 +14293,7 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloCal
   ventana.setAttribute("aria-labelledby", "aparienciaTitulo");
 
   ventana.innerHTML = `
-    ${estiloCalendario ? `<button type="button" class="carrusel-cerrar" data-boton-x
+    ${estiloPanel ? `<button type="button" class="carrusel-cerrar" data-boton-x
       aria-label="${textoApp("Cerrar", "Close")}">×</button>` :
       '<div class="apariencia-tirador" aria-hidden="true"></div>'}
     <h2 id="aparienciaTitulo">${safe(titulo)}</h2>
@@ -14162,7 +14305,7 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloCal
     <p class="note" data-aviso-apariencia
       role="status" aria-live="polite" hidden></p>
 
-    ${estiloCalendario ? "" : `<button type="button" class="apariencia-listo">
+    ${estiloPanel ? "" : `<button type="button" class="apariencia-listo">
       ${textoApp("Listo", "Done")}
     </button>`}
   `;
@@ -14170,9 +14313,9 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloCal
   const focoAnterior = document.activeElement;
   const overflowAnterior = document.body.style.overflow;
 
-  const cerrar = ventana.querySelector(estiloCalendario ? "[data-boton-x]" : ".apariencia-listo");
+  const cerrar = ventana.querySelector(estiloPanel ? "[data-boton-x]" : ".apariencia-listo");
   cerrar.onclick = () => {
-    if (estiloCalendario) animarBotonX(cerrar, () => cerrarVentanaApariencia(ventana));
+    if (estiloPanel) animarBotonX(cerrar, () => cerrarVentanaApariencia(ventana));
     else cerrarVentanaApariencia(ventana);
   };
 
