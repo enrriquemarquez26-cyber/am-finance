@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.18</title>
+<title>Balance One 0.6.19</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -2109,6 +2109,36 @@ html.tema-oscuro .ajustes-version {
   margin-bottom: 14px;
 }
 
+.preferencias-pantalla .preferencias-tarjeta {
+  margin-top:16px;padding:6px 15px 14px;border-radius:28px;
+}
+.preferencias-fila {
+  display:grid;grid-template-columns:38px minmax(0,1fr) minmax(0,1fr);
+  align-items:center;gap:9px;min-height:61px;padding:8px 0;
+}
+.preferencias-fila + .preferencias-fila {border-top:1px solid #84909d30}
+.preferencias-fila label {font-size:.83rem;font-weight:700;overflow-wrap:anywhere}
+.preferencias-fila .ajustes-icono {
+  display:grid;place-items:center;width:36px;height:36px;border-radius:12px;
+  color:inherit;background:#84909d20;
+}
+.preferencias-fila .ajustes-icono svg {width:19px;height:19px}
+.preferencias-fila select {
+  box-sizing:border-box;min-width:0;width:100%;min-height:44px;
+  margin:0;padding:8px;border-radius:999px;color:inherit;font-size:1rem;
+  background:#84909d0d;
+}
+.preferencias-vista-previa {
+  display:grid;gap:4px;margin-top:10px;padding:14px;border-radius:22px;
+  background:#e9802020;text-align:center;overflow-wrap:anywhere;
+}
+.preferencias-vista-previa span {font-size:.72rem;font-weight:650}
+.preferencias-vista-previa strong {font-size:1.28rem;font-variant-numeric:tabular-nums}
+.preferencias-nota {margin:10px 4px 0}
+@media(max-width:360px) {
+  .preferencias-fila {grid-template-columns:32px minmax(0,1fr) minmax(0,1.05fr);gap:6px}
+  .preferencias-fila .ajustes-icono {width:30px;height:30px}
+}
 .perfil-nombre {display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:6px}
 .perfil-nombre h3 {margin:0;font-size:1.2rem;overflow-wrap:anywhere}
 .perfil-editar-nombre {
@@ -4384,7 +4414,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.18</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.19</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4970,8 +5000,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.18",
-      "Smart control of your finances · 0.6.18"
+      "Control inteligente de tus finanzas · 0.6.19",
+      "Smart control of your finances · 0.6.19"
     );
   }
 }
@@ -11499,7 +11529,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.18</p>
+      <p class="ajustes-version">Balance One · 0.6.19</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -11599,71 +11629,59 @@ async function guardarPerfilLocal(event) {
 }
 
 function preferenciasPerfil() {
-  const formato = formatoImportesActual();
-
+  const t = textoApp;
   el().innerHTML = `
-    <section class="ajustes-pantalla" data-animar-ajustes>
-      <button class="ajustes-volver" onclick="perfil()">
-        ‹ ${textoApp("Mi perfil", "My profile")}
-      </button>
+    <section class="ajustes-pantalla preferencias-pantalla" data-animar-ajustes>
+      <button type="button" class="ajustes-volver" onclick="perfil()">‹ ${t("Mi perfil", "My profile")}</button>
+      <h2>${t("Preferencias", "Preferences")}</h2>
 
-      <h2>${textoApp("Preferencias", "Preferences")}</h2>
+      <div class="card preferencias-tarjeta">
+        <div class="preferencias-fila">
+          <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("dinero")}</span>
+          <label for="monedaImportes">${t("Moneda", "Currency")}</label>
+          <select id="monedaImportes" aria-describedby="preferenciasNotaMoneda"
+            onchange="guardarMonedaImportes(this.value)">
+            <option value="USD">${t("USD · Dólar", "USD · Dollar")}</option>
+            <option value="EUR">EUR · Euro</option>
+          </select>
+        </div>
 
-      <div class="card" style="border-radius:30px;margin-top:20px">
-        <label for="monedaImportes">${textoApp("Moneda", "Currency")}</label>
-        <select id="monedaImportes" style="border-radius:999px"
-                onchange="guardarMonedaImportes(this.value)">
-          <option value="USD">${textoApp("USD · Dólar estadounidense ($)", "USD · US dollar ($)")}</option>
-          <option value="EUR">${textoApp("EUR · Euro (€)", "EUR · Euro (€)")}</option>
-        </select>
-        <p class="note">${textoApp(
-          "La moneda elegida se muestra en todos tus importes. Si cambias de moneda, las cifras guardadas conservan su valor numérico, sin conversión.",
-          "The selected currency is shown on all amounts. Changing the currency keeps the stored numbers as entered, without conversion."
+        <div class="preferencias-fila">
+          <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("texto")}</span>
+          <label for="formatoImportes">${t("Formato de los importes", "Number format")}</label>
+          <select id="formatoImportes" onchange="guardarFormatoImportes(this.value)">
+            <option value="en-US">${t("Estados Unidos", "United States")}</option>
+            <option value="es-ES">${t("España", "Spain")}</option>
+          </select>
+        </div>
+
+        <div class="preferencias-fila">
+          <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("idioma")}</span>
+          <label for="idiomaPerfil">${t("Idioma", "Language")}</label>
+          <select id="idiomaPerfil" aria-describedby="preferenciasNotaIdioma" onchange="guardarIdiomaApp(this.value)">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="preferencias-vista-previa">
+          <span>${t("Ejemplo de importe", "Example amount")}</span>
+          <strong>${money(12345.67)}</strong>
+        </div>
+        <p class="note preferencias-nota" id="preferenciasNotaMoneda">${t(
+          "Cambiar la moneda solo cambia cómo se muestran los importes, sin convertirlos.",
+          "Changing the currency changes how amounts are displayed without converting them."
         )}</p>
-      </div>
-
-      <div class="card" style="border-radius:30px">
-        <label for="formatoImportes">${textoApp(
-          "Formato de los importes",
-          "Number format"
-        )}</label>
-
-        <select id="formatoImportes"
-                style="border-radius:999px"
-                onchange="guardarFormatoImportes(this.value)">
-          <option value="en-US">${textoApp("Estados Unidos", "United States")}</option>
-          <option value="es-ES">${textoApp("España", "Spain")}</option>
-        </select>
-
-        <p class="note">${textoApp(
-          "Cambia la presentación de los números. Los saldos conservan su valor.",
-          "Changes how numbers are displayed. Balance values stay the same."
-        )}</p>
-      </div>
-
-      <div class="card" style="border-radius:30px">
-        <label for="idiomaPerfil">${textoApp(
-          "Idioma",
-          "Language"
-        )}</label>
-
-        <select id="idiomaPerfil"
-                style="border-radius:999px"
-                onchange="guardarIdiomaApp(this.value)">
-          <option value="es">Español</option>
-          <option value="en">English</option>
-        </select>
-
-        <p class="note">${textoApp(
-          "Estamos incorporando la traducción por pantallas; algunas secciones siguen en español.",
-          "Translation is being added screen by screen; some sections remain in Spanish."
+        <p class="note preferencias-nota" id="preferenciasNotaIdioma">${t(
+          "Algunas secciones todavía se muestran en español.",
+          "Some sections still appear in Spanish."
         )}</p>
       </div>
     </section>
   `;
 
   document.getElementById("monedaImportes").value = monedaActual();
-  document.getElementById("formatoImportes").value = formato;
+  document.getElementById("formatoImportes").value = formatoImportesActual();
   document.getElementById("idiomaPerfil").value = idiomaActual();
   aplicarIdiomaGeneral();
   window.scrollTo(0, 0);
@@ -11786,7 +11804,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.18
+        ${textoApp("Versión", "Version")} 0.6.19
       </p>
     </section>
   `;
@@ -12076,7 +12094,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.18</p>
+          <p class="note">${t("Versión", "Version")} 0.6.19</p>
         </div>`
     }
   };
