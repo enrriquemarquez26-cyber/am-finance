@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.17</title>
+<title>Balance One 0.6.18</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4384,7 +4384,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.17</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.18</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4970,13 +4970,13 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.17",
-      "Smart control of your finances · 0.6.17"
+      "Control inteligente de tus finanzas · 0.6.18",
+      "Smart control of your finances · 0.6.18"
     );
   }
 }
 
-function guardarIdiomaApp(idioma, desdeAjustes = false) {
+function guardarIdiomaApp(idioma) {
   if (!["es", "en"].includes(idioma)) return;
 
   try {
@@ -4990,7 +4990,7 @@ function guardarIdiomaApp(idioma, desdeAjustes = false) {
   }
 
   aplicarIdiomaGeneral();
-  preferenciasPerfil(desdeAjustes);
+  preferenciasPerfil();
 }
 
 const CLAVE_MODO_DISCRETO_INICIO = "balanceone-modo-discreto-inicio";
@@ -11494,12 +11494,12 @@ function perfil() {
         </span>
         <span class="ajustes-texto">
           <strong>${textoApp("Preferencias", "Preferences")}</strong>
-          <small>${textoApp("Moneda e idioma", "Currency and language")}</small>
+          <small>${textoApp("Moneda, formato e idioma", "Currency, format and language")}</small>
         </span>
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.17</p>
+      <p class="ajustes-version">Balance One · 0.6.18</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -11598,21 +11598,21 @@ async function guardarPerfilLocal(event) {
   }
 }
 
-function preferenciasPerfil(desdeAjustes = false) {
+function preferenciasPerfil() {
   const formato = formatoImportesActual();
 
   el().innerHTML = `
     <section class="ajustes-pantalla" data-animar-ajustes>
-      <button class="ajustes-volver" onclick="${desdeAjustes ? 'ajustes()' : 'perfil()'}">
-        ‹ ${desdeAjustes ? textoApp("Ajustes", "Settings") : textoApp("Mi perfil", "My profile")}
+      <button class="ajustes-volver" onclick="perfil()">
+        ‹ ${textoApp("Mi perfil", "My profile")}
       </button>
 
-      <h2>${desdeAjustes ? textoApp("Moneda y formato", "Currency and format") : textoApp("Preferencias", "Preferences")}</h2>
+      <h2>${textoApp("Preferencias", "Preferences")}</h2>
 
       <div class="card" style="border-radius:30px;margin-top:20px">
         <label for="monedaImportes">${textoApp("Moneda", "Currency")}</label>
         <select id="monedaImportes" style="border-radius:999px"
-                onchange="guardarMonedaImportes(this.value, ${desdeAjustes})">
+                onchange="guardarMonedaImportes(this.value)">
           <option value="USD">${textoApp("USD · Dólar estadounidense ($)", "USD · US dollar ($)")}</option>
           <option value="EUR">${textoApp("EUR · Euro (€)", "EUR · Euro (€)")}</option>
         </select>
@@ -11630,7 +11630,7 @@ function preferenciasPerfil(desdeAjustes = false) {
 
         <select id="formatoImportes"
                 style="border-radius:999px"
-                onchange="guardarFormatoImportes(this.value, ${desdeAjustes})">
+                onchange="guardarFormatoImportes(this.value)">
           <option value="en-US">${textoApp("Estados Unidos", "United States")}</option>
           <option value="es-ES">${textoApp("España", "Spain")}</option>
         </select>
@@ -11649,7 +11649,7 @@ function preferenciasPerfil(desdeAjustes = false) {
 
         <select id="idiomaPerfil"
                 style="border-radius:999px"
-                onchange="guardarIdiomaApp(this.value, ${desdeAjustes})">
+                onchange="guardarIdiomaApp(this.value)">
           <option value="es">Español</option>
           <option value="en">English</option>
         </select>
@@ -11669,25 +11669,25 @@ function preferenciasPerfil(desdeAjustes = false) {
   window.scrollTo(0, 0);
 }
 
-function guardarMonedaImportes(moneda, desdeAjustes) {
+function guardarMonedaImportes(moneda) {
   if (Object.hasOwn(MONEDAS_IMPORTES, moneda)) {
-    guardarPreferenciaImportes(CLAVE_MONEDA_IMPORTES, moneda, desdeAjustes);
+    guardarPreferenciaImportes(CLAVE_MONEDA_IMPORTES, moneda);
   }
 }
 
-function guardarFormatoImportes(formato, desdeAjustes) {
+function guardarFormatoImportes(formato) {
   if (FORMATOS_IMPORTES.includes(formato)) {
-    guardarPreferenciaImportes(CLAVE_FORMATO_IMPORTES, formato, desdeAjustes);
+    guardarPreferenciaImportes(CLAVE_FORMATO_IMPORTES, formato);
   }
 }
 
-function guardarPreferenciaImportes(clave, valor, desdeAjustes) {
+function guardarPreferenciaImportes(clave, valor) {
   try {
     localStorage.setItem(clave, valor);
   } catch {
     alert(textoApp("No se pudo guardar la preferencia.", "Could not save the preference."));
   }
-  preferenciasPerfil(desdeAjustes);
+  preferenciasPerfil();
 }
 
 function iconoAjuste(tipo) {
@@ -11738,11 +11738,6 @@ function ajustes() {
       textoApp("Diseño de inicio, tema y texto", "Home layout, theme and text")
     ],
     [
-      "dinero",
-      textoApp("Moneda y formato", "Currency and format"),
-      textoApp("Dólar, euro y formato de los importes", "Dollar, euro and number format")
-    ],
-    [
       "avisos",
       textoApp("Notificaciones", "Notifications"),
       textoApp("Pagos y recordatorios", "Payments and reminders")
@@ -11791,14 +11786,13 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.17
+        ${textoApp("Versión", "Version")} 0.6.18
       </p>
     </section>
   `;
 }
 
 function abrirAjuste(tipo, desdePerfil = false) {
-  if (tipo === "dinero") return preferenciasPerfil(true);
   const t = textoApp;
 
   const pantallas = {
@@ -12082,7 +12076,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.17</p>
+          <p class="note">${t("Versión", "Version")} 0.6.18</p>
         </div>`
     }
   };
