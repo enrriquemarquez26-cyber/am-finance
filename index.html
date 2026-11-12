@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.5</title>
+<title>Balance One 0.6.6</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4235,6 +4235,29 @@ html.tema-oscuro .carrusel-credito-detalle {background:#202630;color:#f2f4f6}
 html.tema-oscuro .carrusel-credito-detalle::backdrop {background:#0008}
 .carrusel-credito-detalle.cal-dia-ventana {overflow:hidden}
 .cal-dia-pie {margin-top:16px}
+.cal-dia-contenido > .suscripciones-programadas {
+  margin:14px 0 18px;padding:0;border:0;background:transparent;box-shadow:none;
+}
+.cal-dia-contenido .suscripciones-programadas .programada-fila {
+  padding:14px;border-radius:32px;
+}
+.cal-dia-contenido .suscripciones-programadas .programadas-administrar {
+  min-height:50px;padding:12px 16px;border-radius:999px;font-size:.8rem;
+}
+.cal-dia-resumen {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+  margin:10px 0 17px;text-align:center;
+}
+.cal-dia-resumen .label {font-size:clamp(.68rem,2.1vw,.75rem);line-height:1.25}
+.cal-dia-resumen strong {
+  display:block;margin-top:4px;font-size:clamp(1.05rem,4.4vw,1.15rem);
+  line-height:1.15;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;
+}
+.cal-dia-resumen-ingresos {color:#13865b}
+.cal-dia-resumen-gastos {color:#d44d56}
+html.tema-oscuro .cal-dia-resumen-ingresos {color:#56c998}
+html.tema-oscuro .cal-dia-resumen-gastos {color:#ff818c}
+
 .cal-dia-ventana .cal-dia-cabecera {padding-inline:21px}
 .cal-dia-ventana .cal-dia-tirador {background:#84909d66}
 .carrusel-credito-detalle.calendario-dialogo {
@@ -4268,7 +4291,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.5</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.6</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4854,8 +4877,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.5",
-      "Smart control of your finances · 0.6.5"
+      "Control inteligente de tus finanzas · 0.6.6",
+      "Smart control of your finances · 0.6.6"
     );
   }
 }
@@ -11371,7 +11394,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.5</p>
+      <p class="ajustes-version">Balance One · 0.6.6</p>
     </section>
   `;
 }
@@ -11685,7 +11708,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.5
+        ${textoApp("Versión", "Version")} 0.6.6
       </p>
     </section>
   `;
@@ -11976,7 +11999,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.5</p>
+          <p class="note">${t("Versión", "Version")} 0.6.6</p>
         </div>`
     }
   };
@@ -15372,33 +15395,18 @@ function abrirDiaCalendario(fecha) {
       </div>
 
       <div class="cal-dia-contenido">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);
-          gap:8px;margin:8px 0 16px;text-align:center">
+        <div class="cal-dia-resumen">
           <div>
-            <div class="label" style="font-size:.65rem">
-              ${textoApp("Ingresos", "Income")}
-            </div>
-            <strong style="color:#13865b;overflow-wrap:anywhere">
-              ${money(resumen.ingresos)}
-            </strong>
+            <div class="label">${textoApp("Ingresos", "Income")}</div>
+            <strong class="cal-dia-resumen-ingresos">${money(resumen.ingresos)}</strong>
           </div>
-
           <div>
-            <div class="label" style="font-size:.65rem">
-              ${textoApp("Gastos y pagos", "Expenses and payments")}
-            </div>
-            <strong style="color:#d44d56;overflow-wrap:anywhere">
-              ${money(resumen.gastos)}
-            </strong>
+            <div class="label">${textoApp("Gastos y pagos", "Expenses and payments")}</div>
+            <strong class="cal-dia-resumen-gastos">${money(resumen.gastos)}</strong>
           </div>
-
           <div>
-            <div class="label" style="font-size:.65rem">
-              ${textoApp("Balance", "Balance")}
-            </div>
-            <strong style="overflow-wrap:anywhere">
-              ${money(resumen.balance)}
-            </strong>
+            <div class="label">${textoApp("Balance", "Balance")}</div>
+            <strong>${money(resumen.balance)}</strong>
           </div>
         </div>
 
