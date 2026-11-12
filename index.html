@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.25</title>
+<title>Balance One 0.6.26</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -2027,6 +2027,25 @@ html.tema-oscuro #movVentana {
   font: inherit;
   cursor: pointer;
 }
+
+.apariencia-grupo {
+  margin: 0 0 12px;
+  padding: 14px 16px 6px;
+  border-radius: 28px;
+  background: #fff;
+}
+.apariencia-grupo h3 { margin: 0 8px 4px; font-size: .78rem; }
+.apariencia-grupo .ajustes-fila {
+  margin: 0;
+  padding: 9px 8px;
+  min-height: 52px;
+  border: 0;
+  border-radius: 0 !important;
+  background: transparent;
+}
+.apariencia-grupo .ajustes-fila + .ajustes-fila { border-top: 1px solid rgba(130,140,155,.20); }
+html.tema-oscuro .apariencia-grupo { background: #20242b; }
+html.tema-oscuro .apariencia-grupo .ajustes-fila { background: transparent; }
 
 .ajustes-icono {
   display: grid;
@@ -4513,7 +4532,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.25</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.26</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5099,8 +5118,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.25",
-      "Smart control of your finances · 0.6.25"
+      "Control inteligente de tus finanzas · 0.6.26",
+      "Smart control of your finances · 0.6.26"
     );
   }
 }
@@ -11658,7 +11677,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.25</p>
+      <p class="ajustes-version">Balance One · 0.6.26</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -11887,6 +11906,11 @@ function ajustes() {
       Object.hasOwn(temaActual, tema) ? temaActual[tema] : textoApp("Tema automático", "Automatic theme")
     ],
     [
+      "categorias",
+      textoApp("Categorías", "Categories"),
+      textoApp("Crea categorías con su propio icono", "Create categories with their own icon")
+    ],
+    [
       "avisos",
       textoApp("Notificaciones", "Notifications"),
       dias === 1 ? textoApp("1 día de anticipación", "1 day in advance") :
@@ -11923,7 +11947,7 @@ function ajustes() {
 
       ${opciones.map(([tipo, titulo, detalle]) => `
         <button class="ajustes-fila"
-                onclick="abrirAjuste('${tipo}')">
+                onclick="${tipo === "categorias" ? "abrirCategoriasPersonales()" : `abrirAjuste('${tipo}')`}">
           <span class="ajustes-icono">${iconoAjuste(tipo === "datos" ? "applePay" : tipo)}</span>
           <span class="ajustes-texto">
             <strong>${titulo}</strong>
@@ -11935,7 +11959,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.25 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.26 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -11944,14 +11968,12 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.25</p>
+    <p class="note">Balance One 0.6.26</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("Ajustes muestra el tema y los días de anticipación elegidos.",
-              "Settings shows your selected theme and reminder lead time.")}</li>
-      <li>${t("Nuevo icono de tarjeta para Apple Pay y Atajos.",
-              "New card icon for Apple Pay and Shortcuts.")}</li>
-      <li>${t("Acceso a las novedades desde el número de versión.",
-              "Open release notes from the version number.")}</li>
+      <li>${t("Apariencia reúne sus opciones en tres bloques y muestra los valores elegidos.",
+              "Appearance groups its options into three sections and shows the current selections.")}</li>
+      <li>${t("Categorías tiene un acceso directo en Ajustes.",
+              "Categories is accessible directly from Settings.")}</li>
     </ul>`, true);
 }
 
@@ -12019,102 +12041,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
 
     apariencia: {
       titulo: t("Apariencia", "Appearance"),
-      contenido: `
-        <button type="button" class="ajustes-fila" onclick="abrirAjuste('inicio')">
-          <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("inicio")}</span>
-          <span class="ajustes-texto">
-            <strong>${t("Diseño de inicio", "Home layout")}</strong>
-            <small>${t("Diseño, tarjetas, orden y modo discreto", "Layout, cards, order and discreet mode")}</small>
-          </span><span aria-hidden="true">›</span>
-        </button>
-
-        <button type="button" class="ajustes-fila" onclick="abrirDisenoTarjetas()">
-          <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("ordenCredito")}</span>
-          <span class="ajustes-texto">
-            <strong>${t("Diseño de tarjetas de crédito", "Credit card layout")}</strong>
-            <small data-diseno-credito>${etiquetaDisenoCredito()}</small>
-          </span><span aria-hidden="true">›</span>
-        </button>
-
-        <button type="button" class="ajustes-fila" onclick="abrirCategoriasPersonales()">
-          <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("categorias")}</span>
-          <span class="ajustes-texto">
-            <strong>${t("Categorías personales", "Custom categories")}</strong>
-            <small>${t("Crea categorías con su propio icono", "Create categories with their own icon")}</small>
-          </span><span aria-hidden="true">›</span>
-        </button>
-        <button type="button" class="ajustes-fila"
-          onclick="abrirOpcionApariencia('tema')">
-          <span class="ajustes-icono" aria-hidden="true">
-            ${iconoAjuste("apariencia")}
-          </span>
-          <span class="ajustes-texto">
-            <strong>${t("Tema", "Theme")}</strong>
-            <small>${t(
-              "Automático, claro u oscuro",
-              "Automatic, light or dark"
-            )}</small>
-          </span>
-          <span aria-hidden="true">›</span>
-        </button>
-
-        <button type="button" class="ajustes-fila"
-          onclick="abrirOpcionApariencia('texto')">
-          <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("texto")}</span>
-          <span class="ajustes-texto">
-            <strong>${t("Tamaño del texto", "Text size")}</strong>
-            <small>${t(
-              "Pequeño, normal o grande",
-              "Small, normal or large"
-            )}</small>
-          </span>
-          <span aria-hidden="true">›</span>
-                </button>
-
-        <button type="button" class="ajustes-fila"
-          onclick="abrirOpcionApariencia('progreso')">
-          <span class="ajustes-icono" aria-hidden="true">
-            ${iconoAjuste("progreso")}
-          </span>
-          <span class="ajustes-texto">
-            <strong>${t("Barras de progreso", "Progress bars")}</strong>
-            <small>${t(
-              "Elige el diseño que prefieras",
-              "Choose your preferred style"
-            )}</small>
-          </span>
-          <span aria-hidden="true">›</span>
-                </button>
-
-        <button type="button" class="ajustes-fila"
-          onclick="abrirOpcionApariencia('color')">
-          <span class="ajustes-icono" aria-hidden="true">
-            ${iconoAjuste("color")}
-          </span>
-          <span class="ajustes-texto">
-            <strong>${t("Color principal", "Accent color")}</strong>
-            <small>${t(
-              "Personaliza el color de la aplicación",
-              "Customize the app color"
-            )}</small>
-          </span>
-          <span aria-hidden="true">›</span>
-                </button>
-
-        <button type="button" class="ajustes-fila"
-          onclick="abrirFormasTarjetas()">
-          <span class="ajustes-icono" aria-hidden="true">
-            ${iconoAjuste("formaTarjetas")}
-          </span>
-          <span class="ajustes-texto">
-            <strong>${t("Forma de tarjetas", "Card appearance")}</strong>
-            <small>${t(
-              "Forma y estilo de listas",
-              "Shape and list style"
-            )}</small>
-          </span>
-          <span aria-hidden="true">›</span>
-        </button>`
+      contenido: interfazApariencia()
     },
 
     avisos: {
@@ -12260,7 +12187,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.25</span>
+          <span class="note">${t("Versión", "Version")} 0.6.26</span>
         </div>`
     }
   };
@@ -14777,8 +14704,8 @@ function abrirDisenoTarjetas() {
   abrirOpcionApariencia("disenoCredito");
 }
 
-function abrirOpcionApariencia(tipo) {
-  const configuraciones = {
+function configuracionesApariencia() {
+  return {
     inicio: {
       titulo: textoApp("Diseño de inicio", "Home layout"),
       clave: CLAVE_DISENO_INICIO,
@@ -14870,16 +14797,69 @@ function abrirOpcionApariencia(tipo) {
     }
   };
 
+}
+
+function valorApariencia(config) {
+  const guardado = localStorage.getItem(config.clave);
+  return config.opciones.some(([valor]) => valor === guardado) ? guardado : config.defecto;
+}
+
+function etiquetaApariencia(tipo, configs) {
+  if (tipo === "inicio") return etiquetaDisenoInicio();
+  if (tipo === "disenoCredito") return etiquetaDisenoCredito();
+  if (tipo === "forma") return [
+    configs.forma.opciones.find(([valor]) => valor === valorApariencia(configs.forma))[1],
+    configs.listas.opciones.find(([valor]) => valor === valorApariencia(configs.listas))[1]
+  ].join(" · ");
+  const config = configs[tipo];
+  return config.opciones.find(([valor]) => valor === valorApariencia(config))[1];
+}
+
+function interfazApariencia() {
+  const t = textoApp;
+  const configs = configuracionesApariencia();
+  const grupos = [
+    [t("Pantallas", "Screens"), [
+      ["inicio", "inicio", "abrirAjuste('inicio')"],
+      ["disenoCredito", "ordenCredito", "abrirDisenoTarjetas()"]
+    ]],
+    [t("Tema y lectura", "Theme and reading"), [
+      ["tema", "apariencia"],
+      ["color", "color"],
+      ["texto", "texto"]
+    ]],
+    [t("Tarjetas y listas", "Cards and lists"), [
+      ["forma", "formaTarjetas", "abrirFormasTarjetas()", t("Forma de tarjetas", "Card appearance")],
+      ["progreso", "progreso"]
+    ]]
+  ];
+
+  return grupos.map(([titulo, filas]) => `
+    <section class="apariencia-grupo">
+      <h3>${titulo}</h3>
+      ${filas.map(([tipo, icono, accion, etiqueta]) => `
+        <button type="button" class="ajustes-fila" onclick="${accion || `abrirOpcionApariencia('${tipo}')`}">
+          <span class="ajustes-icono" aria-hidden="true">${iconoAjuste(icono)}</span>
+          <span class="ajustes-texto">
+            <strong>${etiqueta || configs[tipo].titulo}</strong>
+            <small data-valor-apariencia="${tipo}">${etiquetaApariencia(tipo, configs)}</small>
+          </span>
+          <span class="ajustes-flecha" aria-hidden="true">›</span>
+        </button>
+      `).join("")}
+    </section>
+  `).join("");
+}
+
+function abrirOpcionApariencia(tipo) {
+  const configuraciones = configuracionesApariencia();
   const config = configuraciones[tipo];
   if (!config) return;
 
   let actual = config.defecto;
 
   try {
-    const guardado = localStorage.getItem(config.clave);
-    if (config.opciones.some(([valor]) => valor === guardado)) {
-      actual = guardado;
-    }
+    actual = valorApariencia(config);
   } catch {}
 
   const ventana = crearVentanaApariencia(
@@ -14938,6 +14918,10 @@ function abrirOpcionApariencia(tipo) {
       }
 
       aviso.hidden = true;
+
+      el().querySelectorAll("[data-valor-apariencia]").forEach(detalle => {
+        detalle.textContent = etiquetaApariencia(detalle.dataset.valorApariencia, configuraciones);
+      });
 
             ventana.querySelectorAll("button[data-valor]").forEach(opcion => {
         const activa = opcion === boton;
