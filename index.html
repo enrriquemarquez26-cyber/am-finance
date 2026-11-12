@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.21</title>
+<title>Balance One 0.6.22</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -2109,6 +2109,28 @@ html.tema-oscuro .ajustes-version {
   margin-bottom: 14px;
 }
 
+.card.privacidad-panel {padding:4px 14px;border-radius:28px}
+.privacidad-fila {
+  display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;
+  gap:10px;width:100%;min-height:66px;padding:10px 0;box-sizing:border-box;
+}
+.privacidad-fila + .privacidad-fila {border-top:1px solid #84909d30}
+.privacidad-fila strong,.privacidad-fila small {display:block;overflow-wrap:anywhere}
+.privacidad-fila small {margin-top:4px;font-size:.73rem;line-height:1.35;color:#58677a}
+html.tema-oscuro .privacidad-fila small {color:#b6c0cd}
+.privacidad-fila input {
+  appearance:none;width:42px;height:25px;margin:0;padding:0;border:0;border-radius:999px;
+  background:#84909d55;display:grid;align-items:center;cursor:pointer;
+}
+.privacidad-fila input::before {
+  content:"";width:19px;height:19px;margin-inline-start:3px;border-radius:50%;
+  background:white;box-shadow:0 1px 3px #0004;
+}
+.privacidad-fila input:checked {background:var(--balanceone-color,#ff7900)}
+.privacidad-fila input:checked::before {margin-inline-start:20px}
+.privacidad-fila input:focus-visible,.privacidad-copias:focus-visible {outline:2px solid currentColor;outline-offset:3px}
+.privacidad-copias {border:0;background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer}
+.privacidad-nota {margin-inline:10px}
 .card.ayuda-guia {padding:4px 14px;border-radius:28px}
 .ayuda-tema + .ayuda-tema {border-top:1px solid #84909d30}
 .ayuda-tema summary {
@@ -4438,7 +4460,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.21</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.22</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5024,8 +5046,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.21",
-      "Smart control of your finances · 0.6.21"
+      "Control inteligente de tus finanzas · 0.6.22",
+      "Smart control of your finances · 0.6.22"
     );
   }
 }
@@ -5195,19 +5217,38 @@ function guardarModoDiscretoInicio(activo) {
   } catch {}
 }
 
+const CLAVE_IMPORTES_VOZ_PRIVADOS = "balanceone-voz-importes-privados";
+
+function importesVozPrivados() {
+  try { return localStorage.getItem(CLAVE_IMPORTES_VOZ_PRIVADOS) === "1"; }
+  catch { return false; }
+}
+
+function guardarPrivacidadVoz(activo) {
+  try { localStorage.setItem(CLAVE_IMPORTES_VOZ_PRIVADOS, activo ? "1" : "0"); }
+  catch {
+    alert(textoApp("No se pudo guardar la preferencia.", "Could not save the preference."));
+    abrirAjuste("privacidad");
+  }
+}
+
+function saldoDiscreto(importe) {
+  return modoDiscretoInicio ? "••••" : money(importe);
+}
+
 function alternarModoDiscretoInicio() {
-  if (page !== "inicio") return;
+  if (!["inicio","cuentas","tarjetas"].includes(page)) return;
   guardarModoDiscretoInicio(!modoDiscretoInicio);
-  dibujarInicio();
+  render();
   document.getElementById("modoDiscretoInicioBoton")?.focus({preventScroll:true});
 }
 
 function botonModoDiscretoInicio() {
   const titulo = modoDiscretoInicio
-    ? textoApp("Mostrar importes de Inicio", "Show amounts on Home")
-    : textoApp("Ocultar importes de Inicio", "Hide amounts on Home");
+    ? textoApp("Mostrar importes", "Show amounts")
+    : textoApp("Ocultar importes", "Hide amounts");
   return `<button type="button" class="inicio-ojo" id="modoDiscretoInicioBoton"
-    onclick="alternarModoDiscretoInicio()" aria-label="${textoApp("Modo discreto en Inicio", "Discreet mode on Home")}"
+    onclick="alternarModoDiscretoInicio()" aria-label="${textoApp("Modo discreto", "Discreet mode")}"
     aria-pressed="${modoDiscretoInicio}" title="${titulo}">
     <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
       stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -5566,6 +5607,10 @@ function irDesdeAviso(destino) {
 function abrirDatosYCopiasDesdeAviso() {
   cerrarPanelAvisos();
   go("ajustes");
+  abrirCopiasDesdeAyuda();
+}
+
+function abrirCopiasDesdeAyuda() {
   abrirAjuste("ayuda");
   const copias = document.getElementById("ayudaCopias");
   if (copias) {
@@ -6977,6 +7022,7 @@ function cuentasVistaNueva() {
       </button>
       <div class="row" style="align-items:flex-start">
         <h2>${textoApp("Mis cuentas bancarias", "My bank accounts")}</h2>
+        ${botonModoDiscretoInicio()}
         <button type="button" class="inicio-nuevo-enlace" onclick="abrirNuevaCuenta()">
           + ${textoApp("Agregar", "Add")}
         </button>
@@ -6984,7 +7030,7 @@ function cuentasVistaNueva() {
       ${cuentas.map(cuenta => `
         <div class="inicio-nuevo-tarjeta" data-cuenta-id="${safe(String(cuenta.id))}">
           <span class="inicio-nuevo-label">${safe(cuenta.nombre)}</span>
-          <strong>${money(cuenta.saldo)}</strong>
+          <strong>${saldoDiscreto(cuenta.saldo)}</strong>
           <small>${cuenta.tipo === "ahorro"
             ? textoApp("Ahorros", "Savings")
             : textoApp("Cheques", "Checking")}</small>
@@ -8911,9 +8957,9 @@ function etiquetaDisenoCredito() {
 
 function montosTarjetaCarrusel(tarjeta) {
   const t = textoApp;
-  const disponible = Number(tarjeta.limite) > 0 ? money(Math.max(0, round(tarjeta.limite - tarjeta.saldo))) : "—";
+  const disponible = Number(tarjeta.limite) > 0 ? saldoDiscreto(Math.max(0, round(tarjeta.limite - tarjeta.saldo))) : "—";
   return `<dl class="credito-resumen carrusel-montos">
-    <div><dt class="credito-etiqueta">${t("Deuda actual","Current debt")}</dt><dd>${money(tarjeta.saldo)}</dd></div>
+    <div><dt class="credito-etiqueta">${t("Deuda actual","Current debt")}</dt><dd>${saldoDiscreto(tarjeta.saldo)}</dd></div>
     <div><dt class="credito-etiqueta">${t("Crédito disponible","Available credit")}</dt><dd>${disponible}</dd></div>
   </dl>`;
 }
@@ -8986,17 +9032,17 @@ function resumenTarjetasCredito() {
   const deuda = data.tarjetas.reduce((total, tarjeta) => total + (Number(tarjeta.saldo) || 0), 0);
   const limite = data.tarjetas.reduce((total, tarjeta) => total + (Number(tarjeta.limite) || 0), 0);
   const limitesCompletos = data.tarjetas.every(tarjeta => Number.isFinite(Number(tarjeta.limite)) && Number(tarjeta.limite) > 0);
-  const uso = limitesCompletos ? usoCreditoTarjeta({saldo:deuda, limite}, 2) : null;
+  const uso = !modoDiscretoInicio && limitesCompletos ? usoCreditoTarjeta({saldo:deuda, limite}, 2) : null;
   return `<div class="credito-resumen">
     <div>
       <span class="credito-etiqueta">${textoApp("Deuda total", "Total debt")}</span>
-      <strong>${money(deuda)}</strong>
+      <strong>${saldoDiscreto(deuda)}</strong>
     </div>
     <div>
       <span class="credito-etiqueta">${textoApp("Límite total de crédito", "Total credit limit")}</span>
-      <strong>${money(limite)}</strong>
+      <strong>${saldoDiscreto(limite)}</strong>
     </div>
-    <p class="carrusel-uso-total">
+    <p class="carrusel-uso-total" ${modoDiscretoInicio ? "hidden" : ""}>
       <span class="credito-etiqueta">${textoApp("Uso total del crédito", "Total credit utilization")}</span>
       <b>${uso?.porcentaje ?? textoApp("Límites incompletos", "Incomplete limits")}</b>
     </p>
@@ -9021,13 +9067,13 @@ function usoCreditoTarjeta(tarjeta, decimales = 0) {
 
 function datosTarjetaMediana(tarjeta, indice, digitos) {
   const t = textoApp;
-  const uso = usoCreditoTarjeta(tarjeta);
+  const uso = modoDiscretoInicio ? null : usoCreditoTarjeta(tarjeta);
   return `<span class="carrusel-mediana-datos">
     <span><strong>${safe(tarjeta.nombre)}</strong>${digitos
       ? ` <small class="carrusel-mediana-digitos" aria-hidden="true">•• ${digitos}</small>` : ""}</span>
     <span id="creditoMedianaDatos${indice}" class="carrusel-mediana-resumen">
       <span class="carrusel-mediana-deuda">
-        <small>${t("Deuda actual","Current debt")}</small><b>${money(tarjeta.saldo)}</b>
+        <small>${t("Deuda actual","Current debt")}</small><b>${saldoDiscreto(tarjeta.saldo)}</b>
       </span>
       ${uso ? `<span class="carrusel-mediana-uso">
         <span class="carrusel-credito-barra carrusel-mediana-barra" style="--credito-uso:${uso.ancho}%"${uso.alto ? " data-uso-alto" : ""} aria-hidden="true"></span>
@@ -9047,8 +9093,8 @@ function modeloVisibleTarjeta(tarjeta) {
 
 function datosTarjetaCompacta(tarjeta, indice, digitos, modelo) {
   const t = textoApp;
-  const uso = usoCreditoTarjeta(tarjeta, 2);
-  const descripcionUso = uso
+  const uso = modoDiscretoInicio ? null : usoCreditoTarjeta(tarjeta, 2);
+  const descripcionUso = modoDiscretoInicio ? "" : uso
     ? t("Crédito utilizado", "Credit used") + " " + uso.porcentaje
     : t("Límite de crédito sin configurar", "No credit limit set");
   return `<span class="carrusel-compacta-nombre">
@@ -9066,7 +9112,7 @@ function datosTarjetaCompacta(tarjeta, indice, digitos, modelo) {
   </span>
   <span id="creditoCompactaDatos${indice}" class="carrusel-compacta-deuda">
     <small>${t("Deuda actual","Current debt")}</small>
-    <strong>${money(tarjeta.saldo)}</strong>
+    <strong>${saldoDiscreto(tarjeta.saldo)}</strong>
   </span>
   <svg class="carrusel-compacta-flecha" viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -9339,7 +9385,7 @@ function abrirTodasTarjetasCredito() {
                 <strong>${safe(tarjeta.nombre)}</strong>
                 ${/^\d{4}$/.test(String(tarjeta.ultimos4 || "")) ? `<small>•••• ${safe(tarjeta.ultimos4)}</small>` : ""}
               </span>
-              <strong class="carrusel-todas-saldo">${money(tarjeta.saldo)}</strong>
+              <strong class="carrusel-todas-saldo">${saldoDiscreto(tarjeta.saldo)}</strong>
               ${flecha}
             </button>
           </div>`).join("") || `<p class="note">${t("Aún no tienes tarjetas registradas.","You have no cards added yet.")}</p>`}
@@ -9541,11 +9587,12 @@ function tarjetas(){
   <button type="button" class="carrusel-ver-todas" onclick="abrirTodasTarjetasCredito()" aria-haspopup="dialog">
     ${textoApp("Ver todas","View all")} · ${data.tarjetas.length}
   </button>
+  ${botonModoDiscretoInicio()}
   ${menuVistasCredito(tamano)}
-  </div>` : `<button type="button" class="credito-agregar"
+  </div>` : `<div class="credito-cabecera-acciones">${botonModoDiscretoInicio()}<button type="button" class="credito-agregar"
     onclick="toggle('formularioNuevaTarjeta')">
         + ${textoApp("Agregar", "Add")}
-  </button>`}
+  </button></div>`}
 </div>
 
 <div class="tarjeta-formulario hidden"
@@ -9603,16 +9650,16 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
 
     <div class="credito-datos">
             <div class="credito-etiqueta">${textoApp("Deuda actual", "Current debt")}</div>
-      <div class="credito-deuda">${money(t.saldo)}</div>
+      <div class="credito-deuda">${saldoDiscreto(t.saldo)}</div>
 
-              ${barraProgreso(
+              ${modoDiscretoInicio ? "" : barraProgreso(
           Number(t.limite) > 0
             ? Number(t.saldo) / Number(t.limite) * 100
             : 0
         )}
 
       <div class="credito-texto">
-                ${textoApp("Límite: ", "Limit: ")}${money(t.limite)}
+                ${textoApp("Límite: ", "Limit: ")}${saldoDiscreto(t.limite)}
       </div>
 
       <div class="credito-texto">
@@ -11558,7 +11605,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.21</p>
+      <p class="ajustes-version">Balance One · 0.6.22</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -11792,7 +11839,7 @@ function ajustes() {
     [
       "privacidad",
       textoApp("Privacidad y seguridad", "Privacy and security"),
-      textoApp("Acceso y protección de datos", "Access and data protection")
+      textoApp("Saldos, voz y copias de seguridad", "Balances, voice and backups")
     ],
     [
       "pro",
@@ -11826,7 +11873,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.21
+        ${textoApp("Versión", "Version")} 0.6.22
       </p>
     </section>
   `;
@@ -11835,6 +11882,7 @@ function ajustes() {
 function abrirAjuste(tipo, desdePerfil = false) {
   const t = textoApp;
 
+  const ultimaCopia = tipo === "privacidad" ? ultimaCopiaPreparada() : null;
   const pantallas = {
     cuenta: {
       titulo: t("Cuenta e inicio de sesión", "Account and sign-in"),
@@ -11887,7 +11935,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
           <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("discretoInicio")}</span>
           <span class="ajustes-texto">
             <strong>${t("Modo discreto", "Discreet mode")}</strong>
-            <small>${t("Oculta los importes de Inicio", "Hide amounts on Home")}</small>
+            <small>${t("Oculta importes en Inicio, Cuentas y Tarjetas", "Hide amounts on Home, Accounts and Cards")}</small>
           </span>
           <input type="checkbox" ${modoDiscretoInicio ? "checked" : ""} onchange="guardarModoDiscretoInicio(this.checked)">
         </label>`
@@ -12024,17 +12072,29 @@ function abrirAjuste(tipo, desdePerfil = false) {
     privacidad: {
       titulo: t("Privacidad y seguridad", "Privacy and security"),
       contenido: `
-        <div class="card">
-          <h3>${t("Almacenamiento de datos", "Data storage")}</h3>
-          <p class="note">${t(
-            "Tus registros se guardan en este dispositivo. La sincronización en la nube y el bloqueo de acceso todavía no están implementados.",
-            "Your records are stored on this device. Cloud sync and access locking have not been implemented yet."
-          )}</p>
-          <p class="note">${t(
-            "Guarda una copia antes de borrar los datos del navegador o cambiar de dispositivo.",
-            "Save a backup before clearing browser data or switching devices."
-          )}</p>
-        </div>`
+        <div class="card privacidad-panel">
+          <label class="privacidad-fila">
+            <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("discretoInicio")}</span>
+            <span><strong>${t("Ocultar saldos", "Hide balances")}</strong>
+              <small>${t("Inicio, Cuentas y Tarjetas. Toca el ojo para mostrar los importes.", "Home, Accounts and Cards. Tap the eye to reveal amounts.")}</small></span>
+            <input type="checkbox" role="switch" ${modoDiscretoInicio ? "checked" : ""} onchange="guardarModoDiscretoInicio(this.checked)">
+          </label>
+          <label class="privacidad-fila">
+            <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("avisos")}</span>
+            <span><strong>${t("Silenciar importes por voz", "Mute spoken amounts")}</strong>
+              <small>${t("Las respuestas con importes se muestran en pantalla.", "Responses with amounts appear on screen.")}</small></span>
+            <input type="checkbox" role="switch" ${importesVozPrivados() ? "checked" : ""} onchange="guardarPrivacidadVoz(this.checked)">
+          </label>
+          <button type="button" class="privacidad-fila privacidad-copias" onclick="abrirCopiasDesdeAyuda()">
+            <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("respaldo")}</span>
+            <span><strong>${t("Copia de seguridad", "Backup")}</strong>
+              <small>${ultimaCopia ? t("Última copia confirmada", "Last confirmed backup") + " · " +
+                ultimaCopia.toLocaleDateString(idiomaActual() === "en" ? "en-US" : "es", {dateStyle:"medium"})
+                : t("Sin copia confirmada", "No confirmed backup")}</small></span>
+            <span aria-hidden="true">›</span>
+          </button>
+        </div>
+        <p class="note privacidad-nota">${t("Tus registros se guardan en este dispositivo.", "Your records are stored on this device.")}</p>`
     },
 
     pro: {
@@ -12124,7 +12184,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.21</span>
+          <span class="note">${t("Versión", "Version")} 0.6.22</span>
         </div>`
     }
   };
@@ -12586,7 +12646,7 @@ function abrirCuentaBanco(identificador) {
   const icono = trazos => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${trazos}</svg>`;
   const ventana = crearVentanaApariencia(textoApp("Gestionar cuenta", "Manage account"), `
     <div class="cuenta-operacion-saldo"><span>${safe(cuenta.nombre)}</span>
-      <strong>${money(cuenta.saldo)}</strong><small>${textoApp("Saldo disponible", "Available balance")}</small></div>
+      <strong>${saldoDiscreto(cuenta.saldo)}</strong><small>${textoApp("Saldo disponible", "Available balance")}</small></div>
     <form class="cuenta-nueva-form" id="formOperacionBanco">
       <fieldset class="cuenta-operaciones"><legend class="sr-operacion">${textoApp("Operación", "Transaction")}</legend>
         ${[
@@ -13534,9 +13594,9 @@ function abrirAsistenteVoz() {
   const origenGasto = controlesGasto.querySelector("[data-origen-gasto-voz]");
   const guardarGasto = controlesGasto.querySelector("[data-guardar-gasto-voz]");
 
-  function informarGasto(mensaje) {
+  function informarGasto(mensaje, contieneImporte = false) {
     estado.textContent = mensaje;
-    voz.decir(mensaje);
+    if (!contieneImporte || !importesVozPrivados()) voz.decir(mensaje);
   }
   function mostrarBorradorGasto() {
     entrada.value = "";
@@ -13549,7 +13609,7 @@ function abrirAsistenteVoz() {
     }
     const origen = origenGasto.selectedOptions[0].textContent.split(" · ").slice(0, 2).join(" · ");
     informarGasto(borradorGasto.nombre + " · " + money(borradorGasto.monto) + " · " + origen +
-      " · " + fechaMetaAhorro(borradorGasto.fecha) + ". " + t("¿Lo guardo?", "Should I save it?"));
+      " · " + fechaMetaAhorro(borradorGasto.fecha) + ". " + t("¿Lo guardo?", "Should I save it?"), true);
   }
   function cancelarBorradorGasto() {
     borradorGasto = null;
@@ -13707,7 +13767,7 @@ function abrirAsistenteVoz() {
       const {mensaje, opciones} = opcionesSaldoVoz(comando);
       if (mensaje || opciones.length === 1) {
         estado.textContent = mensaje || responderSaldoVoz(comando.saldoVoz, opciones[0]);
-        voz.decir(estado.textContent);
+        if (mensaje || !importesVozPrivados()) voz.decir(estado.textContent);
         return;
       }
       estado.textContent = t("Encontré varias coincidencias. Elige la que quieres consultar.",
@@ -13723,7 +13783,7 @@ function abrirAsistenteVoz() {
           voz.detener();
           opcionesSaldo.hidden = true;
           estado.textContent = responderSaldoVoz(comando.saldoVoz, opcion);
-          voz.decir(estado.textContent);
+          if (!importesVozPrivados()) voz.decir(estado.textContent);
           entrada.focus();
         };
         opcionesSaldo.appendChild(botonOpcion);
@@ -13733,7 +13793,7 @@ function abrirAsistenteVoz() {
     }
     if ("consulta" in comando || comando.pagosSemana || comando.resumenSemana) {
       estado.textContent = responderAsistenteVoz(comando);
-      voz.decir(estado.textContent.replaceAll("\n", " "));
+      if (!importesVozPrivados()) voz.decir(estado.textContent.replaceAll("\n", " "));
       return;
     }
     if (comando.tipo === "gasto") {
