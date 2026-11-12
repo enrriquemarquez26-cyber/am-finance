@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.2</title>
+<title>Balance One 0.6.3</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3988,10 +3988,17 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   font-size:.73rem;overflow-wrap:anywhere;
 }
 .credito-meta-pago-importes small {font-size:inherit}
-.credito-meta-dialogo .cuenta-nueva-form input,
 .credito-meta-quitar {border-radius:999px}
-.credito-meta-quitar {width:100%;margin-top:8px}
-.credito-meta-lista {display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.credito-meta-quitar {width:100%;margin:0}
+.credito-meta-abonos > summary {list-style:none;cursor:pointer}
+.credito-meta-abonos > summary::-webkit-details-marker {display:none}
+.credito-meta-abonos[open] .credito-accion-flecha {transform:rotate(90deg)}
+.credito-meta-abonos .note {margin:0 0 8px}
+.credito-meta-abonos-contenido {padding:0 12px 12px}
+.credito-meta-lista {
+  display:grid;gap:6px;max-height:min(13rem,30dvh);overflow:auto;
+  margin:0;padding:2px;list-style:none
+}
 .credito-meta-lista label {
   display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:8px;
   padding:9px 10px;border-radius:14px;background:rgba(130,140,155,.10);cursor:pointer
@@ -4269,7 +4276,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.2</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.3</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4855,8 +4862,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.2",
-      "Smart control of your finances · 0.6.2"
+      "Control inteligente de tus finanzas · 0.6.3",
+      "Smart control of your finances · 0.6.3"
     );
   }
 }
@@ -8612,36 +8619,51 @@ function bloqueMetaPagoTarjeta(tarjeta) {
 
 function abrirMetaPagoTarjeta(indice) {
   const tarjeta = data.tarjetas[indice];
-  if (!tarjeta) return;
+  const pantalla = el().querySelector(".tarjetas-pantalla");
+  if (!tarjeta || !pantalla || document.querySelector(".credito-meta-dialogo[open]")) return;
   const t = textoApp;
   const meta = metaPagoTarjetaValida(tarjeta);
   const pagos = meta ? pagosDeMetaTarjeta(tarjeta, meta).sort((a,b) => String(b.fecha || "").localeCompare(String(a.fecha || ""))) : [];
   const excluidos = new Set(Array.isArray(meta?.pagosExcluidos) ? meta.pagosExcluidos : []);
-  const ventana = crearVentanaApariencia(meta ? t("Editar meta de pago", "Edit payment goal") : t("Crear meta de pago", "Create payment goal"), `
-    <form class="cuenta-nueva-form">
-      <p class="note"><strong>${safe(tarjeta.nombre)}</strong></p>
-      <label>${textoImporte("Cantidad que quieres pagar","Amount you want to pay")}
-        <input name="objetivo" type="number" min="0.01" step="0.01" inputmode="decimal"
-          placeholder="0.00" value="${meta ? (meta.objetivoCentavos / 100).toFixed(2) : ""}" required>
-      </label>
-      <p class="note">${t(
-        "Los nuevos abonos se incluyen en la meta. Puedes desmarcar los que no correspondan. El historial y el saldo de la tarjeta se conservan.",
-        "New payments count toward the goal. Uncheck any that do not belong. Your card balance and payment history are preserved."
-      )}</p>
-      ${pagos.length ? `<fieldset>
-        <legend>${t("Abonos que cuentan para la meta", "Payments that count toward the goal")}</legend>
-        <ul class="credito-meta-lista">${pagos.map(pago => `<li><label>
-          <input type="checkbox" name="abonoMeta" value="${safe(String(pago.id))}"${excluidos.has(String(pago.id)) ? "" : " checked"}>
-          <span>${validDate(pago.fecha) ? safe(fechaMetaAhorro(pago.fecha)) : t("Sin fecha", "No date")}</span>
-          <strong>${money(pago.monto)}</strong>
-        </label></li>`).join("")}</ul>
-      </fieldset>` : ""}
-      <p class="cuenta-nueva-error" role="alert" hidden></p>
-      <button type="submit" class="cuenta-nueva-guardar">${t("Guardar meta","Save goal")}</button>
-      ${meta ? `<button type="button" class="secondary credito-meta-quitar">${t("Quitar meta","Remove goal")}</button>` : ""}
-    </form>`, true);
-  if (!ventana) return;
-  ventana.classList.add("cuenta-nueva", "credito-meta-dialogo");
+  const ventana = document.createElement("dialog");
+  ventana.className = "carrusel-credito-detalle credito-meta-dialogo";
+  ventana.setAttribute("aria-labelledby", "tituloMetaPagoCredito");
+  ventana.innerHTML = `
+    <button type="button" class="carrusel-cerrar" data-boton-x aria-label="${t("Cerrar","Close")}"
+      onclick="animarBotonX(this, () => this.closest('dialog').close())" autofocus>×</button>
+    <div class="tarjeta-detalle credito-detalle">
+      <div class="credito-detalle-cabecera">
+        <div>
+          <span class="credito-detalle-sobretitulo">${safe(tarjeta.nombre)}</span>
+          <h3 id="tituloMetaPagoCredito">${meta ? t("Editar meta de pago", "Edit payment goal") : t("Crear meta de pago", "Create payment goal")}</h3>
+        </div>
+      </div>
+      <form class="cuenta-nueva-form">
+        <div class="credito-form-campo">
+          <label for="metaPagoObjetivoCredito">${textoImporte("Cantidad que quieres pagar","Amount you want to pay")}</label>
+          <input id="metaPagoObjetivoCredito" name="objetivo" type="number" min="0.01" step="0.01" inputmode="decimal"
+            placeholder="0.00" value="${meta ? (meta.objetivoCentavos / 100).toFixed(2) : ""}" required>
+        </div>
+        ${pagos.length ? `<details class="credito-accion credito-meta-abonos">
+          <summary class="credito-accion-boton">
+            <span class="credito-accion-copy"><strong>${t("Revisar abonos", "Review payments")} · ${pagos.length}</strong></span>
+            <span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></span>
+          </summary>
+          <div class="credito-meta-abonos-contenido">
+          <p class="note">${t("Desmarca los abonos que no quieras contar en la meta.", "Uncheck payments you want to exclude from the goal.")}</p>
+          <ul class="credito-meta-lista">${pagos.map(pago => `<li><label>
+            <input type="checkbox" name="abonoMeta" value="${safe(String(pago.id))}"${excluidos.has(String(pago.id)) ? "" : " checked"}>
+            <span>${validDate(pago.fecha) ? safe(fechaMetaAhorro(pago.fecha)) : t("Sin fecha", "No date")}</span>
+            <strong>${money(pago.monto)}</strong>
+          </label></li>`).join("")}</ul>
+          </div>
+        </details>` : ""}
+        <p class="cuenta-nueva-error" role="alert" hidden></p>
+        <button type="submit" class="cuenta-nueva-guardar">${t("Guardar meta","Save goal")}</button>
+        ${meta ? `<button type="button" class="secondary credito-meta-quitar">${t("Quitar meta","Remove goal")}</button>` : ""}
+      </form>
+    </div>`;
+  ventana.addEventListener("close", () => ventana.remove(), {once:true});
   const form = ventana.querySelector("form");
   const error = form.querySelector("[role=alert]");
   function guardar(metaNueva) {
@@ -8682,6 +8704,8 @@ function abrirMetaPagoTarjeta(indice) {
   if (quitar) quitar.onclick = () => {
     if (confirm(t("¿Quitar la meta de pago? Tus pagos registrados se conservarán.", "Remove the payment goal? Your recorded payments will be kept."))) guardar(null);
   };
+  pantalla.appendChild(ventana);
+  ventana.showModal();
 }
 
 const CLAVE_DISENO_CREDITO = "balanceone-diseno-credito";
@@ -11334,7 +11358,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.2</p>
+      <p class="ajustes-version">Balance One · 0.6.3</p>
     </section>
   `;
 }
@@ -11648,7 +11672,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.2
+        ${textoApp("Versión", "Version")} 0.6.3
       </p>
     </section>
   `;
@@ -11939,7 +11963,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.2</p>
+          <p class="note">${t("Versión", "Version")} 0.6.3</p>
         </div>`
     }
   };
