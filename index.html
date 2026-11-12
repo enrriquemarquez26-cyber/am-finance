@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.4</title>
+<title>Balance One 0.6.5</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -2389,18 +2389,6 @@ html.tema-oscuro .apariencia-ventana {
   color: #f5f6f8;
 }
 
-/* El formulario de suscripciones conserva la hoja flotante compacta en iPhone. */
-.apariencia-ventana--suscripciones {
-  width: calc(100% - 24px);
-  padding: 17px 17px 15px;
-  border-radius: 32px;
-  bottom: 10px;
-}
-.apariencia-ventana--suscripciones h2 {
-  margin: 4px 0 13px;
-  font-size: 1.06rem;
-}
-.apariencia-ventana--suscripciones .apariencia-tirador {margin-bottom: 12px;}
 .apariencia-ventana--suscripciones .suscripcion-calendario-form {
   display: grid;
   gap: 10px;
@@ -2441,28 +2429,6 @@ html.tema-oscuro .apariencia-ventana {
   margin: 0;
   font-size: .67rem;
   line-height: 1.35;
-}
-.apariencia-ventana--suscripciones .suscripcion-guardar {
-  min-height: 44px;
-  padding: 10px 14px;
-  margin-top: 3px;
-  border-radius: 999px;
-  background: var(--balanceone-color, #ff7900);
-  font-size: .79rem;
-  font-weight: 700;
-}
-.apariencia-ventana--suscripciones .apariencia-listo {
-  min-height: 42px;
-  margin-top: 9px;
-  border: 1px solid rgba(130, 140, 155, .24);
-  background: rgba(255, 255, 255, .78);
-  color: #4a5666;
-  font-size: .78rem;
-  font-weight: 650;
-}
-html.tema-oscuro .apariencia-ventana--suscripciones .apariencia-listo {
-  background: rgba(255, 255, 255, .1);
-  color: #f3f5f9;
 }
 html.tema-oscuro .apariencia-ventana--suscripciones .suscripcion-campo input[type="date"] {
   background: #333b46;
@@ -2535,29 +2501,10 @@ html.tema-oscuro .apariencia-ventana--suscripciones .suscripcion-campo input[typ
   overflow-wrap:anywhere;
 }
 .cal-dia-ventana {
-  position:fixed;
-  inset:auto 0 12px;
-  width:calc(100% - 24px);
-  max-width:500px;
   height:min(52dvh,440px);
-  max-height:calc(100dvh - 32px);
-  margin:0 auto;
-  padding:0;
-  border:1px solid rgba(130,140,155,.25);
-  border-radius:36px;
-  background:#f8f9fb;
-  color:#17212e;
-  overflow:hidden;
   transition:height .25s ease;
 }
-.cal-dia-ventana.cal-expandida {
-  height:calc(100dvh - 32px);
-}
-.cal-dia-ventana::backdrop {
-  background:rgba(15,20,28,.35);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-}
+.cal-dia-ventana.cal-expandida {height:calc(100dvh - 34px)}
 .cal-dia-interior {
   display:flex;
   flex-direction:column;
@@ -2581,10 +2528,6 @@ html.tema-oscuro .apariencia-ventana--suscripciones .suscripcion-campo input[typ
   overflow-y:auto;
   overscroll-behavior:contain;
   padding:0 20px 20px;
-}
-html.tema-oscuro .cal-dia-ventana {
-  background:#20242b;
-  color:#f5f6f8;
 }
 @media(prefers-reduced-motion:reduce) {
   .cal-dia-ventana {transition:none;}
@@ -3192,8 +3135,6 @@ html.tema-oscuro .cal-fin-028 .cal-mov-info small {color:#b1bbc9}
   opacity:1;
 }
 .cal-dia-ventana .cal-dia-transaccion-acciones {
-  display:flex;
-  gap:8px;
   width:100%;
   padding:0 11px 10px;
 }
@@ -3740,8 +3681,7 @@ main#content {padding-left:max(16px,env(safe-area-inset-left));padding-right:max
   #amMenu.abierto {transform:translate(-50%,0)}
   .apariencia-ventana {left:50%;right:auto;top:50%;bottom:auto;width:min(560px,calc(100% - 48px));max-width:560px;max-height:calc(100dvh - 48px);transform:translate(-50%,-50%);margin:0}
   .apariencia-ventana[open] {animation:none}
-  .cal-dia-ventana {left:50%;right:auto;top:50%;bottom:auto;width:min(640px,calc(100% - 48px));max-width:640px;height:min(78dvh,720px);max-height:calc(100dvh - 48px);transform:translate(-50%,-50%);margin:0}
-  .cal-dia-ventana.cal-expandida {height:calc(100dvh - 48px)}
+  .cal-dia-ventana {height:min(78dvh,720px)}
   .metas-pantalla {max-width:none}
   .metas-lista {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
   .metas-lista > .card {margin-bottom:0}
@@ -3802,7 +3742,7 @@ main#content {padding-left:max(16px,env(safe-area-inset-left));padding-right:max
   #movVentana > .row {justify-content:space-between}
   #movVentanaForm {max-height:calc(100dvh - 110px);overflow-y:auto}
   .apariencia-ventana {max-height:calc(100dvh - 24px)}
-  .cal-dia-ventana,.cal-dia-ventana.cal-expandida {height:calc(100dvh - 24px);max-height:calc(100dvh - 24px)}
+  .cal-dia-ventana {height:calc(100dvh - 34px)}
 }
 /* Si el navegador expone una bisagra, los paneles de Inicio respetan su separación. */
 @media (horizontal-viewport-segments:2) and (min-width:700px) {
@@ -3988,10 +3928,10 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   font-size:.73rem;overflow-wrap:anywhere;
 }
 .credito-meta-pago-importes small {font-size:inherit}
-.credito-meta-acciones {
+.acciones-vidrio {
   display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;
 }
-.credito-meta-acciones button {
+.acciones-vidrio button {
   display:flex;align-items:center;justify-content:center;gap:6px;
   min-width:0;min-height:44px;margin:0;padding:8px 6px;
   border:1px solid transparent;border-radius:999px;
@@ -3999,23 +3939,26 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
   transition:scale .15s ease,opacity .15s ease;
 }
-.credito-meta-acciones button svg {width:1.1em;height:1.1em;flex:none}
-.credito-meta-acciones button:active:not(:disabled) {scale:.97}
-.credito-meta-acciones button:focus-visible {outline:2px solid currentColor;outline-offset:2px}
-.credito-meta-acciones button:disabled {opacity:.62;cursor:default}
-.credito-meta-acciones .credito-meta-quitar {
-  color:#b1243d;border-color:#dce1e9;background:linear-gradient(165deg,#f7f8fc,#e9edf3);
+.acciones-vidrio button svg {width:1.1em;height:1.1em;flex:none}
+.acciones-vidrio button:active:not(:disabled) {scale:.97}
+.acciones-vidrio button:focus-visible {outline:2px solid currentColor;outline-offset:2px}
+.acciones-vidrio button:disabled {opacity:.62;cursor:default}
+.acciones-vidrio .vidrio-secundario {
+  color:inherit;border-color:#dce1e9;background:linear-gradient(165deg,#f7f8fc,#e9edf3);
 }
-.credito-meta-acciones .credito-meta-guardar {
+.acciones-vidrio .vidrio-principal {
   color:#fff;border-color:#c45408;background:linear-gradient(180deg,#eb8c49 0%,#bf4d00 40%,#b64800 100%);
 }
-html.tema-oscuro .credito-meta-acciones .credito-meta-quitar {
-  color:#ff9bab;border-color:#454d5b;background:linear-gradient(165deg,#343b47,#242a34);
+html.tema-oscuro .acciones-vidrio .vidrio-secundario {
+  color:inherit;border-color:#454d5b;background:linear-gradient(165deg,#343b47,#242a34);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.13);
 }
+.acciones-vidrio .vidrio-peligro {color:#b1243d}
+html.tema-oscuro .acciones-vidrio .vidrio-peligro {color:#ff9bab}
+.acciones-vidrio > button[hidden] {display:none}
 @media(prefers-reduced-motion:reduce) {
-  .credito-meta-acciones button {transition:none}
-  .credito-meta-acciones button:active:not(:disabled) {scale:none}
+  .acciones-vidrio button {transition:none}
+  .acciones-vidrio button:active:not(:disabled) {scale:none}
 }
 .credito-meta-abonos > summary {list-style:none;cursor:pointer}
 .credito-meta-abonos > summary::-webkit-details-marker {display:none}
@@ -4289,7 +4232,29 @@ button[data-boton-x]:active,button[data-boton-x].x-activada {
   button[data-boton-x]:active,button[data-boton-x].x-activada {transform:scale(.92)}
 }
 html.tema-oscuro .carrusel-credito-detalle {background:#202630;color:#f2f4f6}
-html.tema-oscuro .tarjetas-pantalla .carrusel-credito-detalle::backdrop {background:#0008}
+html.tema-oscuro .carrusel-credito-detalle::backdrop {background:#0008}
+.carrusel-credito-detalle.cal-dia-ventana {overflow:hidden}
+.cal-dia-pie {margin-top:16px}
+.cal-dia-ventana .cal-dia-cabecera {padding-inline:21px}
+.cal-dia-ventana .cal-dia-tirador {background:#84909d66}
+.carrusel-credito-detalle.calendario-dialogo {
+  box-sizing:border-box;max-width:none;padding:50px 21px 20px;
+  box-shadow:none;transform:none
+}
+.calendario-dialogo.carrusel-credito-detalle::backdrop {
+  backdrop-filter:none;-webkit-backdrop-filter:none
+}
+.calendario-dialogo.carrusel-credito-detalle h2 {
+  margin:0 12px 18px;font-size:1.08rem;overflow-wrap:anywhere
+}
+:is(.calendario-dialogo,.cal-dia-ventana) form :is(input:not([type="checkbox"],[type="radio"],[type="file"]),select,textarea) {
+  box-sizing:border-box;max-width:100%;min-width:0;border-radius:24px
+}
+:is(.calendario-dialogo,.cal-dia-ventana) form input[type="date"] {
+  width:100%;min-height:44px;text-align:start
+}
+.cal-dia-ventana .editbox .acciones-vidrio {margin-top:10px}
+.calendario-dialogo .calendario-suscripcion-editar {flex:none}
 body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 @media(min-width:800px) {.carrusel-credito-detalle {inset:0;margin:auto}}
 @media(prefers-reduced-motion:no-preference) {
@@ -4303,7 +4268,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.4</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.5</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4780,7 +4745,7 @@ function verReciboMovimiento(m) {
   crearVentanaApariencia(textoApp("Recibo","Receipt"), `
     <p class="note">${safe(m.nombre)}</p>
     <img class="bo047-recibo" src="${safe(m.recibo)}" alt="${textoApp("Foto del recibo","Receipt photo")}">
-  `, true);
+  `, true, true);
 }
 
 function favoritosGasto() {
@@ -4889,8 +4854,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.4",
-      "Smart control of your finances · 0.6.4"
+      "Control inteligente de tus finanzas · 0.6.5",
+      "Smart control of your finances · 0.6.5"
     );
   }
 }
@@ -7605,14 +7570,16 @@ function abrirFiltrosHistorial(aplicar) {
         <label>${textoApp("Desde","From")}<input name="desde" type="date" value="${safe(alcance.desde || "")}"></label>
         <label>${textoApp("Hasta","To")}<input name="hasta" type="date" value="${safe(alcance.hasta || "")}"></label>
       </div>
-      <div class="hist-filtro-atajos">
-        <button type="button" data-hist-mes="0">${textoApp("Este mes","This month")}</button>
-        <button type="button" data-hist-mes="-1">${textoApp("Mes anterior","Last month")}</button>
+      <div class="acciones-vidrio">
+        ${botonVidrioCalendario(textoApp("Este mes","This month"), "secundario", 'type="button" data-hist-mes="0"')}
+        ${botonVidrioCalendario(textoApp("Mes anterior","Last month"), "secundario", 'type="button" data-hist-mes="-1"')}
       </div>
       <p data-error-filtro-hist class="cuenta-nueva-error" role="alert" hidden></p>
-      <button type="submit" class="cuenta-nueva-guardar">${textoApp("Aplicar filtros","Apply filters")}</button>
-      ${estadoHistorial.alcance ? `<button type="button" class="hist-filtro-limpiar" data-limpiar-filtro-hist>${textoApp("Quitar filtros","Clear filters")}</button>` : ""}
-    </form>`, true);
+      <div class="acciones-vidrio">
+        ${estadoHistorial.alcance ? botonVidrioCalendario(textoApp("Quitar filtros","Clear filters"), "secundario", 'type="button" data-limpiar-filtro-hist') : ""}
+        ${botonVidrioCalendario(textoApp("Aplicar filtros","Apply filters"), "principal", 'type="submit"')}
+      </div>
+    </form>`, true, true);
   if (!ventana) return;
   ventana.classList.add("cuenta-nueva","hist-filtros-dialogo");
   const form = ventana.querySelector("form");
@@ -8686,12 +8653,12 @@ function abrirMetaPagoTarjeta(indice) {
           </div>
         </details>` : ""}
         <p class="cuenta-nueva-error" role="alert" hidden></p>
-        <div class="credito-meta-acciones">
-          ${meta ? `<button type="button" class="credito-meta-quitar">
+        <div class="acciones-vidrio">
+          ${meta ? `<button type="button" class="credito-meta-quitar vidrio-secundario vidrio-peligro">
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>
             <span>${t("Quitar meta","Remove goal")}</span>
           </button>` : ""}
-          <button type="submit" class="credito-meta-guardar">
+          <button type="submit" class="credito-meta-guardar vidrio-principal">
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
             <span>${meta ? t("Guardar cambios","Save changes") : t("Guardar meta","Save goal")}</span>
           </button>
@@ -11404,7 +11371,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.4</p>
+      <p class="ajustes-version">Balance One · 0.6.5</p>
     </section>
   `;
 }
@@ -11718,7 +11685,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.4
+        ${textoApp("Versión", "Version")} 0.6.5
       </p>
     </section>
   `;
@@ -12009,7 +11976,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.4</p>
+          <p class="note">${t("Versión", "Version")} 0.6.5</p>
         </div>`
     }
   };
@@ -14026,11 +13993,16 @@ function cerrarVentanaApariencia(ventana, despues) {
   salida.finished.then(cerrar, cerrar);
 }
 
-function crearVentanaApariencia(titulo, contenido, sinTeclado = false) {
+function botonVidrioCalendario(etiqueta, variante, atributos = 'type="button"') {
+  return `<button ${atributos} class="vidrio-${variante}">${etiqueta}</button>`;
+}
+
+function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloCalendario = false) {
   if (document.querySelector(".apariencia-ventana")) return null;
 
   const ventana = document.createElement("dialog");
   ventana.className = "apariencia-ventana";
+  if (estiloCalendario) ventana.classList.add("carrusel-credito-detalle", "calendario-dialogo");
   if (el().querySelector("[data-animar-ajustes]")) {
     ventana.classList.add("ajustes-ventana");
     ventana.addEventListener("cancel", event => {
@@ -14041,7 +14013,9 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false) {
   ventana.setAttribute("aria-labelledby", "aparienciaTitulo");
 
   ventana.innerHTML = `
-    <div class="apariencia-tirador" aria-hidden="true"></div>
+    ${estiloCalendario ? `<button type="button" class="carrusel-cerrar" data-boton-x
+      aria-label="${textoApp("Cerrar", "Close")}">×</button>` :
+      '<div class="apariencia-tirador" aria-hidden="true"></div>'}
     <h2 id="aparienciaTitulo">${safe(titulo)}</h2>
 
     <div class="apariencia-contenido">
@@ -14051,15 +14025,19 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false) {
     <p class="note" data-aviso-apariencia
       role="status" aria-live="polite" hidden></p>
 
-    <button type="button" class="apariencia-listo">
+    ${estiloCalendario ? "" : `<button type="button" class="apariencia-listo">
       ${textoApp("Listo", "Done")}
-    </button>
+    </button>`}
   `;
 
   const focoAnterior = document.activeElement;
   const overflowAnterior = document.body.style.overflow;
 
-  ventana.querySelector(".apariencia-listo").onclick = () => cerrarVentanaApariencia(ventana);
+  const cerrar = ventana.querySelector(estiloCalendario ? "[data-boton-x]" : ".apariencia-listo");
+  cerrar.onclick = () => {
+    if (estiloCalendario) animarBotonX(cerrar, () => cerrarVentanaApariencia(ventana));
+    else cerrarVentanaApariencia(ventana);
+  };
 
   ventana.addEventListener("close", () => {
     document.body.style.overflow = overflowAnterior;
@@ -14371,13 +14349,13 @@ function aplicarColorPrincipal(color) {
       border-color: ${color} !important;
     }
 
-    .mov-guardar,
+    .mov-guardar:not(.vidrio-principal),
     #movVentana .mov-guardar,
     .tarjetas-pantalla .primary,
     #formAuto .primary,
     .vehiculo-panel .payment .primary,
     .banco-dialogo .primary,
-    .apariencia-ventana:not(.apariencia-ventana--suscripciones) .apariencia-listo {
+    .apariencia-ventana .apariencia-listo {
       background: ${color} !important;
       color: #fff !important;
     }
@@ -15362,7 +15340,7 @@ function abrirDiaCalendario(fecha) {
   }).join("");
 
   const ventana = document.createElement("dialog");
-  ventana.className = "cal-dia-ventana";
+  ventana.className = "carrusel-credito-detalle cal-dia-ventana";
   ventana.setAttribute("aria-labelledby", "calTituloDia");
 
   ventana.innerHTML = `
@@ -15431,13 +15409,9 @@ function abrirDiaCalendario(fecha) {
           )}</p>
         `}
 
-        <button type="button" data-listo-dia
-          style="width:100%;margin-top:16px;padding:14px;
-          border:0;border-radius:999px;
-          background:var(--balanceone-color,#ff7900);
-          color:#fff;font:inherit">
-          ${textoApp("Listo", "Done")}
-        </button>
+        <div class="acciones-vidrio cal-dia-pie">
+          ${botonVidrioCalendario(textoApp("Listo", "Done"), "secundario", 'type="button" data-listo-dia')}
+        </div>
       </div>
     </div>
   `;
@@ -15546,18 +15520,20 @@ function conectarFormularioDia(ventana, fecha) {
     "＋ Agregar movimiento",
     "＋ Add transaction"
   );
-  agregar.style.cssText = `
-    width:100%;margin-top:16px;padding:14px;
-    border:0;border-radius:999px;
-    background:var(--balanceone-color,#ff7900);
-    color:white;font:inherit;
-  `;
-  contenido.insertBefore(agregar, listo);
+  agregar.className = "vidrio-principal";
+  listo.after(agregar);
+
+  const guardar = formulario.querySelector(".mov-guardar");
+  const accionesFormulario = document.createElement("div");
+  accionesFormulario.className = "acciones-vidrio";
+  guardar.before(accionesFormulario);
+  guardar.classList.add("vidrio-principal");
+  accionesFormulario.appendChild(guardar);
 
   agregar.onclick = () => {
     agregar.hidden = true;
     formulario.style.display = "block";
-    contenido.insertBefore(formulario, listo);
+    contenido.insertBefore(formulario, listo.parentElement);
 
     const campoFecha = formulario.querySelector('[name="fecha"]');
     campoFecha.value = fecha;
@@ -15591,6 +15567,8 @@ function conectarFormularioDia(ventana, fecha) {
   ventana.addEventListener("close", () => {
     form.removeEventListener("submit", comprobarGuardado, true);
     formulario.style.display = "none";
+    guardar.classList.remove("vidrio-principal");
+    accionesFormulario.replaceWith(guardar);
     if (posicionOriginal.isConnected) {
       posicionOriginal.replaceWith(formulario);
     }
@@ -15617,7 +15595,7 @@ function conectarAccionesDia(ventana, fecha, registros) {
     const ident = registro.id;
     const acciones = document.createElement("div");
 
-    acciones.className = "cal-dia-transaccion-acciones";
+    acciones.className = "cal-dia-transaccion-acciones acciones-vidrio";
     acciones.hidden = true;
     const mostrarAcciones = fila.querySelector("[data-acciones-dia-toggle]");
     if (mostrarAcciones) {
@@ -15627,21 +15605,9 @@ function conectarAccionesDia(ventana, fecha, registros) {
       };
     }
 
-    function crearBoton(es, en, color) {
-      const boton = document.createElement("button");
-      boton.type = "button";
-      boton.textContent = textoApp(es, en);
-      boton.style.cssText = `
-        flex:1;padding:10px;border:0;border-radius:999px;
-        background:rgba(130,140,155,.12);
-        color:${color};font:inherit;
-      `;
-      acciones.appendChild(boton);
-      return boton;
-    }
-
-    const editarBoton = crearBoton("Editar", "Edit", "inherit");
-    const borrarBoton = crearBoton("Eliminar", "Delete", "#d44d56");
+    acciones.innerHTML = botonVidrioCalendario(textoApp("Eliminar", "Delete"), "secundario vidrio-peligro")
+      + botonVidrioCalendario(textoApp("Editar", "Edit"), "principal");
+    const [borrarBoton, editarBoton] = acciones.querySelectorAll("button");
 
     borrarBoton.onclick = () => {
       if (!findItem(origen, ident)) return;
@@ -15662,7 +15628,14 @@ function conectarAccionesDia(ventana, fecha, registros) {
       acciones.hidden = true;
 
       const form = caja.querySelector("form");
-      const cancelar = form.querySelector('[type="button"]');
+      const cancelar = form.querySelector('[type="button"][onclick="cancelarEdicion()"]');
+      const guardar = form.querySelector(".primary");
+      const pie = document.createElement("div");
+      pie.className = "acciones-vidrio";
+      cancelar.className = "vidrio-secundario";
+      guardar.className = "vidrio-principal";
+      pie.append(cancelar, guardar);
+      form.appendChild(pie);
       cancelar.removeAttribute("onclick");
       cancelar.onclick = () => {
         caja.remove();
@@ -15670,14 +15643,14 @@ function conectarAccionesDia(ventana, fecha, registros) {
       };
 
       form.removeAttribute("onsubmit");
-      form.onsubmit = event => {
+      form.onsubmit = async event => {
         event.preventDefault();
         const anterior = JSON.stringify(findItem(origen, ident));
 
-        guardarEdicion(event, origen, ident);
+        await guardarEdicion(event, origen, ident);
 
         const posterior = JSON.stringify(findItem(origen, ident));
-        if (anterior !== posterior) {
+        if (ventana.open && anterior !== posterior) {
           actualizarDia();
         }
       };
@@ -15970,7 +15943,7 @@ function prepararFacturaServicio(datos, identificador, fecha, importe) {
 function abrirFacturaServicio(identificador, fecha) {
   const evento = suscripcionesDelMes(fecha.slice(0,7)).find(s => String(s.id) === String(identificador) && s.fecha === fecha && s.categoria === "servicios");
   if (!evento) return;
-  const ventana = crearVentanaApariencia(textoApp("Factura del mes", "Monthly bill"), `<form class="cuenta-nueva-form"><strong>${safe(evento.nombre)}</strong><p class="note">${safe(fecha)} · ${textoApp("Este importe solo cambia esta factura. Guardarlo no registra un gasto.", "This amount only changes this bill. Saving does not record an expense.")}</p><label>${textoImporte("Importe de esta factura", "This bill's amount")}<input name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required value="${validAmount(evento.monto) ? Number(evento.monto).toFixed(2) : ""}"></label><button type="submit" class="cuenta-nueva-guardar">${textoApp("Guardar importe", "Save amount")}</button><button type="button" data-pagar class="cuenta-nueva-guardar">${textoApp("Registrar pago", "Record payment")}</button></form>`, true);
+  const ventana = crearVentanaApariencia(textoApp("Factura del mes", "Monthly bill"), `<form class="cuenta-nueva-form"><strong>${safe(evento.nombre)}</strong><p class="note">${safe(fecha)} · ${textoApp("Este importe solo cambia esta factura. Guardarlo no registra un gasto.", "This amount only changes this bill. Saving does not record an expense.")}</p><label>${textoImporte("Importe de esta factura", "This bill's amount")}<input name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required value="${validAmount(evento.monto) ? Number(evento.monto).toFixed(2) : ""}"></label><div class="acciones-vidrio">${botonVidrioCalendario(textoApp("Guardar importe", "Save amount"), "secundario", 'type="submit"')}${botonVidrioCalendario(textoApp("Registrar pago", "Record payment"), "principal", 'type="button" data-pagar')}</div></form>`, true, true);
   if (!ventana) return;
   ventana.classList.add("cuenta-nueva");
   const form = ventana.querySelector("form");
@@ -15997,7 +15970,7 @@ function registrarCobroProgramado(identificador, fecha) {
     <p><strong>${safe(registro.nombre)}</strong> · ${safe(fecha)}</p>
     <label>${textoApp("Pagar con", "Pay with")}<select name="origen" required>${opcionesCuentasPago()}</select></label>
     <label>${textoImporte("Importe", "Amount")}<input name="monto" type="number" min="0.01" step="0.01" value="${validAmount(suscripcionesDelMes(fecha.slice(0,7)).find(s=>String(s.id)===String(identificador) && s.fecha===fecha)?.monto) ? Number(suscripcionesDelMes(fecha.slice(0,7)).find(s=>String(s.id)===String(identificador) && s.fecha===fecha).monto).toFixed(2) : ""}" required></label>
-    <button type="submit" class="cuenta-nueva-guardar">${textoApp("Guardar gasto", "Save expense")}</button></form>`,true);
+    <div class="acciones-vidrio">${botonVidrioCalendario(textoApp("Guardar gasto", "Save expense"), "principal", 'type="submit"')}</div></form>`,true,true);
   if (!ventana) return;
   ventana.classList.add("cuenta-nueva");
   const form=ventana.querySelector("form");
@@ -16065,25 +16038,22 @@ function mostrarGestionSuscripcionesCalendario() {
             ${cuotas[indice] ? `<small style="display:block;font-size:.72rem">${cuotas[indice].completada
               ? textoApp("Completada", "Completed") + " · " : ""}${textoApp("Total pagado", "Total paid")} <strong>${money(cuotas[indice].total)}</strong></small>` : ""}
           </span>
-          <button type="button" aria-label="${textoApp("Editar", "Edit")} ${safe(registro.nombre)}"
-            onclick="abrirFormularioSuscripcionCalendario(${indice})"
-            style="border:0;background:#fff;color:#e98530;padding:8px 10px;border-radius:999px;font:inherit;font-size:.72rem">
-            ${textoApp("Editar", "Edit")}
-          </button>
+          <div class="acciones-vidrio calendario-suscripcion-editar">
+            ${botonVidrioCalendario(textoApp("Editar", "Edit"), "secundario",
+              `type="button" aria-label="${textoApp("Editar", "Edit")} ${safe(registro.nombre)}"
+              onclick="abrirFormularioSuscripcionCalendario(${indice})"`)}
+          </div>
           <button type="button" data-boton-x aria-label="${textoApp("Eliminar", "Delete")} ${safe(registro.nombre)}"
             onclick="animarBotonX(this, () => eliminarSuscripcionCalendario(${indice}))">×</button>
         </div>
       `).join("") || `<p class="note">${textoApp("Todavía no hay suscripciones registradas.", "No subscriptions added yet.")}</p>`}
-      <button type="button" class="primary"
-        style="border-radius:999px;background:var(--balanceone-color,#ff7900)"
-        onclick="abrirFormularioSuscripcionCalendario()">
-        + ${textoApp("Agregar suscripción", "Add subscription")}
-      </button>
+      <div class="acciones-vidrio">${botonVidrioCalendario("+ " + textoApp("Agregar suscripción", "Add subscription"),
+        "principal", 'type="button" onclick="abrirFormularioSuscripcionCalendario()"')}</div>
       <p class="note" style="margin:0">${textoApp(
         "Los cobros son recordatorios: no descuentan dinero de tus cuentas automáticamente.",
         "Scheduled charges are reminders; they do not deduct money from your accounts automatically."
       )}</p>
-    </div>`, true
+    </div>`, true, true
   );
 }
 
@@ -16144,11 +16114,12 @@ function abrirFormularioSuscripcionCalendario(indice = null) {
       )}</p>
       ${campo("inicio", textoApp("Primer cobro", "First charge"), "date", actual.inicio || today(), "required")}
       ${camposFinalSuscripcion(actual.fin || "")}
-      ${registro && !actual.canceladaEn ? `<button type="button" onclick="cancelarSuscripcionRegistrada(${safe(JSON.stringify(String(actual.id)))})" class="suscripcion-cancelar">${textoApp("Cancelar suscripción", "Cancel subscription")}</button>` : ""}
-      <button type="submit" class="primary suscripcion-guardar">
-        ${textoApp("Guardar suscripción", "Save subscription")}
-      </button>
-    </form>`, true
+      <div class="acciones-vidrio">
+        ${registro && !actual.canceladaEn ? botonVidrioCalendario(textoApp("Cancelar suscripción", "Cancel subscription"),
+          "secundario vidrio-peligro", `type="button" onclick="cancelarSuscripcionRegistrada(${safe(JSON.stringify(String(actual.id)))})"`) : ""}
+        ${botonVidrioCalendario(textoApp("Guardar suscripción", "Save subscription"), "principal", 'type="submit"')}
+      </div>
+    </form>`, true, true
   );
   if (!ventana) return;
   ventana.classList.add("apariencia-ventana--suscripciones");
@@ -16486,13 +16457,11 @@ function abrirPagoPrestamo(indice, fechaCuota = null) {
         <input id="pagoPrestamoFecha" name="fecha"
           type="date" value="${today()}" required>
 
-        <button type="submit" class="primary"
-          style="background:var(--balanceone-color,#ff7900)">
-          ${textoApp("Guardar pago", "Save payment")}
-        </button>
+        ${fechaCuota ? `<div class="acciones-vidrio">${botonVidrioCalendario(textoApp("Guardar pago", "Save payment"), "principal", 'type="submit"')}</div>` :
+          `<button type="submit" class="primary" style="background:var(--balanceone-color,#ff7900)">${textoApp("Guardar pago", "Save payment")}</button>`}
       </form>
     `,
-    true
+    true, Boolean(fechaCuota)
   );
 
   if (!ventana) return;
@@ -17509,7 +17478,7 @@ function simplificarPagoPrestamo(form) {
   detalles.appendChild(titulo);
 
   const guardar = form.querySelector('[type="submit"]');
-  form.insertBefore(detalles, guardar);
+  form.insertBefore(detalles, guardar.closest(".acciones-vidrio") || guardar);
 
   ["intereses", "fecha"].forEach(nombre => {
     const campo = form.elements[nombre];
@@ -17531,6 +17500,7 @@ function simplificarPagoPrestamo(form) {
   const ventana = form.closest("dialog");
   const cerrar = ventana.querySelector(".apariencia-listo");
 
+  if (!cerrar) return;
   cerrar.textContent = textoApp("Cancelar", "Cancel");
   cerrar.style.cssText +=
     ";background:transparent;color:inherit;padding:8px;margin-top:8px";
