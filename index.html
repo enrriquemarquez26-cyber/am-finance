@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.10</title>
+<title>Balance One 0.6.11</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4282,38 +4282,73 @@ html.tema-oscuro .cal-dia-resumen-gastos {color:#ff818c}
 .calendario-dialogo .calendario-suscripcion-editar {flex:none}
 
 .carrusel-credito-detalle.asistente-voz-dialogo {
-  box-sizing:border-box;max-width:none;padding:50px clamp(16px,5vw,26px) 22px;
-  box-shadow:none;transform:none
+  box-sizing:border-box;max-width:none;padding:0;
+  box-shadow:none;transform:none;background:#09091d;
 }
 .asistente-voz-dialogo.carrusel-credito-detalle::backdrop {
   backdrop-filter:none;-webkit-backdrop-filter:none
 }
-.asistente-voz-dialogo h2 {margin:0 0 16px;text-align:center}
+.asistente-voz-dialogo h2 {
+  position:absolute;z-index:2;inset:18px 62px auto;margin:0;
+  text-align:center;color:white;font-size:clamp(1.05rem,4vw,1.3rem);
+}
+.asistente-voz-dialogo .carrusel-cerrar {
+  z-index:3;color:white;background:#ffffff24;
+}
+.asistente-voz-dialogo .asistente-voz-form {gap:0}
+.asistente-voz-cabecera {
+  position:relative;isolation:isolate;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  min-height:clamp(188px,53vw,235px);padding:52px 16px 27px;
+  box-sizing:border-box;color:white;text-align:center;
+  background:radial-gradient(ellipse at 5% 49%,#632306,transparent 50%),
+    radial-gradient(ellipse at 46% 58%,#400a62,transparent 60%),
+    radial-gradient(ellipse at 100% 51%,#043851,transparent 55%),#09091d;
+}
+.asistente-voz-ondas {
+  position:absolute;inset:0;z-index:-1;width:100%;height:100%;
+  opacity:.86;pointer-events:none;
+}
+.asistente-voz-onda {transform-origin:center}
 .asistente-voz-orbe {
-  position:relative;isolation:isolate;display:grid;place-items:center;margin:0 auto;
-  width:86px;height:86px;padding:0;border:1px solid #bd4b05;border-radius:50%;
-  background:radial-gradient(circle at 35% 22%,#ffb770,#e87123 47%,#a83f0a 100%);
-  color:white;box-shadow:0 0 0 7px #e9772824;cursor:pointer
+  display:grid;place-items:center;width:70px;height:64px;margin:0;padding:0;
+  border:0;border-radius:999px;background:transparent;color:white;cursor:pointer;
+  filter:drop-shadow(0 2px 7px #13041b);
 }
-.asistente-voz-orbe svg {width:31px;height:31px}
-.asistente-voz-orbe:disabled {opacity:.5;cursor:default}
-.asistente-voz-orbe:focus-visible {outline:2px solid currentColor;outline-offset:5px}
-.asistente-voz-dialogo [data-estado-voz] {
-  text-align:center;min-height:1.4em;margin:0;color:inherit;
-}
-.asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-orbe {
-  box-shadow:0 0 0 7px #e9772845;
-}
+.asistente-voz-orbe svg {width:54px;height:54px}
+.asistente-voz-orbe:disabled {opacity:.55;cursor:default}
+.asistente-voz-orbe:focus-visible {outline:2px solid white;outline-offset:3px}
+.asistente-voz-indicador {margin:0;font-size:.83rem;font-weight:700;text-shadow:0 1px 6px #080613}
+.asistente-voz-puntos {display:flex;gap:5px;height:8px;visibility:hidden}
+.asistente-voz-puntos i {width:8px;height:8px;border-radius:50%;background:#ff914c}
+.asistente-voz-puntos i:nth-child(2) {background:#ffb3b1;animation-delay:-.18s}
+.asistente-voz-puntos i:nth-child(3) {background:#ffd0a9;animation-delay:-.36s}
+.asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-puntos {visibility:visible}
 @media(prefers-reduced-motion:no-preference) {
-  .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-orbe::after {
-    content:"";position:absolute;inset:-7px;border:2px solid #e97728;
-    border-radius:50%;pointer-events:none;animation:asistente-voz-pulso 1.35s ease-out infinite;
+  .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-onda {
+    animation:asistente-voz-oleaje 2.8s ease-in-out infinite alternate;
+  }
+  .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-onda:nth-of-type(2) {animation-delay:-1.3s}
+  .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-onda:nth-of-type(3) {animation-delay:-2s}
+  .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-puntos i {
+    animation:asistente-voz-latido .9s ease-in-out infinite alternate;
   }
 }
-@keyframes asistente-voz-pulso {
-  from {transform:scale(1);opacity:.7}
-  to {transform:scale(1.25);opacity:0}
+@keyframes asistente-voz-oleaje {
+  from {transform:translateY(-10px) scale(1.06,.92);opacity:.7}
+  to {transform:translateY(10px) scale(1.08,1.18);opacity:1}
 }
+@keyframes asistente-voz-latido {
+  from {transform:scale(.72);opacity:.55}
+  to {transform:scale(1);opacity:1}
+}
+.asistente-voz-cuerpo {
+  z-index:1;display:grid;gap:14px;margin-top:-14px;padding:18px clamp(16px,5vw,26px) 22px;
+  border-radius:24px 24px 0 0;background:#fff;color:#17212e;
+}
+html.tema-oscuro .asistente-voz-cuerpo {background:#202630;color:#f2f4f6}
+.asistente-voz-dialogo [data-estado-voz] {text-align:center;margin:0;color:inherit}
+.asistente-voz-dialogo [data-estado-voz]:empty {display:none}
 .asistente-voz-ejemplos {display:grid;gap:7px}
 .asistente-voz-ejemplos h3 {margin:0;font-size:.8rem}
 .asistente-voz-ejemplos button {
@@ -4336,7 +4371,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.10</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.11</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4922,8 +4957,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.10",
-      "Smart control of your finances · 0.6.10"
+      "Control inteligente de tus finanzas · 0.6.11",
+      "Smart control of your finances · 0.6.11"
     );
   }
 }
@@ -11439,7 +11474,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.10</p>
+      <p class="ajustes-version">Balance One · 0.6.11</p>
     </section>
   `;
 }
@@ -11753,7 +11788,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.10
+        ${textoApp("Versión", "Version")} 0.6.11
       </p>
     </section>
   `;
@@ -12044,7 +12079,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.10</p>
+          <p class="note">${t("Versión", "Version")} 0.6.11</p>
         </div>`
     }
   };
@@ -13287,12 +13322,50 @@ function abrirAsistenteVoz() {
   ];
   const ventana = crearVentanaApariencia(t("Asistente de voz", "Voice assistant"), `
     <form class="cuenta-nueva-form asistente-voz-form">
-      <button type="button" class="asistente-voz-orbe" data-escuchar aria-label="${t("Escuchar", "Listen")}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4m-3 0h6"/>
+      <div class="asistente-voz-cabecera">
+        <svg class="asistente-voz-ondas" viewBox="0 0 600 230" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="gradienteOndasVoz">
+              <stop stop-color="#ffb126"/><stop offset=".2" stop-color="#ff4b30"/>
+              <stop offset=".41" stop-color="#ff39d1"/><stop offset=".63" stop-color="#8e39ff"/>
+              <stop offset=".82" stop-color="#3067ff"/><stop offset="1" stop-color="#26e9ff"/>
+            </linearGradient>
+            <filter id="brilloOndasVoz" x="-15%" y="-50%" width="130%" height="200%">
+              <feGaussianBlur stdDeviation="8"/>
+            </filter>
+          </defs>
+          <g class="asistente-voz-onda" fill="none" stroke="url(#gradienteOndasVoz)">
+            <path d="M-40 118C48 8 93 44 166 117S278 171 351 113 425 21 498 81 575 142 640 61" stroke-width="28" opacity=".52" filter="url(#brilloOndasVoz)"/>
+            <path d="M-40 118C48 8 93 44 166 117S278 171 351 113 425 21 498 81 575 142 640 61" stroke-width="13" opacity=".33"/>
+            <path d="M-40 118C48 8 93 44 166 117S278 171 351 113 425 21 498 81 575 142 640 61" stroke-width="3.5" opacity=".94"/>
+            <path d="M-40 118C48 8 93 44 166 117S278 171 351 113 425 21 498 81 575 142 640 61" transform="translate(0 6)" stroke-width="1.25" opacity=".57"/>
+            <path d="M-40 118C48 8 93 44 166 117S278 171 351 113 425 21 498 81 575 142 640 61" transform="translate(0 -6)" stroke-width="1.25" opacity=".57"/>
+          </g>
+          <g class="asistente-voz-onda" fill="none" stroke="url(#gradienteOndasVoz)">
+            <path d="M-40 75C53 92 82 186 169 139S269 42 346 90 449 192 520 121 586 83 640 104" stroke-width="28" opacity=".52" filter="url(#brilloOndasVoz)"/>
+            <path d="M-40 75C53 92 82 186 169 139S269 42 346 90 449 192 520 121 586 83 640 104" stroke-width="13" opacity=".33"/>
+            <path d="M-40 75C53 92 82 186 169 139S269 42 346 90 449 192 520 121 586 83 640 104" stroke-width="3.5" opacity=".94"/>
+            <path d="M-40 75C53 92 82 186 169 139S269 42 346 90 449 192 520 121 586 83 640 104" transform="translate(0 6)" stroke-width="1.25" opacity=".57"/>
+            <path d="M-40 75C53 92 82 186 169 139S269 42 346 90 449 192 520 121 586 83 640 104" transform="translate(0 -6)" stroke-width="1.25" opacity=".57"/>
+          </g>
+          <g class="asistente-voz-onda" fill="none" stroke="url(#gradienteOndasVoz)">
+            <path d="M-40 159C45 196 104 102 173 101S271 149 344 137 451 53 527 82 585 172 640 140" stroke-width="28" opacity=".52" filter="url(#brilloOndasVoz)"/>
+            <path d="M-40 159C45 196 104 102 173 101S271 149 344 137 451 53 527 82 585 172 640 140" stroke-width="13" opacity=".33"/>
+            <path d="M-40 159C45 196 104 102 173 101S271 149 344 137 451 53 527 82 585 172 640 140" stroke-width="3.5" opacity=".94"/>
+            <path d="M-40 159C45 196 104 102 173 101S271 149 344 137 451 53 527 82 585 172 640 140" transform="translate(0 6)" stroke-width="1.25" opacity=".57"/>
+            <path d="M-40 159C45 196 104 102 173 101S271 149 344 137 451 53 527 82 585 172 640 140" transform="translate(0 -6)" stroke-width="1.25" opacity=".57"/>
+          </g>
         </svg>
-      </button>
+        <button type="button" class="asistente-voz-orbe" data-escuchar aria-label="${t("Escuchar", "Listen")}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4m-3 0h6"/>
+          </svg>
+        </button>
+        <p class="asistente-voz-indicador" data-indicador-voz role="status"></p>
+        <span class="asistente-voz-puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+      <div class="asistente-voz-cuerpo">
       <p class="note" data-estado-voz role="status" aria-live="polite"></p>
       <div class="asistente-voz-opciones" data-opciones-saldo-voz hidden></div>
       <label>${t("Tu mensaje", "Your message")}
@@ -13311,12 +13384,14 @@ function abrirAsistenteVoz() {
         <label>${t("Elige una voz", "Choose a voice")}<select></select></label>
         <button type="button" class="cuenta-nueva-guardar" data-probar-voz>${t("Probar voz", "Preview voice")}</button>
       </details>
+      </div>
     </form>`, true, "asistente-voz-dialogo");
   if (!ventana) return;
 
   const form = ventana.querySelector("form");
   const entrada = form.elements.frase;
   const estado = form.querySelector("[data-estado-voz]");
+  const indicador = form.querySelector("[data-indicador-voz]");
   const opcionesSaldo = form.querySelector("[data-opciones-saldo-voz]");
   const boton = form.querySelector("[data-escuchar]");
   const enviar = form.querySelector("[data-enviar-voz]");
@@ -13326,8 +13401,15 @@ function abrirAsistenteVoz() {
   const alternativo = t("Puedes escribir o usar el dictado del teclado.", "You can type or use keyboard dictation.");
   const listo = t("Toca el micrófono para hablar.", "Tap the microphone to speak.");
   const revisar = t("Revisa el mensaje y toca Continuar.", "Review the message and tap Continue.");
+  const estadosMicrofono = {
+    listo: Reconocimiento ? listo : t("Usa el teclado", "Use the keyboard"),
+    iniciando: t("Activando micrófono…", "Starting microphone…"),
+    escuchando: t("Escuchando…", "Listening…"),
+    cerrando: t("Procesando…", "Processing…")
+  };
   function actualizarMicrofono(fase = "listo") {
     ventana.dataset.vozEstado = fase;
+    indicador.textContent = estadosMicrofono[fase];
     boton.disabled = !Reconocimiento || fase === "cerrando";
     boton.setAttribute("aria-label", fase === "listo" ? t("Escuchar", "Listen") : t("Detener escucha", "Stop listening"));
   }
@@ -13360,12 +13442,12 @@ function abrirAsistenteVoz() {
     if (reconocimiento) {
       if (ventana.dataset.vozEstado === "escuchando") {
         actualizarMicrofono("cerrando");
-        estado.textContent = t("Procesando…", "Processing…");
+        if (estado.textContent !== revisar) estado.textContent = "";
         try { reconocimiento.stop(); }
-        catch { terminar(); estado.textContent = listo; }
+        catch { terminar(); estado.textContent = ""; }
       } else {
         terminar();
-        estado.textContent = listo;
+        estado.textContent = "";
       }
       return;
     }
@@ -13378,7 +13460,6 @@ function abrirAsistenteVoz() {
       actual.onstart = () => {
         if (reconocimiento !== actual || !ventana.open) return;
         actualizarMicrofono("escuchando");
-        estado.textContent = t("Escuchando…", "Listening…");
         sonido.sonar();
       };
       actual.onresult = evento => {
@@ -13396,10 +13477,10 @@ function abrirAsistenteVoz() {
         if (reconocimiento !== actual) return;
         reconocimiento = null;
         actualizarMicrofono();
-        if (estado.textContent !== revisar) estado.textContent = listo;
+        if (estado.textContent !== revisar) estado.textContent = "";
       };
       actualizarMicrofono("iniciando");
-      estado.textContent = t("Activando micrófono…", "Starting microphone…");
+      estado.textContent = "";
       actual.start();
     } catch {
       terminar();
