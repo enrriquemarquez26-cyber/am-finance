@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.6</title>
+<title>Balance One 0.6.7</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3452,9 +3452,19 @@ html.tema-oscuro .inicio-transacciones .inicio-categorias-mes {color:#c3c9d4}
 .subs-ayuda {font-size:.64rem;line-height:1.5;color:#84909d;margin:10px 0 0}
 .subs-form .subs-guardar {width:100%;min-height:47px;margin:2px 0 0;border:0;border-radius:999px;background:var(--balanceone-color,#ff7900)!important;color:white!important;font:inherit;font-size:.85rem;font-weight:650}
 .subs-aviso {margin:0;text-align:center}
-.subs-contador {margin-left:auto;padding:5px 9px;border-radius:999px;background:rgba(130,140,155,.09);font-size:.64rem;color:#84909d}
 .subs-registros {display:grid;gap:10px}
-.subs-registro {border-radius:23px;padding:13px;background:rgba(130,140,155,.055);border:1px solid rgba(130,140,155,.10)}
+.subs-tarjeta {
+  box-sizing:border-box;min-width:0;padding:14px;border-radius:32px;
+  background:rgba(130,140,155,.06);border:1px solid rgba(130,140,155,.11);
+}
+.subs-contador {
+  display:inline-grid;place-items:center;flex:none;min-width:24px;min-height:24px;
+  padding:3px 8px;box-sizing:border-box;margin-inline-start:auto;border-radius:999px;
+  background:#c6283d;color:#fff;font-size:.66rem;font-weight:750;
+  line-height:1.2;font-variant-numeric:tabular-nums;
+}
+.subs-gestion-fila {display:flex;align-items:center;gap:9px}
+@media(max-width:359px) {.subs-gestion-fila {gap:5px}}
 .subs-registro-superior {display:flex;align-items:center;gap:9px}
 .subs-logo {position:relative;display:grid;place-items:center;flex:0 0 33px;height:33px;border-radius:50%;background:rgba(130,140,155,.1)}
 .subs-identidad {flex:1;min-width:0}
@@ -3469,17 +3479,15 @@ html.tema-oscuro .inicio-transacciones .inicio-categorias-mes {color:#c3c9d4}
 .subs-acciones .subs-eliminar {color:#cf5963;margin-left:auto}
 .subs-vacio {padding:16px 5px;text-align:center}
 .subs-vacio strong {font-size:.83rem}.subs-vacio p {color:#84909d;font-size:.72rem;line-height:1.5}
-html.tema-oscuro .subs-pantalla :is(.subs-ayuda,.subs-detalle,.subs-estado,.subs-contador,.subs-identidad small,.subs-cabecera p,.subs-vacio p) {color:#aeb7c5}
+html.tema-oscuro .subs-pantalla :is(.subs-ayuda,.subs-detalle,.subs-estado,.subs-identidad small,.subs-cabecera p,.subs-vacio p) {color:#aeb7c5}
 @media(max-width:359px){.subs-pantalla .card{padding:17px 13px}.subs-precios{padding:12px 9px}.subs-form input,.subs-form select{padding:10px 8px}.subs-dos-columnas{gap:7px}}
 
 /* Solo el bloque de suscripciones programadas del calendario. */
 .card.suscripciones-programadas {margin-top:16px;padding:17px 15px;border-radius:28px!important;min-width:0}
 .suscripciones-programadas .programadas-cabecera {display:flex;align-items:center;gap:9px}
 .suscripciones-programadas .programadas-cabecera h3 {margin:0;font-size:.94rem;line-height:1.25;letter-spacing:-.025em;flex:1;min-width:0}
-.suscripciones-programadas .programadas-contador {display:grid;place-items:center;min-width:24px;height:24px;border-radius:50%;font-size:.66rem;background:rgba(130,140,155,.1);color:#84909d}
 .suscripciones-programadas .programadas-nota {font-size:.66rem;line-height:1.45;color:#84909d;margin:8px 0 14px}
 .suscripciones-programadas .programadas-lista {display:grid;gap:9px}
-.suscripciones-programadas .programada-fila {padding:12px;border-radius:22px;background:rgba(130,140,155,.06);border:1px solid rgba(130,140,155,.11)}
 .suscripciones-programadas .programada-principal {display:flex;align-items:center;gap:10px;min-width:0}
 .suscripciones-programadas .programada-logo {position:relative;display:grid;place-items:center;flex:0 0 39px;height:39px;border-radius:13px;font-size:1.2rem;background:rgba(130,140,155,.08)}
 .suscripciones-programadas .programada-logo .compania-logo {border-radius:13px!important}
@@ -3489,9 +3497,9 @@ html.tema-oscuro .subs-pantalla :is(.subs-ayuda,.subs-detalle,.subs-estado,.subs
 .suscripciones-programadas .programada-importe {font-size:.93rem;max-width:42%;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .suscripciones-programadas .programada-detalle {margin-top:11px;padding-top:9px;border-top:1px solid rgba(130,140,155,.12);font-size:.63rem;line-height:1.45;color:#84909d}
 .suscripciones-programadas .programada-detalle small {display:block;font-size:.6rem;margin-top:4px}
-.suscripciones-programadas .programadas-administrar {display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:43px;margin:13px 0 0;padding:10px 13px;border:0;border-radius:17px;color:inherit;background:rgba(130,140,155,.10);font:inherit;font-size:.74rem;font-weight:600;text-align:left}
+.suscripciones-programadas .programadas-administrar {display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:50px;margin:13px 0 0;padding:12px 16px;border:0;border-radius:999px;color:inherit;background:rgba(130,140,155,.10);font:inherit;font-size:.8rem;font-weight:600;text-align:left}
 .suscripciones-programadas .programadas-administrar > span:last-child {font-size:1.15rem;color:#84909d}
-html.tema-oscuro .suscripciones-programadas :is(.programadas-nota,.programada-identidad small,.programada-detalle,.programadas-contador) {color:#aeb7c5}
+html.tema-oscuro .suscripciones-programadas :is(.programadas-nota,.programada-identidad small,.programada-detalle) {color:#aeb7c5}
 
 /* Cabecera local: no hereda el fondo ni el relleno del encabezado de la app. */
 .suscripciones-programadas .programadas-cabecera {padding:0;margin:0;border:0;background:transparent;box-shadow:none}
@@ -4238,12 +4246,6 @@ html.tema-oscuro .carrusel-credito-detalle::backdrop {background:#0008}
 .cal-dia-contenido > .suscripciones-programadas {
   margin:14px 0 18px;padding:0;border:0;background:transparent;box-shadow:none;
 }
-.cal-dia-contenido .suscripciones-programadas .programada-fila {
-  padding:14px;border-radius:32px;
-}
-.cal-dia-contenido .suscripciones-programadas .programadas-administrar {
-  min-height:50px;padding:12px 16px;border-radius:999px;font-size:.8rem;
-}
 .cal-dia-resumen {
   display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
   margin:10px 0 17px;text-align:center;
@@ -4291,7 +4293,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.6</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.7</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4877,8 +4879,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.6",
-      "Smart control of your finances · 0.6.6"
+      "Control inteligente de tus finanzas · 0.6.7",
+      "Smart control of your finances · 0.6.7"
     );
   }
 }
@@ -6784,7 +6786,7 @@ function inicioNuevo() {
 
       <div class="inicio-nuevo-resumen" data-bloque-inicio="pagos">
         <div class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--menta">
-          <div class="inicio-nuevo-label"><span class="inicio-nuevo-icono">↻</span>${textoApp("Suscripciones", "Subscriptions")}</div>
+          <div class="inicio-nuevo-label"><span class="inicio-nuevo-icono">↻</span>${textoApp("Suscripciones", "Subscriptions")}<span class="subs-contador" aria-label="${textoApp("Cobros de suscripciones este mes", "Subscription charges this month")}: ${suscripciones.length}">${suscripciones.length}</span></div>
           <strong>${money(totalSuscripciones)}</strong>
           <small>${textoApp("Programadas este mes", "Scheduled this month")}</small>
           <button type="button" class="inicio-nuevo-enlace" onclick="go('suscripciones')">
@@ -10186,7 +10188,7 @@ function suscripciones() {
       <div class="card subs-listado">
         <div class="subs-titulo"><h3>${textoApp("Mis suscripciones", "My subscriptions")}</h3><span class="subs-contador">${activas} ${textoApp("activas", "active")}</span></div>
         <div class="subs-registros">
-          ${lista.map((registro,i) => `<article class="subs-registro">
+          ${lista.map((registro,i) => `<article class="subs-tarjeta">
             <div class="subs-registro-superior"><span class="subs-logo" aria-hidden="true">↻ ${imagenCompania(registro.nombre)}</span>
               <div class="subs-identidad"><strong>${safe(registro.nombre)}</strong><small>${registro.frecuencia === "anual" ? textoApp("Anual", "Yearly") : registro.frecuencia === "cada14dias" ? textoApp("Cada 14 días", "Every 14 days") : textoApp("Mensual", "Monthly")}</small></div>
               <strong class="subs-importe">${importeProgramado(registro)}</strong></div>
@@ -11394,7 +11396,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.6</p>
+      <p class="ajustes-version">Balance One · 0.6.7</p>
     </section>
   `;
 }
@@ -11708,7 +11710,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.6
+        ${textoApp("Versión", "Version")} 0.6.7
       </p>
     </section>
   `;
@@ -11999,7 +12001,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.6</p>
+          <p class="note">${t("Versión", "Version")} 0.6.7</p>
         </div>`
     }
   };
@@ -15999,12 +16001,12 @@ function bloqueSuscripcionesCalendario(fecha) {
   const lista = suscripcionesDelMes(mesElegido).filter(s => fecha ? s.fecha === fecha : s.categoria !== "servicios");
   if (fecha && !lista.length) return "";
   return `<section class="card suscripciones-programadas">
-    <div class="programadas-cabecera"><h3>${textoApp("Suscripciones programadas", "Scheduled subscriptions")}</h3><span class="programadas-contador">${lista.length}</span></div>
+    <div class="programadas-cabecera"><h3>${textoApp("Suscripciones programadas", "Scheduled subscriptions")}</h3><span class="subs-contador" aria-label="${textoApp("Cobros programados", "Scheduled charges")}: ${lista.length}">${lista.length}</span></div>
     <p class="programadas-nota">${textoApp("Próximos cobros · No incluidos en tus gastos.", "Scheduled charges · Not included in your expenses.")}</p>
     <div class="programadas-lista">
       ${lista.map(s => {
         const frecuencia = s.frecuencia === "anual" ? textoApp("Anual", "Yearly") : s.frecuencia === "cada14dias" ? textoApp("Cada 14 días", "Every 14 days") : textoApp("Mensual", "Monthly");
-        return `<article class="programada-fila">
+        return `<article class="subs-tarjeta">
           <div class="programada-principal"><span class="programada-logo" aria-hidden="true">↻${imagenCompania(s.nombre)}</span>
             <span class="programada-identidad"><strong>${safe(s.nombre)}</strong><small>${textoApp("Día ", "Day ")}${Number(s.fecha.slice(8,10))} · ${frecuencia}</small></span>
             <strong class="programada-importe">${importeProgramado(s)}</strong></div>
@@ -16034,10 +16036,10 @@ function mostrarGestionSuscripcionesCalendario() {
   const cuotas = lista.map(resumenCuotasProgramadas);
   crearVentanaApariencia(
     textoApp("Suscripciones y pagos fijos", "Subscriptions and fixed payments"),
-    `<div style="display:grid;gap:10px">
+    `<div class="subs-registros">
+      <span class="subs-contador" aria-label="${textoApp("Suscripciones registradas", "Registered subscriptions")}: ${lista.length}">${lista.length}</span>
       ${lista.map((registro, indice) => `
-        <div style="display:flex;align-items:center;gap:9px;padding:12px;
-          border-radius:22px;background:rgba(130,140,155,.08)">
+        <div class="subs-tarjeta subs-gestion-fila">
           <span aria-hidden="true" style="position:relative;width:32px;height:32px;
             flex:0 0 32px;display:grid;place-items:center">↻${imagenCompania(registro.nombre)}</span>
           <span style="flex:1;min-width:0;overflow-wrap:anywhere">
