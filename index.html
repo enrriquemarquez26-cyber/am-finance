@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.3</title>
+<title>Balance One 0.6.4</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3988,8 +3988,35 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   font-size:.73rem;overflow-wrap:anywhere;
 }
 .credito-meta-pago-importes small {font-size:inherit}
-.credito-meta-quitar {border-radius:999px}
-.credito-meta-quitar {width:100%;margin:0}
+.credito-meta-acciones {
+  display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;
+}
+.credito-meta-acciones button {
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  min-width:0;min-height:44px;margin:0;padding:8px 6px;
+  border:1px solid transparent;border-radius:999px;
+  font-size:clamp(.75rem,3.25vw,.9rem);font-weight:750;line-height:1.2;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+  transition:scale .15s ease,opacity .15s ease;
+}
+.credito-meta-acciones button svg {width:1.1em;height:1.1em;flex:none}
+.credito-meta-acciones button:active:not(:disabled) {scale:.97}
+.credito-meta-acciones button:focus-visible {outline:2px solid currentColor;outline-offset:2px}
+.credito-meta-acciones button:disabled {opacity:.62;cursor:default}
+.credito-meta-acciones .credito-meta-quitar {
+  color:#b1243d;border-color:#dce1e9;background:linear-gradient(165deg,#f7f8fc,#e9edf3);
+}
+.credito-meta-acciones .credito-meta-guardar {
+  color:#fff;border-color:#c45408;background:linear-gradient(180deg,#eb8c49 0%,#bf4d00 40%,#b64800 100%);
+}
+html.tema-oscuro .credito-meta-acciones .credito-meta-quitar {
+  color:#ff9bab;border-color:#454d5b;background:linear-gradient(165deg,#343b47,#242a34);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13);
+}
+@media(prefers-reduced-motion:reduce) {
+  .credito-meta-acciones button {transition:none}
+  .credito-meta-acciones button:active:not(:disabled) {scale:none}
+}
 .credito-meta-abonos > summary {list-style:none;cursor:pointer}
 .credito-meta-abonos > summary::-webkit-details-marker {display:none}
 .credito-meta-abonos[open] .credito-accion-flecha {transform:rotate(90deg)}
@@ -4276,7 +4303,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.3</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.4</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4862,8 +4889,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.3",
-      "Smart control of your finances · 0.6.3"
+      "Control inteligente de tus finanzas · 0.6.4",
+      "Smart control of your finances · 0.6.4"
     );
   }
 }
@@ -8659,8 +8686,16 @@ function abrirMetaPagoTarjeta(indice) {
           </div>
         </details>` : ""}
         <p class="cuenta-nueva-error" role="alert" hidden></p>
-        <button type="submit" class="cuenta-nueva-guardar">${t("Guardar meta","Save goal")}</button>
-        ${meta ? `<button type="button" class="secondary credito-meta-quitar">${t("Quitar meta","Remove goal")}</button>` : ""}
+        <div class="credito-meta-acciones">
+          ${meta ? `<button type="button" class="credito-meta-quitar">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>
+            <span>${t("Quitar meta","Remove goal")}</span>
+          </button>` : ""}
+          <button type="submit" class="credito-meta-guardar">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+            <span>${meta ? t("Guardar cambios","Save changes") : t("Guardar meta","Save goal")}</span>
+          </button>
+        </div>
       </form>
     </div>`;
   ventana.addEventListener("close", () => ventana.remove(), {once:true});
@@ -8700,6 +8735,17 @@ function abrirMetaPagoTarjeta(indice) {
     const pagosExcluidos = pagos.map(pago => String(pago.id)).filter(identificador => !incluidos.has(identificador));
     guardar({...meta, id:meta?.id || id(), objetivoCentavos, pagosExcluidos});
   };
+  const objetivo = form.elements.objetivo;
+  const botonGuardar = form.querySelector(".credito-meta-guardar");
+  const abonos = [...form.querySelectorAll("[name=abonoMeta]")];
+  function actualizarBotonGuardar() {
+    const objetivoCambio = objetivo.valueAsNumber !== meta?.objetivoCentavos / 100;
+    const abonosCambiaron = abonos.some(abono => abono.checked !== abono.defaultChecked);
+    botonGuardar.disabled = !objetivo.validity.valid || (Boolean(meta) && !objetivoCambio && !abonosCambiaron);
+  }
+  form.addEventListener("input", actualizarBotonGuardar);
+  form.addEventListener("change", actualizarBotonGuardar);
+  actualizarBotonGuardar();
   const quitar = form.querySelector(".credito-meta-quitar");
   if (quitar) quitar.onclick = () => {
     if (confirm(t("¿Quitar la meta de pago? Tus pagos registrados se conservarán.", "Remove the payment goal? Your recorded payments will be kept."))) guardar(null);
@@ -11358,7 +11404,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.3</p>
+      <p class="ajustes-version">Balance One · 0.6.4</p>
     </section>
   `;
 }
@@ -11672,7 +11718,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.3
+        ${textoApp("Versión", "Version")} 0.6.4
       </p>
     </section>
   `;
@@ -11963,7 +12009,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.3</p>
+          <p class="note">${t("Versión", "Version")} 0.6.4</p>
         </div>`
     }
   };
