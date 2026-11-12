@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.11</title>
+<title>Balance One 0.6.12</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4326,17 +4326,20 @@ html.tema-oscuro .cal-dia-resumen-gastos {color:#ff818c}
 .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-puntos {visibility:visible}
 @media(prefers-reduced-motion:no-preference) {
   .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-onda {
-    animation:asistente-voz-oleaje 2.8s ease-in-out infinite alternate;
+    animation:asistente-voz-oleaje var(--voz-ritmo,1.65s) ease-in-out infinite alternate;
+  }
+  .asistente-voz-dialogo[data-voz-estado="escuchando"][data-voz-hablando] {
+    --voz-ritmo:.52s;--voz-ritmo-puntos:.3s;--voz-recorrido:17px;
   }
   .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-onda:nth-of-type(2) {animation-delay:-1.3s}
   .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-onda:nth-of-type(3) {animation-delay:-2s}
   .asistente-voz-dialogo[data-voz-estado="escuchando"] .asistente-voz-puntos i {
-    animation:asistente-voz-latido .9s ease-in-out infinite alternate;
+    animation:asistente-voz-latido var(--voz-ritmo-puntos,.7s) ease-in-out infinite alternate;
   }
 }
 @keyframes asistente-voz-oleaje {
-  from {transform:translateY(-10px) scale(1.06,.92);opacity:.7}
-  to {transform:translateY(10px) scale(1.08,1.18);opacity:1}
+  from {transform:translateY(calc(-1 * var(--voz-recorrido,9px))) scale(1.06,.92);opacity:.7}
+  to {transform:translateY(var(--voz-recorrido,9px)) scale(1.08,1.18);opacity:1}
 }
 @keyframes asistente-voz-latido {
   from {transform:scale(.72);opacity:.55}
@@ -4371,7 +4374,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.11</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.12</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4957,8 +4960,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.11",
-      "Smart control of your finances · 0.6.11"
+      "Control inteligente de tus finanzas · 0.6.12",
+      "Smart control of your finances · 0.6.12"
     );
   }
 }
@@ -11474,7 +11477,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.11</p>
+      <p class="ajustes-version">Balance One · 0.6.12</p>
     </section>
   `;
 }
@@ -11788,7 +11791,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.11
+        ${textoApp("Versión", "Version")} 0.6.12
       </p>
     </section>
   `;
@@ -12079,7 +12082,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.11</p>
+          <p class="note">${t("Versión", "Version")} 0.6.12</p>
         </div>`
     }
   };
@@ -13409,6 +13412,7 @@ function abrirAsistenteVoz() {
   };
   function actualizarMicrofono(fase = "listo") {
     ventana.dataset.vozEstado = fase;
+    delete ventana.dataset.vozHablando;
     indicador.textContent = estadosMicrofono[fase];
     boton.disabled = !Reconocimiento || fase === "cerrando";
     boton.setAttribute("aria-label", fase === "listo" ? t("Escuchar", "Listen") : t("Detener escucha", "Stop listening"));
@@ -13461,6 +13465,14 @@ function abrirAsistenteVoz() {
         if (reconocimiento !== actual || !ventana.open) return;
         actualizarMicrofono("escuchando");
         sonido.sonar();
+      };
+      actual.onspeechstart = () => {
+        if (reconocimiento === actual && ventana.open && ventana.dataset.vozEstado === "escuchando") {
+          ventana.dataset.vozHablando = "";
+        }
+      };
+      actual.onspeechend = () => {
+        if (reconocimiento === actual) delete ventana.dataset.vozHablando;
       };
       actual.onresult = evento => {
         if (reconocimiento !== actual || !ventana.open) return;
