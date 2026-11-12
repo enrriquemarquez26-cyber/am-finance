@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.8</title>
+<title>Balance One 0.6.9</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4294,7 +4294,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.8</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.9</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4880,8 +4880,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.8",
-      "Smart control of your finances · 0.6.8"
+      "Control inteligente de tus finanzas · 0.6.9",
+      "Smart control of your finances · 0.6.9"
     );
   }
 }
@@ -11397,7 +11397,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.8</p>
+      <p class="ajustes-version">Balance One · 0.6.9</p>
     </section>
   `;
 }
@@ -11711,7 +11711,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.8
+        ${textoApp("Versión", "Version")} 0.6.9
       </p>
     </section>
   `;
@@ -12002,7 +12002,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.8</p>
+          <p class="note">${t("Versión", "Version")} 0.6.9</p>
         </div>`
     }
   };
@@ -12935,6 +12935,13 @@ function prepararSugerenciaGasto(form) {
 
 function comandoVozBalanceOne(frase) {
   const texto = frase.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const pregunta = texto.replace(/^[¿\s]+|[.?!\s]+$/g, "");
+  if (/^(?:cuanto(?: dinero)? tengo(?: en total)? (?:en|entre) (?:todas (?:mis|las)|mis|las) cuentas(?: bancarias)?(?: en total)?|cuanto(?: dinero)? tengo en total|(?:cual es )?(?:mi |el )?saldo total(?: de (?:mis|las) cuentas(?: bancarias)?)?|how much(?: money)? do i have(?: in total)? (?:in|across) (?:all (?:of )?)?(?:my |the )?(?:bank )?accounts(?: in total)?|how much(?: money)? do i have in total|(?:what is )?(?:my |the )?total (?:bank )?account balance)$/.test(pregunta)) {
+    return {saldoVoz:"banco", total:true};
+  }
+  if (/^(?:cuanto debo(?: en total)? (?:en|entre) (?:todas (?:mis|las)|mis|las) tarjetas(?: de credito)?(?: en total)?|(?:cual es )?(?:mi |la )?deuda total (?:de|en) (?:mis |las )?tarjetas(?: de credito)?|how much do i owe(?: in total)? (?:on|across) (?:all (?:of )?)?(?:my |the )?(?:credit )?cards(?: in total)?|(?:what is )?(?:my |the )?total (?:credit )?card debt)$/.test(pregunta)) {
+    return {saldoVoz:"credito", total:true};
+  }
   const saldo = texto.match(/^[¿\s]*(cuanto tengo|cuanto debo|how much do i have|how much do i owe)\s+(?:en|in|on)\s+(.+?)[.?!\s]*$/);
   if (saldo) {
     const grupo = /debo|owe/.test(saldo[1]) ? "credito" : "banco";
@@ -13034,6 +13041,23 @@ function opcionesSaldoVoz(comando) {
     if (!Array.isArray(registros)) throw new Error();
   } catch {
     return {mensaje:t("No pude leer las cuentas guardadas.", "I couldn't read the saved accounts.")};
+  }
+
+  if (comando.total) {
+    if (!registros.length) {
+      return {mensaje:esTarjeta ? t("No tienes tarjetas registradas.", "You have no saved cards.")
+        : t("No tienes cuentas registradas.", "You have no saved accounts.")};
+    }
+    const nombre = esTarjeta ? t("Deuda total de tus tarjetas", "Total debt across your cards")
+      : t("Saldo total de tus cuentas", "Total balance across your accounts");
+    const saldos = registros.map(registro => registro?.saldo);
+    if (saldos.some(saldo => saldo == null || String(saldo).trim() === "" || !Number.isFinite(Number(saldo)))) {
+      return {mensaje:t("No pude calcular el total porque hay un saldo sin registrar o inválido.",
+        "I couldn't calculate the total because a balance is missing or invalid.")};
+    }
+    const total = saldos.reduce((suma, saldo) => suma + Number(saldo), 0);
+    return {mensaje:Number.isFinite(total) ? nombre + ": " + money(total) + "."
+      : t("No pude calcular el total.", "I couldn't calculate the total.")};
   }
 
   const ultimos = esTarjeta ? comando.destino.match(/\b\d{4}$/)?.[0] : "";
@@ -13251,7 +13275,7 @@ function abrirAsistenteVoz() {
     opcionesSaldo.replaceChildren();
     const comando = comandoVozBalanceOne(entrada.value.trim());
     if (!comando) {
-      estado.textContent = t("Prueba «Gasté 35 en gasolina», «¿Cuánto tengo en Chase?», «¿Cuánto debo en mi tarjeta Capital One?» o «¿Qué pagos vencen esta semana?».", "Try “I spent 35 on fuel”, “How much do I have in Chase?”, “How much do I owe on my Capital One card?” or “What payments are due this week?”.");
+      estado.textContent = t("Prueba «¿Cuánto tengo en total en mis cuentas?», «¿Cuánto debo entre todas mis tarjetas?» o «Gasté 35 en gasolina».", "Try “How much do I have in all my accounts?”, “How much do I owe across all my cards?” or “I spent 35 on fuel”.");
       return;
     }
     if (comando.saldoVoz) {
