@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.15</title>
+<title>Balance One 0.6.16</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4374,7 +4374,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.15</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.16</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4960,8 +4960,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.15",
-      "Smart control of your finances · 0.6.15"
+      "Control inteligente de tus finanzas · 0.6.16",
+      "Smart control of your finances · 0.6.16"
     );
   }
 }
@@ -11477,7 +11477,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.15</p>
+      <p class="ajustes-version">Balance One · 0.6.16</p>
     </section>
   `;
 }
@@ -11791,7 +11791,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.15
+        ${textoApp("Versión", "Version")} 0.6.16
       </p>
     </section>
   `;
@@ -12082,7 +12082,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.15</p>
+          <p class="note">${t("Versión", "Version")} 0.6.16</p>
         </div>`
     }
   };
@@ -13104,6 +13104,23 @@ function categoriaPorVoz(texto, selector) {
     (claveCategoriaGasto(o.value) === clave || claveCategoriaGasto(o.textContent) === clave))?.value || "";
 }
 
+function buscarOrigenPorVoz(cuenta, selector) {
+  const buscar = claveNotaGasto(cuenta).replace(/^(?:mi |la |my )?(?:tarjeta|cuenta|card|account)(?: de)?\s+|^(?:mi|la|my)\s+/, "");
+  const ultimos = buscar.match(/\b\d{4}\b/)?.[0];
+  const nombreBuscado = buscar.replace(/\s*(?:(?:terminad[ao] en|ending in)\s+)?\b\d{4}\b$/, "").trim();
+  return [...selector.options].filter(o => {
+    if (!o.value) return false;
+    const tarjeta = o.value.startsWith("credito:") ? data.tarjetas.find(t => String(t.id) === o.value.slice(8)) : null;
+    if (ultimos && String(tarjeta?.ultimos4 ?? "") !== ultimos) return false;
+    const nombres = [o.textContent.split(" · ")[0], tarjeta?.banco, tarjeta?.modelo,
+      [tarjeta?.banco, tarjeta?.modelo].filter(Boolean).join(" ")].filter(Boolean);
+    return nombres.some(nombre => {
+      const clave = claveNotaGasto(nombre);
+      return !nombreBuscado ? Boolean(ultimos) : clave && (" " + clave + " ").includes(" " + nombreBuscado + " ");
+    });
+  });
+}
+
 function aplicarMovimientoPorVoz(comando) {
   abrirMovVentana();
   const ventana = document.getElementById("movVentana");
@@ -13119,20 +13136,7 @@ function aplicarMovimientoPorVoz(comando) {
   if (categoria) aplicarCategoriaBorrador(campos.categoria, categoria);
   actualizarSelectorCategoria();
   if (comando.cuenta) {
-    const buscar = claveNotaGasto(comando.cuenta).replace(/^(?:mi |la |my )?(?:tarjeta|cuenta|card|account)(?: de)?\s+|^(?:mi|la|my)\s+/, "");
-    const ultimos = buscar.match(/\b\d{4}\b/)?.[0];
-    const nombreBuscado = buscar.replace(/\s*(?:(?:terminad[ao] en|ending in)\s+)?\b\d{4}\b$/, "").trim();
-    const coincidencias = [...campos.cuentaId.options].filter(o => {
-      if (!o.value) return false;
-      const tarjeta = o.value.startsWith("credito:") ? data.tarjetas.find(t => String(t.id) === o.value.slice(8)) : null;
-      if (ultimos && String(tarjeta?.ultimos4 ?? "") !== ultimos) return false;
-      const nombres = [o.textContent.split(" · ")[0], tarjeta?.banco, tarjeta?.modelo,
-        [tarjeta?.banco, tarjeta?.modelo].filter(Boolean).join(" ")].filter(Boolean);
-      return nombres.some(nombre => {
-        const clave = claveNotaGasto(nombre);
-        return !nombreBuscado ? Boolean(ultimos) : clave && (" " + clave + " ").includes(" " + nombreBuscado + " ");
-      });
-    });
+    const coincidencias = buscarOrigenPorVoz(comando.cuenta, campos.cuentaId);
     if (coincidencias.length === 1) campos.cuentaId.value = coincidencias[0].value;
   }
   campos.nombre.dispatchEvent(new Event("input"));
@@ -13422,6 +13426,15 @@ function abrirAsistenteVoz() {
       <div class="acciones-vidrio">
         <button type="submit" class="vidrio-principal" data-enviar-voz disabled>${t("Continuar", "Continue")}</button>
       </div>
+      <div class="asistente-voz-opciones" data-gasto-voz hidden>
+        <label>${t("Cuenta o tarjeta del gasto", "Expense account or card")}
+          <select data-origen-gasto-voz></select>
+        </label>
+        <div class="acciones-vidrio">
+          <button type="button" class="vidrio-secundario" data-cancelar-gasto-voz>${t("Cancelar gasto", "Cancel expense")}</button>
+          <button type="button" class="vidrio-principal" data-guardar-gasto-voz>${t("Confirmar gasto", "Confirm expense")}</button>
+        </div>
+      </div>
       <section class="asistente-voz-ejemplos" aria-labelledby="ejemplosAsistenteVoz">
         <h3 id="ejemplosAsistenteVoz">${t("Prueba decir", "Try saying")}</h3>
         ${ejemplos.map((ejemplo, i) => `<button type="button" data-ejemplo-voz="${i}">${safe(ejemplo)}</button>`).join("")}
@@ -13474,6 +13487,52 @@ function abrirAsistenteVoz() {
   };
   const voz = configurarVozAsistente(ventana, terminar);
   let ultimaConsulta = null;
+  let borradorGasto = null;
+  const controlesGasto = form.querySelector("[data-gasto-voz]");
+  const origenGasto = controlesGasto.querySelector("[data-origen-gasto-voz]");
+  const guardarGasto = controlesGasto.querySelector("[data-guardar-gasto-voz]");
+
+  function informarGasto(mensaje) {
+    estado.textContent = mensaje;
+    voz.decir(mensaje);
+  }
+  function mostrarBorradorGasto() {
+    entrada.value = "";
+    actualizarEnvio();
+    guardarGasto.disabled = !origenGasto.value;
+    if (!origenGasto.value) {
+      informarGasto(t("¿Con qué cuenta o tarjeta pagaste? Puedes decir «Con Chase» o elegir el origen aquí.",
+        "Which account or card did you pay with? Say “With Chase” or select it here."));
+      return;
+    }
+    const origen = origenGasto.selectedOptions[0].textContent.split(" · ").slice(0, 2).join(" · ");
+    informarGasto(borradorGasto.nombre + " · " + money(borradorGasto.monto) + " · " + origen +
+      " · " + fechaMetaAhorro(borradorGasto.fecha) + ". " + t("¿Lo guardo?", "Should I save it?"));
+  }
+  function cancelarBorradorGasto() {
+    borradorGasto = null;
+    controlesGasto.hidden = true;
+    entrada.value = "";
+    actualizarEnvio();
+    informarGasto(t("Gasto cancelado.", "Expense cancelled."));
+  }
+  function confirmarBorradorGasto() {
+    if (!borradorGasto || !origenGasto.value) return;
+    if (!guardarMovimientoBanco(null, {...borradorGasto, ...origenPagoSeleccionado(origenGasto.value)})) {
+      informarGasto(t("No se guardó el gasto. Revisa el importe o el origen e inténtalo otra vez.",
+        "The expense was not saved. Check the amount or source and try again."));
+      return;
+    }
+    borradorGasto = null;
+    controlesGasto.hidden = true;
+    entrada.value = "";
+    actualizarEnvio();
+    render();
+    informarGasto(t("Gasto guardado.", "Expense saved."));
+  }
+  origenGasto.onchange = () => {terminar();mostrarBorradorGasto();};
+  guardarGasto.onclick = () => {terminar();confirmarBorradorGasto();};
+  controlesGasto.querySelector("[data-cancelar-gasto-voz]").onclick = () => {terminar();cancelarBorradorGasto();};
   entrada.addEventListener("input", actualizarEnvio);
   for (const ejemplo of form.querySelectorAll("[data-ejemplo-voz]")) {
     ejemplo.onclick = () => {
@@ -13554,7 +13613,38 @@ function abrirAsistenteVoz() {
     voz.detener();
     opcionesSaldo.hidden = true;
     opcionesSaldo.replaceChildren();
-    const comando = comandoVozBalanceOne(entrada.value.trim(), ultimaConsulta);
+    const frase = entrada.value.trim();
+    if (borradorGasto) {
+      const respuesta = claveNotaGasto(frase);
+      const correccion = frase.match(/^(?:cambia(?:r)? (?:el )?(?:monto|importe|cantidad) a|change (?:the )?amount to)\s+(.+?)\s*[.!?]*$/i);
+      if (/^(?:si(?: (?:guardalo|guardar|guarda))?|guardalo|guardar|confirma|confirmar|yes(?: save it)?|save(?: it)?|confirm)$/.test(respuesta)) {
+        if (origenGasto.value) confirmarBorradorGasto();
+        else mostrarBorradorGasto();
+      } else if (/^(?:no|cancela(?: el gasto)?|cancelar|cancel(?: the expense)?)$/.test(respuesta)) {
+        cancelarBorradorGasto();
+      } else if (correccion) {
+        const importe = correccion[1].trim();
+        const ajuste = /^(?:\$?\s*\d+(?:[.,]\d+)*|[a-záéíóú]+(?: y [a-záéíóú]+)?)$/i.test(importe)
+          ? comandoVozBalanceOne("Gasté " + importe) : null;
+        if (ajuste?.monto) {
+          borradorGasto.monto = ajuste.monto;
+          mostrarBorradorGasto();
+        } else informarGasto(t("Indica un importe válido, por ejemplo «Cambia el monto a 38».",
+          "Enter a valid amount, for example “Change the amount to 38.”"));
+      } else {
+        const nombre = respuesta.replace(/^(?:pague con|con|i paid with|with)\s+/, "");
+        const coincidencias = buscarOrigenPorVoz(nombre, origenGasto);
+        if (coincidencias.length === 1) {
+          origenGasto.value = coincidencias[0].value;
+          mostrarBorradorGasto();
+        } else informarGasto(coincidencias.length
+          ? t("Hay varias coincidencias. Elige la cuenta o tarjeta en la lista.", "There are several matches. Choose the account or card from the list.")
+          : t("Puedes indicar la cuenta, decir «Cambia el monto a 38» o decir «Cancela».",
+            "You can name the account, say “Change the amount to 38,” or say “Cancel.”"));
+      }
+      return;
+    }
+    const comando = comandoVozBalanceOne(frase, ultimaConsulta);
     if (comando?.faltaContexto) {
       estado.textContent = t("Primero pregunta cuánto gastaste para poder comparar el período.",
         "First ask how much you spent so I can compare the period.");
@@ -13602,6 +13692,21 @@ function abrirAsistenteVoz() {
     if ("consulta" in comando || comando.pagosSemana || comando.resumenSemana) {
       estado.textContent = responderAsistenteVoz(comando);
       voz.decir(estado.textContent.replaceAll("\n", " "));
+      return;
+    }
+    if (comando.tipo === "gasto") {
+      const selectorCategoria = document.getElementById("movVentanaCategoria");
+      const categoria = categoriaPorVoz(comando.categoria, selectorCategoria);
+      borradorGasto = {
+        id:id(), tipo:"gasto", monto:comando.monto,
+        nombre:(comando.categoria || comando.nota).slice(0,80),
+        categoria, fecha:comando.ayer ? siguienteFechaAviso(-1) : today()
+      };
+      origenGasto.innerHTML = opcionesCuentasPago();
+      const coincidencias = comando.cuenta ? buscarOrigenPorVoz(comando.cuenta, origenGasto) : [];
+      origenGasto.value = coincidencias.length === 1 ? coincidencias[0].value : "";
+      controlesGasto.hidden = false;
+      mostrarBorradorGasto();
       return;
     }
     ventana.addEventListener("close", () => aplicarMovimientoPorVoz(comando), {once:true});
