@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.19</title>
+<title>Balance One 0.6.20</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -2109,6 +2109,30 @@ html.tema-oscuro .ajustes-version {
   margin-bottom: 14px;
 }
 
+.card.ayuda-guia {padding:4px 14px;border-radius:28px}
+.ayuda-tema + .ayuda-tema {border-top:1px solid #84909d30}
+.ayuda-tema summary {
+  display:grid;grid-template-columns:36px minmax(0,1fr) 14px;align-items:center;
+  gap:9px;min-height:52px;padding:6px 0;cursor:pointer;list-style:none;font-weight:700;
+}
+.ayuda-tema summary::-webkit-details-marker {display:none}
+.ayuda-tema summary::after {
+  content:"";justify-self:center;width:6px;height:6px;
+  border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+  transform:rotate(-45deg);
+}
+.ayuda-tema[open] summary::after {transform:rotate(45deg)}
+.ayuda-tema summary .ajustes-icono {
+  display:grid;place-items:center;width:36px;height:36px;border-radius:12px;
+  color:inherit;background:#84909d20;
+}
+.ayuda-tema summary .ajustes-icono svg {width:19px;height:19px}
+.ayuda-contenido {padding:0 0 12px}
+.ayuda-contenido > .note {margin:0 0 10px}
+.card.ayuda-acerca {
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;
+  padding:14px;border-radius:22px;
+}
 .preferencias-pantalla .preferencias-tarjeta {
   margin-top:16px;padding:6px 15px 14px;border-radius:28px;
 }
@@ -4414,7 +4438,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.19</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.20</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5000,8 +5024,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.19",
-      "Smart control of your finances · 0.6.19"
+      "Control inteligente de tus finanzas · 0.6.20",
+      "Smart control of your finances · 0.6.20"
     );
   }
 }
@@ -5539,11 +5563,16 @@ function irDesdeAviso(destino) {
   cerrarPanelAvisos();
   if(["tarjetas","vehiculos","suscripciones","pagosPendientes"].includes(destino)) go(destino);
 }
-// El aviso de respaldo abre la opción que ya existe en Ajustes.
 function abrirDatosYCopiasDesdeAviso() {
   cerrarPanelAvisos();
   go("ajustes");
-  abrirAjuste("datos");
+  abrirAjuste("ayuda");
+  const copias = document.getElementById("ayudaCopias");
+  if (copias) {
+    copias.open = true;
+    copias.scrollIntoView({block:"nearest"});
+    copias.querySelector("summary").focus({preventScroll:true});
+  }
 }
 document.addEventListener("keydown", event => {
   if(event.key === "Escape") cerrarPanelAvisos();
@@ -11529,7 +11558,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.19</p>
+      <p class="ajustes-version">Balance One · 0.6.20</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -11762,10 +11791,8 @@ function ajustes() {
     ],
     [
       "datos",
-      textoApp("Datos y copias", "Data and backups"),
-      necesitaGuardarCopia()
-        ? textoApp("Conviene guardar una copia", "Time to save a backup")
-        : textoApp("Guardar, restaurar y exportar", "Save, restore and export")
+      textoApp("Apple Pay y Atajos", "Apple Pay and Shortcuts"),
+      textoApp("Importar compras", "Import purchases")
     ],
     [
       "privacidad",
@@ -11804,7 +11831,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.19
+        ${textoApp("Versión", "Version")} 0.6.20
       </p>
     </section>
   `;
@@ -11977,14 +12004,9 @@ function abrirAjuste(tipo, desdePerfil = false) {
     },
 
     datos: {
-      titulo: t("Datos y copias", "Data and backups"),
+      titulo: t("Apple Pay y Atajos", "Apple Pay and Shortcuts"),
       contenido: `
         <div class="datos-v2">
-          <p class="datos-v2-intro">${t(
-            "Gestiona tus compras, respaldos y restauraciones en un solo lugar.",
-            "Manage purchases, backups and restores in one place."
-          )}</p>
-
           <section class="datos-v2-card" aria-label="${t("Apple Pay y Atajos","Apple Pay and Shortcuts")}">
             <div class="datos-v2-cabecera">
               <span class="datos-v2-icono" aria-hidden="true">
@@ -12001,6 +12023,60 @@ function abrirAjuste(tipo, desdePerfil = false) {
             </button>
           </section>
 
+        </div>`
+    },
+
+    privacidad: {
+      titulo: t("Privacidad y seguridad", "Privacy and security"),
+      contenido: `
+        <div class="card">
+          <h3>${t("Almacenamiento de datos", "Data storage")}</h3>
+          <p class="note">${t(
+            "Tus registros se guardan en este dispositivo. La sincronización en la nube y el bloqueo de acceso todavía no están implementados.",
+            "Your records are stored on this device. Cloud sync and access locking have not been implemented yet."
+          )}</p>
+          <p class="note">${t(
+            "Guarda una copia antes de borrar los datos del navegador o cambiar de dispositivo.",
+            "Save a backup before clearing browser data or switching devices."
+          )}</p>
+        </div>`
+    },
+
+    pro: {
+      titulo: "Balance One Pro",
+      contenido: `
+        <div class="card" style="border-radius:30px">
+          <h3>${t("Planes Free y Pro", "Free and Pro plans")}</h3>
+          <p>${t("Mensual", "Monthly")}: <strong>$4.99 USD</strong></p>
+          <p>${t("Anual", "Annual")}: <strong>$39.99 USD</strong></p>
+          <p class="note">${t(
+            "Precios previstos para Pro. Las suscripciones y los cobros aún no están habilitados.",
+            "Planned Pro pricing. Subscriptions and billing are not enabled yet."
+          )}</p>
+        </div>`
+    },
+
+    ayuda: {
+      titulo: t("Ayuda e información", "Help and information"),
+      contenido: `
+        <section class="card ayuda-guia" aria-label="${t("Guía rápida", "Quick guide")}">
+          <details class="ayuda-tema">
+            <summary><span class="ajustes-icono" aria-hidden="true">${iconoAjuste("dinero")}</span>${t("Registrar un movimiento", "Add a transaction")}</summary>
+            <div class="ayuda-contenido">
+              <p class="note">${t("En Inicio, desliza hacia abajo sobre una zona sin botones para abrir el registro.", "On Home, swipe down over an area without buttons to open the transaction form.")}</p>
+              <button type="button" class="datos-v2-btn" onclick="go('inicio'); abrirMovVentana()">${t("Abrir registro", "Open transaction form")}</button>
+            </div>
+          </details>
+          <details class="ayuda-tema">
+            <summary><span class="ajustes-icono" aria-hidden="true">${iconoAjuste("ayuda")}</span>${t("Usar el asistente de voz", "Use the voice assistant")}</summary>
+            <div class="ayuda-contenido">
+              <p class="note">${t("Prueba decir «Abre mis tarjetas» o «¿Cuánto gasté este mes?».", "Try saying “Open my cards” or “How much did I spend this month?”")}</p>
+              <button type="button" class="datos-v2-btn" onclick="go('inicio'); abrirAsistenteVoz()">${t("Probar asistente", "Try the assistant")}</button>
+            </div>
+          </details>
+          <details class="ayuda-tema" id="ayudaCopias">
+            <summary><span class="ajustes-icono" aria-hidden="true">${iconoAjuste("respaldo")}</span>${t("Copia de seguridad", "Backup")}</summary>
+            <div class="ayuda-contenido datos-v2">
           <section class="datos-v2-card" aria-label="${t("Copias de seguridad","Backups")}">
             <div class="datos-v2-cabecera">
               <span class="datos-v2-icono datos-v2-icono--azul" aria-hidden="true">
@@ -12048,53 +12124,12 @@ function abrirAjuste(tipo, desdePerfil = false) {
               "We'll ask for confirmation before replacing current data. Older backups are supported."
             )}</p>
           </section>
-        </div>`
-    },
-
-    privacidad: {
-      titulo: t("Privacidad y seguridad", "Privacy and security"),
-      contenido: `
-        <div class="card">
-          <h3>${t("Almacenamiento de datos", "Data storage")}</h3>
-          <p class="note">${t(
-            "Tus registros se guardan en este dispositivo. La sincronización en la nube y el bloqueo de acceso todavía no están implementados.",
-            "Your records are stored on this device. Cloud sync and access locking have not been implemented yet."
-          )}</p>
-          <p class="note">${t(
-            "Guarda una copia antes de borrar los datos del navegador o cambiar de dispositivo.",
-            "Save a backup before clearing browser data or switching devices."
-          )}</p>
-        </div>`
-    },
-
-    pro: {
-      titulo: "Balance One Pro",
-      contenido: `
-        <div class="card" style="border-radius:30px">
-          <h3>${t("Planes Free y Pro", "Free and Pro plans")}</h3>
-          <p>${t("Mensual", "Monthly")}: <strong>$4.99 USD</strong></p>
-          <p>${t("Anual", "Annual")}: <strong>$39.99 USD</strong></p>
-          <p class="note">${t(
-            "Precios previstos para Pro. Las suscripciones y los cobros aún no están habilitados.",
-            "Planned Pro pricing. Subscriptions and billing are not enabled yet."
-          )}</p>
-        </div>`
-    },
-
-    ayuda: {
-      titulo: t("Ayuda e información", "Help and information"),
-      contenido: `
-        <div class="card">
-          <h3>${t("Registrar un movimiento", "Add a transaction")}</h3>
-          <p class="note">${t(
-            "Desde el inicio de la página, desliza hacia abajo sobre una zona sin botones para abrir el registro.",
-            "At the top of the page, swipe down on an area without buttons to open the transaction window."
-          )}</p>
-        </div>
-        <div class="card">
-          <h3>${t("Acerca de", "About")}</h3>
-          <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.19</p>
+            </div>
+          </details>
+        </section>
+        <div class="card ayuda-acerca">
+          <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
+          <span class="note">${t("Versión", "Version")} 0.6.20</span>
         </div>`
     }
   };
