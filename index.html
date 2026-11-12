@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.12</title>
+<title>Balance One 0.6.15</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4374,7 +4374,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.12</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.15</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4960,8 +4960,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.12",
-      "Smart control of your finances · 0.6.12"
+      "Control inteligente de tus finanzas · 0.6.15",
+      "Smart control of your finances · 0.6.15"
     );
   }
 }
@@ -11477,7 +11477,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.12</p>
+      <p class="ajustes-version">Balance One · 0.6.15</p>
     </section>
   `;
 }
@@ -11791,7 +11791,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.12
+        ${textoApp("Versión", "Version")} 0.6.15
       </p>
     </section>
   `;
@@ -12082,7 +12082,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.12</p>
+          <p class="note">${t("Versión", "Version")} 0.6.15</p>
         </div>`
     }
   };
@@ -13013,9 +13013,36 @@ function prepararSugerenciaGasto(form) {
   return actualizar;
 }
 
-function comandoVozBalanceOne(frase) {
+function comandoVozBalanceOne(frase, ultimaConsulta = null) {
   const texto = frase.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const pregunta = texto.replace(/^[¿\s]+|[.?!\s]+$/g, "");
+  if (/^(?:(?:dame |muestrame )?(?:mi |el )?resumen(?: financiero)? (?:de (?:la |esta )?semana|semanal)|(?:give me |show me )?(?:my |the )?weekly(?: financial)? summary)$/.test(pregunta)) {
+    return {resumenSemana:true};
+  }
+  const navegacion = pregunta.match(/^(?:abre|abrir|muestrame|(?:ir|llevame) (?:al|a)|open|show me|go to)\s+(.+)$/);
+  if (navegacion) {
+    const seccion = navegacion[1].replace(/^(?:el|la|las|los|mi|mis|my|the)\s+/, "");
+    const destinos = {
+      "tarjetas":"tarjetas", "tarjetas de credito":"tarjetas", "cards":"tarjetas", "credit cards":"tarjetas",
+      "suscripciones":"suscripciones", "subscriptions":"suscripciones",
+      "cuentas":"cuentas", "cuentas bancarias":"cuentas", "accounts":"cuentas", "bank accounts":"cuentas",
+      "calendario":"transferencias", "calendar":"transferencias",
+      "historial":"historialMovimientos", "historial de movimientos":"historialMovimientos", "transaction history":"historialMovimientos",
+      "vehiculos":"vehiculos", "vehicles":"vehiculos",
+      "metas de ahorro":"metasAhorro", "savings goals":"metasAhorro"
+    };
+    if (Object.hasOwn(destinos, seccion)) return {abrirSeccion:destinos[seccion]};
+  }
+  const periodosGasto = {
+    "este mes":"mes", "this month":"mes", "el mes pasado":"mesPasado", "mes pasado":"mesPasado",
+    "last month":"mesPasado", "la semana pasada":"semanaPasada", "semana pasada":"semanaPasada",
+    "last week":"semanaPasada", "esta semana":"semana", "this week":"semana"
+  };
+  const seguimiento = pregunta.match(/^(?:y |and |what about )?(.+)$/);
+  const periodoSeguimiento = seguimiento && Object.hasOwn(periodosGasto, seguimiento[1]) && periodosGasto[seguimiento[1]];
+  if (periodoSeguimiento) {
+    return ultimaConsulta ? {...ultimaConsulta, periodoGasto:periodoSeguimiento} : {faltaContexto:true};
+  }
   if (/^(?:cuanto(?: dinero)? tengo(?: en total)? (?:en|entre) (?:todas (?:mis|las)|mis|las) cuentas(?: bancarias)?(?: en total)?|cuanto(?: dinero)? tengo en total|(?:cual es )?(?:mi |el )?saldo total(?: de (?:mis|las) cuentas(?: bancarias)?)?|how much(?: money)? do i have(?: in total)? (?:in|across) (?:all (?:of )?)?(?:my |the )?(?:bank )?accounts(?: in total)?|how much(?: money)? do i have in total|(?:what is )?(?:my |the )?total (?:bank )?account balance)$/.test(pregunta)) {
     return {saldoVoz:"banco", total:true};
   }
@@ -13029,8 +13056,8 @@ function comandoVozBalanceOne(frase) {
       .replace(/^(?:(?:mi|la|el|my|the)\s+)?(?:tarjeta(?: de credito)?|cuenta(?: bancaria)?|credit card|card|bank account|account)(?: de)?(?:\s+|$)|^(?:mi|la|el|my|the)\s+/, "");
     return {saldoVoz:grupo, destino};
   }
-  const consulta = texto.match(/^[¿\s]*(?:cuanto gaste|how much did i spend)(?:\s+(?:en|on)\s+(.+?))?\s+(este mes|this month|(?:la )?semana pasada|last week)[.?!\s]*$/);
-  if (consulta) return {consulta:consulta[1]?.trim() || "", semanaPasada:!/(?:este mes|this month)/.test(consulta[2])};
+  const consulta = pregunta.match(/^(?:cuanto gaste|how much did i spend)(?:\s+(?:en|on)\s+(.+?))?\s+(este mes|this month|(?:el )?mes pasado|last month|(?:la )?semana pasada|last week|esta semana|this week)$/);
+  if (consulta) return {consulta:consulta[1]?.trim() || "", periodoGasto:periodosGasto[consulta[2]]};
   if (/^[¿\s]*(?:que pagos (?:vencen|tengo(?: que hacer)?) esta semana|(?:what|which) (?:payments|bills) (?:are )?due this week)[.?!\s]*$/.test(texto)) {
     return {pagosSemana:true};
   }
@@ -13181,7 +13208,7 @@ function responderAsistenteVoz(comando) {
   const t = textoApp;
   const hoy = today();
   const diaSemana = (new Date(hoy + "T12:00:00").getDay() + 6) % 7;
-  if (comando.pagosSemana) {
+  if (comando.pagosSemana || comando.resumenSemana) {
     const tipos = Object.fromEntries(TIPOS_AVISOS.map(tipo => [tipo, true]));
     const pagos = datosAvisosVencimiento(false, {dias:6 - diaSemana, tipos}).filter(aviso => {
       if (aviso.tipoAviso === "suscripcion") {
@@ -13191,24 +13218,37 @@ function responderAsistenteVoz(comando) {
       const cuentas = aviso.tipoAviso === "tarjeta" ? data.tarjetas : aviso.tipoAviso === "vehiculo" ? data.vehiculos : null;
       return !cuentas || cuentas.some(cuenta => String(cuenta.id) === String(aviso.identificador) && Number(cuenta.saldo) > 0);
     });
-    if (!pagos.length) return t("No tienes pagos pendientes para lo que queda de esta semana.", "You have no payments due for the rest of this week.");
-    const titulo = t("Pagos pendientes esta semana.", "Payments due this week.");
-    return [titulo, ...pagos.map(p => [p.nombre, fechaMetaAhorro(p.fecha),
-      p.importe == null ? t("Importe sin registrar", "Amount not entered") : money(p.importe)].join(" · "))].join("\n");
+    const lista = pagos.length
+      ? [t("Pagos pendientes esta semana.", "Payments due this week."), ...pagos.map(p => [p.nombre, fechaMetaAhorro(p.fecha),
+        p.importe == null ? t("Importe sin registrar", "Amount not entered") : money(p.importe)].join(" · "))].join("\n")
+      : t("No tienes pagos pendientes para lo que queda de esta semana.", "You have no payments due for the rest of this week.");
+    if (!comando.resumenSemana) return lista;
+    const {ingresos, gastos} = sumarPeriodoCalendario(data, siguienteFechaAviso(-diaSemana), hoy);
+    return [
+      t("Resumen de esta semana hasta hoy.", "Summary for this week through today."),
+      t("Ingresos: ", "Income: ") + money(ingresos) + ".",
+      t("Gastos y pagos: ", "Expenses and payments: ") + money(gastos) + ".",
+      lista
+    ].join("\n");
   }
 
   const selector = document.getElementById("movVentanaCategoria");
   const categoria = categoriaPorVoz(comando.consulta, selector);
   if (comando.consulta && !categoria) return t("Indica una categoría registrada, como Gasolina.", "Enter a category you use, such as Fuel.");
-  const desde = comando.semanaPasada ? siguienteFechaAviso(-diaSemana - 7) : hoy.slice(0,7) + "-01";
-  const hasta = comando.semanaPasada ? siguienteFechaAviso(-diaSemana - 1) : hoy;
+  const finMesPasado = siguienteFechaAviso(-Number(hoy.slice(8,10)));
+  const periodos = {
+    mes: [hoy.slice(0,7) + "-01", hoy, t(" este mes.", " this month.")],
+    mesPasado: [finMesPasado.slice(0,7) + "-01", finMesPasado, t(" el mes pasado.", " last month.")],
+    semana: [siguienteFechaAviso(-diaSemana), hoy, t(" esta semana.", " this week.")],
+    semanaPasada: [siguienteFechaAviso(-diaSemana - 7), siguienteFechaAviso(-diaSemana - 1), t(" la semana pasada.", " last week.")]
+  };
+  const [desde, hasta, periodo] = periodos[comando.periodoGasto];
   const meses = new Set([desde.slice(0,7), hasta.slice(0,7)]);
   const total = [...meses].flatMap(mes => movimientosGastoDelMes(data, mes)).reduce((centavos, m) => {
     const fecha = String(m.fecha).slice(0,10);
     return fecha >= desde && fecha <= hasta && (!categoria || claveCategoriaGasto(m.categoria) === claveCategoriaGasto(categoria))
       ? centavos + Math.round(Number(m.monto) * 100) : centavos;
   }, 0);
-  const periodo = comando.semanaPasada ? t(" la semana pasada.", " last week.") : t(" este mes.", " this month.");
   return t("Gastaste ", "You spent ") + money(total / 100) + periodo;
 }
 
@@ -13321,7 +13361,11 @@ function abrirAsistenteVoz() {
     t("¿Cuánto dinero tengo en total en mis cuentas?", "How much money do I have in all my accounts?"),
     t("¿Cuánto debo entre todas mis tarjetas?", "How much do I owe across all my cards?"),
     t("¿Qué pagos vencen esta semana?", "What payments are due this week?"),
-    t("Gasté 35 en gasolina", "I spent 35 on fuel")
+    t("Gasté 35 en gasolina", "I spent 35 on fuel"),
+    t("¿Cuánto gasté este mes?", "How much did I spend this month?"),
+    t("Dame mi resumen de la semana", "Give me my weekly summary"),
+    t("Abre mis tarjetas", "Open my cards"),
+    t("Muéstrame mis suscripciones", "Show me my subscriptions")
   ];
   const ventana = crearVentanaApariencia(t("Asistente de voz", "Voice assistant"), `
     <form class="cuenta-nueva-form asistente-voz-form">
@@ -13429,6 +13473,7 @@ function abrirAsistenteVoz() {
     }
   };
   const voz = configurarVozAsistente(ventana, terminar);
+  let ultimaConsulta = null;
   entrada.addEventListener("input", actualizarEnvio);
   for (const ejemplo of form.querySelectorAll("[data-ejemplo-voz]")) {
     ejemplo.onclick = () => {
@@ -13509,9 +13554,21 @@ function abrirAsistenteVoz() {
     voz.detener();
     opcionesSaldo.hidden = true;
     opcionesSaldo.replaceChildren();
-    const comando = comandoVozBalanceOne(entrada.value.trim());
+    const comando = comandoVozBalanceOne(entrada.value.trim(), ultimaConsulta);
+    if (comando?.faltaContexto) {
+      estado.textContent = t("Primero pregunta cuánto gastaste para poder comparar el período.",
+        "First ask how much you spent so I can compare the period.");
+      voz.decir(estado.textContent);
+      return;
+    }
+    if (comando) ultimaConsulta = "consulta" in comando ? comando : null;
     if (!comando) {
       estado.textContent = t("Prueba «¿Cuánto tengo en total en mis cuentas?», «¿Cuánto debo entre todas mis tarjetas?» o «Gasté 35 en gasolina».", "Try “How much do I have in all my accounts?”, “How much do I owe across all my cards?” or “I spent 35 on fuel”.");
+      return;
+    }
+    if (comando.abrirSeccion) {
+      ventana.addEventListener("close", () => go(comando.abrirSeccion), {once:true});
+      ventana.close();
       return;
     }
     if (comando.saldoVoz) {
@@ -13542,7 +13599,7 @@ function abrirAsistenteVoz() {
       voz.decir(estado.textContent);
       return;
     }
-    if ("consulta" in comando || comando.pagosSemana) {
+    if ("consulta" in comando || comando.pagosSemana || comando.resumenSemana) {
       estado.textContent = responderAsistenteVoz(comando);
       voz.decir(estado.textContent.replaceAll("\n", " "));
       return;
