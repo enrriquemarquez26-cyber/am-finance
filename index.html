@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.5.34 Beta</title>
+<title>Balance One 0.6.0</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -147,6 +147,20 @@ nav button span {
   -webkit-backdrop-filter:blur(13px);
 }
 .avisos-ancla {position:relative;height:60px;margin:0 0 25px 3px}
+.asistente-voz-boton {
+  position:absolute;inset:0 auto auto calc(min(164px,52vw) + 9px);
+  display:grid;place-items:center;width:46px;height:46px;border-radius:50%;
+  border:1px solid rgba(175,183,195,.23);background:#fff;color:#17212e;cursor:pointer
+}
+.asistente-voz-boton svg {width:20px;height:20px}
+.asistente-voz-boton:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
+html.tema-oscuro .asistente-voz-boton {background:#252b36;color:#f5f7fa}
+.avisos-vencimiento.is-abierto + .asistente-voz-boton {visibility:hidden}
+.asistente-voz-form :is([data-escuchar],[data-probar-voz]) {background:rgba(135,145,160,.14);color:inherit}
+.asistente-voz-form [data-escuchar]:disabled {opacity:.55}
+.asistente-voz-ajustes summary {cursor:pointer;font-size:.8rem;font-weight:650;padding:8px 0}
+.asistente-voz-ajustes select {margin-bottom:8px}
+.asistente-voz-ajustes [hidden] {display:none}
 .avisos-vencimiento {
   position:absolute;left:0;top:0;
   z-index:1;
@@ -4246,7 +4260,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.5.34 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.0</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4832,8 +4846,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.5.34 Beta",
-      "Smart control of your finances · 0.5.34 Beta"
+      "Control inteligente de tus finanzas · 0.6.0",
+      "Smart control of your finances · 0.6.0"
     );
   }
 }
@@ -5457,6 +5471,12 @@ function avisosVencimiento() {
       "Mark as paid only confirms the reminder; it does not deduct money or record transactions.")}</p>` : ""}
   </div>`;
   const fondo=`<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>`;
+  const voz = `<button type="button" class="asistente-voz-boton" onclick="abrirAsistenteVoz()"
+    aria-label="${textoApp("Asistente de voz", "Voice assistant")}" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4m-3 0h6"/>
+    </svg></button>`;
   if(!proximos.length) {
     return `${fondo}<div class="avisos-ancla"><section id="avisosUnificados"
       class="avisos-vencimiento avisos-vencimiento--vacio"
@@ -5469,7 +5489,7 @@ function avisosVencimiento() {
         </strong></span>
       </button>
       <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
-    </section></div>`;
+    </section>${voz}</div>`;
   }
   const principal = proximos.find(c => /apple card/i.test(c.nombre)) || proximos[0];
   const logosCapsula = [principal,...proximos.filter(c=>c!==principal)].slice(0,3);
@@ -5490,7 +5510,7 @@ function avisosVencimiento() {
       <span class="aviso-vencimiento-flecha" aria-hidden="true">›</span>
     </button>
     <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
-  </section></div>`;
+  </section>${voz}</div>`;
 }
 function pagoCuentaComoGasto(pago) {
   // Abonar una tarjeta liquida deuda: la compra ya se registra como gasto.
@@ -11286,7 +11306,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.5.34 Beta</p>
+      <p class="ajustes-version">Balance One · 0.6.0</p>
     </section>
   `;
 }
@@ -11600,7 +11620,7 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.5.34 Beta
+        ${textoApp("Versión", "Version")} 0.6.0
       </p>
     </section>
   `;
@@ -11891,7 +11911,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.5.34 Beta</p>
+          <p class="note">${t("Versión", "Version")} 0.6.0</p>
         </div>`
     }
   };
@@ -12820,6 +12840,254 @@ function prepararSugerenciaGasto(form) {
   cuenta.onchange = actualizar;
   actualizar();
   return actualizar;
+}
+
+function comandoVozBalanceOne(frase) {
+  const texto = frase.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const consulta = texto.match(/(?:cuanto gaste|how much did i spend)(?:\s+(?:en|on)\s+(.+?))?\s+(?:este mes|this month)[.?!\s]*$/);
+  if (consulta) return {consulta:consulta[1]?.trim() || ""};
+
+  const accion = texto.match(/^\s*(?:registr[ae] (?:un )?(?:gasto|ingreso)(?: de)?|gaste|pague|recibi|ingrese|i (?:spent|paid|received)|(?:gasto|ingreso)(?: de)?)\b/);
+  if (!accion) return null;
+  const detalle = texto.slice(accion[0].length).trim();
+  if (/\b(?:centavos|cents)\b/.test(detalle)) return null;
+  const cifra = detalle.match(/^\$?\s*(\d+(?:[.,]\d+)*)\b/);
+  let monto;
+  if (cifra) {
+    const entrada = cifra[1];
+    if (/^\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?$/.test(entrada)) monto = Number(entrada.replaceAll(",", ""));
+    else if (/^\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?$/.test(entrada)) monto = Number(entrada.replaceAll(".", "").replace(",", "."));
+    else if (/^\d+(?:[.,]\d{1,2})?$/.test(entrada)) monto = Number(entrada.replace(",", "."));
+  } else {
+    const unidades = ["cero","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve"];
+    const hastaVeinte = ["diez","once","doce","trece","catorce","quince","dieciseis","diecisiete","dieciocho","diecinueve","veinte"];
+    const decenas = ["treinta","cuarenta","cincuenta","sesenta","setenta","ochenta","noventa"];
+    const palabras = detalle.match(/^([a-z]+)(?: y ([a-z]+))?\b/);
+    if (palabras) {
+      const [,base,extra] = palabras;
+      if (decenas.includes(base) && (!extra || unidades.indexOf(extra) > 0)) {
+        monto = 30 + decenas.indexOf(base) * 10 + (extra ? unidades.indexOf(extra) : 0);
+      } else if (!extra) {
+        if (base === "un") monto = 1;
+        else if (unidades.includes(base)) monto = unidades.indexOf(base);
+        else if (hastaVeinte.includes(base)) monto = 10 + hastaVeinte.indexOf(base);
+        else if (base.startsWith("veinti") && unidades.indexOf(base.slice(6)) > 0) monto = 20 + unidades.indexOf(base.slice(6));
+        else if (base === "cien") monto = 100;
+      }
+    }
+  }
+  if (!validAmount(monto) || monto.toFixed(2).length > 12) return null;
+  const tipo = /\b(?:recibi|ingreso|ingrese|received)\b/.test(accion[0]) ? "ingreso" : "gasto";
+  const categoria = detalle.match(/\b(?:en|on|de)\s+(.+?)(?=\s+(?:con|with|ayer|hoy|yesterday|today)\b|[.!?]|$)/)?.[1].trim() || "";
+  const cuenta = detalle.match(/\b(?:con|with)\s+(.+?)(?=\s+(?:ayer|hoy|yesterday|today)\b|[.!?]|$)/)?.[1].trim() || "";
+  return {monto,tipo,categoria,cuenta,ayer:/\b(?:ayer|yesterday)\b/.test(detalle),nota:frase.slice(0,80)};
+}
+
+function categoriaPorVoz(texto, selector) {
+  const clave = claveCategoriaGasto(texto);
+  return texto && [...selector.options].find(o => o.value &&
+    (claveCategoriaGasto(o.value) === clave || claveCategoriaGasto(o.textContent) === clave))?.value || "";
+}
+
+function aplicarMovimientoPorVoz(comando) {
+  abrirMovVentana();
+  const ventana = document.getElementById("movVentana");
+  if (ventana.classList.contains("hidden")) return;
+  const campos = document.getElementById("movVentanaForm").elements;
+  campos.tipo.value = comando.tipo;
+  campos.tipo.dispatchEvent(new Event("change"));
+  importeVentana = comando.monto.toFixed(2);
+  document.getElementById("movVentanaMonto").textContent = formatearBorradorImporte(importeVentana);
+  campos.nombre.value = comando.nota;
+  if (comando.ayer) campos.fecha.value = siguienteFechaAviso(-1);
+  const categoria = categoriaPorVoz(comando.categoria, campos.categoria);
+  if (categoria) aplicarCategoriaBorrador(campos.categoria, categoria);
+  actualizarSelectorCategoria();
+  if (comando.cuenta) {
+    const buscar = claveNotaGasto(comando.cuenta).replace(/^(?:mi |la |my )?(?:tarjeta|cuenta|card|account)(?: de)?\s+|^(?:mi|la|my)\s+/, "");
+    const ultimos = buscar.match(/\b\d{4}\b/)?.[0];
+    const nombreBuscado = buscar.replace(/\s*(?:(?:terminad[ao] en|ending in)\s+)?\b\d{4}\b$/, "").trim();
+    const coincidencias = [...campos.cuentaId.options].filter(o => {
+      if (!o.value) return false;
+      const tarjeta = o.value.startsWith("credito:") ? data.tarjetas.find(t => String(t.id) === o.value.slice(8)) : null;
+      if (ultimos && String(tarjeta?.ultimos4 ?? "") !== ultimos) return false;
+      const nombres = [o.textContent.split(" · ")[0], tarjeta?.banco, tarjeta?.modelo,
+        [tarjeta?.banco, tarjeta?.modelo].filter(Boolean).join(" ")].filter(Boolean);
+      return nombres.some(nombre => {
+        const clave = claveNotaGasto(nombre);
+        return !nombreBuscado ? Boolean(ultimos) : clave && (" " + clave + " ").includes(" " + nombreBuscado + " ");
+      });
+    });
+    if (coincidencias.length === 1) campos.cuentaId.value = coincidencias[0].value;
+  }
+  campos.nombre.dispatchEvent(new Event("input"));
+  campos.cuentaId.dispatchEvent(new Event("change"));
+}
+
+function configurarVozAsistente(ventana, detenerEscucha) {
+  const ajustes = ventana.querySelector(".asistente-voz-ajustes");
+  const sintesis = window.speechSynthesis;
+  const Frase = window.SpeechSynthesisUtterance;
+  if (!sintesis || !Frase) {
+    ajustes.hidden = true;
+    return {decir() {}, detener() {}};
+  }
+
+  const clave = "balanceone-asistente-voz";
+  const t = textoApp;
+  const idioma = idiomaActual() === "en" ? "en-US" : "es-US";
+  const selector = ajustes.querySelector("select");
+  const probar = ajustes.querySelector("[data-probar-voz]");
+  let preferencia = "";
+  try { preferencia = localStorage.getItem(clave) || ""; } catch {}
+  let voces = [];
+  let lectura = null;
+
+  function mostrarVoces() {
+    voces = sintesis.getVoices().filter(voz => voz.lang.toLowerCase().split("-")[0] === idioma.slice(0,2));
+    const opciones = [new Option(t("Voz del dispositivo", "Device voice"), ""),
+      new Option(t("Solo texto", "Text only"), "silencio"),
+      ...voces.map(voz => new Option(`${voz.name} · ${voz.lang}`, voz.voiceURI))];
+    selector.replaceChildren(...opciones);
+    selector.value = opciones.some(o => o.value === preferencia) ? preferencia : "";
+    probar.disabled = selector.value === "silencio";
+  }
+
+  function detener() {
+    if (!lectura) return;
+    lectura = null;
+    sintesis.cancel();
+  }
+
+  function decir(texto) {
+    detener();
+    if (selector.value === "silencio") return;
+    const frase = new Frase(texto);
+    const voz = voces.find(v => v.voiceURI === selector.value);
+    frase.lang = voz?.lang || idioma;
+    if (voz) frase.voice = voz;
+    frase.onend = frase.onerror = () => { if (lectura === frase) lectura = null; };
+    lectura = frase;
+    try { sintesis.speak(frase); } catch { lectura = null; }
+  }
+
+  mostrarVoces();
+  sintesis.addEventListener("voiceschanged", mostrarVoces);
+  selector.onchange = () => {
+    preferencia = selector.value;
+    detener();
+    probar.disabled = preferencia === "silencio";
+    try { localStorage.setItem(clave, preferencia); } catch {}
+  };
+  probar.onclick = () => {
+    detenerEscucha();
+    decir(t("Hola. Esta es la voz de tu asistente en Balance One.", "Hello. This is your assistant’s voice in Balance One."));
+  };
+  ventana.addEventListener("close", () => {
+    detener();
+    sintesis.removeEventListener("voiceschanged", mostrarVoces);
+  }, {once:true});
+  return {decir, detener};
+}
+
+function abrirAsistenteVoz() {
+  if (page !== "inicio" || !document.getElementById("movVentana").classList.contains("hidden")) return;
+  cerrarPanelAvisos();
+  const t = textoApp;
+  const ventana = crearVentanaApariencia(t("Asistente de voz", "Voice assistant"), `
+    <form class="cuenta-nueva-form asistente-voz-form">
+      <label>${t("Tu mensaje", "Your message")}
+        <input name="frase" maxlength="240" autocomplete="off"
+          placeholder="${t("Gasté 35 en gasolina con Chase", "I spent 35 on fuel with Chase")}">
+      </label>
+      <p class="note" data-estado-voz role="status" aria-live="polite"></p>
+      <button type="button" class="cuenta-nueva-guardar" data-escuchar>${t("Escuchar", "Listen")}</button>
+      <button type="submit" class="cuenta-nueva-guardar">${t("Continuar", "Continue")}</button>
+      <details class="asistente-voz-ajustes">
+        <summary>${t("Voz de respuesta", "Response voice")}</summary>
+        <label>${t("Elige una voz", "Choose a voice")}<select></select></label>
+        <button type="button" class="cuenta-nueva-guardar" data-probar-voz>${t("Probar voz", "Preview voice")}</button>
+      </details>
+    </form>`, true);
+  if (!ventana) return;
+
+  const form = ventana.querySelector("form");
+  const entrada = form.elements.frase;
+  const estado = form.querySelector("[data-estado-voz]");
+  const boton = form.querySelector("[data-escuchar]");
+  const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let reconocimiento = null;
+  const alternativo = t("Puedes escribir o usar el dictado del teclado.", "You can type or use keyboard dictation.");
+  const escuchando = t("Escuchando…", "Listening…");
+  const terminar = () => {
+    const actual = reconocimiento;
+    reconocimiento = null;
+    boton.disabled = !Reconocimiento;
+    actual?.abort();
+  };
+  const voz = configurarVozAsistente(ventana, terminar);
+
+  boton.onclick = () => {
+    if (!Reconocimiento || reconocimiento) return;
+    voz.detener();
+    try {
+      const actual = new Reconocimiento();
+      reconocimiento = actual;
+      actual.lang = idiomaActual() === "en" ? "en-US" : "es-US";
+      actual.onresult = evento => {
+        if (reconocimiento !== actual || !ventana.open) return;
+        entrada.value = evento.results[evento.resultIndex][0].transcript.trim().slice(0,240);
+        estado.textContent = t("Revisa el mensaje y toca Continuar.", "Review the message and tap Continue.");
+      };
+      actual.onerror = () => {
+        if (reconocimiento === actual && ventana.open) estado.textContent = alternativo;
+      };
+      actual.onend = () => {
+        if (reconocimiento !== actual) return;
+        reconocimiento = null;
+        boton.disabled = false;
+        if (estado.textContent === escuchando) estado.textContent = alternativo;
+      };
+      boton.disabled = true;
+      estado.textContent = escuchando;
+      actual.start();
+    } catch {
+      terminar();
+      estado.textContent = alternativo;
+    }
+  };
+  ventana.addEventListener("close", terminar, {once:true});
+  form.onsubmit = evento => {
+    evento.preventDefault();
+    terminar();
+    voz.detener();
+    const comando = comandoVozBalanceOne(entrada.value.trim());
+    if (!comando) {
+      estado.textContent = t("Prueba «Gasté 35 en gasolina» o «¿Cuánto gasté este mes?».", "Try “I spent 35 on fuel” or “How much did I spend this month?”.");
+      return;
+    }
+    if ("consulta" in comando) {
+      const categoria = categoriaPorVoz(comando.consulta, document.getElementById("movVentanaCategoria"));
+      if (comando.consulta && !categoria) {
+        estado.textContent = t("Indica una categoría registrada, como Gasolina.", "Enter a category you use, such as Fuel.");
+        return;
+      }
+      const total = movimientosGastoDelMes(data, month()).reduce((centavos, m) =>
+        !categoria || claveCategoriaGasto(m.categoria) === claveCategoriaGasto(categoria)
+          ? centavos + Math.round(Number(m.monto) * 100) : centavos, 0);
+      estado.textContent = t("Gastaste ", "You spent ") + money(total / 100) + t(" este mes.", " this month.");
+      voz.decir(estado.textContent);
+      return;
+    }
+    ventana.addEventListener("close", () => aplicarMovimientoPorVoz(comando), {once:true});
+    ventana.close();
+  };
+
+  if (Reconocimiento) boton.click();
+  else {
+    boton.disabled = true;
+    estado.textContent = alternativo;
+  }
 }
 
 function abrirMovVentana(copia = null) {
