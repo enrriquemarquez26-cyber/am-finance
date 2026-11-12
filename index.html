@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.16</title>
+<title>Balance One 0.6.17</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -2109,6 +2109,16 @@ html.tema-oscuro .ajustes-version {
   margin-bottom: 14px;
 }
 
+.perfil-nombre {display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:6px}
+.perfil-nombre h3 {margin:0;font-size:1.2rem;overflow-wrap:anywhere}
+.perfil-editar-nombre {
+  display:grid;place-items:center;flex:none;width:40px;height:40px;padding:0;
+  border:0;border-radius:50%;background:rgba(130,140,155,.12);color:inherit;
+}
+.perfil-editar-nombre svg {width:18px;height:18px}
+.perfil-formulario [hidden] {display:none!important}
+.perfil-formulario input[name="nombre"] {box-sizing:border-box;border-radius:999px}
+.perfil-formulario [data-perfil-archivo] {margin:8px 0;overflow-wrap:anywhere}
 .perfil-avatar {
   position: relative;
   width: 82px;
@@ -4374,7 +4384,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.16</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.17</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4960,8 +4970,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.16",
-      "Smart control of your finances · 0.6.16"
+      "Control inteligente de tus finanzas · 0.6.17",
+      "Smart control of your finances · 0.6.17"
     );
   }
 }
@@ -11406,7 +11416,7 @@ function perfil() {
         ${textoApp("Mi perfil", "My profile")}
       </h2>
 
-      <div class="card perfil-tarjeta">
+      <form class="card perfil-tarjeta perfil-formulario" onsubmit="guardarPerfilLocal(event)">
         <div class="perfil-avatar">
           ${usuario.foto ? `
             <img src="${safe(usuario.foto)}"
@@ -11417,8 +11427,7 @@ function perfil() {
             </span>
           `}
 
-          <button class="perfil-camara"
-                  onclick="editarPerfilLocal()"
+          <button type="button" class="perfil-camara" data-perfil-camara
                   aria-label="${textoApp(
                     "Editar foto de perfil", "Edit profile photo"
                   )}">
@@ -11429,19 +11438,32 @@ function perfil() {
           </button>
         </div>
 
-        <h3 style="margin:0 0 6px;font-size:1.2rem">
-          ${safe(usuario.nombre || textoApp("Mi perfil", "My profile"))}
-        </h3>
-        <p class="note" style="margin:0">
-          ${textoApp("Perfil en este dispositivo", "Profile on this device")}
-        </p>
-      </div>
+        <div class="perfil-nombre">
+          <h3>${safe(usuario.nombre || textoApp("Mi perfil", "My profile"))}</h3>
+          <button type="button" class="perfil-editar-nombre" data-perfil-editar-nombre
+            aria-label="${textoApp("Editar nombre", "Edit name")}" aria-expanded="false" aria-controls="perfilCampoNombre">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m15 5 4 4M4 20l4-1 12-12a2.8 2.8 0 0 0-4-4L4 15z"/>
+            </svg>
+          </button>
+        </div>
+        <div id="perfilCampoNombre" hidden>
+          <label for="perfilNombre">${textoApp("Nombre", "Name")}</label>
+          <input id="perfilNombre" name="nombre" maxlength="60" required disabled
+            autocomplete="name" value="${safe(usuario.nombre || "")}">
+        </div>
+        <input id="perfilFoto" name="foto" type="file" accept="image/*" hidden>
+        <p class="note" data-perfil-archivo role="status" hidden></p>
+        <p class="note" style="margin:0">${textoApp("Perfil en este dispositivo", "Profile on this device")}</p>
+        <button type="submit" class="mov-guardar" hidden>${textoApp("Guardar cambios", "Save changes")}</button>
+      </form>
 
-      <button class="ajustes-fila" onclick="editarPerfilLocal()">
+      <button type="button" class="ajustes-fila" onclick="abrirAjuste('cuenta', true)">
         <span class="ajustes-icono">${iconoAjuste("cuenta")}</span>
         <span class="ajustes-texto">
-          <strong>${textoApp("Editar perfil", "Edit profile")}</strong>
-          <small>${textoApp("Nombre y foto", "Name and photo")}</small>
+          <strong>${textoApp("Cuenta e inicio de sesión", "Account and sign-in")}</strong>
+          <small>${textoApp("Opciones de inicio de sesión", "Sign-in options")}</small>
         </span>
         <span class="ajustes-flecha">›</span>
       </button>
@@ -11477,57 +11499,34 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.16</p>
+      <p class="ajustes-version">Balance One · 0.6.17</p>
     </section>
   `;
-}
+  const formulario = el().querySelector(".perfil-formulario");
+  const {nombre, foto} = formulario.elements;
+  const campo = formulario.querySelector("#perfilCampoNombre");
+  const editar = formulario.querySelector("[data-perfil-editar-nombre]");
+  const guardar = formulario.querySelector('[type="submit"]');
+  const archivo = formulario.querySelector("[data-perfil-archivo]");
 
-function editarPerfilLocal() {
-  const usuario = data.perfil || {};
-
-  el().innerHTML = `
-    <section class="ajustes-pantalla">
-      <button class="ajustes-volver" onclick="perfil()">
-        ‹ ${textoApp("Mi perfil", "My profile")}
-      </button>
-
-      <h2>${textoApp("Editar perfil", "Edit profile")}</h2>
-
-      <form class="card"
-            style="border-radius:30px;margin-top:20px"
-            onsubmit="guardarPerfilLocal(event)">
-        <label for="perfilNombre">
-          ${textoApp("Nombre", "Name")}
-        </label>
-
-        <input id="perfilNombre" name="nombre"
-               maxlength="60" required
-               style="border-radius:999px"
-               placeholder="${textoApp("Tu nombre", "Your name")}"
-               value="${safe(usuario.nombre || "")}">
-
-        <label for="perfilFoto">
-          ${textoApp("Foto de la galería", "Photo from your library")}
-        </label>
-
-        <input id="perfilFoto" name="foto"
-               type="file" accept="image/*">
-
-        <p class="note">
-          ${textoApp(
-            "Si no eliges otra foto, se conservará la actual. El perfil se guarda en este dispositivo.",
-            "Your current photo will be kept unless you choose another. Your profile is saved on this device."
-          )}
-        </p>
-
-        <button class="mov-guardar">
-          ${textoApp("Guardar perfil", "Save profile")}
-        </button>
-      </form>
-    </section>
-  `;
-
-  window.scrollTo(0, 0);
+  function abrirNombre() {
+    campo.hidden = false;
+    nombre.disabled = false;
+    editar.setAttribute("aria-expanded", "true");
+    nombre.focus();
+  }
+  function actualizarCambios() {
+    guardar.hidden = nombre.value.trim() === String(usuario.nombre || "").trim() && !foto.files.length;
+  }
+  editar.onclick = abrirNombre;
+  formulario.querySelector("[data-perfil-camara]").onclick = () => foto.click();
+  nombre.oninput = actualizarCambios;
+  foto.onchange = () => {
+    archivo.textContent = foto.files[0]?.name || "";
+    archivo.hidden = !archivo.textContent;
+    if (foto.files.length && !nombre.value.trim()) abrirNombre();
+    actualizarCambios();
+  };
 }
 
 async function guardarPerfilLocal(event) {
@@ -11535,9 +11534,10 @@ async function guardarPerfilLocal(event) {
 
   const formulario = event.target;
   const campos = new FormData(formulario);
-  const nombre = String(campos.get("nombre") || "").trim();
+  const nombre = String(formulario.elements.nombre.value || "").trim();
   const archivo = campos.get("foto");
-  const boton = formulario.querySelector("button");
+  const boton = formulario.querySelector('[type="submit"]');
+  if (boton.disabled || boton.hidden) return;
 
   if (!nombre) {
         alert(textoApp("Escribe tu nombre.", "Enter your name."));
@@ -11586,7 +11586,7 @@ async function guardarPerfilLocal(event) {
     const nuevosDatos = {...data, perfil: {nombre, foto}};
     localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
     data = nuevosDatos;
-    perfil();
+    if (formulario.isConnected) perfil();
   } catch (error) {
     alert(
       error.name === "QuotaExceededError"
@@ -11729,8 +11729,8 @@ function ajustes() {
   const opciones = [
     [
       "cuenta",
-      textoApp("Cuenta y perfil", "Account and profile"),
-      textoApp("Inicio de sesión y datos personales", "Sign-in and personal details")
+      textoApp("Cuenta e inicio de sesión", "Account and sign-in"),
+      textoApp("Opciones de inicio de sesión", "Sign-in options")
     ],
     [
       "apariencia",
@@ -11791,19 +11791,19 @@ function ajustes() {
       `).join("")}
 
       <p class="ajustes-version">
-        ${textoApp("Versión", "Version")} 0.6.16
+        ${textoApp("Versión", "Version")} 0.6.17
       </p>
     </section>
   `;
 }
 
-function abrirAjuste(tipo) {
+function abrirAjuste(tipo, desdePerfil = false) {
   if (tipo === "dinero") return preferenciasPerfil(true);
   const t = textoApp;
 
   const pantallas = {
     cuenta: {
-      titulo: t("Cuenta y perfil", "Account and profile"),
+      titulo: t("Cuenta e inicio de sesión", "Account and sign-in"),
       contenido: `
         <div class="card">
           <h3>${t("Mi cuenta", "My account")}</h3>
@@ -12082,7 +12082,7 @@ function abrirAjuste(tipo) {
         <div class="card">
           <h3>${t("Acerca de", "About")}</h3>
           <p>Balance One</p>
-          <p class="note">${t("Versión", "Version")} 0.6.16</p>
+          <p class="note">${t("Versión", "Version")} 0.6.17</p>
         </div>`
     }
   };
@@ -12092,8 +12092,8 @@ function abrirAjuste(tipo) {
 
   el().innerHTML = `
     <section class="ajustes-pantalla" data-animar-ajustes>
-      <button class="ajustes-volver" onclick="${tipo === "inicio" ? "abrirAjuste('apariencia')" : "ajustes()"}">
-        ‹ ${tipo === "inicio" ? t("Apariencia", "Appearance") : t("Ajustes", "Settings")}
+      <button class="ajustes-volver" onclick="${desdePerfil ? "perfil()" : tipo === "inicio" ? "abrirAjuste('apariencia')" : "ajustes()"}">
+        ‹ ${desdePerfil ? t("Mi perfil", "My profile") : tipo === "inicio" ? t("Apariencia", "Appearance") : t("Ajustes", "Settings")}
       </button>
       <h2>${pantalla.titulo}</h2>
       <div style="margin-top:20px">
