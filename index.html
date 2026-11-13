@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.34</title>
+<title>Balance One 0.6.35</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4695,6 +4695,31 @@ html[data-estilo-listas] .banco-deslizable:not(.abierta) .banco-acciones {
 html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) {
   background:rgba(32,38,48,.88);
 }
+.progreso-tirador {
+  position:absolute;
+  inset:5px 68px auto;
+  height:35px;
+  display:grid;
+  place-items:center;
+  touch-action:none;
+  cursor:grab;
+}
+.progreso-tirador::after {
+  content:"";
+  width:34px;
+  height:4px;
+  border-radius:999px;
+  background:#84909d80;
+}
+@media (prefers-reduced-motion:no-preference) {
+  .ajustes-ventana.ventana-progreso[open] {
+    animation:progresoVentanaEntrada 280ms cubic-bezier(.2,.75,.25,1);
+  }
+  @keyframes progresoVentanaEntrada {
+    from {opacity:0;translate:0 36px}
+    to {opacity:1;translate:0 0}
+  }
+}
 .ventana-formulario .selector-progreso {
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
@@ -4734,7 +4759,7 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) 
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.34</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.35</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5320,8 +5345,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.34",
-      "Smart control of your finances · 0.6.34"
+      "Control inteligente de tus finanzas · 0.6.35",
+      "Smart control of your finances · 0.6.35"
     );
   }
 }
@@ -11880,7 +11905,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.34</p>
+      <p class="ajustes-version">Balance One · 0.6.35</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12162,7 +12187,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.34 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.35 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12171,7 +12196,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.34</p>
+    <p class="note">Balance One 0.6.35</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Barras de progreso tiene ocho estilos con una muestra de cada uno.",
               "Progress bars has eight styles, each with a preview.")}</li>
@@ -12388,7 +12413,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.34</span>
+          <span class="note">${t("Versión", "Version")} 0.6.35</span>
         </div>`
     }
   };
@@ -14812,7 +14837,7 @@ function imagenCompania(nombre) {
       box-sizing:border-box;object-fit:contain;${fondoLogo};border-radius:50%">
   `;
 }
-function cerrarVentanaApariencia(ventana, despues) {
+function cerrarVentanaApariencia(ventana, despues, distancia = 0) {
   if (!ventana.open || ventana.classList.contains("ajustes-ventana-saliendo")) return;
 
   const cerrar = () => {
@@ -14831,7 +14856,9 @@ function cerrarVentanaApariencia(ventana, despues) {
   const inicio = {opacity:estilo.opacity, translate:estilo.getPropertyValue("translate") || "none"};
   ventana.classList.add("ajustes-ventana-saliendo");
   ventana.inert = true;
-  const salida = ventana.animate([inicio, {opacity:0, translate:"0 10px"}],
+  const recorrido = ventana.classList.contains("ventana-progreso") ? distancia + 48 : 10;
+  if (distancia) inicio.translate = `0 ${distancia}px`;
+  const salida = ventana.animate([inicio, {opacity:0, translate:`0 ${recorrido}px`}],
     {duration:150, easing:"ease-in", fill:"forwards"});
   salida.finished.then(cerrar, cerrar);
 }
@@ -15075,6 +15102,54 @@ function vistaPreviaDisenoCredito(valor, nombre) {
     </span>`;
 }
 
+function prepararGestoVentanaProgreso(ventana) {
+  ventana.classList.add("ventana-progreso");
+  const tirador = document.createElement("div");
+  tirador.className = "progreso-tirador";
+  tirador.setAttribute("aria-hidden", "true");
+  ventana.prepend(tirador);
+
+  let gesto;
+  const reducirMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
+  tirador.onpointerdown = evento => {
+    if (!evento.isPrimary || evento.button !== 0 || ventana.inert) return;
+    gesto = {id:evento.pointerId, inicio:evento.clientY};
+    tirador.setPointerCapture(evento.pointerId);
+  };
+  tirador.onpointermove = evento => {
+    if (gesto?.id !== evento.pointerId || reducirMovimiento.matches) return;
+    ventana.style.transform = `translateY(${Math.max(0, evento.clientY - gesto.inicio)}px)`;
+  };
+
+  function terminar(evento, solto) {
+    if (gesto?.id !== evento.pointerId) return;
+    const distancia = Math.max(0, evento.clientY - gesto.inicio);
+    gesto = null;
+    ventana.style.transform = "";
+    if (solto && distancia >= 72) {
+      cerrarVentanaApariencia(ventana, undefined, distancia);
+    } else if (distancia && !reducirMovimiento.matches) {
+      ventana.animate?.([{transform:`translateY(${distancia}px)`}, {transform:"none"}],
+        {duration:160, easing:"ease-out"});
+    }
+  }
+
+  tirador.onpointerup = evento => terminar(evento, true);
+  tirador.onpointercancel = evento => terminar(evento, false);
+  tirador.onlostpointercapture = evento => terminar(evento, false);
+}
+
+function animarMuestraProgreso(boton) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const muestra = boton.querySelector("[data-progreso]");
+  if (!muestra?.animate) return;
+  muestra.getAnimations?.().forEach(animacion => animacion.cancel());
+  muestra.animate(
+    [{clipPath:"inset(0 100% 0 0)", opacity:.55}, {clipPath:"inset(0)", opacity:1}],
+    {duration:340, easing:"cubic-bezier(.2,.75,.25,1)"}
+  );
+}
+
 function abrirOpcionApariencia(tipo) {
   const configuraciones = configuracionesApariencia();
   const config = configuraciones[tipo];
@@ -15114,6 +15189,7 @@ function abrirOpcionApariencia(tipo) {
   );
 
   if (!ventana) return;
+  if (tipo === "progreso") prepararGestoVentanaProgreso(ventana);
 
   if (tipo === "disenoCredito") {
     const detalle = el().querySelector("[data-diseno-credito]");
@@ -15150,6 +15226,7 @@ function abrirOpcionApariencia(tipo) {
       }
 
       aviso.hidden = true;
+      if (tipo === "progreso") animarMuestraProgreso(boton);
 
       el().querySelectorAll("[data-valor-apariencia]").forEach(detalle => {
         detalle.textContent = etiquetaApariencia(detalle.dataset.valorApariencia, configuraciones);
