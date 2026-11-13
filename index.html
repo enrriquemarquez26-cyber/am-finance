@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.30</title>
+<title>Balance One 0.6.31</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4637,6 +4637,56 @@ html.tema-oscuro #amMenu {background:#202630;color:#f2f4f6}
 @media(min-width:800px) {
   #movVentana {inset:0;margin:auto;height:max-content}
 }
+
+/* Preferencias de Apariencia compartidas por todas las pantallas. */
+html[data-forma-tarjetas] :is(#cuentasInicio, .card, .mov-formulario, .mov-historial, .credito-resumen, .carrusel-resumen-activo, .apariencia-grupo, .datos-v2-card, .inicio-nuevo-panel, .inicio-nuevo-resumen, .suscripciones-programadas) {
+  border-radius: var(--forma-panel) !important;
+}
+html[data-forma-tarjetas] :is(.ajustes-fila, .hist-registro, .transaccion-resumen, .banco-deslizable, .banco-card, .credito-fila, [data-tamano="compacta"] .carrusel-credito-tarjeta, [data-lista-credito] > .credito-accion, .carrusel-movimiento, .cal-mov-fila, .cal-pago-fila, .cal-dia-transaccion, .subs-tarjeta, .aviso-detalle, .presupuestos-fila, .meta-historia-fila, .anual-fila, .inicio-nuevo-mini-fila) {
+  border-radius: var(--forma-fila) !important;
+}
+html[data-forma-tarjetas] .apariencia-grupo .ajustes-fila {
+  border-radius: 0 !important;
+}
+html[data-estilo-listas="lineas"] :is(.ajustes-fila, .hist-registro, .transaccion-resumen, .banco-deslizable, .banco-card, .credito-fila, [data-tamano="compacta"] .carrusel-credito-tarjeta, [data-lista-credito] > .credito-accion, .carrusel-movimiento, .cal-mov-fila, .cal-pago-fila, .cal-dia-transaccion, .subs-tarjeta, .aviso-detalle, .presupuestos-fila, .meta-historia-fila, .anual-fila, .inicio-nuevo-mini-fila) {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid #84909d40 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+html[data-estilo-listas="lineas"] :is(.ajustes-fila, .hist-registro, .transaccion-resumen, .banco-deslizable, .banco-card, .credito-fila, [data-tamano="compacta"] .carrusel-credito-tarjeta, [data-lista-credito] > .credito-accion, .carrusel-movimiento, .cal-mov-fila, .cal-pago-fila, .cal-dia-transaccion, .subs-tarjeta, .aviso-detalle, .presupuestos-fila, .meta-historia-fila, .anual-fila, .inicio-nuevo-mini-fila):last-child {
+  border-bottom: 0 !important;
+}
+html[data-estilo-listas="lineas"] .banco-deslizable > .banco-card {
+  border-bottom: 0 !important;
+}
+html[data-estilo-listas="lineas"] .banco-deslizable.abierta > .banco-card {
+  background: #fff !important;
+}
+html.tema-oscuro[data-estilo-listas="lineas"] .banco-deslizable.abierta > .banco-card {
+  background: #20242b !important;
+}
+html[data-estilo-listas="lineas"] [data-tamano="compacta"] .carrusel-credito-tarjeta[aria-current="true"] {
+  border-inline-start: 3px solid var(--balanceone-color, #ff7900) !important;
+}
+html[data-estilo-listas="recuadros"] .banco-deslizable {
+  margin: 8px 12px;
+  background: transparent;
+}
+html[data-estilo-listas="recuadros"] .banco-card {
+  border: 0;
+  background: #f5f6f7;
+}
+html.tema-oscuro[data-estilo-listas="recuadros"] .banco-card {background:#292e36}
+html[data-estilo-listas="recuadros"] .banco-deslizable > .banco-card {margin:0;width:100%}
+html[data-estilo-listas="recuadros"] :is(.card, [data-orden-lista="credito"]) > .banco-card {
+  margin:8px 12px;
+  width:calc(100% - 24px);
+}
+html[data-estilo-listas] .banco-deslizable:not(.abierta) .banco-acciones {
+  visibility:hidden;
+}
 </style>
 </head>
 <body>
@@ -4644,7 +4694,7 @@ html.tema-oscuro #amMenu {background:#202630;color:#f2f4f6}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.30</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.31</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5229,8 +5279,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.30",
-      "Smart control of your finances · 0.6.30"
+      "Control inteligente de tus finanzas · 0.6.31",
+      "Smart control of your finances · 0.6.31"
     );
   }
 }
@@ -11789,7 +11839,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.30</p>
+      <p class="ajustes-version">Balance One · 0.6.31</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12071,7 +12121,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.30 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.31 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12080,10 +12130,10 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.30</p>
+    <p class="note">Balance One 0.6.31</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("Las ventanas flotantes comparten el estilo de Editar meta de pago.",
-              "App dialogs share the Edit payment goal style.")}</li>
+      <li>${t("La forma de tarjetas y el estilo de listas se aplican en toda la app.",
+              "Card shape and list style are applied across the app.")}</li>
     </ul>`, true);
 }
 
@@ -12297,7 +12347,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.30</span>
+          <span class="note">${t("Versión", "Version")} 0.6.31</span>
         </div>`
     }
   };
@@ -15273,31 +15323,13 @@ function aplicarFormaTarjetas(forma) {
     recta: {panel: 8, fila: 6}
   };
 
+  if (!Object.hasOwn(radios, forma)) forma = "ovalada";
   const radio = radios[forma];
-  if (!radio) return;
 
-  let estilo = document.getElementById("formaTarjetasApp");
-  if (!estilo) {
-    estilo = document.createElement("style");
-    estilo.id = "formaTarjetasApp";
-    document.head.appendChild(estilo);
-  }
-
-  estilo.textContent = `
-    #cuentasInicio,
-    .card,
-    .mov-formulario,
-    .mov-historial,
-    .credito-fila {
-      border-radius: ${radio.panel}px !important;
-    }
-
-    .ajustes-fila,
-    .hist-registro,
-    .transaccion-resumen {
-      border-radius: ${radio.fila}px !important;
-    }
-  `;
+  const raiz = document.documentElement;
+  raiz.dataset.formaTarjetas = forma;
+  raiz.style.setProperty("--forma-panel", `${radio.panel}px`);
+  raiz.style.setProperty("--forma-fila", `${radio.fila}px`);
 }
 
 function cambiarEstiloListas(tipo) {
@@ -15308,70 +15340,12 @@ function cambiarEstiloListas(tipo) {
 }
 
 function aplicarEstiloListas(tipo) {
-  if (!["recuadros", "lineas"].includes(tipo)) return;
-
-  let estilo = document.getElementById("estiloListasApp");
-  if (!estilo) {
-    estilo = document.createElement("style");
-    estilo.id = "estiloListasApp";
-    document.head.appendChild(estilo);
-  }
-
-  estilo.textContent = tipo === "lineas" ? `
-    html .transaccion-resumen,
-    html .hist-registro {
-      background: transparent !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      border: 0 !important;
-      border-bottom: 1px solid rgba(130,140,155,.25) !important;
-    }
-
-    html .transaccion-resumen:last-child,
-    html .hist-registro:last-child {
-      border-bottom: 0 !important;
-    }
-  ` : `
-    html .banco-deslizable {
-      margin: 8px 12px;
-      border-radius: 28px;
-      background: transparent !important;
-    }
-
-    html .banco-card {
-      border: 0 !important;
-      border-radius: 28px;
-      background: #f5f6f7 !important;
-    }
-
-    html.tema-oscuro .banco-card {
-      background: #292e36 !important;
-    }
-
-    html .banco-deslizable > .banco-card {
-      margin: 0;
-      width: 100%;
-      border-radius: inherit;
-    }
-
-    html .card > .banco-card,
-    html .card > [data-orden-lista="credito"] > .banco-card {
-      margin: 8px 12px;
-      width: calc(100% - 24px);
-    }
-
-    .banco-deslizable:not(.abierta) .banco-acciones {
-      visibility: hidden;
-    }
-  `;
+  document.documentElement.dataset.estiloListas = tipo === "lineas" ? "lineas" : "recuadros";
 }
 
 try {
-  const forma = localStorage.getItem("balanceone-forma");
-  const listas = localStorage.getItem("balanceone-listas");
-
-  if (forma) aplicarFormaTarjetas(forma);
-  if (listas) aplicarEstiloListas(listas);
+  aplicarFormaTarjetas(localStorage.getItem("balanceone-forma") || "ovalada");
+  aplicarEstiloListas(localStorage.getItem("balanceone-listas") || "recuadros");
 } catch {}
 function traducirMenusVentana() {
   const poner = (selector, es, en) => {
