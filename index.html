@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.33</title>
+<title>Balance One 0.6.34</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4699,6 +4699,8 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) 
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:10px;
+  /* Redistribuye el espacio del pie anterior sin mover el encabezado. */
+  padding-block:44px 16px;
 }
 .selector-progreso .apariencia-opcion {
   display:grid;
@@ -4732,7 +4734,7 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) 
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.33</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.34</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5318,8 +5320,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.33",
-      "Smart control of your finances · 0.6.33"
+      "Control inteligente de tus finanzas · 0.6.34",
+      "Smart control of your finances · 0.6.34"
     );
   }
 }
@@ -11878,7 +11880,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.33</p>
+      <p class="ajustes-version">Balance One · 0.6.34</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12160,7 +12162,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.33 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.34 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12169,7 +12171,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.33</p>
+    <p class="note">Balance One 0.6.34</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Barras de progreso tiene ocho estilos con una muestra de cada uno.",
               "Progress bars has eight styles, each with a preview.")}</li>
@@ -12386,7 +12388,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.33</span>
+          <span class="note">${t("Versión", "Version")} 0.6.34</span>
         </div>`
     }
   };
@@ -14838,7 +14840,7 @@ function botonVidrioCalendario(etiqueta, variante, atributos = 'type="button"') 
   return `<button ${atributos} class="vidrio-${variante}">${etiqueta}</button>`;
 }
 
-function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloPanel = false) {
+function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloPanel = false, mostrarPie = !estiloPanel) {
   if (document.querySelector(".apariencia-ventana")) return null;
 
   const ventana = document.createElement("dialog");
@@ -14866,11 +14868,11 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloPan
     <p class="note" data-aviso-apariencia
       role="status" aria-live="polite" hidden></p>
 
-    ${estiloPanel ? "" : `<div class="acciones-vidrio ventana-pie">
+    ${mostrarPie ? `<div class="acciones-vidrio ventana-pie">
       <button type="button" class="apariencia-listo vidrio-secundario">
         ${textoApp("Listo", "Done")}
       </button>
-    </div>`}
+    </div>` : ""}
   `;
 
   const focoAnterior = document.activeElement;
@@ -15107,7 +15109,8 @@ function abrirOpcionApariencia(tipo) {
         </button>
       </div>` : ""),
     tipo === "disenoCredito" || tipo === "progreso",
-    tipo === "disenoCredito" && "diseno-credito-dialogo"
+    tipo === "disenoCredito" && "diseno-credito-dialogo",
+    tipo !== "disenoCredito" && tipo !== "progreso"
   );
 
   if (!ventana) return;
