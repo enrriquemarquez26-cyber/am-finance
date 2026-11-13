@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.35</title>
+<title>Balance One 0.6.36</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4687,15 +4687,15 @@ html[data-estilo-listas="recuadros"] :is(.card, [data-orden-lista="credito"]) > 
 html[data-estilo-listas] .banco-deslizable:not(.abierta) .banco-acciones {
   visibility:hidden;
 }
-.apariencia-ventana.ventana-formulario:has(.selector-progreso) {
+.apariencia-ventana.ventana-formulario:has(.selector-visual) {
   background:rgba(255,255,255,.88);
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
 }
-html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) {
+html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-visual) {
   background:rgba(32,38,48,.88);
 }
-.progreso-tirador {
+.selector-visual-tirador {
   position:absolute;
   inset:5px 68px auto;
   height:35px;
@@ -4704,7 +4704,7 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) 
   touch-action:none;
   cursor:grab;
 }
-.progreso-tirador::after {
+.selector-visual-tirador::after {
   content:"";
   width:34px;
   height:4px;
@@ -4712,7 +4712,7 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) 
   background:#84909d80;
 }
 @media (prefers-reduced-motion:no-preference) {
-  .ajustes-ventana.ventana-progreso[open] {
+  .ajustes-ventana.ventana-selector-visual[open] {
     animation:progresoVentanaEntrada 280ms cubic-bezier(.2,.75,.25,1);
   }
   @keyframes progresoVentanaEntrada {
@@ -4720,14 +4720,14 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) 
     to {opacity:1;translate:0 0}
   }
 }
-.ventana-formulario .selector-progreso {
+.ventana-formulario .selector-visual {
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:10px;
   /* Redistribuye el espacio del pie anterior sin mover el encabezado. */
   padding-block:44px 16px;
 }
-.selector-progreso .apariencia-opcion {
+.selector-visual .apariencia-opcion {
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
   align-content:center;
@@ -4740,18 +4740,37 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) 
   font-weight:650;
   line-height:1.25;
 }
-.selector-progreso .apariencia-opcion[aria-pressed="true"] {
+.selector-visual .apariencia-opcion[aria-pressed="true"] {
   color:inherit !important;
 }
-.selector-progreso [data-muestra-progreso] {
+.selector-visual [data-muestra-progreso] {
   grid-column:1/-1;
   display:flex;
   align-items:center;
   min-height:12px;
 }
 @media(max-width:340px) {
-  .ventana-formulario .selector-progreso {grid-template-columns:1fr}
+  .ventana-formulario .selector-visual {grid-template-columns:1fr}
 }
+.selector-visual [data-muestra-selector] {
+  grid-column:1/-1;
+  display:grid;
+  align-content:center;
+  gap:4px;
+  height:23px;
+}
+.muestra-forma {
+  width:62%;
+  height:22px;
+  background:color-mix(in srgb, var(--balanceone-color,#ff7900) 20%, transparent);
+  border:1px solid var(--balanceone-color,#ff7900);
+}
+.muestra-forma[data-forma="ovalada"] {border-radius:999px}
+.muestra-forma[data-forma="redondeada"] {border-radius:7px}
+.muestra-forma[data-forma="recta"] {border-radius:2px}
+.muestra-lista i {height:7px;border-radius:5px;background:#84909d55}
+.muestra-lista[data-lista="lineas"] i {height:1px;border-radius:0;background:#84909d88}
+.muestra-lista[data-lista="lineas"] {gap:7px}
 </style>
 </head>
 <body>
@@ -4759,7 +4778,7 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-progreso) 
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.35</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.36</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5345,8 +5364,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.35",
-      "Smart control of your finances · 0.6.35"
+      "Control inteligente de tus finanzas · 0.6.36",
+      "Smart control of your finances · 0.6.36"
     );
   }
 }
@@ -11905,7 +11924,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.35</p>
+      <p class="ajustes-version">Balance One · 0.6.36</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12187,7 +12206,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.35 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.36 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12196,7 +12215,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.35</p>
+    <p class="note">Balance One 0.6.36</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Barras de progreso tiene ocho estilos con una muestra de cada uno.",
               "Progress bars has eight styles, each with a preview.")}</li>
@@ -12413,7 +12432,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.35</span>
+          <span class="note">${t("Versión", "Version")} 0.6.36</span>
         </div>`
     }
   };
@@ -14856,7 +14875,7 @@ function cerrarVentanaApariencia(ventana, despues, distancia = 0) {
   const inicio = {opacity:estilo.opacity, translate:estilo.getPropertyValue("translate") || "none"};
   ventana.classList.add("ajustes-ventana-saliendo");
   ventana.inert = true;
-  const recorrido = ventana.classList.contains("ventana-progreso") ? distancia + 48 : 10;
+  const recorrido = ventana.classList.contains("ventana-selector-visual") ? distancia + 48 : 10;
   if (distancia) inicio.translate = `0 ${distancia}px`;
   const salida = ventana.animate([inicio, {opacity:0, translate:`0 ${recorrido}px`}],
     {duration:150, easing:"ease-in", fill:"forwards"});
@@ -15102,10 +15121,10 @@ function vistaPreviaDisenoCredito(valor, nombre) {
     </span>`;
 }
 
-function prepararGestoVentanaProgreso(ventana) {
-  ventana.classList.add("ventana-progreso");
+function prepararGestoVentanaSelector(ventana) {
+  ventana.classList.add("ventana-selector-visual");
   const tirador = document.createElement("div");
-  tirador.className = "progreso-tirador";
+  tirador.className = "selector-visual-tirador";
   tirador.setAttribute("aria-hidden", "true");
   ventana.prepend(tirador);
 
@@ -15139,9 +15158,9 @@ function prepararGestoVentanaProgreso(ventana) {
   tirador.onlostpointercapture = evento => terminar(evento, false);
 }
 
-function animarMuestraProgreso(boton) {
+function animarMuestraSelector(boton) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const muestra = boton.querySelector("[data-progreso]");
+  const muestra = boton.querySelector("[data-progreso], [data-muestra-selector]");
   if (!muestra?.animate) return;
   muestra.getAnimations?.().forEach(animacion => animacion.cancel());
   muestra.animate(
@@ -15155,6 +15174,7 @@ function abrirOpcionApariencia(tipo) {
   const config = configuraciones[tipo];
   if (!config) return;
 
+  const selectorVisual = ["progreso", "forma", "listas"].includes(tipo);
   let actual = config.defecto;
 
   try {
@@ -15163,7 +15183,7 @@ function abrirOpcionApariencia(tipo) {
 
   const ventana = crearVentanaApariencia(
     config.titulo,
-    (tipo === "progreso" ? '<div class="selector-progreso">' : "") +
+    (selectorVisual ? '<div class="selector-visual">' : "") +
     config.opciones.map(([valor, nombre]) => `
       <button type="button" class="apariencia-opcion${tipo === "disenoCredito" ? " apariencia-credito-opcion" : ""}"
         data-valor="${valor}"
@@ -15176,20 +15196,22 @@ function abrirOpcionApariencia(tipo) {
         ${tipo === "progreso" ? `<span data-muestra-progreso aria-hidden="true">
           ${barraProgreso(65, "#ff7900", valor)}
         </span>` : ""}
+        ${tipo === "forma" ? `<span data-muestra-selector aria-hidden="true"><span class="muestra-forma" data-forma="${valor}"></span></span>` : ""}
+        ${tipo === "listas" ? `<span data-muestra-selector class="muestra-lista" data-lista="${valor}" aria-hidden="true"><i></i><i></i></span>` : ""}
       </button>
-        `).join("") + (tipo === "progreso" ? "</div>" : "") + (tipo === "disenoCredito" ? `
+        `).join("") + (selectorVisual ? "</div>" : "") + (tipo === "disenoCredito" ? `
       <div class="acciones-vidrio">
         <button type="button" class="vidrio-principal" data-ver-diseno-credito>
           ${textoApp("Ver tarjetas", "View cards")}
         </button>
       </div>` : ""),
-    tipo === "disenoCredito" || tipo === "progreso",
+    tipo === "disenoCredito" || selectorVisual,
     tipo === "disenoCredito" && "diseno-credito-dialogo",
-    tipo !== "disenoCredito" && tipo !== "progreso"
+    tipo !== "disenoCredito" && !selectorVisual
   );
 
   if (!ventana) return;
-  if (tipo === "progreso") prepararGestoVentanaProgreso(ventana);
+  if (selectorVisual) prepararGestoVentanaSelector(ventana);
 
   if (tipo === "disenoCredito") {
     const detalle = el().querySelector("[data-diseno-credito]");
@@ -15226,7 +15248,7 @@ function abrirOpcionApariencia(tipo) {
       }
 
       aviso.hidden = true;
-      if (tipo === "progreso") animarMuestraProgreso(boton);
+      if (selectorVisual) animarMuestraSelector(boton);
 
       el().querySelectorAll("[data-valor-apariencia]").forEach(detalle => {
         detalle.textContent = etiquetaApariencia(detalle.dataset.valorApariencia, configuraciones);
@@ -15399,9 +15421,10 @@ try {
 function abrirFormasTarjetas() {
   el().innerHTML = `
     <section class="ajustes-pantalla" data-animar-ajustes>
-      <button type="button" class="ajustes-volver"
+      <button type="button" class="ajustes-volver ajustes-volver-capsula"
         onclick="abrirAjuste('apariencia')">
-        ‹ ${textoApp("Apariencia", "Appearance")}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+        ${textoApp("Apariencia", "Appearance")}
       </button>
 
       <h2>${textoApp("Forma de tarjetas", "Card appearance")}</h2>
