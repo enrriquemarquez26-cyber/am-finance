@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.26</title>
+<title>Balance One 0.6.28</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -2522,6 +2522,27 @@ html.tema-oscuro .banco-dialogo select {
   border-color: rgba(255,121,0,.35);
 }
 
+.apariencia-ventana .apariencia-credito-opcion {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) 22px;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 22px;
+}
+.apariencia-credito-opcion > span { min-width: 0; }
+.apariencia-credito-opcion strong,
+.apariencia-credito-opcion small { display: block; }
+.apariencia-credito-opcion small {
+  margin-top: 4px;
+  font-size: .72rem;
+  line-height: 1.35;
+}
+.apariencia-credito-opcion [data-marca] { text-align: center; }
+.apariencia-credito-opcion:focus-visible {
+  outline: 2px solid var(--balanceone-color, #ff7900);
+  outline-offset: 2px;
+}
+
 .apariencia-ventana .apariencia-listo {
   width: 100%;
   min-height: 46px;
@@ -4159,10 +4180,12 @@ html.tema-oscuro .acciones-vidrio .vidrio-peligro {color:#ff9bab}
 }
 .credito-cabecera-acciones {display:flex;align-items:center;gap:8px;flex:none}
 .carrusel-vistas {position:relative}
+.carrusel-acciones .inicio-ojo,
 .carrusel-vistas summary {
   display:grid;place-items:center;width:44px;height:44px;list-style:none;cursor:pointer;
   border-radius:50%;background:var(--credito-superficie)
 }
+.carrusel-acciones .inicio-ojo {flex-basis:44px}
 .carrusel-vistas summary::-webkit-details-marker {display:none}
 .carrusel-vistas summary svg {width:19px;height:19px}
 .carrusel-vistas[open] > summary rect:nth-child(1) {transform:translate(1.2px,1.2px)}
@@ -4532,7 +4555,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.26</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.28</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5118,8 +5141,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.26",
-      "Smart control of your finances · 0.6.26"
+      "Control inteligente de tus finanzas · 0.6.28",
+      "Smart control of your finances · 0.6.28"
     );
   }
 }
@@ -9024,7 +9047,7 @@ function disenoCreditoActual() {
 }
 
 function etiquetaDisenoCredito() {
-  return disenoCreditoActual() === "carrusel" ? textoApp("Carrusel", "Carousel") : textoApp("Actual", "Current");
+  return disenoCreditoActual() === "carrusel" ? textoApp("Galería", "Gallery") : textoApp("Lista", "List");
 }
 
 function montosTarjetaCarrusel(tarjeta) {
@@ -9655,7 +9678,7 @@ function tarjetas(){
         ${carrusel ? "" : `<p class="tarjetas-ayuda">${textoApp("Gestiona tus tarjetas y pagos", "Manage your cards and payments")}</p>`}
   </div>
 
-  ${carrusel ? `<div class="credito-cabecera-acciones">
+  ${carrusel ? `<div class="credito-cabecera-acciones carrusel-acciones">
   <button type="button" class="carrusel-ver-todas" onclick="abrirTodasTarjetasCredito()" aria-haspopup="dialog">
     ${textoApp("Ver todas","View all")} · ${data.tarjetas.length}
   </button>
@@ -11677,7 +11700,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.26</p>
+      <p class="ajustes-version">Balance One · 0.6.28</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -11959,7 +11982,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.26 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.28 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -11968,12 +11991,10 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.26</p>
+    <p class="note">Balance One 0.6.28</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("Apariencia reúne sus opciones en tres bloques y muestra los valores elegidos.",
-              "Appearance groups its options into three sections and shows the current selections.")}</li>
-      <li>${t("Categorías tiene un acceso directo en Ajustes.",
-              "Categories is accessible directly from Settings.")}</li>
+      <li>${t("El selector de diseño de tarjetas ahora muestra vistas previas de Lista y Galería.",
+              "The card layout picker now previews List and Gallery.")}</li>
     </ul>`, true);
 }
 
@@ -12187,7 +12208,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.26</span>
+          <span class="note">${t("Versión", "Version")} 0.6.28</span>
         </div>`
     }
   };
@@ -14722,8 +14743,8 @@ function configuracionesApariencia() {
       defecto: "actual",
       aplicar: valor => localStorage.setItem(CLAVE_DISENO_CREDITO, valor),
       opciones: [
-        ["actual", textoApp("Actual · Vista en lista", "Current · List view")],
-        ["carrusel", textoApp("Carrusel · Grande, mediana y compacta", "Carousel · Large, medium and compact")]
+        ["actual", textoApp("Lista", "List")],
+        ["carrusel", textoApp("Galería", "Gallery")]
       ]
     },
     forma: {
@@ -14851,6 +14872,24 @@ function interfazApariencia() {
   `).join("");
 }
 
+function vistaPreviaDisenoCredito(valor, nombre) {
+  const lista = valor === "actual";
+  return `
+    <svg width="68" height="48" viewBox="0 0 68 48" fill="none" aria-hidden="true">
+      <rect x="1" y="1" width="66" height="46" rx="12" fill="currentColor" opacity=".08"/>
+      <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        ${lista
+          ? '<rect x="10" y="9" width="14" height="7" rx="2"/><rect x="10" y="21" width="14" height="7" rx="2"/><rect x="10" y="33" width="14" height="7" rx="2"/><path d="M30 12.5h24m-24 12h24m-24 12h24"/>'
+          : '<rect x="14" y="8" width="40" height="25" rx="5"/><path d="M14 15h40m-33 11h8"/><circle cx="28" cy="40" r="1"/><circle cx="34" cy="40" r="1"/><circle cx="40" cy="40" r="1"/>'}
+      </g>
+    </svg>
+    <span>
+      <strong>${nombre}</strong>
+      <small>${lista ? textoApp("Una tarjeta por fila", "One card per row")
+                     : textoApp("Tres tamaños de vista", "Three view sizes")}</small>
+    </span>`;
+}
+
 function abrirOpcionApariencia(tipo) {
   const configuraciones = configuracionesApariencia();
   const config = configuraciones[tipo];
@@ -14865,11 +14904,11 @@ function abrirOpcionApariencia(tipo) {
   const ventana = crearVentanaApariencia(
     config.titulo,
     config.opciones.map(([valor, nombre]) => `
-      <button type="button" class="apariencia-opcion"
+      <button type="button" class="apariencia-opcion${tipo === "disenoCredito" ? " apariencia-credito-opcion" : ""}"
         data-valor="${valor}"
         aria-pressed="${valor === actual}"
         aria-checked="${valor === actual}">
-        <span>${nombre}</span>
+        ${tipo === "disenoCredito" ? vistaPreviaDisenoCredito(valor, nombre) : `<span>${nombre}</span>`}
         <span aria-hidden="true" data-marca>
           ${valor === actual ? "✓" : "○"}
         </span>
@@ -14877,7 +14916,8 @@ function abrirOpcionApariencia(tipo) {
         `).join("") + (tipo === "progreso" ? `
       <p class="note">${textoApp("Vista previa", "Preview")} · 40%</p>
       ${barraProgreso(40, "#ff7900", actual)}
-    ` : "")
+    ` : ""),
+    tipo === "disenoCredito"
   );
 
   if (!ventana) return;
