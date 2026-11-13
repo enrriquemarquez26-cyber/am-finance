@@ -9,13 +9,13 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.37</title>
+<title>Balance One 0.6.38</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#F2F2F7;color:#17212e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{margin:0;background:#F2F2F7;color:#17212e;font-family:var(--balanceone-fuente,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif)}
 header{background:#F2F2F7;padding:24px 20px 10px;border-bottom:none}
 .logo{font-size:1.4375rem;font-weight:300}
 .sub{color:#84909d;font-size:0.8125rem;margin-top:5px}
@@ -4778,6 +4778,9 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-visual) {
 .muestra-lista i {height:7px;border-radius:5px;background:#84909d55}
 .muestra-lista[data-lista="lineas"] i {height:1px;border-radius:0;background:#84909d88}
 .muestra-lista[data-lista="lineas"] {gap:7px}
+html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
+  font-family:var(--balanceone-fuente);
+}
 </style>
 </head>
 <body>
@@ -4785,7 +4788,7 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-visual) {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.37</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.38</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4958,6 +4961,13 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-visual) {
 
 <script>
 const ESTILOS_PROGRESO = ["clasica", "fina", "capsula", "segmentada", "3d", "puntos", "degradado", "contorno"];
+const FUENTES_TEXTO = {
+  sistema: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  humanista: '"Trebuchet MS", Verdana, sans-serif',
+  serif: 'Georgia, "Times New Roman", serif',
+  mono: '"Courier Prime", "Courier New", monospace'
+};
+const TAMANOS_TEXTO = {pequeno:"14px", normal:"16px", grande:"18px"};
 const KEY="amfinance-demo-v1";
 let data;
 function categoriasPersonales(datos = data) {
@@ -5371,8 +5381,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.37",
-      "Smart control of your finances · 0.6.37"
+      "Control inteligente de tus finanzas · 0.6.38",
+      "Smart control of your finances · 0.6.38"
     );
   }
 }
@@ -11166,6 +11176,7 @@ const CLAVES_PREFERENCIAS_RESPALDO = Object.freeze([
   CLAVE_TAMANO_CREDITO,
   CLAVE_TARJETAS_INICIO,
   "balanceone-tamano-texto",
+  "balanceone-fuente-texto",
   "amfinance-tema",
   "balanceone-progreso",
   "balanceone-color",
@@ -11931,7 +11942,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.37</p>
+      <p class="ajustes-version">Balance One · 0.6.38</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12213,7 +12224,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.37 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.38 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12222,10 +12233,10 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.37</p>
+    <p class="note">Balance One 0.6.38</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("Apariencia cambia entre recuadros y líneas separadoras según el estilo elegido.",
-              "Appearance switches between grouped cards and divider lines based on the selected style.")}</li>
+      <li>${t("Tamaño del texto y Tipo de letra tienen selectores con muestras animadas.",
+              "Text size and Typeface have selectors with animated previews.")}</li>
     </ul>`, true);
 }
 
@@ -12439,7 +12450,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.37</span>
+          <span class="note">${t("Versión", "Version")} 0.6.38</span>
         </div>`
     }
   };
@@ -12478,17 +12489,21 @@ function cambiarTema(tema){
   aplicarTema();
 }
 function cambiarTamanoTexto(tamano) {
-  const tamanos = {
-    pequeno: "14px",
-    normal: "16px",
-    grande: "18px"
-  };
-
-  if (!tamanos[tamano]) return;
-
+  if (!Object.hasOwn(TAMANOS_TEXTO, tamano)) return;
   localStorage.setItem("balanceone-tamano-texto", tamano);
-  document.documentElement.style.fontSize = tamanos[tamano];
-document.body.style.fontSize = tamanos[tamano];
+  document.documentElement.style.fontSize = TAMANOS_TEXTO[tamano];
+  document.body.style.fontSize = TAMANOS_TEXTO[tamano];
+}
+function aplicarFuenteTexto(fuente) {
+  const elegida = Object.hasOwn(FUENTES_TEXTO, fuente) ? fuente : "sistema";
+  const estilo = document.documentElement.style;
+  if (elegida === "sistema") estilo.removeProperty("--balanceone-fuente");
+  else estilo.setProperty("--balanceone-fuente", FUENTES_TEXTO[elegida]);
+}
+function cambiarFuenteTexto(fuente) {
+  if (!Object.hasOwn(FUENTES_TEXTO, fuente)) return;
+  localStorage.setItem("balanceone-fuente-texto", fuente);
+  aplicarFuenteTexto(fuente);
 }
 function aplicarTema(){
   const tema = localStorage.getItem("amfinance-tema") || "auto";
@@ -12510,6 +12525,7 @@ aplicarTema();
 cambiarTamanoTexto(
   localStorage.getItem("balanceone-tamano-texto") || "normal"
 );
+aplicarFuenteTexto(localStorage.getItem("balanceone-fuente-texto"));
 go("inicio");
 
 // Enlace recibido desde la automatización de Transacción de Atajos.
@@ -15043,6 +15059,18 @@ function configuracionesApariencia() {
         ["contorno", textoApp("Con contorno", "Outlined")]
       ]
     },
+    fuente: {
+      titulo: textoApp("Tipo de letra", "Typeface"),
+      clave: "balanceone-fuente-texto",
+      defecto: "sistema",
+      aplicar: cambiarFuenteTexto,
+      opciones: [
+        ["sistema", textoApp("Sistema", "System")],
+        ["humanista", textoApp("Humanista", "Humanist")],
+        ["serif", "Georgia"],
+        ["mono", "Courier"]
+      ]
+    },
     texto: {
       titulo: textoApp("Tamaño del texto", "Text size"),
       clave: "balanceone-tamano-texto",
@@ -15085,7 +15113,8 @@ function interfazApariencia() {
     [t("Tema y lectura", "Theme and reading"), [
       ["tema", "apariencia"],
       ["color", "color"],
-      ["texto", "texto"]
+      ["texto", "texto"],
+      ["fuente", "texto"]
     ]],
     [t("Tarjetas y listas", "Cards and lists"), [
       ["forma", "formaTarjetas", "abrirFormasTarjetas()", t("Forma de tarjetas", "Card appearance")],
@@ -15181,7 +15210,7 @@ function abrirOpcionApariencia(tipo) {
   const config = configuraciones[tipo];
   if (!config) return;
 
-  const selectorVisual = ["progreso", "forma", "listas"].includes(tipo);
+  const selectorVisual = ["progreso", "forma", "listas", "texto", "fuente"].includes(tipo);
   let actual = config.defecto;
 
   try {
@@ -15205,6 +15234,8 @@ function abrirOpcionApariencia(tipo) {
         </span>` : ""}
         ${tipo === "forma" ? `<span data-muestra-selector aria-hidden="true"><span class="muestra-forma" data-forma="${valor}"></span></span>` : ""}
         ${tipo === "listas" ? `<span data-muestra-selector class="muestra-lista" data-lista="${valor}" aria-hidden="true"><i></i><i></i></span>` : ""}
+        ${tipo === "texto" ? `<span data-muestra-selector aria-hidden="true" style="font-size:${TAMANOS_TEXTO[valor]}">Aa 123</span>` : ""}
+        ${tipo === "fuente" ? `<span data-muestra-selector aria-hidden="true" style="font-family:${safe(FUENTES_TEXTO[valor])};font-size:18px">Aa 123</span>` : ""}
       </button>
         `).join("") + (selectorVisual ? "</div>" : "") + (tipo === "disenoCredito" ? `
       <div class="acciones-vidrio">
