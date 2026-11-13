@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.38</title>
+<title>Balance One 0.6.39</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4766,6 +4766,12 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-visual) {
   gap:4px;
   height:23px;
 }
+.muestra-color-principal {
+  width:100%;
+  height:13px;
+  border-radius:999px;
+  box-shadow:inset 0 0 0 1px #84909d40;
+}
 .muestra-forma {
   width:62%;
   height:22px;
@@ -4788,7 +4794,7 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.38</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.39</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5381,8 +5387,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.38",
-      "Smart control of your finances · 0.6.38"
+      "Control inteligente de tus finanzas · 0.6.39",
+      "Smart control of your finances · 0.6.39"
     );
   }
 }
@@ -11942,7 +11948,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.38</p>
+      <p class="ajustes-version">Balance One · 0.6.39</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12224,7 +12230,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.38 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.39 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12233,10 +12239,10 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.38</p>
+    <p class="note">Balance One 0.6.39</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("Tamaño del texto y Tipo de letra tienen selectores con muestras animadas.",
-              "Text size and Typeface have selectors with animated previews.")}</li>
+      <li>${t("Color principal muestra cada color en un selector visual con animación.",
+              "Accent color shows each color in an animated visual picker.")}</li>
     </ul>`, true);
 }
 
@@ -12450,7 +12456,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.38</span>
+          <span class="note">${t("Versión", "Version")} 0.6.39</span>
         </div>`
     }
   };
@@ -15210,7 +15216,7 @@ function abrirOpcionApariencia(tipo) {
   const config = configuraciones[tipo];
   if (!config) return;
 
-  const selectorVisual = ["progreso", "forma", "listas", "texto", "fuente"].includes(tipo);
+  const selectorVisual = ["progreso", "forma", "listas", "texto", "fuente", "color"].includes(tipo);
   let actual = config.defecto;
 
   try {
@@ -15236,6 +15242,9 @@ function abrirOpcionApariencia(tipo) {
         ${tipo === "listas" ? `<span data-muestra-selector class="muestra-lista" data-lista="${valor}" aria-hidden="true"><i></i><i></i></span>` : ""}
         ${tipo === "texto" ? `<span data-muestra-selector aria-hidden="true" style="font-size:${TAMANOS_TEXTO[valor]}">Aa 123</span>` : ""}
         ${tipo === "fuente" ? `<span data-muestra-selector aria-hidden="true" style="font-family:${safe(FUENTES_TEXTO[valor])};font-size:18px">Aa 123</span>` : ""}
+        ${tipo === "color" ? `<span data-muestra-selector aria-hidden="true">
+          <span class="muestra-color-principal" style="background-color:${valor}"></span>
+        </span>` : ""}
       </button>
         `).join("") + (selectorVisual ? "</div>" : "") + (tipo === "disenoCredito" ? `
       <div class="acciones-vidrio">
