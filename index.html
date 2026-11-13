@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.28</title>
+<title>Balance One 0.6.29</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4392,6 +4392,20 @@ html.tema-oscuro [data-tamano="compacta"] .carrusel-credito-tarjeta {
   overscroll-behavior:contain;border:1px solid #84909d44;border-radius:44px;background:white;color:inherit
 }
 .carrusel-credito-detalle::backdrop {background:#10162080}
+.apariencia-ventana.carrusel-credito-detalle.diseno-credito-dialogo {
+  padding: 49px 21px 14px;
+}
+.diseno-credito-dialogo h2 {
+  margin: 0 clamp(10px, 4vw, 22px) 18px;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+.apariencia-ventana.diseno-credito-dialogo::backdrop {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.diseno-credito-dialogo .acciones-vidrio { margin-top: 16px; }
+.diseno-credito-dialogo .acciones-vidrio > button { width: 100%; }
 .carrusel-credito-detalle .credito-detalle {margin:0;padding:49px 21px 14px;border:0;box-shadow:none}
 .carrusel-credito-detalle .credito-detalle-cabecera {
   margin-inline:clamp(10px,4vw,22px);
@@ -4555,7 +4569,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.28</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.29</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5141,8 +5155,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.28",
-      "Smart control of your finances · 0.6.28"
+      "Control inteligente de tus finanzas · 0.6.29",
+      "Smart control of your finances · 0.6.29"
     );
   }
 }
@@ -11700,7 +11714,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.28</p>
+      <p class="ajustes-version">Balance One · 0.6.29</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -11982,7 +11996,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.28 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.29 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -11991,7 +12005,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.28</p>
+    <p class="note">Balance One 0.6.29</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("El selector de diseño de tarjetas ahora muestra vistas previas de Lista y Galería.",
               "The card layout picker now previews List and Gallery.")}</li>
@@ -12208,7 +12222,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.28</span>
+          <span class="note">${t("Versión", "Version")} 0.6.29</span>
         </div>`
     }
   };
@@ -14916,8 +14930,14 @@ function abrirOpcionApariencia(tipo) {
         `).join("") + (tipo === "progreso" ? `
       <p class="note">${textoApp("Vista previa", "Preview")} · 40%</p>
       ${barraProgreso(40, "#ff7900", actual)}
-    ` : ""),
-    tipo === "disenoCredito"
+    ` : "") + (tipo === "disenoCredito" ? `
+      <div class="acciones-vidrio">
+        <button type="button" class="vidrio-principal" data-ver-diseno-credito>
+          ${textoApp("Ver tarjetas", "View cards")}
+        </button>
+      </div>` : ""),
+    tipo === "disenoCredito",
+    tipo === "disenoCredito" && "diseno-credito-dialogo"
   );
 
   if (!ventana) return;
@@ -14927,8 +14947,7 @@ function abrirOpcionApariencia(tipo) {
     ventana.addEventListener("close", () => {
       if (detalle?.isConnected) detalle.textContent = etiquetaDisenoCredito();
     }, {once:true});
-    const botonVer = ventana.querySelector(".apariencia-listo");
-    botonVer.textContent = textoApp("Ver tarjetas", "View cards");
+    const botonVer = ventana.querySelector("[data-ver-diseno-credito]");
     botonVer.onclick = () => cerrarVentanaApariencia(ventana, () => go("tarjetas"));
   }
 
