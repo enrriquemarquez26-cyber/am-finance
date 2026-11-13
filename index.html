@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.29</title>
+<title>Balance One 0.6.30</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4562,6 +4562,81 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
   .carrusel-credito-detalle[open] {animation:ajustesVentanaEntrada 210ms ease-out}
   .carrusel-credito-detalle[open]::backdrop {animation:ajustesFondoEntrada 210ms ease-out}
 }
+
+/* Estilo común de las ventanas flotantes de Balance One. */
+.apariencia-ventana.carrusel-credito-detalle {
+  max-width: none;
+  transform: none;
+  box-shadow: none;
+}
+.apariencia-ventana.carrusel-credito-detalle::backdrop,
+.banco-dialogo.carrusel-credito-detalle::backdrop {
+  background: #10162080;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html.tema-oscuro :is(.apariencia-ventana,.banco-dialogo).carrusel-credito-detalle::backdrop {background:#0008}
+.apariencia-ventana.ventana-formulario {padding:49px 21px 18px}
+.ventana-formulario > h2 {margin:0 12px 18px;font-size:1.08rem;overflow-wrap:anywhere}
+.ventana-formulario .apariencia-contenido button.primary {
+  border:1px solid #c45408;
+  border-radius:999px;
+  min-height:44px;
+  background:linear-gradient(180deg,#eb8c49,#bf4d00 40%,#b64800);
+  color:#fff;
+  box-shadow:inset 0 1px 0 #ffffff73;
+}
+.apariencia-ventana .ventana-pie {margin-top: 16px}
+.apariencia-ventana .ventana-pie .apariencia-listo {margin: 0}
+.banco-dialogo.carrusel-credito-detalle {padding:49px 21px 18px;box-shadow:none}
+.banco-dialogo.carrusel-credito-detalle .acciones-vidrio {margin-top:16px}
+.banco-dialogo.carrusel-credito-detalle .carrusel-cerrar {margin:0;min-height:44px}
+#movVentana {
+  inset:auto 9px max(8px,calc(env(safe-area-inset-bottom) - 16px));
+  max-width:520px;
+  max-height:calc(100dvh - 34px);
+  padding:14px 21px 18px;
+  transform:none;
+  overflow:auto;
+}
+#movVentanaTitulo {
+  position:static;
+  width:auto;
+  text-align:start;
+}
+#movVentana > .row {justify-content:space-between}
+#movVentanaForm {max-height:none;overflow:visible}
+#movVentanaForm .mov-guardar-pie {grid-column:1/-1}
+#movVentana .mov-guardar-pie .mov-guardar {
+  background:linear-gradient(180deg,#eb8c49,#bf4d00 40%,#b64800);
+  border-color:#c45408;
+}
+#amMenu {padding-top:32px}
+#amMenu #amMenuCerrar {top:8px;right:18px;width:44px;height:44px}
+.avisos-cerrar {display:none !important}
+.avisos-vencimiento.is-abierto .avisos-cerrar {display:grid !important}
+.avisos-vencimiento.is-abierto .aviso-vencimiento {padding-inline-end:56px}
+.avisos-vencimiento.is-abierto,
+#movVentana,
+#amMenu {
+  border:1px solid #84909d44;
+  border-radius:44px;
+  background:#fff;
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+html.tema-oscuro .avisos-vencimiento.is-abierto,
+html.tema-oscuro #movVentana,
+html.tema-oscuro #amMenu {background:#202630;color:#f2f4f6}
+#movVentanaFondo,#amMenuFondo,.avisos-fondo {
+  background:#10162080;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+@media(min-width:800px) {
+  #movVentana {inset:0;margin:auto;height:max-content}
+}
 </style>
 </head>
 <body>
@@ -4569,7 +4644,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.29</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.30</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4652,7 +4727,7 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
     </select>
 
     <div id="movVentanaExtras"></div>
-    <button class="mov-guardar" type="submit">Guardar</button>
+    <div class="acciones-vidrio mov-guardar-pie"><button class="mov-guardar vidrio-principal" type="submit">Guardar</button></div>
   </form>
 </section>
 <nav>
@@ -4686,7 +4761,6 @@ body:has(.carrusel-credito-detalle[open]) {overflow:hidden}
 <div id="amMenuFondo" onclick="cerrarAmMenu()"></div>
 
 <div id="amMenu">
-  <div id="amMenuTirador"></div>
   <h3>Herramientas</h3>
   <button type="button" id="amMenuCerrar" data-boton-x onclick="animarBotonX(this, cerrarAmMenu)" aria-label="Cerrar herramientas">
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
@@ -5155,8 +5229,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.29",
-      "Smart control of your finances · 0.6.29"
+      "Control inteligente de tus finanzas · 0.6.30",
+      "Smart control of your finances · 0.6.30"
     );
   }
 }
@@ -5806,6 +5880,7 @@ function avisosVencimiento() {
     ${todos.length ? `<p class="aviso-nota-pagos">${textoApp("Marcar pagado solo confirma el recordatorio; no descuenta dinero ni registra transacciones.",
       "Mark as paid only confirms the reminder; it does not deduct money or record transactions.")}</p>` : ""}
   </div>`;
+  const cerrar = `<button type="button" class="carrusel-cerrar avisos-cerrar" data-boton-x aria-label="${textoApp("Cerrar", "Close")}" onclick="animarBotonX(this, cerrarPanelAvisos)">×</button>`;
   const fondo=`<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>`;
   const voz = `<button type="button" class="asistente-voz-boton" onclick="abrirAsistenteVoz()"
     aria-label="${textoApp("Asistente de voz", "Voice assistant")}" aria-haspopup="dialog">
@@ -5824,7 +5899,7 @@ function avisosVencimiento() {
           <span class="avisos-abierto">${textoApp("Notificaciones","Notifications")}</span>
         </strong></span>
       </button>
-      <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
+      ${cerrar}<div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
     </section>${voz}</div>`;
   }
   const principal = proximos.find(c => /apple card/i.test(c.nombre)) || proximos[0];
@@ -5845,7 +5920,7 @@ function avisosVencimiento() {
       </span>
       <span class="aviso-vencimiento-flecha" aria-hidden="true">›</span>
     </button>
-    <div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
+    ${cerrar}<div id="avisosUnificadosLista" class="aviso-detalles" aria-hidden="true">${contenido}</div>
   </section>${voz}</div>`;
 }
 function pagoCuentaComoGasto(pago) {
@@ -11714,7 +11789,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.29</p>
+      <p class="ajustes-version">Balance One · 0.6.30</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -11996,7 +12071,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.29 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.30 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12005,10 +12080,10 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.29</p>
+    <p class="note">Balance One 0.6.30</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("El selector de diseño de tarjetas ahora muestra vistas previas de Lista y Galería.",
-              "The card layout picker now previews List and Gallery.")}</li>
+      <li>${t("Las ventanas flotantes comparten el estilo de Editar meta de pago.",
+              "App dialogs share the Edit payment goal style.")}</li>
     </ul>`, true);
 }
 
@@ -12222,7 +12297,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.29</span>
+          <span class="note">${t("Versión", "Version")} 0.6.30</span>
         </div>`
     }
   };
@@ -14233,10 +14308,13 @@ function editarCuentaBanco(identificador) {
   }
 
   const ventana = document.createElement("dialog");
-  ventana.className = "banco-dialogo";
+  ventana.className = "banco-dialogo carrusel-credito-detalle";
   ventana.setAttribute("aria-labelledby", "bancoEditarTitulo");
 
   ventana.innerHTML = `
+    <button type="button" class="carrusel-cerrar" data-boton-x
+      aria-label="${textoApp("Cerrar", "Close")}"
+      onclick="animarBotonX(this, () => this.closest('dialog').close())">×</button>
     <form>
       <h2 id="bancoEditarTitulo">
         ${textoApp("Editar cuenta", "Edit account")}
@@ -14277,12 +14355,10 @@ function editarCuentaBanco(identificador) {
 
       <p class="banco-error" role="alert" hidden></p>
 
-      <button type="submit" class="primary">
-        ${textoApp("Guardar cambios", "Save changes")}
-      </button>
-      <button type="button" class="secondary" data-cancelar>
-        ${textoApp("Cancelar", "Cancel")}
-      </button>
+      <div class="acciones-vidrio">
+        ${botonVidrioCalendario(textoApp("Cancelar", "Cancel"), "secundario", 'type="button" data-cancelar')}
+        ${botonVidrioCalendario(textoApp("Guardar cambios", "Save changes"), "principal", 'type="submit"')}
+      </div>
     </form>
   `;
 
@@ -14678,7 +14754,8 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloPan
 
   const ventana = document.createElement("dialog");
   ventana.className = "apariencia-ventana";
-  if (estiloPanel) ventana.classList.add("carrusel-credito-detalle", typeof estiloPanel === "string" ? estiloPanel : "calendario-dialogo");
+  ventana.classList.add("carrusel-credito-detalle");
+  ventana.classList.add(typeof estiloPanel === "string" ? estiloPanel : estiloPanel ? "calendario-dialogo" : "ventana-formulario");
   if (el().querySelector("[data-animar-ajustes]")) {
     ventana.classList.add("ajustes-ventana");
     ventana.addEventListener("cancel", event => {
@@ -14689,9 +14766,8 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloPan
   ventana.setAttribute("aria-labelledby", "aparienciaTitulo");
 
   ventana.innerHTML = `
-    ${estiloPanel ? `<button type="button" class="carrusel-cerrar" data-boton-x
-      aria-label="${textoApp("Cerrar", "Close")}">×</button>` :
-      '<div class="apariencia-tirador" aria-hidden="true"></div>'}
+    <button type="button" class="carrusel-cerrar" data-boton-x
+      aria-label="${textoApp("Cerrar", "Close")}">×</button>
     <h2 id="aparienciaTitulo">${safe(titulo)}</h2>
 
     <div class="apariencia-contenido">
@@ -14701,19 +14777,20 @@ function crearVentanaApariencia(titulo, contenido, sinTeclado = false, estiloPan
     <p class="note" data-aviso-apariencia
       role="status" aria-live="polite" hidden></p>
 
-    ${estiloPanel ? "" : `<button type="button" class="apariencia-listo">
-      ${textoApp("Listo", "Done")}
-    </button>`}
+    ${estiloPanel ? "" : `<div class="acciones-vidrio ventana-pie">
+      <button type="button" class="apariencia-listo vidrio-secundario">
+        ${textoApp("Listo", "Done")}
+      </button>
+    </div>`}
   `;
 
   const focoAnterior = document.activeElement;
   const overflowAnterior = document.body.style.overflow;
 
-  const cerrar = ventana.querySelector(estiloPanel ? "[data-boton-x]" : ".apariencia-listo");
-  cerrar.onclick = () => {
-    if (estiloPanel) animarBotonX(cerrar, () => cerrarVentanaApariencia(ventana));
-    else cerrarVentanaApariencia(ventana);
-  };
+  const cerrar = ventana.querySelector(".carrusel-cerrar");
+  cerrar.onclick = () => animarBotonX(cerrar, () => cerrarVentanaApariencia(ventana));
+  const listo = ventana.querySelector(".apariencia-listo");
+  if (listo) listo.onclick = () => cerrarVentanaApariencia(ventana);
 
   ventana.addEventListener("close", () => {
     document.body.style.overflow = overflowAnterior;
@@ -15107,12 +15184,11 @@ function aplicarColorPrincipal(color) {
     }
 
     .mov-guardar:not(.vidrio-principal),
-    #movVentana .mov-guardar,
     .tarjetas-pantalla .primary,
     #formAuto .primary,
     .vehiculo-panel .payment .primary,
     .banco-dialogo .primary,
-    .apariencia-ventana .apariencia-listo {
+    .apariencia-ventana .apariencia-listo:not(.vidrio-secundario) {
       background: ${color} !important;
       color: #fff !important;
     }
@@ -16103,7 +16179,6 @@ function abrirDiaCalendario(fecha) {
   ventana.innerHTML = `
     <div class="cal-dia-interior">
       <div class="cal-dia-cabecera">
-        <div class="cal-dia-tirador" aria-hidden="true"></div>
 
         <div style="display:flex;align-items:center;gap:10px">
           <h2 id="calTituloDia" tabindex="-1" autofocus
