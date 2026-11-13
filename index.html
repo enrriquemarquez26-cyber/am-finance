@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.39</title>
+<title>Balance One 0.6.40</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4787,6 +4787,9 @@ html.tema-oscuro .apariencia-ventana.ventana-formulario:has(.selector-visual) {
 html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
   font-family:var(--balanceone-fuente);
 }
+.texto-grupo h3 {margin:0 10px 8px;font-size:.88rem}
+.ventana-formulario .texto-grupo .selector-visual {padding-block:0}
+.texto-grupo + .texto-grupo {margin-top:18px}
 </style>
 </head>
 <body>
@@ -4794,7 +4797,7 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.39</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.40</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5387,8 +5390,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.39",
-      "Smart control of your finances · 0.6.39"
+      "Control inteligente de tus finanzas · 0.6.40",
+      "Smart control of your finances · 0.6.40"
     );
   }
 }
@@ -11948,7 +11951,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.39</p>
+      <p class="ajustes-version">Balance One · 0.6.40</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12230,7 +12233,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.39 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.40 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12239,10 +12242,10 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.39</p>
+    <p class="note">Balance One 0.6.40</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("Color principal muestra cada color en un selector visual con animación.",
-              "Accent color shows each color in an animated visual picker.")}</li>
+      <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
+              "Text size and typeface share one settings window.")}</li>
     </ul>`, true);
 }
 
@@ -12456,7 +12459,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.39</span>
+          <span class="note">${t("Versión", "Version")} 0.6.40</span>
         </div>`
     }
   };
@@ -15098,6 +15101,8 @@ function valorApariencia(config) {
 }
 
 function etiquetaApariencia(tipo, configs) {
+  if (tipo === "tipografia") return ["texto", "fuente"]
+    .map(opcion => etiquetaApariencia(opcion, configs)).join(" · ");
   if (tipo === "inicio") return etiquetaDisenoInicio();
   if (tipo === "disenoCredito") return etiquetaDisenoCredito();
   if (tipo === "forma") return [
@@ -15119,8 +15124,7 @@ function interfazApariencia() {
     [t("Tema y lectura", "Theme and reading"), [
       ["tema", "apariencia"],
       ["color", "color"],
-      ["texto", "texto"],
-      ["fuente", "texto"]
+      ["tipografia", "texto", null, t("Texto", "Text")]
     ]],
     [t("Tarjetas y listas", "Cards and lists"), [
       ["forma", "formaTarjetas", "abrirFormasTarjetas()", t("Forma de tarjetas", "Card appearance")],
@@ -15211,24 +15215,14 @@ function animarMuestraSelector(boton) {
   );
 }
 
-function abrirOpcionApariencia(tipo) {
-  const configuraciones = configuracionesApariencia();
-  const config = configuraciones[tipo];
-  if (!config) return;
-
-  const selectorVisual = ["progreso", "forma", "listas", "texto", "fuente", "color"].includes(tipo);
+function opcionesVentanaApariencia(tipo, config) {
   let actual = config.defecto;
-
   try {
     actual = valorApariencia(config);
   } catch {}
-
-  const ventana = crearVentanaApariencia(
-    config.titulo,
-    (selectorVisual ? '<div class="selector-visual">' : "") +
-    config.opciones.map(([valor, nombre]) => `
+  return config.opciones.map(([valor, nombre]) => `
       <button type="button" class="apariencia-opcion${tipo === "disenoCredito" ? " apariencia-credito-opcion" : ""}"
-        data-valor="${valor}"
+        data-ajuste="${tipo}" data-valor="${valor}"
         aria-pressed="${valor === actual}"
         aria-checked="${valor === actual}">
         ${tipo === "disenoCredito" ? vistaPreviaDisenoCredito(valor, nombre) : `<span>${nombre}</span>`}
@@ -15246,7 +15240,29 @@ function abrirOpcionApariencia(tipo) {
           <span class="muestra-color-principal" style="background-color:${valor}"></span>
         </span>` : ""}
       </button>
-        `).join("") + (selectorVisual ? "</div>" : "") + (tipo === "disenoCredito" ? `
+        `).join("");
+}
+
+function abrirOpcionApariencia(tipo) {
+  const configuraciones = configuracionesApariencia();
+  const tipografia = tipo === "tipografia";
+  const config = configuraciones[tipo];
+  if (!tipografia && !config) return;
+
+  const selectorVisual = tipografia || ["progreso", "forma", "listas", "texto", "fuente", "color"].includes(tipo);
+  const contenido = tipografia
+    ? ["texto", "fuente"].map(ajuste => `
+        <section class="texto-grupo">
+          <h3>${configuraciones[ajuste].titulo}</h3>
+          <div class="selector-visual">${opcionesVentanaApariencia(ajuste, configuraciones[ajuste])}</div>
+        </section>`).join("")
+    : selectorVisual
+      ? `<div class="selector-visual">${opcionesVentanaApariencia(tipo, config)}</div>`
+      : opcionesVentanaApariencia(tipo, config);
+
+  const ventana = crearVentanaApariencia(
+    tipografia ? textoApp("Texto", "Text") : config.titulo,
+    contenido + (tipo === "disenoCredito" ? `
       <div class="acciones-vidrio">
         <button type="button" class="vidrio-principal" data-ver-diseno-credito>
           ${textoApp("Ver tarjetas", "View cards")}
@@ -15284,7 +15300,7 @@ function abrirOpcionApariencia(tipo) {
       const aviso = ventana.querySelector("[data-aviso-apariencia]");
 
       try {
-        config.aplicar(boton.dataset.valor);
+        configuraciones[boton.dataset.ajuste].aplicar(boton.dataset.valor);
       } catch {
         aviso.hidden = false;
         aviso.textContent = textoApp(
@@ -15301,7 +15317,7 @@ function abrirOpcionApariencia(tipo) {
         detalle.textContent = etiquetaApariencia(detalle.dataset.valorApariencia, configuraciones);
       });
 
-            ventana.querySelectorAll("button[data-valor]").forEach(opcion => {
+      ventana.querySelectorAll(`button[data-ajuste="${boton.dataset.ajuste}"]`).forEach(opcion => {
         const activa = opcion === boton;
         opcion.setAttribute("aria-pressed", String(activa));
         opcion.setAttribute("aria-checked", String(activa));
