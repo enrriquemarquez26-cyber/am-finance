@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.40</title>
+<title>Balance One 0.6.41</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4797,7 +4797,7 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.40</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.41</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5390,8 +5390,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.40",
-      "Smart control of your finances · 0.6.40"
+      "Control inteligente de tus finanzas · 0.6.41",
+      "Smart control of your finances · 0.6.41"
     );
   }
 }
@@ -11280,7 +11280,7 @@ function posponerConfirmacionCopia() {
   actualizarEstadoCopiaSeguridad();
 }
 
-function exportarCopia(){
+async function exportarCopia(frase){
   try {
     const cuentasBanco = JSON.parse(
   localStorage.getItem("amfinance-cuentas-banco") || "[]"
@@ -11299,7 +11299,8 @@ const respaldo = {
   preferencias: preferenciasParaRespaldo()
 };
 
-    const contenido = JSON.stringify(respaldo, null, 2);
+    const json = JSON.stringify(respaldo, null, 2);
+    const contenido = frase ? await cifrarCopia(json, frase) : json;
 
     const archivo = new Blob(
       [contenido],
@@ -11310,13 +11311,17 @@ const respaldo = {
     const enlace = document.createElement("a");
 
     enlace.href = url;
-    enlace.download = "Balance-One-Respaldo.json";
+    enlace.download = frase ? "Balance-One-Respaldo-Cifrado.json" : "Balance-One-Respaldo.json";
 
     document.body.appendChild(enlace);
     enlace.click();
     enlace.remove();
 
     // La descarga puede iniciarse sin haberse guardado: pedir confirmación explícita.
+    if (frase) {
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      return true;
+    }
     descargaCopiaPendienteEnMemoria=Date.now();
     try { sessionStorage.setItem(CLAVE_COPIA_PENDIENTE,String(descargaCopiaPendienteEnMemoria)); }
     catch { /* La confirmación en pantalla sigue disponible. */ }
@@ -11338,7 +11343,12 @@ async function restaurarCopia(event){
   const archivo=event.target.files?.[0];
   if(!archivo) return;
   try {
-    const respaldo=JSON.parse(await archivo.text());
+    let respaldo=JSON.parse(await archivo.text());
+    if (respaldo?.formato === "Balance One cifrado") {
+      const frase = prompt(textoApp("Contraseña de la copia cifrada", "Encrypted backup password"));
+      if (frase === null) return;
+      respaldo = JSON.parse(await descifrarCopia(respaldo, frase));
+    }
     const valido=respaldo && respaldo.aplicacion==="Balance One" &&
       [1,2].includes(respaldo.version) && respaldo.datos &&
       Array.isArray(respaldo.datos.movimientos) &&
@@ -11951,7 +11961,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.40</p>
+      <p class="ajustes-version">Balance One · 0.6.41</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12233,7 +12243,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.40 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.41 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12242,7 +12252,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.40</p>
+    <p class="note">Balance One 0.6.41</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12252,6 +12262,7 @@ function abrirNovedadesAjustes() {
 function abrirAjuste(tipo, desdePerfil = false) {
   const t = textoApp;
 
+  if (tipo === "cuenta") queueMicrotask(() => sincronizacionBalance.mostrar());
   const ultimaCopia = tipo === "privacidad" ? ultimaCopiaPreparada() : null;
   const pantallas = {
     cuenta: {
@@ -12259,10 +12270,10 @@ function abrirAjuste(tipo, desdePerfil = false) {
       contenido: `
         <div class="card">
           <h3>${t("Mi cuenta", "My account")}</h3>
-          <p class="note">${t(
-            "El inicio de sesión con Apple, Google y correo estará disponible más adelante.",
-            "Sign-in with Apple, Google and email will be available later."
-          )}</p>
+          <p class="note" id="balanceSyncEstado" role="status">${t("Inicia sesión para sincronizar tus datos.", "Sign in to sync your data.")}</p>
+          <button type="button" class="ajustes-fila" onclick="sincronizacionBalance.entrar()">${t("Continuar con Google", "Continue with Google")}</button>
+          <button type="button" class="ajustes-fila" onclick="sincronizacionBalance.activar()">${t("Activar sincronización", "Enable sync")}</button>
+          <button type="button" class="ajustes-fila" onclick="sincronizacionBalance.salir()">${t("Cerrar sesión", "Sign out")}</button>
         </div>`
     },
 
@@ -12426,6 +12437,9 @@ function abrirAjuste(tipo, desdePerfil = false) {
               "Descarga un archivo JSON. Guárdalo en Archivos o en un lugar privado y seguro.",
               "Downloads a JSON file. Keep it in Files or another private, secure place."
             )}</p>
+            <button type="button" class="datos-v2-btn datos-v2-btn--guardar" onclick="abrirCopiaCifrada()">
+              ${t("Descargar copia cifrada", "Download encrypted backup")}
+            </button>
             <div id="confirmacionCopiaSeguridad">${mensajeConfirmarCopiaHTML()}</div>
           </section>
 
@@ -12459,7 +12473,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.40</span>
+          <span class="note">${t("Versión", "Version")} 0.6.41</span>
         </div>`
     }
   };
@@ -18515,6 +18529,369 @@ function simplificarPagoPrestamo(form) {
   cerrar.style.cssText +=
     ";background:transparent;color:inherit;padding:8px;margin-top:8px";
 }
+async function claveCopiaCifrada(frase, sal) {
+  const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(frase),
+    "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2", hash:"SHA-256", salt:sal, iterations:600000},
+    material, {name:"AES-GCM", length:256}, false, ["encrypt", "decrypt"]);
+}
+
+async function cifrarCopia(contenido, frase) {
+  const sal = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const clave = await claveCopiaCifrada(frase, sal);
+  const cifrado = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM", iv}, clave,
+    new TextEncoder().encode(contenido)));
+  return JSON.stringify({formato:"Balance One cifrado", version:1, sal:[...sal], iv:[...iv],
+    contenido:cifrado.toBase64 ? cifrado.toBase64() :
+      btoa(Array.from(cifrado, byte => String.fromCharCode(byte)).join(""))});
+}
+
+async function descifrarCopia(copia, frase) {
+  if (copia.version !== 1 || !Array.isArray(copia.sal) || copia.sal.length !== 16 ||
+      !Array.isArray(copia.iv) || copia.iv.length !== 12 || typeof copia.contenido !== "string") {
+    throw new Error("Formato de copia cifrada");
+  }
+  const clave = await claveCopiaCifrada(frase, Uint8Array.from(copia.sal));
+  const bytes = Uint8Array.from(atob(copia.contenido), letra => letra.charCodeAt(0));
+  return new TextDecoder().decode(await crypto.subtle.decrypt(
+    {name:"AES-GCM", iv:Uint8Array.from(copia.iv)}, clave, bytes));
+}
+
+function abrirCopiaCifrada() {
+  const t = textoApp;
+  const ventana = document.createElement("dialog");
+  ventana.innerHTML = `<form method="dialog">
+    <h3>${t("Copia cifrada","Encrypted backup")}</h3>
+    <p>${t("Guarda el archivo en iCloud Drive o Google Drive. Necesitarás esta contraseña para restaurarlo.",
+      "Save the file in iCloud Drive or Google Drive. You’ll need this password to restore it.")}</p>
+    <label>${t("Contraseña de la copia","Backup password")}
+      <input type="password" name="frase" minlength="12" required autocomplete="new-password">
+    </label>
+    <label>${t("Repetir contraseña","Repeat password")}
+      <input type="password" name="repetir" minlength="12" required autocomplete="new-password">
+    </label>
+    <button type="submit" value="guardar">${t("Descargar copia cifrada","Download encrypted backup")}</button>
+    <button type="button" data-cerrar>${t("Cancelar","Cancel")}</button>
+  </form>`;
+  ventana.querySelector("[data-cerrar]").onclick = () => ventana.close();
+  ventana.addEventListener("close", () => ventana.remove(), {once:true});
+  ventana.querySelector("form").onsubmit = async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const {frase, repetir} = form.elements;
+    if (frase.value !== repetir.value) {
+      alert(t("Las contraseñas deben coincidir.","Passwords must match."));
+      return;
+    }
+    const boton = event.submitter;
+    boton.disabled = true;
+    if (await exportarCopia(frase.value)) ventana.close();
+    boton.disabled = false;
+  };
+  document.body.append(ventana);
+  ventana.showModal();
+}
+
+const sincronizacionBalance = (() => {
+  const banco = "amfinance-cuentas-banco";
+  const propietario = "balanceone-sync-uid";
+  const claves = [KEY, banco, ...CLAVES_PREFERENCIAS_RESPALDO];
+  let sdk, auth, db, usuario, referencia, cancelar, base, ocupado, remoto, iniciado, revision;
+  const config = {
+    apiKey: "AIzaSyDq9_j1eQux8H0Z0IJPAp9utWVCmEk2v-g",
+    authDomain: "balance-one.firebaseapp.com",
+    projectId: "balance-one",
+    appId: "1:40966974522:web:dceff3a8c62691ccc69903"
+  };
+
+  let ultimoEstado;
+  function estado(es, en) {
+    ultimoEstado = [es, en];
+    const nodo = document.getElementById("balanceSyncEstado");
+    if (nodo) nodo.textContent = textoApp(es, en);
+  }
+
+  function capturar() {
+    return JSON.stringify(Object.fromEntries(claves.map(clave => [clave, localStorage.getItem(clave)])));
+  }
+
+  function abrirRespaldoLocal() {
+    return new Promise((resolve, reject) => {
+      const peticion = indexedDB.open("balanceone-sync-recovery", 1);
+      peticion.onupgradeneeded = () => peticion.result.createObjectStore("copias");
+      peticion.onsuccess = () => resolve(peticion.result);
+      peticion.onerror = () => reject(peticion.error);
+    });
+  }
+
+  async function guardarRecuperacion(snapshot, uid, tipo) {
+    const archivo = await abrirRespaldoLocal();
+    try {
+      await new Promise((resolve, reject) => {
+        const tx = archivo.transaction("copias", "readwrite");
+        tx.oncomplete = resolve;
+        tx.onerror = tx.onabort = () => reject(tx.error);
+        tx.objectStore("copias").put(snapshot, uid + ":" + tipo);
+      });
+    } finally {
+      archivo.close();
+    }
+  }
+
+  function validar(snapshot) {
+    const valores = JSON.parse(snapshot);
+    if (!valores || Object.keys(valores).length !== claves.length ||
+        claves.some(clave => valores[clave] !== null && typeof valores[clave] !== "string")) {
+      throw new Error("snapshot");
+    }
+    const datos = valores[KEY] === null ? null : JSON.parse(valores[KEY]);
+    if (valores[KEY] !== null && !Array.isArray(datos?.movimientos)) throw new Error("movimientos");
+    if (valores[banco] !== null && !Array.isArray(JSON.parse(valores[banco]))) throw new Error("cuentas");
+    return valores;
+  }
+
+  function aplicar(snapshot) {
+    const valores = validar(snapshot);
+    const anteriores = JSON.parse(capturar());
+    function escribir(clave, valor) {
+      if (valor === null) localStorage.removeItem(clave);
+      else localStorage.setItem(clave, valor);
+    }
+    try {
+      for (const clave of claves) escribir(clave, valores[clave]);
+    } catch (error) {
+      for (const clave of claves) escribir(clave, anteriores[clave]);
+      throw error;
+    }
+  }
+
+  function docParte(ref, id, i) {
+    return sdk.doc(ref, "partes", id + "-" + i);
+  }
+
+  async function bajar(ref, meta) {
+    if (!meta || !/^[a-f0-9-]{36}$/.test(meta.id) ||
+        !Number.isInteger(meta.partes) || meta.partes < 1 || meta.partes > 100) {
+      throw new Error("manifest");
+    }
+    const partes = await Promise.all(Array.from({length:meta.partes}, (_, i) =>
+      sdk.getDocFromServer(docParte(ref, meta.id, i))
+    ));
+    if (partes.some(parte => typeof parte.data()?.texto !== "string")) throw new Error("chunk");
+    const snapshot = partes.map(parte => parte.data().texto).join("");
+    validar(snapshot);
+    return snapshot;
+  }
+
+  async function subir(ref, snapshot, anterior) {
+    validar(snapshot);
+    const id = crypto.randomUUID();
+    const partes = [];
+    for (let inicio = 0; inicio < snapshot.length;) {
+      let fin = Math.min(inicio + 160000, snapshot.length);
+      if (/[\uD800-\uDBFF]/.test(snapshot.charAt(fin - 1))) fin--;
+      partes.push(snapshot.slice(inicio, fin));
+      inicio = fin;
+    }
+    if (partes.length > 100) throw new Error("size");
+    await sdk.runTransaction(db, async tx => {
+      const actual = (await tx.get(ref)).data();
+      if ((actual?.id ?? null) !== (anterior?.id ?? null)) throw new Error("conflict");
+      partes.forEach((texto, i) => tx.set(docParte(ref, id, i), {texto}));
+      tx.set(ref, {id, partes:partes.length});
+      // Mantener la revisión anterior durante una publicación para lecturas en curso.
+      const vieja = actual?.anterior;
+      if (vieja && /^[a-f0-9-]{36}$/.test(vieja.id) && Number.isInteger(vieja.partes) &&
+          vieja.partes > 0 && vieja.partes <= 100) {
+        for (let i = 0; i < vieja.partes; i++) tx.delete(docParte(ref, vieja.id, i));
+      }
+      if (actual) tx.set(ref, {anterior:{id:actual.id, partes:actual.partes}}, {merge:true});
+    });
+    return {id, partes:partes.length};
+  }
+
+  function tieneDatos(snapshot) {
+    const valores = validar(snapshot);
+    const datos = JSON.parse(valores[KEY] || "{}");
+    return Object.values(datos).some(valor => Array.isArray(valor) ? valor.length > 0 : valor != null) ||
+      JSON.parse(valores[banco] || "[]").length > 0;
+  }
+
+  function claveBase(uid) {
+    return "balanceone-sync-revision-" + uid;
+  }
+
+  async function huella(snapshot) {
+    const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(snapshot));
+    return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function marcar(snapshot, meta, uid) {
+    const digest = await huella(snapshot);
+    if (!usuario || usuario.uid !== uid) throw new Error("account changed");
+    localStorage.setItem(claveBase(uid), JSON.stringify({id:meta.id, digest}));
+    base = snapshot;
+    revision = meta;
+  }
+
+  function detener() {
+    cancelar?.();
+    cancelar = null;
+    referencia = base = revision = remoto = null;
+    iniciado = false;
+  }
+
+  async function conectar(cuenta) {
+    detener();
+    usuario = cuenta;
+    if (!cuenta) {
+      estado("Sin sesión. Los datos se guardan en este dispositivo.", "Signed out. Data is stored on this device.");
+      return;
+    }
+    const vinculado = localStorage.getItem(propietario);
+    if (vinculado && vinculado !== cuenta.uid) {
+      estado("Este navegador está vinculado a otra cuenta de Balance One.", "This browser is linked to another Balance One account.");
+      return;
+    }
+    estado("Sesión activa. Pulsa Activar sincronización para empezar.", "Signed in. Select Enable sync to begin.");
+    if (vinculado === cuenta.uid && localStorage.getItem(claveBase(cuenta.uid))) await activar(true);
+  }
+
+  async function activar(automatico = false) {
+    if (!usuario || ocupado || iniciado) return;
+    const uid = usuario.uid;
+    if (localStorage.getItem(propietario) && localStorage.getItem(propietario) !== uid) return;
+    ocupado = true;
+    try {
+      const ref = sdk.doc(db, "users", uid, "balanceOne", "actual");
+      const local = capturar();
+      validar(local);
+      const meta = (await sdk.getDocFromServer(ref)).data();
+      const nube = meta ? await bajar(ref, meta) : null;
+      if (usuario?.uid !== uid || local !== capturar()) throw new Error("changed");
+      const revisionLocal = JSON.parse(localStorage.getItem(claveBase(uid)) || "null");
+      const localLimpio = revisionLocal && revisionLocal.digest === await huella(local);
+      const descargar = meta && local !== nube && (localLimpio || !revisionLocal && !tieneDatos(local));
+      if (meta && local !== nube && !descargar && revisionLocal?.id !== meta.id) {
+        estado("Hay datos distintos en este equipo y en Firebase. Se conservaron ambas copias.", "This device and Firebase have different data. Both copies were kept.");
+        return;
+      }
+      if (!meta && automatico) throw new Error("missing");
+      if (!automatico && !confirm(textoApp(
+        meta ? "¿Vincular este dispositivo a tu cuenta de Balance One?" : "¿Guardar los datos de este dispositivo en tu cuenta de Balance One?",
+        meta ? "Link this device to your Balance One account?" : "Save this device’s data to your Balance One account?"
+      ))) return;
+      if (!automatico || descargar) await guardarRecuperacion(local, uid, "antes-de-vincular");
+      if (usuario?.uid !== uid || local !== capturar()) throw new Error("changed");
+      const publicado = meta || await subir(ref, local, null);
+      if (usuario?.uid !== uid) return;
+      localStorage.setItem(propietario, uid);
+      if (descargar) aplicar(nube);
+      await marcar(nube ?? local, publicado, uid);
+      referencia = ref;
+      iniciado = true;
+      cancelar = sdk.onSnapshot(ref, {includeMetadataChanges:true}, evento => {
+        if (evento.metadata.fromCache || evento.metadata.hasPendingWrites) return;
+        remoto = evento.data() || null;
+      }, () => estado("Sincronización interrumpida. Vuelve a abrir la app.", "Sync interrupted. Reopen the app."));
+      if (descargar) location.reload();
+      estado("Sincronización activa.", "Sync is on.");
+    } catch {
+      estado("No se pudo activar. Los datos locales se conservan.", "Could not enable sync. Local data was kept.");
+    } finally {
+      ocupado = false;
+    }
+  }
+
+  async function sincronizar() {
+    if (!iniciado || ocupado || !usuario || !navigator.onLine) return;
+    const local = capturar();
+    if (local === base && (!remoto || remoto.id === revision.id)) return;
+    const uid = usuario.uid;
+    const ref = referencia;
+    ocupado = true;
+    try {
+      if (remoto && remoto.id !== revision.id) {
+        if (local !== base) {
+          estado("Hay cambios en ambos equipos. Se conservaron ambas copias.", "Both devices have changes. Both copies were kept.");
+          return;
+        }
+        if (document.hidden || document.querySelector("dialog[open], form :focus")) return;
+        const meta = (await sdk.getDocFromServer(ref)).data();
+        if (!meta || meta.id === revision.id) return;
+        const nube = await bajar(ref, meta);
+        await guardarRecuperacion(local, uid, "antes-de-descargar");
+        if (usuario?.uid !== uid || local !== capturar() || document.hidden ||
+            document.querySelector("dialog[open], form :focus")) return;
+        aplicar(nube);
+        await marcar(nube, meta, uid);
+        location.reload();
+      } else {
+        const previa = revision;
+        const meta = await subir(ref, local, previa);
+        if (usuario?.uid !== uid) return;
+        if (remoto?.id === previa.id) remoto = null;
+        await marcar(local, meta, uid);
+        estado("Sincronización activa.", "Sync is on.");
+      }
+    } catch {
+      estado("Cambios pendientes. Tu copia local está guardada.", "Changes pending. Your local copy is saved.");
+    } finally {
+      ocupado = false;
+    }
+  }
+
+  let carga;
+  function cargar() {
+    carga ??= Promise.all(["app", "auth", "firestore"].map(nombre =>
+      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-" + nombre + ".js")
+    )).then(([app, autenticacion, firestore]) => {
+      sdk = {...autenticacion, ...firestore};
+      const instancia = app.initializeApp(config);
+      auth = sdk.getAuth(instancia);
+      db = sdk.getFirestore(instancia);
+      sdk.onAuthStateChanged(auth, conectar);
+    }).catch(error => {
+      carga = null;
+      throw error;
+    });
+    return carga;
+  }
+
+  setInterval(sincronizar, 4000);
+  addEventListener("online", sincronizar);
+  try {
+    if (localStorage.getItem(propietario)) cargar().catch(() => {});
+  } catch {}
+  return {
+    activar,
+    mostrar() {
+      if (ultimoEstado) estado(...ultimoEstado);
+    },
+    async entrar() {
+      try {
+        await cargar();
+        await auth.authStateReady();
+        if (auth.currentUser) return conectar(auth.currentUser);
+        await sdk.signInWithPopup(auth, new sdk.GoogleAuthProvider());
+      } catch (error) {
+        estado(error.code === "auth/unauthorized-domain"
+          ? "Autoriza el dominio de Balance One en Firebase Authentication."
+          : "No se pudo iniciar sesión con Google.",
+          error.code === "auth/unauthorized-domain"
+          ? "Authorize the Balance One domain in Firebase Authentication."
+          : "Could not sign in with Google.");
+      }
+    },
+    async salir() {
+      if (ocupado || !auth) return;
+      try { await sdk.signOut(auth); }
+      catch { estado("No se pudo cerrar sesión.", "Could not sign out."); }
+    }
+  };
+})();
+
 </script>
 
 
