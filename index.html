@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.57</title>
+<title>Balance One 0.6.58</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4844,9 +4844,10 @@ html { --accion-ovalada: rgba(110,120,135,.10); }
 html.tema-oscuro { --accion-ovalada: rgba(230,235,245,.13); }
 html .card.apariencia-barras .ajustes-fila {
   border-color: transparent;
-  background: var(--accion-ovalada);
+  background: rgba(110,120,135,.065);
   box-shadow: none;
 }
+html.tema-oscuro .card.apariencia-barras .ajustes-fila { background:rgba(230,235,245,.17); }
 .cuenta-sync-panel { display:grid; gap:14px; padding:20px; border-radius:26px; }
 .cuenta-sync-panel h3, .cuenta-sync-panel p { margin:0; }
 .cuenta-sync-panel .note { padding:12px 14px; border-radius:16px; background:var(--accion-ovalada); }
@@ -4865,18 +4866,24 @@ html .card.apariencia-barras .ajustes-fila {
 <style>
 html[data-barra-flotante="capsula"] body > nav {display:none}
 html:not([data-barra-flotante="capsula"]) #barraCapsula {display:none}
+#barraCapsula,.barra-miniatura-capsula {
+  --barra-fondo:#101114;--barra-texto:#fff;
+}
+html.tema-oscuro :is(#barraCapsula,.barra-miniatura-capsula) {
+  --barra-fondo:#f2f3f5;--barra-texto:#151619;
+}
 #barraCapsula {
   position:fixed;z-index:100;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));
-  width:min(380px,calc(100% - 16px));display:flex;align-items:center;gap:8px;
+  width:min(408px,calc(100% - 12px));display:flex;align-items:center;gap:8px;
   transform:translateX(-50%);transition:width .28s ease;
 }
-#barraCapsula.compacta {width:min(346px,calc(100% - 26px))}
+#barraCapsula.compacta {width:min(368px,calc(100% - 22px))}
 .barra-capsula-accesos,.barra-capsula-menu {
-  background:#101114;color:#fff;box-shadow:0 5px 18px #0003;
+  background:var(--barra-fondo);color:var(--barra-texto);box-shadow:0 5px 18px #0003;
 }
 .barra-capsula-accesos {
   flex:1;min-width:0;position:relative;isolation:isolate;
-  display:flex;padding:5px;border-radius:999px;
+  display:flex;padding:7px;border-radius:999px;
 }
 #barraCapsula button {
   display:flex;align-items:center;justify-content:center;gap:5px;
@@ -4885,20 +4892,20 @@ html:not([data-barra-flotante="capsula"]) #barraCapsula {display:none}
 #barraCapsula button:focus-visible {outline:2px solid #007aff;outline-offset:-3px}
 #barraCapsula svg {width:21px;height:21px;flex:none}
 #barraCapsula .barra-capsula-acceso {
-  flex:1 1 44px;min-width:44px;min-height:44px;background:transparent;
-  color:#fff;position:relative;transition:color .22s ease;
+  flex:1 1 44px;min-width:44px;min-height:48px;background:transparent;
+  color:var(--barra-texto);position:relative;transition:color .22s ease;
 }
-#barraCapsula .barra-capsula-acceso[aria-current="page"] {flex:2 1 84px;color:#151619}
+#barraCapsula .barra-capsula-acceso[aria-current="page"] {flex:2 1 84px;color:var(--barra-fondo)}
 .barra-capsula-acceso span {
   display:none;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font-size:12px;font-weight:650;
 }
 .barra-capsula-acceso[aria-current="page"] span {display:block}
 .barra-capsula-indicador {
-  position:absolute;z-index:-1;left:0;top:5px;bottom:5px;border-radius:999px;
-  background:#fff;pointer-events:none;transition:transform .3s ease,width .3s ease;
+  position:absolute;z-index:-1;left:0;top:7px;bottom:7px;border-radius:999px;
+  background:var(--barra-texto);pointer-events:none;transition:transform .3s ease,width .3s ease;
 }
-#barraCapsula .barra-capsula-menu {width:54px;height:54px;flex:none}
+#barraCapsula .barra-capsula-menu {width:62px;height:62px;flex:none}
 
 .barra-ajuste-modelos,.barra-ajuste-iconos {display:grid;gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
 .barra-ajuste-iconos {grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -4906,9 +4913,10 @@ html:not([data-barra-flotante="capsula"]) #barraCapsula {display:none}
 .barra-ajuste-titulo small {font-weight:normal}
 .barra-ajuste-opcion {
   position:relative;display:grid;place-items:center;align-content:center;gap:7px;
-  min-height:58px;padding:8px 4px;border-radius:28px;background:rgba(140,148,160,.12);
+  min-height:58px;padding:8px 4px;border-radius:28px;background:rgba(140,148,160,.08);
   text-align:center;font-size:11px;font-weight:600;cursor:pointer;overflow-wrap:anywhere;
 }
+html.tema-oscuro .barra-ajuste-opcion:not(:has(input:checked)) {background:rgba(230,235,245,.16)}
 .barra-ajuste-opcion input {position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
 .barra-ajuste-opcion:has(input:focus-visible) {outline:2px solid var(--balanceone-color,#ff7900)}
 .barra-ajuste-opcion:has(input:checked) {background:rgba(255,121,0,.12);box-shadow:inset 0 0 0 1px var(--balanceone-color,#ff7900)}
@@ -4917,26 +4925,25 @@ html:not([data-barra-flotante="capsula"]) #barraCapsula {display:none}
 .barra-miniatura {display:flex;align-items:center;justify-content:center;gap:3px;width:100%;max-width:146px;padding-inline:3px}
 .barra-miniatura-grupo {display:flex;justify-content:space-evenly;align-items:center;flex:1;min-width:0;border-radius:999px;padding:6px 4px;background:#e4e7ed;color:#24272d}
 .barra-miniatura svg {width:12px;height:12px;flex:none}
-.barra-miniatura-capsula .barra-miniatura-grupo,.barra-miniatura-menu {background:#101114;color:#fff}
+.barra-miniatura-capsula .barra-miniatura-grupo,.barra-miniatura-capsula .barra-miniatura-menu {background:var(--barra-fondo);color:var(--barra-texto)}
 .barra-miniatura-menu,.barra-miniatura-activo {display:flex;align-items:center;gap:2px;border-radius:999px;padding:4px;font-size:8px;white-space:nowrap}
-.barra-miniatura-activo {background:#fff;color:#151619}
+.barra-miniatura-activo {background:var(--barra-texto);color:var(--barra-fondo)}
 
 html:root body dialog.barra-ajuste-dialogo {border-radius:48px}
 #barraMenuAccesos {
   position:absolute;right:0;bottom:calc(100% + 9px);display:flex;flex-direction:column;
-  align-items:flex-end;gap:6px;max-height:calc(100dvh - 94px - env(safe-area-inset-bottom));
+  align-items:flex-end;gap:6px;max-height:calc(100dvh - 102px - env(safe-area-inset-bottom));
   overflow:auto;overscroll-behavior:contain;padding:5px;max-width:100%;
   scrollbar-width:thin;
 }
 #barraMenuAccesos[hidden] {display:none}
 #barraCapsula #barraMenuAccesos button {
   flex:none;min-height:44px;max-width:100%;padding:5px 13px;gap:8px;text-align:left;
-  background:#fafbfe;color:#171c26;box-shadow:0 2px 8px #0003;font-size:13px;
-  animation:barra-acceso-entrada .21s ease both;
+  background:var(--barra-fondo);color:var(--barra-texto);box-shadow:0 2px 8px #0003;font-size:13px;
+  animation:barra-acceso-entrada .24s ease-out var(--espera-acceso,0ms) both;
 }
-html.tema-oscuro #barraCapsula #barraMenuAccesos button {background:#262a31;color:#fff}
 @keyframes barra-acceso-entrada {
-  from {opacity:0;transform:translateY(8px)}
+  from {opacity:0;transform:translateY(12px)}
   to {opacity:1;transform:translateY(0)}
 }
 @media(prefers-reduced-motion:reduce) {
@@ -4957,7 +4964,7 @@ html:root body > nav button.active svg {transform:translateY(-2px)}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.57</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.58</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5170,7 +5177,7 @@ function alternarMenuBarra() {
   const visibles = accesosBarra();
   const accesos = ACCESOS_BARRA.filter(([id]) => !visibles.includes(id));
   accesos.push(["applePay", "Apple Pay", "Apple Pay"]);
-  menuAccesosBarra.replaceChildren(...accesos.map(([id, es, en, origen]) => {
+  menuAccesosBarra.replaceChildren(...accesos.map(([id, es, en, origen], indice) => {
     const original = document.querySelector(origen || `[data-herramienta="${id}"]`);
     const boton = document.createElement("button");
     boton.type = "button";
@@ -5181,6 +5188,7 @@ function alternarMenuBarra() {
       boton.append(copia);
     }
     boton.append(textoApp(es, en));
+    boton.style.setProperty("--espera-acceso", `${Math.min(7, accesos.length - 1 - indice) * 28}ms`);
     boton.onclick = () => { cerrarMenuBarra(true); original?.click(); };
     return boton;
   }));
@@ -5808,8 +5816,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.57",
-      "Smart control of your finances · 0.6.57"
+      "Control inteligente de tus finanzas · 0.6.58",
+      "Smart control of your finances · 0.6.58"
     );
   }
 }
@@ -12491,7 +12499,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.57</p>
+      <p class="ajustes-version">Balance One · 0.6.58</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12774,7 +12782,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.57 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.58 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12783,7 +12791,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.57</p>
+    <p class="note">Balance One 0.6.58</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13006,7 +13014,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.57</span>
+          <span class="note">${t("Versión", "Version")} 0.6.58</span>
         </div>`
     }
   };
