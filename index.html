@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.43</title>
+<title>Balance One 0.6.44</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4797,7 +4797,7 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.43</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.44</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5390,8 +5390,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.43",
-      "Smart control of your finances · 0.6.43"
+      "Control inteligente de tus finanzas · 0.6.44",
+      "Smart control of your finances · 0.6.44"
     );
   }
 }
@@ -11961,7 +11961,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.43</p>
+      <p class="ajustes-version">Balance One · 0.6.44</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12243,7 +12243,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.43 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.44 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12252,7 +12252,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.43</p>
+    <p class="note">Balance One 0.6.44</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12271,7 +12271,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         <div class="card">
           <h3>${t("Mi cuenta", "My account")}</h3>
           <p class="note" id="balanceSyncEstado" role="status">${t("Inicia sesión para sincronizar tus datos.", "Sign in to sync your data.")}</p>
-          <button type="button" class="ajustes-fila" onclick="sincronizacionBalance.entrar()">${t("Continuar con Google", "Continue with Google")}</button>
+          <div id="balanceGoogleButton"></div>
           <button type="button" class="ajustes-fila" onclick="sincronizacionBalance.activar()">${t("Activar sincronización", "Enable sync")}</button>
           <button type="button" class="ajustes-fila" onclick="sincronizacionBalance.salir()">${t("Cerrar sesión", "Sign out")}</button>
         </div>`
@@ -12473,7 +12473,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.43</span>
+          <span class="note">${t("Versión", "Version")} 0.6.44</span>
         </div>`
     }
   };
@@ -18745,6 +18745,7 @@ const sincronizacionBalance = (() => {
   async function conectar(cuenta) {
     detener();
     usuario = cuenta;
+    if (cuenta) document.getElementById("balanceGoogleButton")?.replaceChildren();
     if (!cuenta) {
       estado("Sin sesión. Los datos se guardan en este dispositivo.", "Signed out. Data is stored on this device.");
       return;
@@ -18879,37 +18880,71 @@ const sincronizacionBalance = (() => {
   try {
     if (localStorage.getItem(propietario)) cargar().catch(() => {});
   } catch {}
+  let googleListo;
+  function cargarGoogle() {
+    googleListo ??= new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.onload = () => {
+        const identidad = window.google?.accounts?.id;
+        if (identidad) resolve(identidad);
+        else { script.remove(); reject(new Error("Google unavailable")); }
+      };
+      script.onerror = () => {
+        script.remove();
+        reject(new Error("Google script"));
+      };
+      document.head.append(script);
+    }).catch(error => {
+      googleListo = null;
+      throw error;
+    });
+    return googleListo;
+  }
+
+  async function recibirGoogle(respuesta) {
+    try {
+      if (!respuesta?.credential) throw new Error("Missing credential");
+      const credencial = sdk.GoogleAuthProvider.credential(respuesta.credential);
+      await sdk.signInWithCredential(auth, credencial);
+    } catch (error) {
+      const codigo = diagnosticoAcceso(error, "credential");
+      estado("No se pudo iniciar sesión. Código " + codigo, "Could not sign in. Code " + codigo);
+    }
+  }
+
+  let googleInicializado = false;
   return {
     activar,
-    mostrar() {
+    async mostrar() {
       if (ultimoEstado) estado(...ultimoEstado);
-    },
-    async entrar() {
-      let fase = "sdk";
-      estado("Conectando con Firebase…", "Connecting to Firebase…");
+      const contenedor = document.getElementById("balanceGoogleButton");
       try {
         await cargar();
-        fase = "session";
         await auth.authStateReady();
-        if (auth.currentUser) return await conectar(auth.currentUser);
-        fase = "google";
-        await sdk.signInWithPopup(auth, new sdk.GoogleAuthProvider());
+        if (!contenedor?.isConnected || auth.currentUser) return;
+        const identidad = await cargarGoogle();
+        if (!contenedor.isConnected || auth.currentUser) return;
+        if (!googleInicializado) {
+          identidad.initialize({
+            client_id: "40966974522-6klbngnqlsj56pajagvhqri69ritf231.apps.googleusercontent.com",
+            callback: recibirGoogle,
+            ux_mode: "popup"
+          });
+          googleInicializado = true;
+        }
+        identidad.renderButton(contenedor, {theme:"outline", size:"large", shape:"pill", text:"continue_with"});
       } catch (error) {
-        const codigo = diagnosticoAcceso(error, fase);
-        const mensajes = {
-          "auth/unauthorized-domain": ["El dominio de Balance One necesita autorización en Firebase.", "Authorize the Balance One domain in Firebase."],
-          "auth/popup-blocked": ["El navegador bloqueó la ventana de Google.", "The browser blocked the Google window."],
-          "auth/popup-closed-by-user": ["La ventana de Google se cerró antes de completar el acceso.", "The Google window closed before sign-in completed."],
-          "auth/network-request-failed": ["Falló la conexión con Firebase.", "Could not connect to Firebase."],
-          "login/sdk": ["No se pudo cargar Firebase.", "Could not load Firebase."]
-        };
-        const [es, en] = mensajes[codigo] || ["No se pudo iniciar sesión con Google.", "Could not sign in with Google."];
-        estado(es + " Código " + codigo, en + " Code " + codigo);
+        if (!contenedor?.isConnected) return;
+        const codigo = diagnosticoAcceso(error, "setup");
+        estado("No se pudo cargar el acceso con Google. Código " + codigo,
+          "Could not load Google sign-in. Code " + codigo);
       }
     },
     async salir() {
       if (ocupado || !auth) return;
-      try { await sdk.signOut(auth); }
+      try { await sdk.signOut(auth); await sincronizacionBalance.mostrar(); }
       catch { estado("No se pudo cerrar sesión.", "Could not sign out."); }
     }
   };
