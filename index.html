@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.52</title>
+<title>Balance One 0.6.53</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4810,13 +4810,40 @@ html.tema-oscuro :is(.credito-monto-deuda, .credito-deuda, .carrusel-mediana-deu
 html.tema-oscuro .credito-monto-disponible { color: #66d6ae !important; }
 .plan-cuotas-tarjeta input[type="number"] { border-radius: 999px; }
 </style>
+<style id="balanceone-ajustes-053">
+.card.apariencia-barras .ajustes-fila { min-height: 48px; padding-block: 5px; }
+.orden-ajustes .bo047-orden { gap: 8px; }
+.orden-ajustes .bo047-orden-fila {
+  padding: 5px 8px 5px 14px; border-radius: 999px;
+  background: rgba(130,140,155,.12);
+}
+.orden-ajustes .bo047-orden-fila button:not([data-usar],[data-boton-x]) { width: 36px; height: 36px; }
+@media (prefers-reduced-motion: no-preference) {
+  .orden-ajustes .bo047-orden-fila button { transition: transform 150ms ease; }
+  .orden-ajustes .bo047-orden-fila button:active:not(:disabled) { transform: scale(.9); }
+}
+.muestra-tema {
+  display: grid; place-items: center; width: 100%; min-height: 38px;
+  border-radius: 12px; color: #182131; background: #f2f4f8; font-weight: 700;
+}
+.muestra-tema[data-tema="oscuro"] { color: #f2f4f8; background: #232b38; }
+.muestra-tema[data-tema="auto"] {
+  color: #182131; background: linear-gradient(110deg,#f2f4f8 63%,#232b38 63%);
+}
+.credito-resumen .credito-deuda-total { color: #d34b58; }
+.credito-resumen .credito-limite-total { color: #25874e; }
+.credito-resumen .credito-uso-color { color: hsl(var(--uso-tono) 86% 29%); }
+html.tema-oscuro .credito-resumen .credito-uso-color { color: hsl(var(--uso-tono) 82% 66%); }
+html.tema-oscuro .credito-resumen .credito-deuda-total { color: #ff8190; }
+html.tema-oscuro .credito-resumen .credito-limite-total { color: #62d997; }
+</style>
 </head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.52</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.53</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5137,8 +5164,9 @@ function abrirTarjetasInicio() {
     <div class="bo047-orden"></div>
     <button type="button" class="secondary" data-restablecer>${t("Restablecer","Reset")}</button>
     <button type="button" class="cuenta-nueva-guardar" data-guardar>${t("Guardar tarjetas","Save cards")}</button>
-  `, true);
+  `, true, false, false);
   if (!ventana) return;
+  ventana.classList.add("orden-ajustes");
   const lista = ventana.querySelector(".bo047-orden");
   const dibujar = conectarOrdenInicio(lista, () => orden, item => opciones[item.clave],
     (item, i) => `<label><input type="checkbox" data-visible="${i}" ${item.visible ? "checked" : ""}> ${safe(opciones[item.clave])}</label>`);
@@ -5176,7 +5204,11 @@ function conectarOrdenInicio(lista, obtenerOrden, nombre, contenidoFila) {
     [orden[i], orden[siguiente]] = [orden[siguiente], orden[i]];
     dibujar();
     const destino = lista.querySelector(`[data-pos="${siguiente}"][data-dir="${boton.dataset.dir}"]`);
-    (destino.disabled ? destino.parentElement.querySelector("input, button:not(:disabled)") : destino)?.focus();
+    const fila = destino.parentElement;
+    (destino.disabled ? fila.querySelector("input, button:not(:disabled)") : destino)?.focus();
+    if (lista.closest(".orden-ajustes") && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      fila.animate([{transform:"translateY(" + (i - siguiente) * 12 + "px)", opacity:.65}, {transform:"translateY(0)", opacity:1}], {duration:190, easing:"ease-out"});
+    }
   };
   return dibujar;
 }
@@ -5208,8 +5240,10 @@ function abrirOrdenFinancieroInicio(grupo, alGuardar) {
       : t("Este orden se aplica a la lista del diseño clásico de Inicio.", "This order applies to the list in the Classic Home layout.")}</p>
     <div class="bo047-orden"></div>
     <button type="button" class="cuenta-nueva-guardar" data-guardar-orden>${t("Guardar orden","Save order")}</button>
-  `, true);
-  if (!ventana || orden.length < 2) return;
+  `, true, false, grupo !== "bancos");
+  if (!ventana) return;
+  if (grupo === "bancos") ventana.classList.add("orden-ajustes");
+  if (orden.length < 2) return;
 
   const nombre = item => grupo === "credito" && /^\d{4}$/.test(String(item.ultimos4 || ""))
     ? `${item.nombre} · •••• ${item.ultimos4}` : item.nombre;
@@ -5423,8 +5457,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.52",
-      "Smart control of your finances · 0.6.52"
+      "Control inteligente de tus finanzas · 0.6.53",
+      "Smart control of your finances · 0.6.53"
     );
   }
 }
@@ -9504,15 +9538,15 @@ function resumenTarjetasCredito() {
   return `<div class="credito-resumen">
     <div>
       <span class="credito-etiqueta">${textoApp("Deuda total", "Total debt")}</span>
-      <strong>${saldoDiscreto(deuda)}</strong>
+      <strong class="credito-deuda-total">${saldoDiscreto(deuda)}</strong>
     </div>
     <div>
       <span class="credito-etiqueta">${textoApp("Límite total de crédito", "Total credit limit")}</span>
-      <strong>${saldoDiscreto(limite)}</strong>
+      <strong class="credito-limite-total">${saldoDiscreto(limite)}</strong>
     </div>
     <p class="carrusel-uso-total" ${modoDiscretoInicio ? "hidden" : ""}>
       <span class="credito-etiqueta">${textoApp("Uso total del crédito", "Total credit utilization")}</span>
-      <b>${uso?.porcentaje ?? textoApp("Límites incompletos", "Incomplete limits")}</b>
+      <b ${uso ? `style="--uso-tono:${uso.ancho <= 50 ? 135 - uso.ancho * 1.8 : (100 - uso.ancho) * .9}" class="credito-uso-color"` : ""}>${uso?.porcentaje ?? textoApp("Límites incompletos", "Incomplete limits")}</b>
     </p>
   </div>`;
 }
@@ -12094,7 +12128,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.52</p>
+      <p class="ajustes-version">Balance One · 0.6.53</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12377,7 +12411,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.52 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.53 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12386,7 +12420,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.52</p>
+    <p class="note">Balance One 0.6.53</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12607,7 +12641,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.52</span>
+          <span class="note">${t("Versión", "Version")} 0.6.53</span>
         </div>`
     }
   };
@@ -15391,6 +15425,7 @@ function opcionesVentanaApariencia(tipo, config) {
         ${tipo === "progreso" ? `<span data-muestra-progreso aria-hidden="true">
           ${barraProgreso(65, "#ff7900", valor)}
         </span>` : ""}
+        ${tipo === "tema" ? `<span data-muestra-selector aria-hidden="true"><span class="muestra-tema" data-tema="${valor}">Aa</span></span>` : ""}
         ${tipo === "forma" ? `<span data-muestra-selector aria-hidden="true"><span class="muestra-forma" data-forma="${valor}"></span></span>` : ""}
         ${tipo === "listas" ? `<span data-muestra-selector class="muestra-lista" data-lista="${valor}" aria-hidden="true"><i></i><i></i></span>` : ""}
         ${tipo === "texto" ? `<span data-muestra-selector aria-hidden="true" style="font-size:${TAMANOS_TEXTO[valor]}">Aa 123</span>` : ""}
@@ -15408,7 +15443,7 @@ function abrirOpcionApariencia(tipo) {
   const config = configuraciones[tipo];
   if (!tipografia && !config) return;
 
-  const selectorVisual = tipografia || ["progreso", "forma", "listas", "texto", "fuente", "color"].includes(tipo);
+  const selectorVisual = tipografia || ["tema", "progreso", "forma", "listas", "texto", "fuente", "color"].includes(tipo);
   const contenido = tipografia
     ? ["texto", "fuente"].map(ajuste => `
         <section class="texto-grupo">
