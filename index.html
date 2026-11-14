@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.56</title>
+<title>Balance One 0.6.57</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4864,8 +4864,7 @@ html .card.apariencia-barras .ajustes-fila {
 
 <style>
 html[data-barra-flotante="capsula"] body > nav {display:none}
-html:not([data-barra-flotante="capsula"]) #barraCapsula,
-html:not([data-barra-flotante="capsula"]) #amAccesosBarra {display:none}
+html:not([data-barra-flotante="capsula"]) #barraCapsula {display:none}
 #barraCapsula {
   position:fixed;z-index:100;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));
   width:min(380px,calc(100% - 16px));display:flex;align-items:center;gap:8px;
@@ -4907,7 +4906,7 @@ html:not([data-barra-flotante="capsula"]) #amAccesosBarra {display:none}
 .barra-ajuste-titulo small {font-weight:normal}
 .barra-ajuste-opcion {
   position:relative;display:grid;place-items:center;align-content:center;gap:7px;
-  min-height:58px;padding:8px 4px;border-radius:16px;background:rgba(140,148,160,.12);
+  min-height:58px;padding:8px 4px;border-radius:28px;background:rgba(140,148,160,.12);
   text-align:center;font-size:11px;font-weight:600;cursor:pointer;overflow-wrap:anywhere;
 }
 .barra-ajuste-opcion input {position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
@@ -4916,13 +4915,33 @@ html:not([data-barra-flotante="capsula"]) #amAccesosBarra {display:none}
 .barra-ajuste-opcion:has(input:disabled:not(:checked)) {opacity:.52}
 .barra-ajuste-opcion svg {width:19px;height:19px}
 .barra-miniatura {display:flex;align-items:center;justify-content:center;gap:3px;width:100%;max-width:146px;padding-inline:3px}
-.barra-miniatura-grupo {display:flex;justify-content:space-evenly;align-items:center;flex:1;min-width:0;border-radius:999px;padding:4px;background:#e4e7ed;color:#24272d}
+.barra-miniatura-grupo {display:flex;justify-content:space-evenly;align-items:center;flex:1;min-width:0;border-radius:999px;padding:6px 4px;background:#e4e7ed;color:#24272d}
 .barra-miniatura svg {width:12px;height:12px;flex:none}
 .barra-miniatura-capsula .barra-miniatura-grupo,.barra-miniatura-menu {background:#101114;color:#fff}
 .barra-miniatura-menu,.barra-miniatura-activo {display:flex;align-items:center;gap:2px;border-radius:999px;padding:4px;font-size:8px;white-space:nowrap}
 .barra-miniatura-activo {background:#fff;color:#151619}
-#amAccesosBarra {display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-#amAccesosBarra button {border:0;border-radius:20px;padding:10px 13px;background:rgba(140,148,160,.16);color:inherit}
+
+html:root body dialog.barra-ajuste-dialogo {border-radius:48px}
+#barraMenuAccesos {
+  position:absolute;right:0;bottom:calc(100% + 9px);display:flex;flex-direction:column;
+  align-items:flex-end;gap:6px;max-height:calc(100dvh - 94px - env(safe-area-inset-bottom));
+  overflow:auto;overscroll-behavior:contain;padding:5px;max-width:100%;
+  scrollbar-width:thin;
+}
+#barraMenuAccesos[hidden] {display:none}
+#barraCapsula #barraMenuAccesos button {
+  flex:none;min-height:44px;max-width:100%;padding:5px 13px;gap:8px;text-align:left;
+  background:#fafbfe;color:#171c26;box-shadow:0 2px 8px #0003;font-size:13px;
+  animation:barra-acceso-entrada .21s ease both;
+}
+html.tema-oscuro #barraCapsula #barraMenuAccesos button {background:#262a31;color:#fff}
+@keyframes barra-acceso-entrada {
+  from {opacity:0;transform:translateY(8px)}
+  to {opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce) {
+  #barraCapsula #barraMenuAccesos button {animation:none}
+}
 html:root body > nav.barra-clasica-compacta {scale:.95}
 html:root body > nav {transition:transform .3s ease,scale .28s ease}
 html:root body > nav button {transition:background-color .25s ease,color .25s ease}
@@ -4938,7 +4957,7 @@ html:root body > nav button.active svg {transform:translateY(-2px)}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.56</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.57</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5052,9 +5071,10 @@ html:root body > nav button.active svg {transform:translateY(-2px)}
 </nav>
 <div id="barraCapsula" role="navigation" aria-label="Barra flotante">
   <div class="barra-capsula-accesos"><i class="barra-capsula-indicador" hidden></i></div>
-  <button type="button" class="barra-capsula-menu" onclick="abrirAmMenu()" aria-controls="amMenu" aria-label="Herramientas">
+  <button type="button" class="barra-capsula-menu" onclick="alternarMenuBarra()" aria-controls="barraMenuAccesos" aria-expanded="false" aria-label="Herramientas">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M7 8h10M7 12h10M7 16h10" stroke-linecap="round"/></svg>
   </button>
+  <div id="barraMenuAccesos" hidden></div>
 </div>
 
 <!-- Menú deslizable Balance One -->
@@ -5067,7 +5087,6 @@ html:root body > nav button.active svg {transform:translateY(-2px)}
       <path d="M5 5l14 14M19 5L5 19"/>
     </svg>
   </button>
-  <div id="amAccesosBarra"></div>
   <div id="amPaginas">
     <div class="amPagina">
       <button type="button" class="am-herramienta" data-herramienta="suscripciones" onclick="cerrarAmMenu();go('suscripciones')">
@@ -5136,6 +5155,49 @@ const ACCESOS_BARRA = [
 const barraCapsula = document.getElementById("barraCapsula");
 const grupoBarraCapsula = barraCapsula.querySelector(".barra-capsula-accesos");
 const indicadorBarra = grupoBarraCapsula.firstElementChild;
+const botonMenuBarra = barraCapsula.querySelector(".barra-capsula-menu");
+const menuAccesosBarra = document.getElementById("barraMenuAccesos");
+
+function cerrarMenuBarra(devolverFoco = false) {
+  if (menuAccesosBarra.hidden) return;
+  menuAccesosBarra.hidden = true;
+  botonMenuBarra.setAttribute("aria-expanded", "false");
+  if (devolverFoco) botonMenuBarra.focus({preventScroll:true});
+}
+
+function alternarMenuBarra() {
+  if (!menuAccesosBarra.hidden) return cerrarMenuBarra();
+  const visibles = accesosBarra();
+  const accesos = ACCESOS_BARRA.filter(([id]) => !visibles.includes(id));
+  accesos.push(["applePay", "Apple Pay", "Apple Pay"]);
+  menuAccesosBarra.replaceChildren(...accesos.map(([id, es, en, origen]) => {
+    const original = document.querySelector(origen || `[data-herramienta="${id}"]`);
+    const boton = document.createElement("button");
+    boton.type = "button";
+    const icono = original?.querySelector("svg");
+    if (icono) {
+      const copia = icono.cloneNode(true);
+      copia.setAttribute("aria-hidden", "true");
+      boton.append(copia);
+    }
+    boton.append(textoApp(es, en));
+    boton.onclick = () => { cerrarMenuBarra(true); original?.click(); };
+    return boton;
+  }));
+  menuAccesosBarra.hidden = false;
+  botonMenuBarra.setAttribute("aria-expanded", "true");
+}
+
+document.addEventListener("click", evento => {
+  if (!barraCapsula.contains(evento.target)) cerrarMenuBarra();
+});
+document.addEventListener("keydown", evento => {
+  if (evento.key === "Escape" && !menuAccesosBarra.hidden) {
+    evento.preventDefault();
+    cerrarMenuBarra(true);
+  }
+});
+
 
 function leerPreferenciaBarra(clave) {
   try { return localStorage.getItem(clave); }
@@ -5169,12 +5231,12 @@ function ubicarIndicadorBarra() {
 function actualizarBarraFlotante() {
   const modelo = modeloBarra();
   document.documentElement.dataset.barraFlotante = modelo;
-  if (modelo !== "capsula") return;
+  if (modelo !== "capsula") return cerrarMenuBarra();
 
   const ids = accesosBarra();
   const paginaActiva = page === "historialMovimientos" ? "movimientos" : page;
   barraCapsula.setAttribute("aria-label", textoApp("Barra flotante", "Floating navigation"));
-  barraCapsula.lastElementChild.setAttribute("aria-label", textoApp("Herramientas", "Tools"));
+  botonMenuBarra.setAttribute("aria-label", textoApp("Herramientas", "Tools"));
 
   for (const boton of grupoBarraCapsula.querySelectorAll("button")) {
     if (!ids.includes(boton.dataset.pagina)) boton.remove();
@@ -5233,7 +5295,7 @@ function abrirPreferenciasBarra() {
         <input type="radio" name="modeloBarra" value="capsula">
         <span class="barra-miniatura barra-miniatura-capsula" aria-hidden="true">
           <span class="barra-miniatura-grupo" data-miniatura-capsula></span>
-          <span class="barra-miniatura-menu">${barraCapsula.lastElementChild.querySelector("svg").outerHTML}</span>
+          <span class="barra-miniatura-menu">${botonMenuBarra.querySelector("svg").outerHTML}</span>
         </span>
         <span>${t("Cápsula", "Capsule")}</span>
       </label>
@@ -5248,6 +5310,7 @@ function abrirPreferenciasBarra() {
       ).join("")}
     </div>`, true, "ventana-formulario", false);
   if (!ventana) return;
+  ventana.classList.add("barra-ajuste-dialogo");
 
   const reflejar = () => {
     const modelo = modeloBarra();
@@ -5745,8 +5808,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.56",
-      "Smart control of your finances · 0.6.56"
+      "Control inteligente de tus finanzas · 0.6.57",
+      "Smart control of your finances · 0.6.57"
     );
   }
 }
@@ -5879,7 +5942,12 @@ let openEdit=null;
 const TAMANO_PAGINA_HISTORIAL = 30;
 const estadoHistorial = {filtro:"todos", busqueda:"", buscando:false, alcance:null, limite:TAMANO_PAGINA_HISTORIAL};
 
+let animacionCambioSeccion;
+
 function go(p, alcanceHistorial = null){
+ const cambioSeccion = page !== p;
+ cerrarMenuBarra();
+ animacionCambioSeccion?.cancel();
  if (p !== "inicio" && !document.getElementById("movVentana").classList.contains("hidden")) cerrarMovVentana();
  cerrarPanelAvisos();
  page=p;
@@ -5894,6 +5962,12 @@ function go(p, alcanceHistorial = null){
  );
  render();
  window.scrollTo(0, 0);
+ if (cambioSeccion && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+   animacionCambioSeccion = el().animate(
+     [{opacity:.65, transform:"translateX(9px)"}, {opacity:1, transform:"none"}],
+     {duration:230, easing:"ease-out"}
+   );
+ }
 }
 
 function dibujarInicio() {
@@ -12417,7 +12491,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.56</p>
+      <p class="ajustes-version">Balance One · 0.6.57</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12700,7 +12774,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.56 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.57 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12709,7 +12783,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.56</p>
+    <p class="note">Balance One 0.6.57</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12932,7 +13006,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.56</span>
+          <span class="note">${t("Versión", "Version")} 0.6.57</span>
         </div>`
     }
   };
@@ -13458,17 +13532,7 @@ function abrirCuentaBanco(identificador) {
 }
 
 function abrirAmMenu() {
-  if (modeloBarra() === "capsula") {
-    const grupo = document.getElementById("amAccesosBarra");
-    grupo.replaceChildren(...ACCESOS_BARRA.filter(([, , , origen]) => origen)
-      .map(([id, es, en]) => {
-        const boton = document.createElement("button");
-        boton.type = "button";
-        boton.textContent = textoApp(es, en);
-        boton.onclick = () => { cerrarAmMenu(); go(id); };
-        return boton;
-      }));
-  }
+  cerrarMenuBarra();
   document.getElementById("amMenu").classList.add("abierto");
   document.getElementById("amMenuFondo").classList.add("abierto");
 }
