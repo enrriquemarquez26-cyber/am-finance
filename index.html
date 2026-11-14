@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.55</title>
+<title>Balance One 0.6.56</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4900,12 +4900,27 @@ html:not([data-barra-flotante="capsula"]) #amAccesosBarra {display:none}
   background:#fff;pointer-events:none;transition:transform .3s ease,width .3s ease;
 }
 #barraCapsula .barra-capsula-menu {width:54px;height:54px;flex:none}
-.barra-opciones-accesos {display:grid;gap:8px;margin-top:16px}
-.barra-opciones-accesos label {
-  display:flex;align-items:center;gap:10px;min-height:44px;
-  padding:5px 12px;border-radius:22px;background:rgba(140,148,160,.13);
+
+.barra-ajuste-modelos,.barra-ajuste-iconos {display:grid;gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.barra-ajuste-iconos {grid-template-columns:repeat(3,minmax(0,1fr))}
+.barra-ajuste-titulo {display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:14px 0 8px}
+.barra-ajuste-titulo small {font-weight:normal}
+.barra-ajuste-opcion {
+  position:relative;display:grid;place-items:center;align-content:center;gap:7px;
+  min-height:58px;padding:8px 4px;border-radius:16px;background:rgba(140,148,160,.12);
+  text-align:center;font-size:11px;font-weight:600;cursor:pointer;overflow-wrap:anywhere;
 }
-.barra-opciones-accesos input {width:19px;height:19px;flex:none;margin:0}
+.barra-ajuste-opcion input {position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.barra-ajuste-opcion:has(input:focus-visible) {outline:2px solid var(--balanceone-color,#ff7900)}
+.barra-ajuste-opcion:has(input:checked) {background:rgba(255,121,0,.12);box-shadow:inset 0 0 0 1px var(--balanceone-color,#ff7900)}
+.barra-ajuste-opcion:has(input:disabled:not(:checked)) {opacity:.52}
+.barra-ajuste-opcion svg {width:19px;height:19px}
+.barra-miniatura {display:flex;align-items:center;justify-content:center;gap:3px;width:100%;max-width:146px;padding-inline:3px}
+.barra-miniatura-grupo {display:flex;justify-content:space-evenly;align-items:center;flex:1;min-width:0;border-radius:999px;padding:4px;background:#e4e7ed;color:#24272d}
+.barra-miniatura svg {width:12px;height:12px;flex:none}
+.barra-miniatura-capsula .barra-miniatura-grupo,.barra-miniatura-menu {background:#101114;color:#fff}
+.barra-miniatura-menu,.barra-miniatura-activo {display:flex;align-items:center;gap:2px;border-radius:999px;padding:4px;font-size:8px;white-space:nowrap}
+.barra-miniatura-activo {background:#fff;color:#151619}
 #amAccesosBarra {display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 #amAccesosBarra button {border:0;border-radius:20px;padding:10px 13px;background:rgba(140,148,160,.16);color:inherit}
 html:root body > nav.barra-clasica-compacta {scale:.95}
@@ -4923,7 +4938,7 @@ html:root body > nav button.active svg {transform:translateY(-2px)}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.55</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.56</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5195,23 +5210,54 @@ function actualizarBarraFlotante() {
 
 function abrirPreferenciasBarra() {
   const t = textoApp;
+  const icono = id => {
+    const [, , , selector] = ACCESOS_BARRA.find(([clave]) => clave === id);
+    const muestra = document.querySelector((selector || `[data-herramienta="${id}"]`) + " svg")?.cloneNode(true);
+    if (!muestra) return "";
+    muestra.querySelector("[data-nav-perfil-foto]")?.remove();
+    muestra.querySelector("[data-nav-perfil-icono]")?.removeAttribute("hidden");
+    muestra.querySelector("[data-nav-perfil-icono]")?.removeAttribute("style");
+    return muestra.outerHTML;
+  };
   const ventana = crearVentanaApariencia(t("Barra flotante", "Floating navigation"), `
-    <div class="barra-opciones-accesos" role="group" aria-label="${t("Modelo", "Layout")}">
-      <label><input type="radio" name="modeloBarra" value="clasica"> ${t("Clásica", "Classic")}</label>
-      <label><input type="radio" name="modeloBarra" value="capsula"> ${t("Cápsula", "Capsule")}</label>
+    <div class="barra-ajuste-titulo"><strong>${t("Modelo de barra", "Bar layout")}</strong></div>
+    <div class="barra-ajuste-modelos" role="group" aria-label="${t("Modelo de barra", "Bar layout")}">
+      <label class="barra-ajuste-opcion">
+        <input type="radio" name="modeloBarra" value="clasica">
+        <span class="barra-miniatura" aria-hidden="true"><span class="barra-miniatura-grupo">
+          ${ACCESOS_BARRA.slice(0,5).map(([id]) => icono(id)).join("")}
+        </span></span>
+        <span>${t("Clásica", "Classic")}</span>
+      </label>
+      <label class="barra-ajuste-opcion">
+        <input type="radio" name="modeloBarra" value="capsula">
+        <span class="barra-miniatura barra-miniatura-capsula" aria-hidden="true">
+          <span class="barra-miniatura-grupo" data-miniatura-capsula></span>
+          <span class="barra-miniatura-menu">${barraCapsula.lastElementChild.querySelector("svg").outerHTML}</span>
+        </span>
+        <span>${t("Cápsula", "Capsule")}</span>
+      </label>
     </div>
-    <div class="barra-opciones-accesos" data-accesos-barra>
+    <div class="barra-ajuste-titulo">
       <strong>${t("Accesos de la cápsula", "Capsule shortcuts")}</strong>
-      <small>${t("Elige entre 1 y 4 accesos.", "Choose 1 to 4 shortcuts.")}</small>
+      <small data-total-barra role="status"></small>
+    </div>
+    <div class="barra-ajuste-iconos" role="group" aria-label="${t("Accesos de la cápsula", "Capsule shortcuts")}">
       ${ACCESOS_BARRA.map(([id, es, en]) =>
-        `<label><input type="checkbox" value="${id}"> ${t(es, en)}</label>`
+        `<label class="barra-ajuste-opcion"><input type="checkbox" value="${id}">${icono(id)}<span>${t(es, en)}</span></label>`
       ).join("")}
-    </div>`, true);
+    </div>`, true, "ventana-formulario", false);
   if (!ventana) return;
 
   const reflejar = () => {
     const modelo = modeloBarra();
     const seleccion = accesosBarra();
+    ventana.querySelector("[data-total-barra]").textContent =
+      `${seleccion.length}/${LIMITE_BARRA_ACCESOS}`;
+    ventana.querySelector("[data-miniatura-capsula]").innerHTML = seleccion.map((id, indice) =>
+      indice === 0 ? `<span class="barra-miniatura-activo">${icono(id)}</span>` : icono(id)
+    ).join("");
+
     ventana.querySelector(`[name="modeloBarra"][value="${modelo}"]`).checked = true;
     ventana.querySelectorAll('[type="checkbox"]').forEach(campo => {
       campo.checked = seleccion.includes(campo.value);
@@ -5699,8 +5745,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.55",
-      "Smart control of your finances · 0.6.55"
+      "Control inteligente de tus finanzas · 0.6.56",
+      "Smart control of your finances · 0.6.56"
     );
   }
 }
@@ -12371,7 +12417,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.55</p>
+      <p class="ajustes-version">Balance One · 0.6.56</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12654,7 +12700,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.55 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.56 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12663,7 +12709,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.55</p>
+    <p class="note">Balance One 0.6.56</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12886,7 +12932,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.55</span>
+          <span class="note">${t("Versión", "Version")} 0.6.56</span>
         </div>`
     }
   };
