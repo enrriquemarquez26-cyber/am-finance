@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.53</title>
+<title>Balance One 0.6.54</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4137,7 +4137,7 @@ html.tema-oscuro .hist-filtro-fechas input[type="date"] {color-scheme:dark}
   color:inherit;border-color:#dce1e9;background:linear-gradient(165deg,#f7f8fc,#e9edf3);
 }
 .acciones-vidrio .vidrio-principal {
-  color:#fff;border-color:#c45408;background:linear-gradient(180deg,#eb8c49 0%,#bf4d00 40%,#b64800 100%);
+  color:inherit;border-color:transparent;background:var(--accion-ovalada);box-shadow:none;
 }
 html.tema-oscuro .acciones-vidrio .vidrio-secundario {
   color:inherit;border-color:#454d5b;background:linear-gradient(165deg,#343b47,#242a34);
@@ -4582,12 +4582,12 @@ html.tema-oscuro :is(.apariencia-ventana,.banco-dialogo).carrusel-credito-detall
 .apariencia-ventana.ventana-formulario {padding:49px 21px 18px}
 .ventana-formulario > h2 {margin:0 12px 18px;font-size:1.08rem;overflow-wrap:anywhere}
 .ventana-formulario .apariencia-contenido button.primary {
-  border:1px solid #c45408;
+  border:1px solid transparent;
   border-radius:999px;
   min-height:44px;
-  background:linear-gradient(180deg,#eb8c49,#bf4d00 40%,#b64800);
-  color:#fff;
-  box-shadow:inset 0 1px 0 #ffffff73;
+  background:var(--accion-ovalada);
+  color:inherit;
+  box-shadow:none;
 }
 .apariencia-ventana .ventana-pie {margin-top: 16px}
 .apariencia-ventana .ventana-pie .apariencia-listo {margin: 0}
@@ -4611,8 +4611,10 @@ html.tema-oscuro :is(.apariencia-ventana,.banco-dialogo).carrusel-credito-detall
 #movVentanaForm {max-height:none;overflow:visible}
 #movVentanaForm .mov-guardar-pie {grid-column:1/-1}
 #movVentana .mov-guardar-pie .mov-guardar {
-  background:linear-gradient(180deg,#eb8c49,#bf4d00 40%,#b64800);
-  border-color:#c45408;
+  background:var(--accion-ovalada);
+  border-color:transparent;
+  color:inherit;
+  box-shadow:none;
 }
 #amMenu {padding-top:32px}
 #amMenu #amMenuCerrar {top:8px;right:18px;width:44px;height:44px}
@@ -4837,13 +4839,35 @@ html.tema-oscuro .credito-resumen .credito-uso-color { color: hsl(var(--uso-tono
 html.tema-oscuro .credito-resumen .credito-deuda-total { color: #ff8190; }
 html.tema-oscuro .credito-resumen .credito-limite-total { color: #62d997; }
 </style>
+<style>
+html { --accion-ovalada: rgba(110,120,135,.10); }
+html.tema-oscuro { --accion-ovalada: rgba(230,235,245,.13); }
+html .card.apariencia-barras .ajustes-fila {
+  border-color: transparent;
+  background: var(--accion-ovalada);
+  box-shadow: none;
+}
+.cuenta-sync-panel { display:grid; gap:14px; padding:20px; border-radius:26px; }
+.cuenta-sync-panel h3, .cuenta-sync-panel p { margin:0; }
+.cuenta-sync-panel .note { padding:12px 14px; border-radius:16px; background:var(--accion-ovalada); }
+.cuenta-sync-panel .acciones-vidrio { grid-auto-flow:row; }
+.cuenta-sync-panel [aria-busy="true"]::before {
+  content:""; width:.85em; height:.85em; border:2px solid currentColor;
+  border-inline-end-color:transparent; border-radius:50%;
+  animation:cuenta-sync-giro .8s linear infinite;
+}
+@keyframes cuenta-sync-giro { to { transform:rotate(1turn); } }
+@media (prefers-reduced-motion:reduce) {
+  .cuenta-sync-panel [aria-busy="true"]::before { animation:none; }
+}
+</style>
 </head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.53</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.54</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5457,8 +5481,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.53",
-      "Smart control of your finances · 0.6.53"
+      "Control inteligente de tus finanzas · 0.6.54",
+      "Smart control of your finances · 0.6.54"
     );
   }
 }
@@ -12128,7 +12152,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.53</p>
+      <p class="ajustes-version">Balance One · 0.6.54</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12411,7 +12435,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.53 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.54 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12420,7 +12444,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.53</p>
+    <p class="note">Balance One 0.6.54</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12436,12 +12460,14 @@ function abrirAjuste(tipo, desdePerfil = false) {
     cuenta: {
       titulo: t("Cuenta e inicio de sesión", "Account and sign-in"),
       contenido: `
-        <div class="card">
+        <div class="card cuenta-sync-panel">
           <h3>${t("Mi cuenta", "My account")}</h3>
           <p class="note" id="balanceSyncEstado" role="status">${t("Inicia sesión para sincronizar tus datos.", "Sign in to sync your data.")}</p>
           <div id="balanceGoogleButton"></div>
-          <button type="button" class="ajustes-fila" onclick="sincronizacionBalance.activar()">${t("Activar sincronización", "Enable sync")}</button>
-          <button type="button" class="ajustes-fila" onclick="sincronizacionBalance.salir()">${t("Cerrar sesión", "Sign out")}</button>
+          <div class="acciones-vidrio">
+          <button type="button" class="vidrio-principal" id="balanceSyncActivar" disabled onclick="sincronizacionBalance.activar()">${t("Activar sincronización", "Enable sync")}</button>
+          <button type="button" class="vidrio-principal" id="balanceSyncSalir" hidden onclick="sincronizacionBalance.salir()">${t("Cerrar sesión", "Sign out")}</button>
+          </div>
         </div>`
     },
 
@@ -12641,7 +12667,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.53</span>
+          <span class="note">${t("Versión", "Version")} 0.6.54</span>
         </div>`
     }
   };
@@ -18786,10 +18812,27 @@ const sincronizacionBalance = (() => {
   };
 
   let ultimoEstado;
+  let activando = false;
+
+  function actualizarControlesCuenta() {
+    const boton = document.getElementById("balanceSyncActivar");
+    const salir = document.getElementById("balanceSyncSalir");
+    if (!boton || !salir) return;
+    const vinculado = localStorage.getItem(propietario);
+    boton.disabled = !usuario || activando || iniciado || Boolean(vinculado && vinculado !== usuario.uid);
+    boton.setAttribute("aria-busy", String(activando));
+    boton.textContent = activando ? textoApp("Sincronizando…", "Syncing…")
+      : iniciado ? textoApp("Sincronización activa", "Sync is on")
+      : textoApp("Activar sincronización", "Enable sync");
+    salir.hidden = !usuario;
+    salir.disabled = activando;
+  }
+
   function estado(es, en) {
     ultimoEstado = [es, en];
     const nodo = document.getElementById("balanceSyncEstado");
     if (nodo) nodo.textContent = textoApp(es, en);
+    actualizarControlesCuenta();
   }
 
   function capturar() {
@@ -18944,6 +18987,9 @@ const sincronizacionBalance = (() => {
     const uid = usuario.uid;
     if (localStorage.getItem(propietario) && localStorage.getItem(propietario) !== uid) return;
     ocupado = true;
+    activando = true;
+    const estadoAnterior = ultimoEstado;
+    estado("Sincronizando…", "Syncing…");
     try {
       const ref = sdk.doc(db, "users", uid, "balanceOne", "actual");
       const local = capturar();
@@ -18962,7 +19008,10 @@ const sincronizacionBalance = (() => {
       if (!automatico && !confirm(textoApp(
         meta ? "¿Vincular este dispositivo a tu cuenta de Balance One?" : "¿Guardar los datos de este dispositivo en tu cuenta de Balance One?",
         meta ? "Link this device to your Balance One account?" : "Save this device’s data to your Balance One account?"
-      ))) return;
+      ))) {
+        if (estadoAnterior) estado(...estadoAnterior);
+        return;
+      }
       if (!automatico || descargar) await guardarRecuperacion(local, uid, "antes-de-vincular");
       if (usuario?.uid !== uid || local !== capturar()) throw new Error("changed");
       const publicado = meta || await subir(ref, local, null);
@@ -18981,7 +19030,8 @@ const sincronizacionBalance = (() => {
     } catch {
       estado("No se pudo activar. Los datos locales se conservan.", "Could not enable sync. Local data was kept.");
     } finally {
-      ocupado = false;
+      ocupado = activando = false;
+      actualizarControlesCuenta();
     }
   }
 
@@ -19111,6 +19161,7 @@ const sincronizacionBalance = (() => {
     activar,
     async mostrar() {
       if (ultimoEstado) estado(...ultimoEstado);
+      else actualizarControlesCuenta();
       const contenedor = document.getElementById("balanceGoogleButton");
       try {
         await cargar();
