@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.50</title>
+<title>Balance One 0.6.51</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3063,6 +3063,8 @@ html.tema-oscuro .mov28 #movCalendario .cal-controles .cal-mes {border-color:rgb
 .programada-registrar {border:0;border-radius:999px;background:rgba(130,140,155,.12);color:inherit;font:inherit;font-size:.7rem;padding:8px 12px;margin-top:10px}
 [id^="creditoResumen"], [id^="vehiculoResumen"] {scroll-margin-top:16px}
 .logo-compania-cargado > .calendario-icono-respaldo { visibility: hidden; }
+.apariencia-barras { margin-bottom: 16px; }
+.apariencia-barras h3 { margin: 0 8px 8px; font-size: .78rem; }
 </style>
 <style id="balanceone-calendario-tarjetas-028">
 /* Calendario real (pestaña Calendario y Movimientos): casillas independientes,
@@ -4798,7 +4800,7 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.50</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.51</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5391,8 +5393,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.50",
-      "Smart control of your finances · 0.6.50"
+      "Control inteligente de tus finanzas · 0.6.51",
+      "Smart control of your finances · 0.6.51"
     );
   }
 }
@@ -9194,6 +9196,72 @@ function bloqueMetaPagoTarjeta(tarjeta) {
   </div>`;
 }
 
+function abrirPlanCuotasTarjeta(indice) {
+  const tarjeta = data.tarjetas[indice];
+  if (!tarjeta) return;
+  const t = textoApp;
+  const plan = tarjeta.planCuotas;
+  const ventana = crearVentanaApariencia(t("Pagar a plazos", "Pay in installments"), `
+    <p class="note">${safe(tarjeta.nombre)} · ${t("Seguimiento de un plan existente. Los pagos se registran en tu banco.", "Track an existing plan. Make payments through your bank.")}</p>
+    <form class="tarjeta-formulario">
+      <label class="credito-form-campo">${t("Total del plan, con cargos incluidos","Plan total, including fees")}
+        <input name="total" type="number" min="0.01" step="0.01" required value="${safe(plan ? plan.centavos / 100 : "")}">
+      </label>
+      <label class="credito-form-campo">${t("Número de cuotas","Number of installments")}
+        <input name="plazos" type="number" min="2" step="1" required value="${safe(plan?.plazos ?? "")}">
+      </label>
+      <label class="credito-form-campo">${t("Cuotas ya pagadas","Installments already paid")}
+        <input name="pagadas" type="number" min="0" step="1" required value="${safe(plan?.pagadas ?? 0)}">
+      </label>
+      <p class="note" role="status"></p>
+      <div class="acciones-vidrio ventana-pie">
+        <button type="submit" class="vidrio-primario">${t("Guardar","Save")}</button>
+        ${plan ? `<button type="button" class="vidrio-secundario" data-quitar-plan>${t("Quitar plan","Remove plan")}</button>` : ""}
+      </div>
+    </form>`, true, "ventana-formulario", false);
+  if (!ventana) return;
+  prepararGestoVentanaSelector(ventana);
+  const formulario = ventana.querySelector("form");
+  const {total, plazos, pagadas} = formulario.elements;
+  function actualizar() {
+    pagadas.max = plazos.value;
+    const centavos = Math.round(total.valueAsNumber * 100);
+    const numero = plazos.valueAsNumber;
+    const cuota = Math.floor(centavos / numero);
+    formulario.querySelector("[role=status]").textContent =
+      Number.isSafeInteger(centavos) && Number.isSafeInteger(numero) && numero >= 2 && cuota > 0
+        ? t("Cuota estimada: ", "Estimated installment: ") +
+          formateadorImportes().format(cuota / 100)
+        : "";
+  }
+  formulario.oninput = actualizar;
+  actualizar();
+  formulario.onsubmit = evento => {
+    evento.preventDefault();
+    const centavos = Math.round(total.valueAsNumber * 100);
+    if (!Number.isSafeInteger(centavos) || centavos < plazos.valueAsNumber) {
+      alert(t("Revisa el total del plan y el número de cuotas.", "Check the plan total and number of installments."));
+      return;
+    }
+    tarjeta.planCuotas = {centavos, plazos:plazos.valueAsNumber, pagadas:pagadas.valueAsNumber};
+    if (!save()) {
+      if (plan) tarjeta.planCuotas = plan;
+      else delete tarjeta.planCuotas;
+      return;
+    }
+    cerrarVentanaApariencia(ventana, render);
+  };
+  const quitar = formulario.querySelector("[data-quitar-plan]");
+  if (quitar) quitar.onclick = () => {
+    delete tarjeta.planCuotas;
+    if (!save()) {
+      tarjeta.planCuotas = plan;
+      return;
+    }
+    cerrarVentanaApariencia(ventana, render);
+  };
+}
+
 function abrirMetaPagoTarjeta(indice) {
   const tarjeta = data.tarjetas[indice];
   const pantalla = el().querySelector(".tarjetas-pantalla");
@@ -10076,6 +10144,16 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
             <small>${textoApp("Avanza con abonos de cualquier importe", "Make progress with payments of any amount")}</small>
           </span>
           <span class="credito-accion-flecha" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+        </button>
+      </div>
+      <div class="credito-accion">
+        <button type="button" class="credito-accion-boton" onclick="abrirPlanCuotasTarjeta(${i})">
+          <span class="credito-accion-icono" aria-hidden="true">${iconoAjuste("ordenCredito")}</span>
+          <span class="credito-accion-copy">
+            <strong>${textoApp("Pagar a plazos","Pay in installments")}</strong>
+            <small>${t.planCuotas ? textoApp("Cuotas registradas: ", "Installments recorded: ") + t.planCuotas.pagadas + "/" + t.planCuotas.plazos : textoApp("Registra un plan de tu banco","Track a plan from your bank")}</small>
+          </span>
+          <span class="credito-accion-flecha" aria-hidden="true">›</span>
         </button>
       </div>
       ${panelPagoTarjeta(t,i)}
@@ -11978,7 +12056,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.50</p>
+      <p class="ajustes-version">Balance One · 0.6.51</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12261,7 +12339,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.50 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.51 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12270,7 +12348,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.50</p>
+    <p class="note">Balance One 0.6.51</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12491,7 +12569,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.50</span>
+          <span class="note">${t("Versión", "Version")} 0.6.51</span>
         </div>`
     }
   };
@@ -15165,7 +15243,7 @@ function interfazApariencia() {
   ];
 
   return grupos.map(([titulo, filas]) => `
-    <section class="apariencia-grupo">
+    <section class="apariencia-barras">
       <h3>${titulo}</h3>
       ${filas.map(([tipo, icono, accion, etiqueta]) => `
         <button type="button" class="ajustes-fila" onclick="${accion || `abrirOpcionApariencia('${tipo}')`}">
