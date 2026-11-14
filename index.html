@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.48</title>
+<title>Balance One 0.6.49</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4797,7 +4797,7 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.48</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.49</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -4905,7 +4905,7 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
   </button>
 
   <button onclick="go('perfil')" id="nav-perfil">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21v-1.5a7.5 7.5 0 0 1 15 0V21"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g data-nav-perfil-icono><circle cx="12" cy="8" r="4"/><path d="M4.5 21v-1.5a7.5 7.5 0 0 1 15 0V21"/></g><image data-nav-perfil-foto x="1" y="1" width="22" height="22" preserveAspectRatio="xMidYMid slice" style="clip-path:circle(11px at 12px 12px)" visibility="hidden"/></svg>
     <span>Perfil</span>
   </button>
 </nav>
@@ -5390,8 +5390,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.48",
-      "Smart control of your finances · 0.6.48"
+      "Control inteligente de tus finanzas · 0.6.49",
+      "Smart control of your finances · 0.6.49"
     );
   }
 }
@@ -5603,7 +5603,24 @@ function botonModoDiscretoInicio() {
   </button>`;
 }
 
+function actualizarFotoNavPerfil() {
+ const imagen = document.querySelector("[data-nav-perfil-foto]");
+ const icono = document.querySelector("[data-nav-perfil-icono]");
+ const foto = typeof data.perfil?.foto === "string" ? data.perfil.foto : "";
+ if ((imagen.getAttribute("href") || "") === foto) return;
+
+ imagen.setAttribute("visibility", "hidden");
+ icono.removeAttribute("visibility");
+ imagen.onload = () => {
+   imagen.removeAttribute("visibility");
+   icono.setAttribute("visibility", "hidden");
+ };
+ if (foto) imagen.setAttribute("href", foto);
+ else imagen.removeAttribute("href");
+}
+
 function render(){
+ actualizarFotoNavPerfil();
  aplicarIdiomaGeneral();
  document.documentElement.classList.toggle(
    "inicio-nuevo-activo", page === "inicio" && disenoInicioActual() === "nuevo"
@@ -11960,7 +11977,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.48</p>
+      <p class="ajustes-version">Balance One · 0.6.49</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12047,6 +12064,7 @@ async function guardarPerfilLocal(event) {
     const nuevosDatos = {...data, perfil: {nombre, foto}};
     localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
     data = nuevosDatos;
+    actualizarFotoNavPerfil();
     if (formulario.isConnected) perfil();
   } catch (error) {
     alert(
@@ -12242,7 +12260,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.48 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.49 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12251,7 +12269,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.48</p>
+    <p class="note">Balance One 0.6.49</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12472,7 +12490,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.48</span>
+          <span class="note">${t("Versión", "Version")} 0.6.49</span>
         </div>`
     }
   };
