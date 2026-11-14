@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.51</title>
+<title>Balance One 0.6.52</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4793,6 +4793,22 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
 .texto-grupo h3 {margin:0 10px 8px;font-size:.88rem}
 .ventana-formulario .texto-grupo .selector-visual {padding-block:0}
 .texto-grupo + .texto-grupo {margin-top:18px}
+
+.card.ajustes-widget { padding: 8px 14px; }
+.ajustes-widget :is(.ajustes-fila, .privacidad-fila, .ayuda-tema > summary) {
+  border: 1px solid #84909d26;
+  border-radius: 999px;
+  background: #84909d13;
+}
+.ajustes-widget :is(.privacidad-fila, .ayuda-tema > summary) { padding-inline: 10px; }
+.ajustes-widget :is(.privacidad-fila + .privacidad-fila, .ayuda-tema + .ayuda-tema) { margin-top: 6px; }
+.ajustes-widget .ayuda-tema + .ayuda-tema { border-top: 0; }
+.ajustes-widget .ajustes-fila:last-child { margin-bottom: 0; }
+.credito-monto-deuda, .credito-deuda, .carrusel-mediana-deuda b, .carrusel-compacta-deuda strong { color: #b93b48 !important; }
+.credito-monto-disponible { color: #087451 !important; }
+html.tema-oscuro :is(.credito-monto-deuda, .credito-deuda, .carrusel-mediana-deuda b, .carrusel-compacta-deuda strong) { color: #ff8994 !important; }
+html.tema-oscuro .credito-monto-disponible { color: #66d6ae !important; }
+.plan-cuotas-tarjeta input[type="number"] { border-radius: 999px; }
 </style>
 </head>
 <body>
@@ -4800,7 +4816,7 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.51</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.52</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5249,6 +5265,20 @@ function proyectosMovimientos() {
     .map(m => [claveProyecto(m.proyecto), m.proyecto.trim()]));
 }
 
+function compraEnPlanTarjeta(movimiento, tarjeta) {
+  return movimiento.enPlanCuotas === true && movimiento.tipo === "gasto" &&
+    !movimiento.esPago && !movimiento.esTransferencia &&
+    String(movimiento.tarjetaId) === String(tarjeta.id);
+}
+
+function campoPlanCuotasMovimiento(movimiento = {}) {
+  const tarjeta = data.tarjetas.find(t => String(t.id) === String(movimiento.tarjetaId));
+  return `<label data-campo-plan-cuotas ${tarjeta?.planCuotas ? "" : "hidden"}>
+    <input type="checkbox" name="enPlanCuotas" ${movimiento.enPlanCuotas ? "checked" : ""}>
+    ${textoApp("Agregar a pago a plazo", "Add to installment plan")}
+  </label>`;
+}
+
 function camposExtraMovimiento(m = {}) {
   const t = textoApp;
   const tieneRecibo = reciboValido(m.recibo);
@@ -5393,8 +5423,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.51",
-      "Smart control of your finances · 0.6.51"
+      "Control inteligente de tus finanzas · 0.6.52",
+      "Smart control of your finances · 0.6.52"
     );
   }
 }
@@ -8359,6 +8389,7 @@ function editor(m){
     <input name="nombre" maxlength="80" value="${safe(m.nombre)}" required>
     <label class="label" for="histEditarCategoria">${textoApp("Categoría", "Category")}</label>
     <select id="histEditarCategoria" name="categoria">${opcionesCategoriaEdicion(m.categoria)}</select>
+    ${m.tarjetaId && !m.esPago && !m.esTransferencia ? campoPlanCuotasMovimiento(m) : ""}
     ${camposExtraMovimiento(m)}
    `}
       <label class="label">${textoImporte("Cantidad", "Amount")}</label>
@@ -8459,6 +8490,7 @@ if (
 const corregido = {
   ...item,
   ...extras,
+  enPlanCuotas: f.has("enPlanCuotas") && data.tarjetas.some(t => String(t.id) === String(item.tarjetaId) && t.planCuotas),
   nombre,
   tipo: f.get("tipo"),
   monto,
@@ -9203,7 +9235,8 @@ function abrirPlanCuotasTarjeta(indice) {
   const plan = tarjeta.planCuotas;
   const ventana = crearVentanaApariencia(t("Pagar a plazos", "Pay in installments"), `
     <p class="note">${safe(tarjeta.nombre)} · ${t("Seguimiento de un plan existente. Los pagos se registran en tu banco.", "Track an existing plan. Make payments through your bank.")}</p>
-    <form class="tarjeta-formulario">
+    ${(data.movimientos || []).filter(m => compraEnPlanTarjeta(m, tarjeta)).map(m => `<p class="note">${safe(m.nombre)} · ${saldoDiscreto(m.monto)}</p>`).join("")}
+    <form class="tarjeta-formulario plan-cuotas-tarjeta">
       <label class="credito-form-campo">${t("Total del plan, con cargos incluidos","Plan total, including fees")}
         <input name="total" type="number" min="0.01" step="0.01" required value="${safe(plan ? plan.centavos / 100 : "")}">
       </label>
@@ -9389,8 +9422,8 @@ function montosTarjetaCarrusel(tarjeta) {
   const t = textoApp;
   const disponible = Number(tarjeta.limite) > 0 ? saldoDiscreto(Math.max(0, round(tarjeta.limite - tarjeta.saldo))) : "—";
   return `<dl class="credito-resumen carrusel-montos">
-    <div><dt class="credito-etiqueta">${t("Deuda actual","Current debt")}</dt><dd>${saldoDiscreto(tarjeta.saldo)}</dd></div>
-    <div><dt class="credito-etiqueta">${t("Crédito disponible","Available credit")}</dt><dd>${disponible}</dd></div>
+    <div><dt class="credito-etiqueta">${t("Deuda actual","Current debt")}</dt><dd class="credito-monto-deuda">${saldoDiscreto(tarjeta.saldo)}</dd></div>
+    <div><dt class="credito-etiqueta">${t("Crédito disponible","Available credit")}</dt><dd class="credito-monto-disponible">${disponible}</dd></div>
   </dl>`;
 }
 
@@ -9446,7 +9479,11 @@ function proximasFechasTarjeta(tarjeta) {
   const entrada = String(tarjeta.pagoMinimo ?? "").trim();
   const minimo = entrada ? Number(entrada) : NaN;
   const tieneMinimo = Number.isFinite(minimo) && minimo >= 0;
-  if (!vencimiento && !corte && !tieneMinimo) return "";
+  const plan = tarjeta.planCuotas;
+  const cuota = plan?.plazos > plan?.pagadas
+    ? Math.floor(plan.centavos / plan.plazos) + Number(plan.pagadas < plan.centavos % plan.plazos)
+    : 0;
+  if (!cuota && !vencimiento && !corte && !tieneMinimo) return "";
 
   const formato = new Intl.DateTimeFormat(idiomaActual() === "en" ? "en-US" : "es", {day:"numeric",month:"short"});
   const fechaCorta = fecha => `<time datetime="${fecha}">${formato.format(new Date(fecha + "T12:00:00"))}</time>`;
@@ -9454,6 +9491,7 @@ function proximasFechasTarjeta(tarjeta) {
     ${corte ? `<span>${textoApp("Próximo corte", "Next statement closing date")} <strong>${fechaCorta(corte)}</strong></span>` : ""}
     ${vencimiento ? `<span>${textoApp("Próximo vencimiento", "Next due date")} <strong>${fechaCorta(vencimiento)}</strong></span>` : ""}
     ${tieneMinimo ? `<span>${textoApp("Pago mínimo", "Minimum payment")} <strong>${money(minimo)}</strong></span>` : ""}
+    ${cuota > 0 ? `<span>${textoApp("Cuota del plan (estimada)", "Estimated plan installment")} <strong>${saldoDiscreto(cuota / 100)}</strong></span>` : ""}
   </p>`;
 }
 
@@ -12056,7 +12094,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.51</p>
+      <p class="ajustes-version">Balance One · 0.6.52</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12339,7 +12377,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.51 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.52 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12348,7 +12386,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.51</p>
+    <p class="note">Balance One 0.6.52</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12454,7 +12492,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
     privacidad: {
       titulo: t("Privacidad y seguridad", "Privacy and security"),
       contenido: `
-        <div class="card privacidad-panel">
+        <div class="card ajustes-widget privacidad-panel">
           <label class="privacidad-fila">
             <span class="ajustes-icono" aria-hidden="true">${iconoAjuste("discretoInicio")}</span>
             <span><strong>${t("Ocultar saldos", "Hide balances")}</strong>
@@ -12496,7 +12534,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
     ayuda: {
       titulo: t("Ayuda e información", "Help and information"),
       contenido: `
-        <section class="card ayuda-guia" aria-label="${t("Guía rápida", "Quick guide")}">
+        <section class="card ajustes-widget ayuda-guia" aria-label="${t("Guía rápida", "Quick guide")}">
           <details class="ayuda-tema">
             <summary><span class="ajustes-icono" aria-hidden="true">${iconoAjuste("dinero")}</span>${t("Registrar un movimiento", "Add a transaction")}</summary>
             <div class="ayuda-contenido">
@@ -12569,7 +12607,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.51</span>
+          <span class="note">${t("Versión", "Version")} 0.6.52</span>
         </div>`
     }
   };
@@ -14242,7 +14280,7 @@ function abrirMovVentana(copia = null) {
   delete form.dataset.guardado;
   delete form.dataset.procesando;
   const extras = document.getElementById("movVentanaExtras");
-  extras.innerHTML = camposExtraMovimiento();
+  extras.innerHTML = campoPlanCuotasMovimiento() + camposExtraMovimiento();
   document.getElementById("movCategoriaSelector").open = false;
   importeVentana = copia && validAmount(Number(copia.monto)) ? round(Number(copia.monto)).toFixed(2) : "";
   document.getElementById("movVentanaMonto").textContent = formatearBorradorImporte(importeVentana);
@@ -14268,8 +14306,17 @@ function abrirMovVentana(copia = null) {
   actualizarSelectorCategoria();
   const actualizarSugerencia = prepararSugerenciaGasto(form);
   const actualizarFavoritos = prepararFavoritosGasto(form, actualizarSugerencia);
+  const campoPlan = extras.querySelector("[data-campo-plan-cuotas]");
+  const actualizarPlan = () => {
+    campoPlan.hidden = tipo.value !== "gasto" || !selector.value.startsWith("credito:") ||
+      !data.tarjetas.some(t => String(t.id) === selector.value.slice(8) && t.planCuotas);
+    if (campoPlan.hidden) form.elements.enPlanCuotas.checked = false;
+  };
+  selector.onchange = actualizarPlan;
+  actualizarPlan();
   tipo.onchange = () => {
     actualizarOrigen();
+    actualizarPlan();
     actualizarSugerencia();
     actualizarFavoritos();
     extras.querySelector("[data-campo-recibo]").hidden = tipo.value !== "gasto";
@@ -14355,6 +14402,8 @@ document.getElementById("movVentanaForm").onsubmit = async event => {
   const movimiento = {
     id: id(),
     ...extras,
+    enPlanCuotas: tipo === "gasto" && cuentaId.startsWith("credito:") && campos.has("enPlanCuotas") &&
+      data.tarjetas.some(t => String(t.id) === cuentaId.slice(8) && t.planCuotas),
     ...origenPagoSeleccionado(cuentaId),
     nombre,
     tipo,
@@ -15243,7 +15292,7 @@ function interfazApariencia() {
   ];
 
   return grupos.map(([titulo, filas]) => `
-    <section class="apariencia-barras">
+    <section class="card ajustes-widget apariencia-barras">
       <h3>${titulo}</h3>
       ${filas.map(([tipo, icono, accion, etiqueta]) => `
         <button type="button" class="ajustes-fila" onclick="${accion || `abrirOpcionApariencia('${tipo}')`}">
