@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.58</title>
+<title>Balance One 0.6.59</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3527,14 +3527,19 @@ html.tema-oscuro .cuenta-nueva-error {color:#ff9ca7}
 <style id="inicio-transacciones-carrusel">
 #content .inicio-transacciones.inicio-capsula {border-radius:36px !important}
 .inicio-transacciones {min-width:0}
-.inicio-transacciones .inicio-transacciones-carrusel {display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;border-radius:22px}
+.inicio-transacciones .inicio-transacciones-carrusel {display:flex;align-items:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;border-radius:22px}
 .inicio-transacciones .inicio-transacciones-carrusel::-webkit-scrollbar {display:none}
 .inicio-transacciones .inicio-transacciones-pagina {flex:0 0 100%;width:100%;min-width:0;box-sizing:border-box;scroll-snap-align:start;scroll-snap-stop:always;padding:6px 2px 2px}
+@media (width < 1000px) {
+  .inicio-transacciones-carrusel[data-pagina="0"] > :not(:nth-child(1)),
+  .inicio-transacciones-carrusel[data-pagina="1"] > :not(:nth-child(2)),
+  .inicio-transacciones-carrusel[data-pagina="2"] > :not(:nth-child(3)) {contain:size}
+}
 .inicio-transacciones .inicio-transacciones-carrusel:focus-visible {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
 .inicio-transacciones .inicio-transacciones-indicadores {display:flex;gap:2px;justify-content:center;margin-top:0}
 .inicio-transacciones .inicio-transacciones-indicadores button {display:grid;place-items:center;width:26px;height:24px;padding:0;border:0;border-radius:999px;background:transparent;cursor:pointer}
-.inicio-transacciones .inicio-transacciones-indicadores button::after {content:"";display:block;width:4px;height:4px;border-radius:999px;background:#b9c0cc;transition:width .15s ease}
-.inicio-transacciones .inicio-transacciones-indicadores button[aria-pressed="true"]::after {width:12px;background:var(--balanceone-color,#ff7900)}
+.inicio-transacciones .inicio-transacciones-indicadores button::after {content:"";display:block;width:11px;height:4px;border-radius:999px;background:#b9c0cc;transition:width .15s ease}
+.inicio-transacciones .inicio-transacciones-indicadores button[aria-pressed="true"]::after {width:20px;background:var(--balanceone-color,#ff7900)}
 .inicio-transacciones .inicio-transacciones-indicadores button:focus-visible {outline:2px solid var(--balanceone-color,#ff7900)}
 .inicio-transacciones .inicio-categorias-titulo {display:grid;gap:3px;margin:5px 5px 14px}
 .inicio-transacciones .inicio-categorias-titulo strong {font-size:.84rem}
@@ -4874,10 +4879,10 @@ html.tema-oscuro :is(#barraCapsula,.barra-miniatura-capsula) {
 }
 #barraCapsula {
   position:fixed;z-index:100;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));
-  width:min(408px,calc(100% - 12px));display:flex;align-items:center;gap:8px;
+  width:min(392px,calc(100% - 24px));display:flex;align-items:center;gap:8px;
   transform:translateX(-50%);transition:width .28s ease;
 }
-#barraCapsula.compacta {width:min(368px,calc(100% - 22px))}
+#barraCapsula.compacta {width:min(354px,calc(100% - 34px))}
 .barra-capsula-accesos,.barra-capsula-menu {
   background:var(--barra-fondo);color:var(--barra-texto);box-shadow:0 5px 18px #0003;
 }
@@ -4964,7 +4969,7 @@ html:root body > nav button.active svg {transform:translateY(-2px)}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.58</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.59</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5816,8 +5821,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.58",
-      "Smart control of your finances · 0.6.58"
+      "Control inteligente de tus finanzas · 0.6.59",
+      "Smart control of your finances · 0.6.59"
     );
   }
 }
@@ -7145,6 +7150,8 @@ function cambiarVistaTransaccionesConTeclado(evento) {
 function actualizarIndicadoresTransacciones(carrusel) {
   if (!carrusel.clientWidth) return;
   const pagina = Math.round(carrusel.scrollLeft / carrusel.clientWidth);
+  if (carrusel.dataset.pagina === String(pagina)) return;
+  carrusel.dataset.pagina = pagina;
   carrusel.closest(".inicio-transacciones").querySelectorAll("[data-vista-transacciones]")
     .forEach((boton, indice) => boton.setAttribute("aria-pressed", String(indice === pagina)));
 }
@@ -7330,7 +7337,7 @@ ${autos + tarjetas + prestamos > 0 ? `
     <h3>${textoApp("Últimas transacciones", "Recent transactions")}</h3>
     <button type="button" onclick="go('historialMovimientos')">${textoApp("Ver todas", "View all")} ›</button>
   </div>
-  <div id="inicioTransaccionesCarrusel" class="inicio-transacciones-carrusel"
+  <div id="inicioTransaccionesCarrusel" data-pagina="0" class="inicio-transacciones-carrusel"
     role="region" aria-roledescription="${textoApp('carrusel','carousel')}"
     aria-label="${textoApp('Transacciones, gastos por categoría y comparación mensual','Transactions, expenses by category and monthly comparison')}"
     tabindex="0" onscroll="actualizarIndicadoresTransacciones(this)"
@@ -12499,7 +12506,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.58</p>
+      <p class="ajustes-version">Balance One · 0.6.59</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12782,7 +12789,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.58 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.59 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12791,7 +12798,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.58</p>
+    <p class="note">Balance One 0.6.59</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13014,7 +13021,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.58</span>
+          <span class="note">${t("Versión", "Version")} 0.6.59</span>
         </div>`
     }
   };
