@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.45</title>
+<title>Balance One 0.6.46</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4797,7 +4797,7 @@ html[style*="--balanceone-fuente"] :is(button, input, select, textarea) {
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.45</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.46</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5390,8 +5390,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.45",
-      "Smart control of your finances · 0.6.45"
+      "Control inteligente de tus finanzas · 0.6.46",
+      "Smart control of your finances · 0.6.46"
     );
   }
 }
@@ -6045,9 +6045,9 @@ function avisosVencimiento() {
   const fondo=`<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>`;
   const voz = `<button type="button" class="asistente-voz-boton" onclick="abrirAsistenteVoz()"
     aria-label="${textoApp("Asistente de voz", "Voice assistant")}" aria-haspopup="dialog">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4m-3 0h6"/>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect width="24" height="24" fill="currentColor"
+        style="mask: url('https://unpkg.com/@lobehub/icons-static-svg/icons/openai.svg') center / contain no-repeat"/>
     </svg></button>`;
   if(!proximos.length) {
     return `${fondo}<div class="avisos-ancla"><section id="avisosUnificados"
@@ -11961,7 +11961,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.45</p>
+      <p class="ajustes-version">Balance One · 0.6.46</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12243,7 +12243,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.45 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.46 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12252,7 +12252,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.45</p>
+    <p class="note">Balance One 0.6.46</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -12473,7 +12473,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.45</span>
+          <span class="note">${t("Versión", "Version")} 0.6.46</span>
         </div>`
     }
   };
@@ -18845,13 +18845,17 @@ const sincronizacionBalance = (() => {
 
   function diagnosticoAcceso(error, fase) {
     const codigo = typeof error?.code === "string" ? error.code : "";
-    if (/^(auth|app)\/[a-z0-9-]{1,64}$/i.test(codigo)) return codigo.toLowerCase();
+    if (/^(auth|app)\/[a-z0-9_-]{1,64}$/i.test(codigo)) return codigo.toLowerCase();
     const detalle = typeof error?.message === "string" ? error.message : "";
-    const codigoFirebase = detalle.match(/\((auth|app)\/[a-z0-9-]{1,64}\)/i);
+    const codigoFirebase = detalle.match(/\((auth|app)\/[a-z0-9_-]{1,64}\)/i);
     if (codigoFirebase) return codigoFirebase[0].slice(1, -1).toLowerCase();
     const motivo = detalle.match(/\b(API_KEY_SERVICE_BLOCKED|API_KEY_HTTP_REFERRER_BLOCKED|API_KEY_INVALID|INVALID_OAUTH_CLIENT_ID|OPERATION_NOT_ALLOWED|UNAUTHORIZED_DOMAIN|PROJECT_NOT_FOUND|INVALID_PROJECT_ID|CONFIGURATION_NOT_FOUND|redirect_uri_mismatch)\b/i);
     if (motivo) return motivo[0].toLowerCase();
     const nombre = error?.name;
+    if (fase === "firebase-sign-in" && error instanceof Error && nombre === "Error") {
+      if (/assertion failed|internal assertion/i.test(detalle)) return "login/firebase-internal-assertion";
+      if (/load failed|failed to fetch|network request/i.test(detalle)) return "login/firebase-network";
+    }
     if (["TypeError", "SecurityError", "NotAllowedError", "AbortError", "NetworkError"].includes(nombre)) {
       return "login/" + fase + "/" + nombre;
     }
