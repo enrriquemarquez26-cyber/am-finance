@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.59</title>
+<title>Balance One 0.6.60</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4963,13 +4963,34 @@ html:root body > nav button.active svg {transform:translateY(-2px)}
   #barraCapsula,#barraCapsula *,html:root body > nav,html:root body > nav * {transition:none !important}
 }
 </style>
+<style>
+html.tema-en-transicion :is(body,header,main,.card,dialog,button,.barra-capsula-accesos,.barra-capsula-indicador) {
+  transition:background-color .28s ease,color .28s ease,border-color .28s ease,box-shadow .28s ease;
+}
+.tema-selector-ajuste .selector-visual {position:relative;top:-8px}
+.texto-control-tamano {display:grid;gap:8px;padding:12px;border-radius:22px;background:rgba(140,148,160,.10)}
+.texto-control-tamano input {width:100%;margin:0;accent-color:var(--balanceone-color,#ff7900);min-height:36px}
+.texto-control-tamano output {text-align:center;font-weight:700}
+.texto-control-muestra {min-height:32px;display:grid;place-items:center;font-weight:700}
+.tarjetas-inicio-ajuste .bo047-orden-fila {padding:3px 6px 3px 10px;gap:3px;min-height:50px}
+.tarjetas-inicio-ajuste .bo047-orden-fila label {display:flex;align-items:center;gap:7px;min-width:0;font-size:.8rem}
+.tarjetas-inicio-ajuste label svg {width:19px;height:19px;flex:none}
+.tarjetas-inicio-ajuste label input {appearance:none;position:relative;width:32px;height:19px;margin:0;flex:none;border:0;border-radius:999px;background:#79818d}
+.tarjetas-inicio-ajuste label input::before {content:"";position:absolute;inset:3px auto 3px 3px;width:13px;border-radius:50%;background:white;transition:transform .18s ease}
+.tarjetas-inicio-ajuste label input:checked {background:var(--balanceone-color,#ff7900)}
+.tarjetas-inicio-ajuste label input:checked::before {transform:translateX(13px)}
+.tarjetas-inicio-ajuste label input:focus-visible {outline:2px solid currentColor;outline-offset:2px}
+.tarjetas-inicio-acciones {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.tarjetas-inicio-ajuste .tarjetas-inicio-acciones button {margin:0;border-radius:999px;min-width:0;font-size:.82rem}
+@media(prefers-reduced-motion:reduce) {.tarjetas-inicio-ajuste label input::before {transition:none}}
+</style>
 </head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.59</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.60</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5523,16 +5544,24 @@ function abrirTarjetasInicio() {
   const opciones = opcionesTarjetasInicio(diseno);
   let orden = ordenTarjetasInicio(diseno, preferenciasTarjetasInicio()[diseno]);
   const ventana = crearVentanaApariencia(t("Tarjetas de Inicio","Home cards"), `
-    <p class="note">${t("Elige qué tarjetas ves y en qué orden en el diseño de Inicio que usas ahora.", "Choose which cards you see and their order in your current Home layout.")}</p>
     <div class="bo047-orden"></div>
-    <button type="button" class="secondary" data-restablecer>${t("Restablecer","Reset")}</button>
-    <button type="button" class="cuenta-nueva-guardar" data-guardar>${t("Guardar tarjetas","Save cards")}</button>
+    <div class="tarjetas-inicio-acciones">
+      <button type="button" class="secondary" data-restablecer>${t("Restablecer","Reset")}</button>
+      <button type="button" class="cuenta-nueva-guardar" data-guardar>${t("Guardar","Save")}</button>
+    </div>
   `, true, false, false);
   if (!ventana) return;
-  ventana.classList.add("orden-ajustes");
+  ventana.classList.add("orden-ajustes", "tarjetas-inicio-ajuste");
+  const iconos = {resumen:"progreso", presupuestos:"dinero", deudas:"ordenCredito",
+    transacciones:"listas", cuentas:"ordenBancos", tarjetas:"ordenCredito",
+    cuentasTarjetas:"ordenBancos", categorias:"categorias", comparacion:"progreso", pagos:"avisos"};
   const lista = ventana.querySelector(".bo047-orden");
   const dibujar = conectarOrdenInicio(lista, () => orden, item => opciones[item.clave],
-    (item, i) => `<label><input type="checkbox" data-visible="${i}" ${item.visible ? "checked" : ""}> ${safe(opciones[item.clave])}</label>`);
+    (item, i) => `<label>
+      <input type="checkbox" role="switch" data-visible="${i}" ${item.visible ? "checked" : ""}>
+      <span aria-hidden="true">${item.clave === "vehiculos" ? document.querySelector("#nav-vehiculos svg").outerHTML : iconoAjuste(iconos[item.clave])}</span>
+      <span>${safe(opciones[item.clave])}</span>
+    </label>`);
   lista.onchange = event => {
     const item = orden[Number(event.target.dataset.visible)];
     if (item) item.visible = event.target.checked;
@@ -5821,8 +5850,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.59",
-      "Smart control of your finances · 0.6.59"
+      "Control inteligente de tus finanzas · 0.6.60",
+      "Smart control of your finances · 0.6.60"
     );
   }
 }
@@ -10560,7 +10589,6 @@ aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombr
         }
       </div>
 
-      ${bloqueMetaPagoTarjeta(t)}
 
       <div class="credito-texto"
         style="text-align:right;color:#F28C28">
@@ -12506,7 +12534,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.59</p>
+      <p class="ajustes-version">Balance One · 0.6.60</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12789,7 +12817,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.59 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.60 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12798,7 +12826,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.59</p>
+    <p class="note">Balance One 0.6.60</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13021,7 +13049,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.59</span>
+          <span class="note">${t("Versión", "Version")} 0.6.60</span>
         </div>`
     }
   };
@@ -13059,11 +13087,15 @@ function cambiarTema(tema){
   localStorage.setItem("amfinance-tema", tema);
   aplicarTema();
 }
+function pixelesTexto(tamano) {
+  const valor = Number.parseFloat(TAMANOS_TEXTO[tamano] || tamano);
+  return Number.isInteger(valor) && valor >= 12 && valor <= 23 ? valor : 16;
+}
 function cambiarTamanoTexto(tamano) {
-  if (!Object.hasOwn(TAMANOS_TEXTO, tamano)) return;
-  localStorage.setItem("balanceone-tamano-texto", tamano);
-  document.documentElement.style.fontSize = TAMANOS_TEXTO[tamano];
-  document.body.style.fontSize = TAMANOS_TEXTO[tamano];
+  const pixeles = pixelesTexto(tamano);
+  localStorage.setItem("balanceone-tamano-texto", String(pixeles));
+  document.documentElement.style.fontSize = pixeles + "px";
+  document.body.style.fontSize = pixeles + "px";
 }
 function aplicarFuenteTexto(fuente) {
   const elegida = Object.hasOwn(FUENTES_TEXTO, fuente) ? fuente : "sistema";
@@ -13076,6 +13108,7 @@ function cambiarFuenteTexto(fuente) {
   localStorage.setItem("balanceone-fuente-texto", fuente);
   aplicarFuenteTexto(fuente);
 }
+let finTransicionTema;
 function aplicarTema(){
   const tema = localStorage.getItem("amfinance-tema") || "auto";
 
@@ -13083,6 +13116,17 @@ function aplicarTema(){
     (tema === "auto" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
 
+  const raiz = document.documentElement;
+  const animar = (raiz.classList.contains("tema-claro") || raiz.classList.contains("tema-oscuro")) &&
+    raiz.classList.contains("tema-oscuro") !== oscuro &&
+    !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (animar) {
+    raiz.classList.add("tema-en-transicion");
+    clearTimeout(finTransicionTema);
+    finTransicionTema = setTimeout(() => raiz.classList.remove("tema-en-transicion"), 320);
+    document.querySelector('#barraCapsula:not([hidden]) .barra-capsula-accesos')?.animate?.(
+      [{translate:"0 0"}, {translate:"0 -3px"}, {translate:"0 0"}], {duration:280, easing:"ease-in-out"});
+  }
   document.documentElement.classList.toggle("tema-claro", !oscuro);
   document.documentElement.classList.toggle("tema-oscuro", oscuro);
 
@@ -15684,6 +15728,7 @@ function valorApariencia(config) {
 }
 
 function etiquetaApariencia(tipo, configs) {
+  if (tipo === "texto") return pixelesTexto(localStorage.getItem("balanceone-tamano-texto")) + " px";
   if (tipo === "tipografia") return ["texto", "fuente"]
     .map(opcion => etiquetaApariencia(opcion, configs)).join(" · ");
   if (tipo === "inicio") return etiquetaDisenoInicio();
@@ -15836,7 +15881,15 @@ function abrirOpcionApariencia(tipo) {
 
   const selectorVisual = tipografia || ["tema", "progreso", "forma", "listas", "texto", "fuente", "color"].includes(tipo);
   const contenido = tipografia
-    ? ["texto", "fuente"].map(ajuste => `
+    ? `<section class="texto-grupo">
+        <h3><label for="tamanoTextoPersonal">${configuraciones.texto.titulo}</label></h3>
+        <div class="texto-control-tamano">
+          <div class="texto-control-muestra" aria-hidden="true">Aa 123</div>
+          <input id="tamanoTextoPersonal" type="range" min="12" max="23" step="1"
+            value="${pixelesTexto(localStorage.getItem(configuraciones.texto.clave))}">
+          <output for="tamanoTextoPersonal"></output>
+        </div>
+      </section>` + ["fuente"].map(ajuste => `
         <section class="texto-grupo">
           <h3>${configuraciones[ajuste].titulo}</h3>
           <div class="selector-visual">${opcionesVentanaApariencia(ajuste, configuraciones[ajuste])}</div>
@@ -15860,6 +15913,22 @@ function abrirOpcionApariencia(tipo) {
 
   if (!ventana) return;
   if (selectorVisual) prepararGestoVentanaSelector(ventana);
+  if (tipo === "tema") ventana.classList.add("tema-selector-ajuste");
+  if (tipografia) {
+    const campo = ventana.querySelector("#tamanoTextoPersonal");
+    const actualizarMuestra = () => {
+      ventana.querySelector(".texto-control-muestra").style.fontSize = campo.value + "px";
+      ventana.querySelector("output").value = campo.value + " px";
+    };
+    campo.addEventListener("input", actualizarMuestra);
+    campo.addEventListener("change", () => {
+      cambiarTamanoTexto(campo.value);
+      const resumen = el().querySelector('[data-valor-apariencia="tipografia"]');
+      if (resumen) resumen.textContent = etiquetaApariencia("tipografia", configuraciones);
+    });
+    actualizarMuestra();
+  }
+
 
   if (tipo === "disenoCredito") {
     const detalle = el().querySelector("[data-diseno-credito]");
