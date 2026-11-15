@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.63</title>
+<title>Balance One 0.6.64</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5017,15 +5017,30 @@ html.tema-oscuro .subs-panel-agregar {color:#ffa85d}
 .subs-panel-fila input:checked {background:#ff7900}
 .subs-panel-fila input:checked:before {left:20px}
 </style><style>
-.subs-panel-proximos .subs-cobro {display:grid;grid-template-columns:1fr auto;grid-template-rows:28px 1fr;gap:5px;position:relative;isolation:isolate;background:none;border:0;padding:0;align-items:start;justify-items:stretch}
+.subs-panel-proximos {margin-bottom:16px}
+.subs-panel-proximos .subs-cobro {
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto 1fr;
+  column-gap:4px;row-gap:0;background:none;border:0;padding:0;align-items:stretch;
+}
 .subs-cobro {--cobro-fondo:#fff;min-height:100px}
 html.tema-oscuro .subs-cobro {--cobro-fondo:#202630}
-.subs-cobro::before,.subs-cobro::after {content:"";position:absolute;z-index:-1;background:var(--cobro-fondo)}
-.subs-cobro::before {inset:0 auto 14px 0;width:calc(100% - clamp(67px,23vw,96px));border-radius:18px 14px 0 0}
-.subs-cobro::after {inset:33px 0 0;border-radius:0 14px 18px 18px}
-.subs-cobro-burbuja {grid-column:2;grid-row:1;justify-self:end;background:var(--cobro-fondo);border-radius:999px;padding:5px 8px;max-width:clamp(62px,22vw,91px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.65rem}
-.subs-cobro-logo {grid-column:1;grid-row:1;display:block;width:33px;margin:8px 0 0 10px;z-index:1}
-.subs-cobro-datos {grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;padding:16px 9px 10px;font-size:.73rem}
+.subs-cobro-burbuja {
+  grid-column:2;grid-row:1;align-self:start;justify-self:end;
+  background:var(--cobro-fondo);border-radius:999px;margin-bottom:4px;
+  padding:5px 9px;line-height:1.2;max-width:clamp(58px,22vw,100px);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.65rem;
+}
+.subs-cobro-logo {
+  grid-column:1;grid-row:1;justify-self:stretch;position:relative;
+  background:var(--cobro-fondo);border-radius:18px 14px 0 0;
+}
+.subs-cobro-logo .subs-logo {position:absolute;left:10px;top:7px;width:33px}
+.subs-cobro-datos {
+  grid-column:1/-1;grid-row:2;justify-self:stretch;display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-content:start;gap:6px;
+  background:var(--cobro-fondo);border-radius:0 13px 18px 18px;
+  padding:18px 9px 12px;font-size:.73rem;
+}
 .subs-cobro-datos > span + span {border-inline-start:1px solid rgba(140,148,160,.25);padding-inline-start:5px}
 .subs-cobro-datos small {display:block;margin-top:4px}
 .subs-anillo-redondo {position:relative;width:clamp(95px,34vw,150px);flex:none}
@@ -5040,7 +5055,7 @@ html.tema-oscuro .subs-cobro {--cobro-fondo:#202630}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.63</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.64</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5900,8 +5915,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.63",
-      "Smart control of your finances · 0.6.63"
+      "Control inteligente de tus finanzas · 0.6.64",
+      "Smart control of your finances · 0.6.64"
     );
   }
 }
@@ -11436,8 +11451,8 @@ function suscripciones() {
           <span class="subs-cobro-burbuja">${safe(r.planSuscripcion || (r.frecuencia === "anual" ? t("Anual","Yearly") : r.frecuencia === "cada14dias" ? t("Cada 14 días","Every 14 days") : t("Mensual","Monthly")))}</span>
           <span class="subs-cobro-logo">${logo(r)}</span>
           <span class="subs-cobro-datos"><span><strong>${safe(r.nombre)}</strong><small>${t("Cobro","Due")} · ${fechaCorta(cobro.fecha)}</small></span>
-          <span><strong>${r.importeVariable ? "—" : money(Number(r.precioAnual) || Number(r.monto) * (r.frecuencia === "anual" ? 1 : r.frecuencia === "cada14dias" ? 26 : 12))}</strong>
-          <small>${t("al año","per year")} · ${cobro.fecha === hoy ? t("Hoy","Today") : t("En","In") + " " + Math.round((Date.parse(cobro.fecha)-Date.parse(hoy))/86400000) + " " + t("días","days")}</small></span></span>
+          <span><strong>${r.importeVariable ? t("Importe variable","Variable amount") : money(Number(r.precioAnual) || Number(r.monto) * (r.frecuencia === "anual" ? 1 : r.frecuencia === "cada14dias" ? 26 : 12))}</strong>
+          <small>${r.importeVariable ? "" : t("al año","per year") + " · "}${cobro.fecha === hoy ? t("Hoy","Today") : t("En","In") + " " + Math.round((Date.parse(cobro.fecha)-Date.parse(hoy))/86400000) + " " + t("días","days")}</small></span></span>
         </button>
       `).join("") || `<p class="note">${t("No hay cobros próximos.","No upcoming charges.")}</p>`}</div>
       <div class="card subs-panel-grafico"><h3>${t("Gasto por categoría","Spending by category")}</h3>
@@ -12707,7 +12722,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.63</p>
+      <p class="ajustes-version">Balance One · 0.6.64</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12990,7 +13005,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.63 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.64 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12999,7 +13014,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.63</p>
+    <p class="note">Balance One 0.6.64</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13222,7 +13237,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.63</span>
+          <span class="note">${t("Versión", "Version")} 0.6.64</span>
         </div>`
     }
   };
