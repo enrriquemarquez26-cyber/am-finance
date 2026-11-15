@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.68</title>
+<title>Balance One 0.6.69</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5106,13 +5106,24 @@ dialog:is(.subs-listado-dialogo,.subs-detalle-dialogo) > h2 {margin:0 40px 15px 
 .subs-cuotas-pendientes summary {cursor:pointer;font-size:.82rem;margin-bottom:8px}
 .subs-detalle-historial small {display:block;margin-top:3px;opacity:.8}
 .subs-detalle-historial strong {flex:none}
+</style><style>
+.subs-periodo {display:flex;justify-self:center;gap:3px;background:var(--accion-ovalada);padding:3px;border-radius:999px;margin-bottom:8px}
+.subs-periodo button,.subs-total-mes button {border:0;border-radius:999px;padding:7px 12px;background:transparent;color:inherit;font:inherit;font-size:.75rem;min-height:36px}
+.subs-periodo button[aria-pressed=true] {background:#ff9a42;color:#17130e;font-weight:700}
+.subs-total-estimado,.subs-total-mes {display:grid;gap:6px}
+.subs-total-estimado[hidden],.subs-total-mes[hidden] {display:none}
+.subs-total-estimado > strong {font-size:2.1rem}
+.subs-total-mes {grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.subs-total-mes div {display:grid;gap:4px;padding:8px 4px;border-radius:18px;background:var(--accion-ovalada);overflow-wrap:anywhere}
+.subs-total-mes > small,.subs-total-mes > button {grid-column:1/-1}
+.subs-total-mes button {justify-self:center;background:var(--accion-ovalada)}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.68</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.69</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5972,8 +5983,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.68",
-      "Smart control of your finances · 0.6.68"
+      "Control inteligente de tus finanzas · 0.6.69",
+      "Smart control of your finances · 0.6.69"
     );
   }
 }
@@ -11149,6 +11160,20 @@ function opcionesCuentasPago(excluirTarjeta = null) {
     return opcionesOrigenPago(cuentas,excluirTarjeta);
   } catch {return '<option value="">'+textoApp("No se pudieron leer las cuentas", "Could not load accounts")+'</option>';}
 }
+function seleccionarOrigenSuscripcion(campo, origen) {
+  if (origen && [...campo.options].some(opcion => opcion.value === origen)) campo.value = origen;
+}
+
+function nombreOrigenSuscripcion(origen) {
+  if (!origen) return "";
+  if (origen.startsWith("credito:")) {
+    return data.tarjetas.find(t => String(t.id) === origen.slice(8))?.nombre || "";
+  }
+  try {
+    const cuentas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
+    return cuentas.find(c => String(c.id) === origen)?.nombre || "";
+  } catch { return ""; }
+}
 function guardarPagoTarjetaBanco(anterior,nuevo) {return guardarPagoConOrigen(anterior,nuevo);}
 
 function pagarTarjeta(e, i) {
@@ -11336,6 +11361,7 @@ function guardarSuscripcionFormulario(form, indice = null) {
     ...(anterior || {}), id:anterior ? anterior.id : id(),
     planSuscripcion:String(campos.get("planSuscripcion") || "").trim().slice(0,32),
     grupoSuscripcion:["entretenimiento","productividad","otros"].includes(campos.get("grupoSuscripcion")) ? campos.get("grupoSuscripcion") : "",
+    origenPreferido:String(campos.get("origenPreferido") || ""),
     nombre, monto, precioMensual, precioAnual, inicio, categoria, fin, frecuencia, importeVariable
   };
   const nuevaLista = anterior
@@ -11529,13 +11555,18 @@ function abrirDetalleSuscripcion(indice, fecha = "") {
   const clave = safe(JSON.stringify(String(r.id)));
   const cobro = fecha && suscripcionesDelMes(fecha.slice(0,7), [r]).find(evento => evento.fecha === fecha);
   const importe = cobro ? importeCobroSuscripcion(cobro) : null;
+  const origen = nombreOrigenSuscripcion(r.origenPreferido);
+  const confirmar = cobro && r.importeVariable && importe === null &&
+    !pagos.some(p => p.vencimientoSuscripcion === fecha);
   const ventana = crearVentanaApariencia(r.nombre, `
     <div class="subs-detalle-resumen">
       <span class="subs-logo" aria-hidden="true">↻ ${imagenCompania(r.nombre)}</span>
       <div><strong>${importe !== null ? money(importe) : r.importeVariable ? t("Por confirmar","To be confirmed") : importeProgramado(r)}</strong>
         <small>${fecha ? t("Próximo cobro","Next charge") : t("Primer cobro","First charge")} · ${safe(fecha || r.inicio || "—")}</small></div>
     </div>
+    ${origen ? `<p class="note">${t("Se cobra en","Charged to")} <strong>${safe(origen)}</strong></p>` : ""}
     <p class="note">${resumenPreciosSuscripcion(r)}</p>
+    ${confirmar ? `<div class="subs-acciones"><button type="button" data-confirmar-factura>${t("Confirmar importe","Confirm amount")}</button></div>` : ""}
     ${r.fin ? `<p class="note">${t("Último cobro", "Last charge")} · ${safe(r.fin)}</p>` : ""}
     ${cuotas ? `<section class="subs-cuotas-pendientes">
       <h3>${t("Cuotas restantes","Remaining installments")}</h3>
@@ -11558,15 +11589,46 @@ function abrirDetalleSuscripcion(indice, fecha = "") {
     </div>`, true, "apariencia-ventana--suscripciones", false);
   if (!ventana) return;
   ventana.classList.add("subs-detalle-dialogo");
+  const botonFactura = ventana.querySelector("[data-confirmar-factura]");
+  if (botonFactura) botonFactura.onclick = () =>
+    cerrarVentanaApariencia(ventana, () => abrirFacturaServicio(String(r.id), fecha));
   const registrar = ventana.querySelector("[data-registrar]");
   if (registrar) registrar.onclick = () => cerrarVentanaApariencia(ventana, () => registrarCobroProgramado(String(r.id), fecha || today()));
   ventana.querySelector("[data-eliminar]").onclick = () =>
     cerrarVentanaApariencia(ventana, () => eliminarRegistroProgramado("suscripcion", indice));
 }
 
+let periodoResumenSuscripciones = "estimado";
+
+function resumenMensualSuscripciones(mes, pagos, cobros) {
+  const identidad = (id,fecha) => JSON.stringify([String(id),fecha]);
+  const registrados = new Set();
+  let pagado = 0, pendiente = 0, porConfirmar = 0;
+  for (const pago of pagos) {
+    if (pago.tipo !== "gasto" || pago.suscripcionId == null) continue;
+    if (pago.vencimientoSuscripcion) registrados.add(identidad(pago.suscripcionId,pago.vencimientoSuscripcion));
+    if (String(pago.fecha).slice(0,7) === mes && validAmount(Number(pago.monto))) {
+      pagado += Math.round(Number(pago.monto)*100);
+    }
+  }
+  for (const cobro of cobros) {
+    if (registrados.has(identidad(cobro.id,cobro.fecha))) continue;
+    const importe = importeCobroSuscripcion(cobro);
+    if (importe === null) porConfirmar++;
+    else pendiente += Math.round(importe*100);
+  }
+  return {pagado:pagado/100, pendiente:pendiente/100, porConfirmar};
+}
+
+function abrirCalendarioSuscripcionesMes() {
+  mesCalendario = month();
+  go("movimientos");
+}
+
 function suscripciones() {
   const t = textoApp;
   const hoy = today();
+  const resumenMes = resumenMensualSuscripciones(hoy.slice(0,7), data.movimientos, suscripcionesDelMes(hoy.slice(0,7)));
   const lista = Array.isArray(data.suscripciones) ? data.suscripciones : [];
   const categorias = [
     ["entretenimiento",t("Entretenimiento","Entertainment"),"#3863b4"],
@@ -11639,13 +11701,25 @@ function suscripciones() {
   el().innerHTML = `<section class="subs-pantalla subs-panel-nuevo">
     <div class="subs-panel-cabecera"><h2>${t("Suscripciones","Subscriptions")}</h2>
       <button type="button" class="subs-panel-agregar" onclick="abrirFormularioSuscripcionCalendario()" aria-label="${t("Nueva suscripción","New subscription")}">+</button></div>
-      <div class="card subs-panel-total"><small>${t("Gasto mensual estimado","Estimated monthly spending")}</small>
+      <div class="card subs-panel-total">
+        <div class="subs-periodo" role="group" aria-label="${t("Período del resumen","Summary period")}">
+          <button type="button" data-periodo-sus="estimado" aria-pressed="${periodoResumenSuscripciones === "estimado"}">${t("Estimado","Estimate")}</button>
+          <button type="button" data-periodo-sus="mes" aria-pressed="${periodoResumenSuscripciones === "mes"}">${t("Este mes","This month")}</button>
+        </div>
+        <div class="subs-total-estimado" data-total-sus="estimado" ${periodoResumenSuscripciones === "mes" ? "hidden" : ""}><small>${t("Gasto mensual estimado","Estimated monthly spending")}</small>
         <strong>${money(total)}</strong><small>${money(total*12)} ${t("al año","per year")}</small>
         <div class="subs-panel-datos">
           <button type="button" aria-haspopup="dialog" onclick="abrirListadoSuscripciones('activas')">${activas.length} ${t("activas","active")}</button>
           <button type="button" aria-haspopup="dialog" data-semana-sus>${semana.length} ${t("en 7 días","in 7 days")}</button>
         </div>
         ${activas.some(({r}) => r.importeVariable) ? `<small>${t("El total incluye importes fijos.","Total includes fixed amounts.")}</small>` : ""}
+        </div>
+        <div class="subs-total-mes" data-total-sus="mes" ${periodoResumenSuscripciones === "estimado" ? "hidden" : ""}>
+          <div><small>${t("Pagado","Paid")}</small><strong>${money(resumenMes.pagado)}</strong></div>
+          <div><small>${t("Pendiente confirmado","Confirmed pending")}</small><strong>${money(resumenMes.pendiente)}</strong></div>
+          <small>${resumenMes.porConfirmar} ${t("por confirmar","to be confirmed")}</small>
+          <button type="button" onclick="abrirCalendarioSuscripcionesMes()">${t("Ver en calendario","View in calendar")} ›</button>
+        </div>
       </div>
       <div class="subs-proximos-cabecera">
         <h3>${t("Próximos cobros","Upcoming charges")}</h3>
@@ -11710,6 +11784,15 @@ function suscripciones() {
       </div>
     </template>
     </section>`;
+  const botonesPeriodo = el().querySelectorAll("[data-periodo-sus]");
+  const totales = el().querySelectorAll("[data-total-sus]");
+  botonesPeriodo.forEach(boton => {
+    boton.onclick = () => {
+      periodoResumenSuscripciones = boton.dataset.periodoSus;
+      botonesPeriodo.forEach(opcion => opcion.setAttribute("aria-pressed", String(opcion === boton)));
+      totales.forEach(panel => {panel.hidden = panel.dataset.totalSus !== periodoResumenSuscripciones;});
+    };
+  });
   el().querySelector("[data-semana-sus]").onclick = () =>
     abrirResumenSuscripciones("semana",t("Cobros en los próximos 7 días","Charges in the next 7 days"));
   for (const g of segmentos) {
@@ -12971,7 +13054,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.68</p>
+      <p class="ajustes-version">Balance One · 0.6.69</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13254,7 +13337,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.68 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.69 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13263,7 +13346,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.68</p>
+    <p class="note">Balance One 0.6.69</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13486,7 +13569,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.68</span>
+          <span class="note">${t("Versión", "Version")} 0.6.69</span>
         </div>`
     }
   };
@@ -18037,7 +18120,7 @@ function suscripcionesDelMes(
 
 function prepararFacturaServicio(datos, identificador, fecha, importe) {
   const indice = (datos.suscripciones || []).findIndex(s => String(s.id) === String(identificador) && s.categoria === "servicios");
-  if (indice < 0 || !validDate(fecha) || !validAmount(importe) || Math.abs(Number(importe)*100-Math.round(Number(importe)*100)) > .00001) throw new Error(textoApp("Introduce un importe válido con hasta dos decimales.", "Enter a valid amount with up to two decimal places."));
+  if (indice < 0 || !validDate(fecha) || !validAmount(Number(importe)) || Math.abs(Number(importe)*100-Math.round(Number(importe)*100)) > .00001) throw new Error(textoApp("Introduce un importe válido con hasta dos decimales.", "Enter a valid amount with up to two decimal places."));
   if (!suscripcionesDelMes(fecha.slice(0,7), [datos.suscripciones[indice]]).some(s => s.fecha === fecha)) throw new Error(textoApp("La factura no corresponde a un vencimiento.", "The bill does not match a due date."));
   const suscripciones = datos.suscripciones.map((s,i) => i === indice ? {...s,facturas:{...s.facturas,[fecha]:round(importe)}} : s);
   return {...datos,suscripciones};
@@ -18076,6 +18159,7 @@ function registrarCobroProgramado(identificador, fecha) {
   if (!ventana) return;
   ventana.classList.add("cuenta-nueva");
   const form=ventana.querySelector("form");
+  seleccionarOrigenSuscripcion(form.elements.origen, registro.origenPreferido);
   form.onsubmit=e=>{
     e.preventDefault();if(form.dataset.guardado || !form.reportValidity())return;
     if(data.movimientos.some(m=>String(m.suscripcionId)===String(identificador) && m.vencimientoSuscripcion===fecha))return;
@@ -18227,6 +18311,9 @@ function abrirFormularioSuscripcionCalendario(indice = null) {
         "Anual calcula mensual × 12; puedes ajustar el precio anual. Cada 14 días usa el primer importe por cobro.",
         "Yearly calculates monthly × 12; you can adjust the annual price. Every 14 days uses the first amount per charge."
       )}</p>
+      <label class="suscripcion-campo">${textoApp("Cuenta o tarjeta de pago (opcional)","Payment account or card (optional)")}
+        <select name="origenPreferido">${opcionesCuentasPago()}</select>
+      </label>
       ${campo("inicio", textoApp("Primer cobro", "First charge"), "date", actual.inicio || today(), "required")}
       ${camposFinalSuscripcion(actual.fin || "")}
       <div class="acciones-vidrio">
@@ -18239,6 +18326,7 @@ function abrirFormularioSuscripcionCalendario(indice = null) {
   if (!ventana) return;
   ventana.classList.add("apariencia-ventana--suscripciones");
   const form = ventana.querySelector("#formSuscripcionCalendario");
+  seleccionarOrigenSuscripcion(form.elements.origenPreferido, actual.origenPreferido);
   activarFormularioSuscripcion(form);
   form.onsubmit = event => {
     event.preventDefault();
