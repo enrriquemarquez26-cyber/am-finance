@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.64</title>
+<title>Balance One 0.6.65</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5049,13 +5049,33 @@ html.tema-oscuro .subs-cobro {--cobro-fondo:#202630}
 .subs-anillo-redondo strong {font-size:1.35rem}
 .subs-panel-grafico .subs-panel-desglose ul {min-width:0}
 .subs-panel-grafico .subs-panel-desglose li {display:grid;gap:2px;grid-template-columns:1fr;border-inline-start:3px solid;padding-inline-start:8px;overflow-wrap:anywhere}
+</style><style>
+.subs-panel-cabecera {margin-bottom:14px}
+.subs-proximos-cabecera {display:flex;align-items:center;justify-content:space-between;gap:8px}
+.subs-proximos-cabecera button {border:0;background:none;color:#a64700;padding:0 2px;min-height:44px;font:inherit;font-size:.78rem;font-weight:650;white-space:nowrap}
+html.tema-oscuro .subs-proximos-cabecera button {color:#ffa85d}
+.subs-panel-proximos .subs-cobro {min-height:112px}
+.subs-cobro-logo {border-radius:22px 17px 0 0}
+.subs-cobro-datos {border-radius:0 16px 22px 22px;padding-bottom:15px}
+.subs-panel-grafico .subs-panel-desglose {gap:clamp(18px,6vw,34px)}
+.subs-listado-dialogo .subs-panel-selector button {min-width:0;padding-inline:5px}
+#formSuscripcionCalendario {min-width:0;gap:10px}
+#formSuscripcionCalendario :is(.suscripcion-campo,.subs-campo,[data-fin-suscripcion]) {min-width:0}
+#formSuscripcionCalendario .suscripcion-precios {grid-template-columns:repeat(2,minmax(0,1fr))}
+#formSuscripcionCalendario :is(input,select) {
+  display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;
+  height:44px;min-height:44px;margin:0;padding:0 12px;border-radius:999px;
+}
+#formSuscripcionCalendario input[type=date] {appearance:none;-webkit-appearance:none;font:inherit;font-size:16px;text-align:start}
+#formSuscripcionCalendario input[type=date]::-webkit-date-and-time-value {min-width:0;text-align:start}
+#formSuscripcionCalendario input[type=date]::-webkit-datetime-edit {padding:0}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.64</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.65</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5915,8 +5935,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.64",
-      "Smart control of your finances · 0.6.64"
+      "Control inteligente de tus finanzas · 0.6.65",
+      "Smart control of your finances · 0.6.65"
     );
   }
 }
@@ -11334,7 +11354,6 @@ function resumenCuotasProgramadas(registro) {
   return {total, completada:centavosProgramados > 0};
 }
 
-let vistaSuscripciones = "resumen";
 let filtroSuscripciones = "todas";
 let busquedaSuscripciones = "";
 
@@ -11350,8 +11369,18 @@ function alternarPausaSuscripcion(indice) {
     ? pausas.map(p => p.fin ? p : {...p, fin:today()})
     : [...pausas, {inicio:today()}];
   const suscripciones = data.suscripciones.map((s,i) => i === indice ? {...s, pausas:nuevas} : s);
-  if (guardarDatosExtra({suscripciones})) render();
-  else document.querySelector(`[data-pausa-sus="${indice}"]`).checked = !suscripcionPausada(registro);
+  if (!guardarDatosExtra({suscripciones})) {
+    const campo = document.querySelector(`[data-pausa-sus="${indice}"]`);
+    if (campo) campo.checked = !suscripcionPausada(registro);
+    return;
+  }
+  render();
+  const panel = document.querySelector("[data-listado-sus]");
+  if (panel) {
+    actualizarListadoSuscripciones(panel);
+    (panel.querySelector(`article:not([hidden]) [data-pausa-sus="${indice}"]`) ||
+      panel.querySelector('[data-filtro-sus][aria-pressed="true"]'))?.focus();
+  }
 }
 
 function abrirDetalleSuscripcion(indice) {
@@ -11433,19 +11462,19 @@ function suscripciones() {
   const fechaCorta = fecha => new Intl.DateTimeFormat(idiomaActual() === "en" ? "en-US" : "es", {
     day:"numeric",month:"short",timeZone:"UTC"
   }).format(new Date(fecha+"T12:00:00Z"));
-  const botonVista = (clave, nombre) => `<button type="button" aria-pressed="${vistaSuscripciones === clave}" data-vista-sus="${clave}">${nombre}</button>`;
   el().innerHTML = `<section class="subs-pantalla subs-panel-nuevo">
     <div class="subs-panel-cabecera"><h2>${t("Suscripciones","Subscriptions")}</h2>
       <button type="button" class="subs-panel-agregar" onclick="abrirFormularioSuscripcionCalendario()" aria-label="${t("Nueva suscripción","New subscription")}">+</button></div>
-    <div class="subs-panel-selector">${botonVista("resumen",t("Resumen","Overview"))}${botonVista("todas",t("Todas","All"))}</div>
-    ${vistaSuscripciones === "resumen" ? `
       <div class="card subs-panel-total"><small>${t("Gasto mensual estimado","Estimated monthly spending")}</small>
         <strong>${money(total)}</strong><small>${money(total*12)} ${t("al año","per year")}</small>
         <div class="subs-panel-datos"><span>${activas.length} ${t("activas","active")}</span>
         <span>${proximas.filter(({cobro}) => Date.parse(cobro.fecha)-Date.parse(hoy) <= 7*86400000).length} ${t("en 7 días","in 7 days")}</span></div>
         ${activas.some(({r}) => r.importeVariable) ? `<small>${t("El total incluye importes fijos.","Total includes fixed amounts.")}</small>` : ""}
       </div>
-      <h3>${t("Próximos cobros","Upcoming charges")}</h3>
+      <div class="subs-proximos-cabecera">
+        <h3>${t("Próximos cobros","Upcoming charges")}</h3>
+        <button type="button" onclick="abrirListadoSuscripciones()" aria-haspopup="dialog">${t("Ver todas","View all")} <span aria-hidden="true">›</span></button>
+      </div>
       <div class="subs-panel-proximos">${proximas.slice(0,2).map(({r,i,cobro}) => `
         <button type="button" class="subs-cobro" onclick="abrirDetalleSuscripcion(${i})">
           <span class="subs-cobro-burbuja">${safe(r.planSuscripcion || (r.frecuencia === "anual" ? t("Anual","Yearly") : r.frecuencia === "cada14dias" ? t("Cada 14 días","Every 14 days") : t("Mensual","Monthly")))}</span>
@@ -11471,7 +11500,7 @@ function suscripciones() {
           </div>
           <ul>${segmentos.map(g => `<li style="border-color:${g.color}"><strong>${Math.round(g.fin-g.inicio)}%</strong><span>${g.nombre}</span></li>`).join("")}</ul>
         </div></div>
-    ` : `
+    <template id="plantillaListadoSuscripciones">
       <input class="subs-panel-buscar" type="search" aria-label="${t("Buscar suscripciones","Search subscriptions")}" placeholder="${t("Buscar suscripciones…","Search subscriptions…")}" value="${safe(busquedaSuscripciones)}">
       <div class="subs-panel-selector">${[
         ["todas",t("Todas","All"),lista.length], ["activas",t("Activas","Active"),activas.length],
@@ -11479,16 +11508,30 @@ function suscripciones() {
       ].map(([clave,nombre,total]) => `<button type="button" aria-pressed="${filtroSuscripciones === clave}" data-filtro-sus="${clave}">${nombre} ${total}</button>`).join("")}</div>
       <div class="subs-panel-lista">${registros.map(({r,i,cerrada,pausada,cobro}) => `
         <article class="subs-panel-fila" data-estado-sus="${cerrada ? "cerradas" : pausada ? "pausadas" : "activas"}" data-nombre-sus="${safe(r.nombre)}">
-          <button type="button" onclick="abrirDetalleSuscripcion(${i})">${logo(r)}<span><strong>${safe(r.nombre)}</strong>
+          <button type="button" data-detalle-sus="${i}">${logo(r)}<span><strong>${safe(r.nombre)}</strong>
             <small>${importeProgramado(r)} · ${pausada ? t("Pausada","Paused") : cobro ? fechaCorta(cobro.fecha) : cerrada ? t("Finalizada","Ended") : t("Sin cobro próximo","No upcoming charge")}</small></span></button>
           ${cerrada ? "" : `<input type="checkbox" role="switch" data-pausa-sus="${i}" aria-label="${t("Seguimiento de","Tracking for")} ${safe(r.nombre)}" ${pausada ? "" : "checked"}>`}
         </article>`).join("")}
         <p class="note" data-vacio-sus hidden>${t("No hay suscripciones en esta vista.","No subscriptions in this view.")}</p>
-      </div>`}
+      </div>
+    </template>
     </section>`;
-  const panel = el().querySelector(".subs-panel-nuevo");
-  panel.querySelectorAll("[data-vista-sus]").forEach(b => b.onclick = () => {vistaSuscripciones=b.dataset.vistaSus; suscripciones();});
-  if (vistaSuscripciones !== "todas") return;
+}
+
+function abrirListadoSuscripciones() {
+  const ventana = crearVentanaApariencia(textoApp("Todas las suscripciones","All subscriptions"),
+    '<div data-listado-sus></div>', true, "subs-listado-dialogo", false);
+  if (ventana) actualizarListadoSuscripciones(ventana.querySelector("[data-listado-sus]"));
+}
+
+function actualizarListadoSuscripciones(panel) {
+  const plantilla = document.getElementById("plantillaListadoSuscripciones");
+  if (!plantilla) return;
+  panel.replaceChildren(plantilla.content.cloneNode(true));
+  panel.querySelectorAll("[data-detalle-sus]").forEach(boton => {
+    boton.onclick = () => cerrarVentanaApariencia(panel.closest("dialog"),
+      () => abrirDetalleSuscripcion(Number(boton.dataset.detalleSus)));
+  });
   const buscar = panel.querySelector("input[type=search]");
   const filtrar = () => {
     const consulta = busquedaSuscripciones.trim().toLocaleLowerCase();
@@ -12722,7 +12765,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.64</p>
+      <p class="ajustes-version">Balance One · 0.6.65</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13005,7 +13048,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.64 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.65 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13014,7 +13057,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.64</p>
+    <p class="note">Balance One 0.6.65</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13237,7 +13280,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.64</span>
+          <span class="note">${t("Versión", "Version")} 0.6.65</span>
         </div>`
     }
   };
