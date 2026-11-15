@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.62</title>
+<title>Balance One 0.6.63</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5016,13 +5016,31 @@ html.tema-oscuro .subs-panel-agregar {color:#ffa85d}
 .subs-panel-fila input:before {content:"";position:absolute;top:4px;left:4px;width:18px;height:18px;background:#fff;border-radius:50%}
 .subs-panel-fila input:checked {background:#ff7900}
 .subs-panel-fila input:checked:before {left:20px}
+</style><style>
+.subs-panel-proximos .subs-cobro {display:grid;grid-template-columns:1fr auto;grid-template-rows:28px 1fr;gap:5px;position:relative;isolation:isolate;background:none;border:0;padding:0;align-items:start;justify-items:stretch}
+.subs-cobro {--cobro-fondo:#fff;min-height:100px}
+html.tema-oscuro .subs-cobro {--cobro-fondo:#202630}
+.subs-cobro::before,.subs-cobro::after {content:"";position:absolute;z-index:-1;background:var(--cobro-fondo)}
+.subs-cobro::before {inset:0 auto 14px 0;width:calc(100% - clamp(67px,23vw,96px));border-radius:18px 14px 0 0}
+.subs-cobro::after {inset:33px 0 0;border-radius:0 14px 18px 18px}
+.subs-cobro-burbuja {grid-column:2;grid-row:1;justify-self:end;background:var(--cobro-fondo);border-radius:999px;padding:5px 8px;max-width:clamp(62px,22vw,91px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.65rem}
+.subs-cobro-logo {grid-column:1;grid-row:1;display:block;width:33px;margin:8px 0 0 10px;z-index:1}
+.subs-cobro-datos {grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;padding:16px 9px 10px;font-size:.73rem}
+.subs-cobro-datos > span + span {border-inline-start:1px solid rgba(140,148,160,.25);padding-inline-start:5px}
+.subs-cobro-datos small {display:block;margin-top:4px}
+.subs-anillo-redondo {position:relative;width:clamp(95px,34vw,150px);flex:none}
+.subs-anillo-redondo svg {display:block;width:100%}
+.subs-anillo-redondo > span {position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.subs-anillo-redondo strong {font-size:1.35rem}
+.subs-panel-grafico .subs-panel-desglose ul {min-width:0}
+.subs-panel-grafico .subs-panel-desglose li {display:grid;gap:2px;grid-template-columns:1fr;border-inline-start:3px solid;padding-inline-start:8px;overflow-wrap:anywhere}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.62</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.63</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5882,8 +5900,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.62",
-      "Smart control of your finances · 0.6.62"
+      "Control inteligente de tus finanzas · 0.6.63",
+      "Smart control of your finances · 0.6.63"
     );
   }
 }
@@ -11244,6 +11262,8 @@ function guardarSuscripcionFormulario(form, indice = null) {
   if (indice !== null && !anterior) return false;
   const nueva = {
     ...(anterior || {}), id:anterior ? anterior.id : id(),
+    planSuscripcion:String(campos.get("planSuscripcion") || "").trim().slice(0,32),
+    grupoSuscripcion:["entretenimiento","productividad","otros"].includes(campos.get("grupoSuscripcion")) ? campos.get("grupoSuscripcion") : "",
     nombre, monto, precioMensual, precioAnual, inicio, categoria, fin, frecuencia, importeVariable
   };
   const nuevaLista = anterior
@@ -11350,11 +11370,12 @@ function suscripciones() {
   const t = textoApp;
   const hoy = today();
   const lista = Array.isArray(data.suscripciones) ? data.suscripciones : [];
-  const categorias = {
-    suscripcion:t("Suscripciones","Subscriptions"), servicios:t("Servicios","Utilities"),
-    renta:t("Renta","Rent"), prestamo:t("Préstamos","Loans"), cuotas:t("Cuotas","Installments")
-  };
-  const colores = ["#ff7900","#557be8","#169b79","#ad63d6","#d65273"];
+  const categorias = [
+    ["entretenimiento",t("Entretenimiento","Entertainment"),"#3863b4"],
+    ["productividad",t("Productividad","Productivity"),"#e04d5b"],
+    ["cuotas",t("Cuotas","Installments"),"#a273db"],
+    ["otros",t("Otros","Other"),"#8291a8"]
+  ];
   const meses = Array.from({length:13}, (_,i) => {
     const fecha = new Date(hoy.slice(0,7) + "-01T12:00:00Z");
     fecha.setUTCMonth(fecha.getUTCMonth() + i);
@@ -11380,15 +11401,18 @@ function suscripciones() {
     const monto = Number(r.monto);
     if (!validAmount(monto) || r.importeVariable) continue;
     const mensual = monto * (r.frecuencia === "anual" ? 1/12 : r.frecuencia === "cada14dias" ? 26/12 : 1);
-    const categoria = categorias[r.categoria] || categorias.suscripcion;
+    const categoria = r.categoria === "cuotas" ? "cuotas" : r.grupoSuscripcion ||
+      (/netflix|spotify|hulu|disney|youtube|max\b|paramount|apple music/i.test(r.nombre) ? "entretenimiento" :
+        /adobe|notion|office|microsoft 365|chatgpt|dropbox|icloud/i.test(r.nombre) ? "productividad" : "otros");
     grupos.set(categoria, (grupos.get(categoria) || 0) + mensual);
   }
   const total = [...grupos.values()].reduce((a,b) => a+b,0);
   let tramo = 0;
-  const segmentos = [...grupos].map(([nombre,monto],i) => {
+  const segmentos = categorias.map(([clave,nombre,color]) => {
+    const monto = grupos.get(clave) || 0;
     const inicio = tramo;
-    tramo += monto / total * 100;
-    return {nombre,monto,color:colores[i],inicio,fin:tramo};
+    tramo += total ? monto / total * 100 : 0;
+    return {nombre,color,inicio,fin:tramo};
   });
   const logo = r => `<span class="subs-logo" aria-hidden="true">↻ ${imagenCompania(r.nombre)}</span>`;
   const fechaCorta = fecha => new Intl.DateTimeFormat(idiomaActual() === "en" ? "en-US" : "es", {
@@ -11408,14 +11432,30 @@ function suscripciones() {
       </div>
       <h3>${t("Próximos cobros","Upcoming charges")}</h3>
       <div class="subs-panel-proximos">${proximas.slice(0,2).map(({r,i,cobro}) => `
-        <button type="button" class="card" onclick="abrirDetalleSuscripcion(${i})">${logo(r)}
-          <strong>${safe(r.nombre)}</strong><span>${importeProgramado(cobro)}</span><small>${fechaCorta(cobro.fecha)}</small></button>
+        <button type="button" class="subs-cobro" onclick="abrirDetalleSuscripcion(${i})">
+          <span class="subs-cobro-burbuja">${safe(r.planSuscripcion || (r.frecuencia === "anual" ? t("Anual","Yearly") : r.frecuencia === "cada14dias" ? t("Cada 14 días","Every 14 days") : t("Mensual","Monthly")))}</span>
+          <span class="subs-cobro-logo">${logo(r)}</span>
+          <span class="subs-cobro-datos"><span><strong>${safe(r.nombre)}</strong><small>${t("Cobro","Due")} · ${fechaCorta(cobro.fecha)}</small></span>
+          <span><strong>${r.importeVariable ? "—" : money(Number(r.precioAnual) || Number(r.monto) * (r.frecuencia === "anual" ? 1 : r.frecuencia === "cada14dias" ? 26 : 12))}</strong>
+          <small>${t("al año","per year")} · ${cobro.fecha === hoy ? t("Hoy","Today") : t("En","In") + " " + Math.round((Date.parse(cobro.fecha)-Date.parse(hoy))/86400000) + " " + t("días","days")}</small></span></span>
+        </button>
       `).join("") || `<p class="note">${t("No hay cobros próximos.","No upcoming charges.")}</p>`}</div>
-      ${segmentos.length ? `<div class="card subs-panel-grafico"><h3>${t("Gasto por categoría","Spending by category")}</h3>
+      <div class="card subs-panel-grafico"><h3>${t("Gasto por categoría","Spending by category")}</h3>
         <div class="subs-panel-desglose">
-          <div class="subs-panel-anillo" aria-hidden="true" style="background:conic-gradient(${segmentos.map(g => `${g.color} ${g.inicio}% ${g.fin}%`).join(",")})"></div>
-          <ul>${segmentos.map(g => `<li><i style="background:${g.color}"></i><span>${g.nombre}</span><strong>${money(g.monto)}</strong></li>`).join("")}</ul>
-        </div></div>` : ""}
+          <div class="subs-anillo-redondo">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="48" fill="none" stroke="currentColor" opacity=".12" stroke-width="10"/>
+              ${segmentos.filter(g => g.fin > g.inicio).map(g => {
+                const largo = g.fin - g.inicio;
+                const margen = Math.min(3,largo/2);
+                return `<circle cx="60" cy="60" r="48" pathLength="100" fill="none" stroke="${g.color}" stroke-width="${Math.min(10,largo*4)}" stroke-linecap="round"
+                  stroke-dasharray="${Math.max(.01,largo-2*margen)} 100" stroke-dashoffset="${-(g.inicio+margen)}" transform="rotate(-90 60 60)"/>`;
+              }).join("")}
+            </svg>
+            <span><strong>${activas.length}</strong><small>${t("activas","active")}</small></span>
+          </div>
+          <ul>${segmentos.map(g => `<li style="border-color:${g.color}"><strong>${Math.round(g.fin-g.inicio)}%</strong><span>${g.nombre}</span></li>`).join("")}</ul>
+        </div></div>
     ` : `
       <input class="subs-panel-buscar" type="search" aria-label="${t("Buscar suscripciones","Search subscriptions")}" placeholder="${t("Buscar suscripciones…","Search subscriptions…")}" value="${safe(busquedaSuscripciones)}">
       <div class="subs-panel-selector">${[
@@ -12667,7 +12707,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.62</p>
+      <p class="ajustes-version">Balance One · 0.6.63</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -12950,7 +12990,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.62 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.63 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -12959,7 +12999,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.62</p>
+    <p class="note">Balance One 0.6.63</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13182,7 +13222,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.62</span>
+          <span class="note">${t("Versión", "Version")} 0.6.63</span>
         </div>`
     }
   };
@@ -17883,6 +17923,15 @@ function abrirFormularioSuscripcionCalendario(indice = null) {
       : textoApp("Agregar suscripción", "Add subscription"),
     `<form id="formSuscripcionCalendario" class="suscripcion-calendario-form">
       ${campo("nombre", textoApp("Servicio o pago", "Service or payment"), "text", actual.nombre || "", 'maxlength="80" required')}
+      ${campo("planSuscripcion", textoApp("Nombre del plan (opcional)", "Plan name (optional)"), "text", actual.planSuscripcion || "", 'maxlength="32"')}
+      <label class="suscripcion-campo">${textoApp("Categoría del gráfico", "Chart category")}
+        <select name="grupoSuscripcion">
+          ${opcion("", textoApp("Automática", "Automatic"), actual.grupoSuscripcion || "")}
+          ${opcion("entretenimiento", textoApp("Entretenimiento", "Entertainment"), actual.grupoSuscripcion)}
+          ${opcion("productividad", textoApp("Productividad", "Productivity"), actual.grupoSuscripcion)}
+          ${opcion("otros", textoApp("Otros", "Other"), actual.grupoSuscripcion)}
+        </select>
+      </label>
       <label class="suscripcion-campo">
         ${textoApp("Tipo de pago", "Payment type")}
         <select name="categoria">
