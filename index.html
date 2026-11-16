@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.74</title>
+<title>Balance One 0.7.0</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5193,13 +5193,83 @@ html:root body .subs-formulario-dialogo > h2 {padding-inline-end:38px;overflow-w
 [data-listado-sus][data-modelo-sus="tarjetas"] .subs-panel-lista {gap:12px;grid-auto-rows:1fr}
 [data-listado-sus][data-modelo-sus="tarjetas"] .subs-panel-fila > button {display:flex;flex:1;min-height:0}
 [data-listado-sus][data-modelo-sus="tarjetas"] [data-vacio-sus] {grid-column:1/-1}
+</style><style>
+.inicio-nuevo.inicio-panorama {display:grid;grid-template-columns:minmax(0,1fr);gap:9px;max-width:760px;margin-inline:auto}
+.inicio-nuevo.inicio-panorama > * {grid-column:1/-1;min-width:0}
+.inicio-panorama [hidden] {display:none!important}
+.inicio-panorama .avisos-ancla {margin:0}
+.panorama-fila {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.panorama-panel {
+  min-width:0;background:#fcfdff;color:#142035;border:1px solid rgba(129,146,175,.13);
+  box-shadow:0 4px 13px rgba(43,66,107,.07);padding:11px 12px;border-radius:21px;overflow-wrap:anywhere;
+}
+html.tema-oscuro .panorama-panel {background:#20252e;color:#f2f5fb;box-shadow:none}
+.panorama-gastos {background:linear-gradient(142deg,#fff 18%,#ffede1)}
+.panorama-ingresos {background:linear-gradient(142deg,#fff 18%,#e0efff)}
+html.tema-oscuro .panorama-panel.panorama-gastos {background:linear-gradient(142deg,#22252c,#413027)}
+html.tema-oscuro .panorama-panel.panorama-ingresos {background:linear-gradient(142deg,#22252c,#263952)}
+.panorama-cabecera {display:flex;align-items:center;justify-content:space-between;gap:6px}
+.panorama-cabecera h3 {margin:0;min-width:0;font-size:inherit}
+.panorama-titulo {display:flex;align-items:center;gap:5px;line-height:1.18;font-size:.83rem}
+.panorama-titulo > span {display:grid;place-items:center;color:#44638b;flex:none}
+.panorama-titulo svg {width:18px;height:18px}
+html.tema-oscuro .panorama-titulo > span {color:#a5c1e9}
+.panorama-gastos .panorama-titulo > span,.panorama-balance .panorama-titulo > span {color:#c55d12}
+.panorama-ingresos .panorama-titulo > span {color:#168ce5}
+.inicio-panorama .panorama-importe {display:block;font-size:clamp(1.25rem,5.8vw,1.85rem);letter-spacing:-.035em;margin:4px 0 0}
+.panorama-panel small {font-size:.7rem;opacity:.8}
+.panorama-grafico {display:block;width:100%;height:clamp(96px,29vw,160px);margin-top:4px}
+.panorama-leyenda {display:flex;justify-content:center;flex-wrap:wrap;gap:5px 14px;font-size:.62rem}
+.panorama-leyenda span::before {content:"";display:inline-block;width:10px;margin-inline-end:4px;vertical-align:middle;border-top:2px solid #168ce5}
+.panorama-leyenda span:nth-child(2)::before {border-top:2px dashed #ed7b22}
+.panorama-cheques {display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 7px)/2);gap:7px;overflow-x:auto;scroll-snap-type:x mandatory;margin-top:6px}
+.panorama-cheques button,.panorama-vehiculo {display:flex;align-items:center;gap:6px;text-align:start;padding:6px;border:0;border-radius:13px;background:var(--accion-ovalada);color:inherit;font:inherit;min-width:0}
+.panorama-cheques button {scroll-snap-align:start}
+.panorama-cheques span:last-child,.panorama-vehiculo span {min-width:0}
+.panorama-cheques strong,.panorama-vehiculo small {display:block}
+.panorama-logo {position:relative;display:grid;place-items:center;flex:0 0 24px;width:24px;height:24px;border-radius:50%;background:#e7edf6;color:#284462;font-weight:700;font-size:.68rem;overflow:hidden}
+.panorama-logo img {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff}
+.panorama-categorias {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:7px}
+.panorama-categorias > div {min-width:0;display:grid;justify-items:center;gap:4px;text-align:center;background:var(--accion-ovalada);padding:6px 3px;border-radius:13px}
+.panorama-categorias svg {width:19px;height:19px;color:var(--panorama-categoria)}
+.panorama-categorias > div > :last-child {width:100%}
+.panorama-categorias > p {grid-column:1/-1}
+.panorama-tile {position:relative;display:grid;align-content:start;gap:4px;text-align:start;font:inherit}
+.panorama-tile .panorama-titulo {padding-inline-end:8px}
+.panorama-tile > strong {font-size:1.08rem}
+.panorama-chevron {position:absolute;right:7px;top:9px;opacity:.55}
+.panorama-logos {display:flex;gap:4px}
+.panorama-logos:empty {display:none}
+.panorama-cobro {display:flex;justify-content:space-between;gap:4px}
+.panorama-cobro span:last-child {white-space:nowrap}
+.panorama-vehiculo {width:100%;margin-top:5px;padding:7px}
+.panorama-vehiculo img {width:46%;height:85px;object-fit:contain}
+.inicio-panorama .inicio-transacciones {margin:0!important}
+.inicio-panorama :is(.panorama-fila,.panorama-balance,.panorama-panel,.presupuestos-widget) > .inicio-widget-flecha {width:26px;height:26px;top:6px;right:6px}
+.inicio-panorama .panorama-fila > .inicio-widget-flecha {right:4px;top:3px}
+.inicio-panorama .panorama-fila:has(> .inicio-widget-flecha) > :nth-child(2) .panorama-titulo,
+.inicio-panorama .panorama-fila:has(> .inicio-widget-flecha) > :nth-child(2) .panorama-chevron {margin-inline-end:19px}
+.inicio-panorama section.panorama-panel:has(> .inicio-widget-flecha) .panorama-cabecera {margin-inline-end:25px}
+</style>
+<style>
+.panorama-marca,.panorama-perfil {display:none}
+html.inicio-nuevo-activo .panorama-marca,html.inicio-nuevo-activo .panorama-perfil {
+ display:inline-grid;place-items:center;border:0;border-radius:50%;width:36px;height:36px;padding:0;
+}
+html.inicio-nuevo-activo .panorama-marca {margin-inline-end:8px;vertical-align:middle;background:#15253a;color:#fff}
+html.inicio-nuevo-activo .panorama-perfil {background:var(--accion-ovalada);color:inherit}
+.panorama-vehiculo-datos {display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.panorama-vehiculo-datos div {min-width:0;background:var(--accion-ovalada);border-radius:15px;padding:8px;overflow-wrap:anywhere}
+.panorama-vehiculo-datos dt {font-size:.75rem}
+.panorama-vehiculo-datos dd {margin:4px 0 0;font-weight:700}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
-<div class="logo">Balance <span>One</span></div>
+<div class="logo"><i class="panorama-marca" aria-hidden="true"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 18v-5m7 5V6m7 12v-8"/></svg></i>Balance <span>One</span></div>
+<button type="button" class="panorama-perfil" onclick="go('perfil')" aria-label="Perfil"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1Z"/></svg></button>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.74</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.0</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5695,9 +5765,14 @@ const CLAVE_TARJETAS_INICIO = "balanceone-tarjetas-inicio";
 function opcionesTarjetasInicio(diseno) {
   const t = textoApp;
   return diseno === "nuevo" ? {
-    cuentasTarjetas:t("Cuentas y tarjetas","Accounts and cards"), presupuestos:t("Presupuestos","Budgets"),
-    categorias:t("Gastos por categoría","Expenses by category"), comparacion:t("Comparación mensual","Monthly comparison"),
-    pagos:t("Suscripciones y próximos pagos","Subscriptions and upcoming payments")
+    cuentasTarjetas:t("Ingresos y gastos","Income and expenses"),
+    comparacion:t("Panorama financiero","Financial overview"),
+    cuentas:t("Cuentas de cheques","Checking accounts"),
+    categorias:t("Categorías del mes","Monthly categories"),
+    pagos:t("Tarjetas, pagos y metas","Cards, payments and goals"),
+    transacciones:t("Últimas transacciones","Recent transactions"),
+    vehiculos:t("Vehículos","Vehicles"),
+    presupuestos:t("Presupuestos","Budgets")
   } : {
     resumen:t("Ingresos y gastos","Income and expenses"), presupuestos:t("Presupuestos","Budgets"),
     deudas:t("Mis deudas pendientes","Outstanding debts"), transacciones:t("Últimas transacciones","Recent transactions"),
@@ -5716,6 +5791,10 @@ function preferenciasTarjetasInicio() {
 function ordenTarjetasInicio(diseno, preferencias) {
   const opciones = opcionesTarjetasInicio(diseno);
   const orden = new Map();
+  if (diseno === "nuevo" && Array.isArray(preferencias) && !preferencias.some(item => item?.clave === "cuentas")) {
+    const visibilidad = new Map(preferencias.filter(Boolean).map(item => [item.clave,item.visible]));
+    preferencias = Object.keys(opciones).map(clave => ({clave,visible:visibilidad.get(clave) !== false}));
+  }
   for (const item of Array.isArray(preferencias) ? preferencias : []) {
     if (item && Object.hasOwn(opciones, item.clave) && typeof item.visible === "boolean" && !orden.has(item.clave)) {
       orden.set(item.clave, item.visible);
@@ -6115,11 +6194,12 @@ function aplicarIdiomaGeneral() {
   });
 
   actualizarBarraFlotante();
+  document.querySelector(".panorama-perfil")?.setAttribute("aria-label",textoApp("Perfil","Profile"));
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.74",
-      "Smart control of your finances · 0.6.74"
+      "Control inteligente de tus finanzas · 0.7.0",
+      "Smart control of your finances · 0.7.0"
     );
   }
 }
@@ -7507,6 +7587,116 @@ function irVistaTransacciones(pagina) {
     behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
 }
 
+function widgetTransaccionesInicio(cuentasBanco) {
+  return `<section class="card inicio-capsula cal-fin-028 inicio-transacciones" data-bloque-inicio="transacciones"
+  style="padding:17px 13px 10px;margin-bottom:16px">
+  <div class="cal-movs-cabecera">
+    <h3>${textoApp("Últimas transacciones", "Recent transactions")}</h3>
+    <button type="button" onclick="go('historialMovimientos')">${textoApp("Ver todas", "View all")} ›</button>
+  </div>
+  <div id="inicioTransaccionesCarrusel" data-pagina="0" class="inicio-transacciones-carrusel"
+    role="region" aria-roledescription="${textoApp('carrusel','carousel')}"
+    aria-label="${textoApp('Transacciones, gastos por categoría y comparación mensual','Transactions, expenses by category and monthly comparison')}"
+    tabindex="0" onscroll="actualizarIndicadoresTransacciones(this)"
+    onkeydown="cambiarVistaTransaccionesConTeclado(event)">
+    <article class="inicio-transacciones-pagina" role="group"
+      aria-label="${textoApp('1 de 3: Últimas transacciones','1 of 3: Recent transactions')}">
+      <div class="cal-movs-lista">
+  ${[
+    ...movimientosTransferenciasBanco(),
+    ...data.movimientos.map(m => ({
+      ...m,
+      esPago: false,
+      bancoRef: m.cuentaId
+    })),
+    ...data.pagos.map(p => ({
+      ...movimientoVistaPago(p), bancoRef:p.bancoId
+    }))
+  ].sort(ordenarMovimientosVista)
+   .slice(0,3).map(m => {
+     const ingreso = m.tipo === "ingreso";
+     const color = ingreso ? "#13865b" : "#d44d56";
+
+     const cuenta = m.bancoRef == null ? null : cuentasBanco.find(
+       c => String(c.id) === String(m.bancoRef)
+     );
+
+     const tipoCuenta = cuenta
+       ? cuenta.tipo === "ahorro"
+         ? textoApp("Ahorros", "Savings")
+         : textoApp("Cheques", "Checking")
+       : "";
+
+     const fecha = validDate(String(m.fecha))
+       ? new Date(m.fecha + "T12:00:00").toLocaleDateString(
+           idiomaActual() === "en" ? "en-US" : "es",
+           {day:"numeric", month:"short"})
+       : String(m.fecha || "");
+
+     const detalle = [
+       fecha,
+       cuenta ? cuenta.nombre : nombreOrigenPago(m),
+       tipoCuenta
+     ].filter(Boolean).join(" · ");
+
+     const etiqueta = m.esTransferencia ? textoApp("Transferencia","Transfer") : m.esPago
+       ? textoApp("Pago", "Payment")
+       : ingreso
+         ? textoApp("Ingreso", "Income")
+         : textoApp("Gasto", "Expense");
+
+     return `
+       <button type="button" class="cal-mov-fila transaccion-resumen" onclick="go('historialMovimientos')">
+         <span class="cal-mov-logo" aria-hidden="true">
+           ${iconoRegistroFinanciero(m)}
+         </span>
+         <span class="cal-mov-info">
+           <strong title="${safe(m.nombre)}">${safe(m.nombre)}</strong>
+           <small title="${safe(detalle)}">${safe(detalle)}</small>
+         </span>
+         <span class="cal-mov-derecha">
+           <small class="cal-mov-etiqueta ${ingreso ? "cal-mov-entrada" : "cal-mov-salida"}"
+             ${m.esPago || m.esTransferencia ? 'style="background:rgba(130,140,155,.12);color:inherit"' : ""}>${etiqueta}</small>
+           <strong class="${m.esTransferencia || m.pagoTarjeta ? "transferencia-importe" : ingreso ? "cal-mov-entrada" : "cal-mov-salida"}">${m.esTransferencia || m.pagoTarjeta ? "" : ingreso ? "+" : "−"}${money(m.monto)}</strong>
+         </span>
+         <span class="cal-pago-chevron" aria-hidden="true">›</span>
+       </button>
+     `;
+   }).join("") || `
+     <span class="note">
+       ${textoApp("Todavía no hay transacciones.", "No transactions yet.")}
+     </span>
+   `}
+        </div>
+    </article>
+    <article class="inicio-transacciones-pagina" role="group"
+      aria-label="${textoApp('2 de 3: Gastos por categoría','2 of 3: Expenses by category')}">
+      ${graficoCategoriasInicio()}
+    </article>
+    <article class="inicio-transacciones-pagina" role="group"
+      aria-label="${textoApp('3 de 3: Comparación mensual','3 of 3: Monthly comparison')}">
+      ${vistaComparacionMensual()}
+    </article>
+  </div>
+  <div class="inicio-transacciones-indicadores" role="group"
+    aria-label="${textoApp('Cambiar vista del widget','Change widget view')}">
+    <button type="button" data-vista-transacciones="0" aria-pressed="true"
+      aria-controls="inicioTransaccionesCarrusel"
+      aria-label="${textoApp('Ver últimas transacciones','Show recent transactions')}"
+      onclick="irVistaTransacciones(0)"></button>
+    <button type="button" data-vista-transacciones="1" aria-pressed="false"
+      aria-controls="inicioTransaccionesCarrusel"
+      aria-label="${textoApp('Ver gastos por categoría','Show expenses by category')}"
+      onclick="irVistaTransacciones(1)"></button>
+    <button type="button" data-vista-transacciones="2" aria-pressed="false"
+      aria-controls="inicioTransaccionesCarrusel"
+      aria-label="${textoApp('Ver comparación mensual','Show monthly comparison')}"
+      onclick="irVistaTransacciones(2)"></button>
+  </div>
+</section>
+`;
+}
+
 function inicio(){
 
 let cuentasBanco = [];
@@ -7675,113 +7865,7 @@ ${autos + tarjetas + prestamos > 0 ? `
     </div>
   </div>
 ` : ""}
-<section class="card inicio-capsula cal-fin-028 inicio-transacciones" data-bloque-inicio="transacciones"
-  style="padding:17px 13px 10px;margin-bottom:16px">
-  <div class="cal-movs-cabecera">
-    <h3>${textoApp("Últimas transacciones", "Recent transactions")}</h3>
-    <button type="button" onclick="go('historialMovimientos')">${textoApp("Ver todas", "View all")} ›</button>
-  </div>
-  <div id="inicioTransaccionesCarrusel" data-pagina="0" class="inicio-transacciones-carrusel"
-    role="region" aria-roledescription="${textoApp('carrusel','carousel')}"
-    aria-label="${textoApp('Transacciones, gastos por categoría y comparación mensual','Transactions, expenses by category and monthly comparison')}"
-    tabindex="0" onscroll="actualizarIndicadoresTransacciones(this)"
-    onkeydown="cambiarVistaTransaccionesConTeclado(event)">
-    <article class="inicio-transacciones-pagina" role="group"
-      aria-label="${textoApp('1 de 3: Últimas transacciones','1 of 3: Recent transactions')}">
-      <div class="cal-movs-lista">
-  ${[
-    ...movimientosTransferenciasBanco(),
-    ...data.movimientos.map(m => ({
-      ...m,
-      esPago: false,
-      bancoRef: m.cuentaId
-    })),
-    ...data.pagos.map(p => ({
-      ...movimientoVistaPago(p), bancoRef:p.bancoId
-    }))
-  ].sort(ordenarMovimientosVista)
-   .slice(0,3).map(m => {
-     const ingreso = m.tipo === "ingreso";
-     const color = ingreso ? "#13865b" : "#d44d56";
-
-     const cuenta = m.bancoRef == null ? null : cuentasBanco.find(
-       c => String(c.id) === String(m.bancoRef)
-     );
-
-     const tipoCuenta = cuenta
-       ? cuenta.tipo === "ahorro"
-         ? textoApp("Ahorros", "Savings")
-         : textoApp("Cheques", "Checking")
-       : "";
-
-     const fecha = validDate(String(m.fecha))
-       ? new Date(m.fecha + "T12:00:00").toLocaleDateString(
-           idiomaActual() === "en" ? "en-US" : "es",
-           {day:"numeric", month:"short"})
-       : String(m.fecha || "");
-
-     const detalle = [
-       fecha,
-       cuenta ? cuenta.nombre : nombreOrigenPago(m),
-       tipoCuenta
-     ].filter(Boolean).join(" · ");
-
-     const etiqueta = m.esTransferencia ? textoApp("Transferencia","Transfer") : m.esPago
-       ? textoApp("Pago", "Payment")
-       : ingreso
-         ? textoApp("Ingreso", "Income")
-         : textoApp("Gasto", "Expense");
-
-     return `
-       <button type="button" class="cal-mov-fila transaccion-resumen" onclick="go('historialMovimientos')">
-         <span class="cal-mov-logo" aria-hidden="true">
-           ${iconoRegistroFinanciero(m)}
-         </span>
-         <span class="cal-mov-info">
-           <strong title="${safe(m.nombre)}">${safe(m.nombre)}</strong>
-           <small title="${safe(detalle)}">${safe(detalle)}</small>
-         </span>
-         <span class="cal-mov-derecha">
-           <small class="cal-mov-etiqueta ${ingreso ? "cal-mov-entrada" : "cal-mov-salida"}"
-             ${m.esPago || m.esTransferencia ? 'style="background:rgba(130,140,155,.12);color:inherit"' : ""}>${etiqueta}</small>
-           <strong class="${m.esTransferencia || m.pagoTarjeta ? "transferencia-importe" : ingreso ? "cal-mov-entrada" : "cal-mov-salida"}">${m.esTransferencia || m.pagoTarjeta ? "" : ingreso ? "+" : "−"}${money(m.monto)}</strong>
-         </span>
-         <span class="cal-pago-chevron" aria-hidden="true">›</span>
-       </button>
-     `;
-   }).join("") || `
-     <span class="note">
-       ${textoApp("Todavía no hay transacciones.", "No transactions yet.")}
-     </span>
-   `}
-        </div>
-    </article>
-    <article class="inicio-transacciones-pagina" role="group"
-      aria-label="${textoApp('2 de 3: Gastos por categoría','2 of 3: Expenses by category')}">
-      ${graficoCategoriasInicio()}
-    </article>
-    <article class="inicio-transacciones-pagina" role="group"
-      aria-label="${textoApp('3 de 3: Comparación mensual','3 of 3: Monthly comparison')}">
-      ${vistaComparacionMensual()}
-    </article>
-  </div>
-  <div class="inicio-transacciones-indicadores" role="group"
-    aria-label="${textoApp('Cambiar vista del widget','Change widget view')}">
-    <button type="button" data-vista-transacciones="0" aria-pressed="true"
-      aria-controls="inicioTransaccionesCarrusel"
-      aria-label="${textoApp('Ver últimas transacciones','Show recent transactions')}"
-      onclick="irVistaTransacciones(0)"></button>
-    <button type="button" data-vista-transacciones="1" aria-pressed="false"
-      aria-controls="inicioTransaccionesCarrusel"
-      aria-label="${textoApp('Ver gastos por categoría','Show expenses by category')}"
-      onclick="irVistaTransacciones(1)"></button>
-    <button type="button" data-vista-transacciones="2" aria-pressed="false"
-      aria-controls="inicioTransaccionesCarrusel"
-      aria-label="${textoApp('Ver comparación mensual','Show monthly comparison')}"
-      onclick="irVistaTransacciones(2)"></button>
-  </div>
-</section>
-
+${widgetTransaccionesInicio(cuentasBanco)}
 <div id="cuentasInicio" class="inicio-capsula" data-bloque-inicio="cuentas">
   <div class="cuentas-cabecera">
     <h2>${textoApp("Cuentas bancarias", "Bank accounts")}</h2>
@@ -8007,7 +8091,7 @@ function disenoInicioActual() {
 }
 
 function etiquetaDisenoInicio() {
-  return disenoInicioActual() === "nuevo" ? textoApp("Nuevo", "New") : textoApp("Clásico", "Classic");
+  return disenoInicioActual() === "nuevo" ? textoApp("Panorama financiero", "Financial overview") : textoApp("Clásico", "Classic");
 }
 
 function cambiarDisenoInicio(diseno) {
@@ -8015,147 +8099,172 @@ function cambiarDisenoInicio(diseno) {
   localStorage.setItem(CLAVE_DISENO_INICIO, diseno);
 }
 
+function datosPanoramaInicio(mes, hasta = "") {
+  const ingresos = data.movimientos.filter(m => m.tipo === "ingreso" &&
+    validDate(m.fecha) && m.fecha.slice(0,7) === mes && (!hasta || m.fecha <= hasta));
+  const gastos = movimientosGastoDelMes(data,mes).filter(m => !hasta || m.fecha <= hasta);
+  const porDia = new Map();
+  const sumar = (registros, signo) => registros.reduce((total,m) => {
+    const monto = Number(m.monto);
+    if (!validAmount(monto)) return total;
+    const centavos = Math.round(monto*100);
+    const dia = Number(m.fecha.slice(8,10));
+    porDia.set(dia,(porDia.get(dia) || 0) + signo*centavos);
+    return total+centavos;
+  },0)/100;
+  return {ingresos:sumar(ingresos,1),gastos:sumar(gastos,-1),porDia};
+}
+
+function graficoPanoramaInicio(porDia, diaActual, ultimoDia, previstos) {
+  let saldo = 0;
+  const real = [0];
+  for (let dia = 1; dia <= diaActual; dia++) {
+    saldo += porDia.get(dia) || 0;
+    real.push(saldo);
+  }
+  const proyectado = [saldo];
+  for (let dia = diaActual + 1; dia <= ultimoDia; dia++) {
+    saldo -= previstos.get(dia) || 0;
+    proyectado.push(saldo);
+  }
+  const min = Math.min(...real,...proyectado);
+  const max = Math.max(...real,...proyectado);
+  const x = dia => 8 + dia / ultimoDia * 304;
+  const y = monto => min === max ? 49 : 86 - (monto-min)/(max-min)*72;
+  const puntos = (serie,desde) => serie.map((m,i) => x(i+desde).toFixed(2)+","+y(m).toFixed(2)).join(" ");
+  return `<svg class="panorama-grafico" viewBox="0 0 320 96" role="img" aria-label="${textoApp("Balance registrado por día y proyección según cobros programados","Daily recorded balance and scheduled-charge projection")}">
+    <path d="M8 17H312M8 41H312M8 65H312M8 89H312" stroke="currentColor" opacity=".12" stroke-dasharray="3 4"/>
+    <polygon points="8,89 ${puntos(real,0)} ${x(diaActual)},89" fill="#1595f4" opacity=".12"/>
+    <polyline points="${puntos(real,0)}" fill="none" stroke="#168ce5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${previstos.size ? `<polyline points="${puntos(proyectado,diaActual)}" fill="none" stroke="#ed7b22" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
+    <circle cx="${x(diaActual)}" cy="${y(real.at(-1))}" r="4" fill="#168ce5"/>
+  </svg>`;
+}
+
+function abrirVehiculoPanorama() {
+  const v = data.vehiculos[0];
+  if (!v) return;
+  const t = textoApp;
+  const ventana = crearVentanaApariencia([v.nombre,v.modelo].filter(Boolean).join(" "),
+    `<dl class="panorama-vehiculo-datos">
+      <div><dt>${t("Banco","Lender")}</dt><dd>${safe(v.banco || "—")}</dd></div>
+      <div><dt>${t("Saldo pendiente","Outstanding balance")}</dt><dd>${saldoDiscreto(v.saldo)}</dd></div>
+      <div><dt>${t("Pago mensual","Monthly payment")}</dt><dd>${saldoDiscreto(v.pago)}</dd></div>
+      <div><dt>APR</dt><dd>${v.apr === "" || v.apr == null ? "—" : safe(v.apr) + "%"}</dd></div>
+    </dl><div class="acciones-vidrio"><button type="button" class="vidrio-principal" data-ver-vehiculos>${t("Ver vehículos","View vehicles")}</button></div>`,
+    true, "ventana-formulario", false);
+  if (ventana) ventana.querySelector("[data-ver-vehiculos]").onclick = () =>
+    cerrarVentanaApariencia(ventana, () => go("vehiculos"));
+}
+
 function inicioNuevo() {
-  // Inicio independiente: el inicio clásico se conserva en inicio().
-  const avisos = avisosVencimiento();
-  let cuentas = [];
-  try {
-    cuentas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
-    if (!Array.isArray(cuentas)) cuentas = [];
-  } catch { cuentas = []; }
-
-  const saldoCuentas = cuentas.reduce((total, cuenta) => {
-    const saldo = Number(cuenta.saldo);
-    return total + (Number.isFinite(saldo) ? saldo : 0);
-  }, 0);
-  const saldoTarjetas = data.tarjetas.reduce((total, tarjeta) => {
-    const saldo = Number(tarjeta.saldo);
-    return total + (Number.isFinite(saldo) ? saldo : 0);
-  }, 0);
-
-  const gastosMes = data.movimientos.filter(m =>
-    m.tipo === "gasto" && String(m.fecha).slice(0,7) === month()
-  );
-  const categorias = new Map();
-  for (const movimiento of gastosMes) {
-    const monto = Number(movimiento.monto);
-    if (!Number.isFinite(monto) || monto <= 0) continue;
-    const categoria = String(nombreCategoriaPersonal(movimiento.categoria) || movimiento.categoria || textoApp("Otros", "Other"));
-    categorias.set(categoria, (categorias.get(categoria) || 0) + monto);
+  const t = textoApp;
+  const hoy = today();
+  const mes = hoy.slice(0,7);
+  const anterior = mesComparacionDesplazado(mes,-1);
+  const actual = datosPanoramaInicio(mes,hoy);
+  const [anioPrevio,mesPrevio] = anterior.split("-").map(Number);
+  const diaPrevio = Math.min(Number(hoy.slice(8,10)),new Date(Date.UTC(anioPrevio,mesPrevio,0)).getUTCDate());
+  const previo = datosPanoramaInicio(anterior,anterior+"-"+String(diaPrevio).padStart(2,"0"));
+  const [, mesNum] = mes.split("-").map(Number);
+  const ultimoDia = new Date(Date.UTC(Number(mes.slice(0,4)),mesNum,0)).getUTCDate();
+  const cuentas = (() => { try {return cuentasMetasAhorro();} catch {return [];} })();
+  const cheques = ordenarElementosInicio(cuentas,"bancos").filter(c => c.tipo !== "ahorro");
+  const saldoCheques = cheques.reduce((total,c) => total + (Number(c.saldo) || 0),0);
+  const pagados = new Set(data.movimientos.filter(m => m.tipo === "gasto" && m.suscripcionId != null)
+    .map(m => JSON.stringify([String(m.suscripcionId),m.vencimientoSuscripcion])));
+  const sinPagar = s => !pagados.has(JSON.stringify([String(s.id),s.fecha]));
+  const cobrosMes = suscripcionesDelMes(mes);
+  const previstos = new Map();
+  for (const cobro of cobrosMes.filter(s => s.fecha > hoy && sinPagar(s))) {
+    const importe = importeCobroSuscripcion(cobro);
+    if (importe === null) continue;
+    const dia = Number(cobro.fecha.slice(8,10));
+    previstos.set(dia,(previstos.get(dia) || 0) + Math.round(importe*100));
   }
-  const totalGastos = [...categorias.values()].reduce((suma, valor) => suma + valor, 0);
-  const mayores = [...categorias].sort((a,b) => b[1] - a[1]);
-  const segmentos = mayores.slice(0, 4);
-  if (mayores.length > 4) {
-    segmentos.push([textoApp("Otros", "Other"), mayores.slice(4).reduce((suma, c) => suma + c[1], 0)]);
-  }
-  const colores = ["#ff8059", "#a996f7", "#ffca8f", "#57d9a4", "#7795ef"];
-  let porcentajeAcumulado = 0;
-  const tramos = segmentos.map(([nombre, monto], i) => {
-    const desde = porcentajeAcumulado;
-    porcentajeAcumulado += monto / totalGastos * 100;
-    return `${colores[i]} ${desde.toFixed(3)}% ${porcentajeAcumulado.toFixed(3)}%`;
-  });
-  const grafico = tramos.length
-    ? `conic-gradient(${tramos.join(",")})`
-    : "conic-gradient(rgba(130,140,155,.2) 0% 100%)";
-
-  const cobrosMes = suscripcionesDelMes(month());
-  const [anioActual, mesActual] = month().split("-").map(Number);
-  const mesSiguiente = new Date(Date.UTC(anioActual, mesActual, 1))
-    .toISOString().slice(0,7);
-  const suscripciones = cobrosMes.filter(s => s.categoria === "suscripcion");
-  const totalSuscripciones = suscripciones.reduce((total, s) => total + (Number(s.monto) || 0), 0);
-  const pendientes = [...cobrosMes, ...suscripcionesDelMes(mesSiguiente)]
-    .filter(s => s.fecha >= today()).slice(0, 2);
-
-  el().innerHTML = `
-    <section class="inicio-nuevo">
-      ${avisos}
-      <div>
-        <div class="inicio-balance-cabecera">
-          <h2 class="inicio-nuevo-titulo">${textoApp("Mi resumen", "My overview")}</h2>
-          ${botonModoDiscretoInicio()}
-        </div>
-        <p class="inicio-nuevo-subtitulo">${textoApp("Tus finanzas, a tu manera", "Your finances, your way")}</p>
-      </div>
-
-      <div class="inicio-nuevo-resumen" data-bloque-inicio="cuentasTarjetas">
-        <div class="inicio-nuevo-escena inicio-nuevo-escena--naranja">
-          <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--naranja"
-            onclick="go('tarjetas')">
-            <span class="inicio-nuevo-label"><span class="inicio-nuevo-icono">▤</span>${textoApp("Tarjetas", "Cards")}</span>
-            <strong>${money(saldoTarjetas)}</strong>
-            <small>${textoApp("Saldo pendiente", "Outstanding balance")}</small>
-          </button>
-        </div>
-        <div class="inicio-nuevo-escena inicio-nuevo-escena--azul">
-          <button type="button" class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--azul"
-            onclick="go('cuentas')">
-            <span class="inicio-nuevo-label"><span class="inicio-nuevo-icono">⌂</span>${textoApp("Cuentas", "Accounts")}</span>
-            <strong>${money(saldoCuentas)}</strong>
-            <small>${textoApp("Saldo total", "Total balance")}</small>
-          </button>
-        </div>
-      </div>
-
-      ${widgetPresupuestos()}
-
-      <div class="inicio-nuevo-panel" data-bloque-inicio="categorias">
-        <div class="row">
-          <h3>${textoApp("Gastos por categoría", "Expenses by category")}</h3>
-          <button type="button" class="inicio-nuevo-enlace" onclick="go('movimientos')">
-            ${textoApp("Ver movimientos", "View transactions")} ›
-          </button>
-        </div>
-        <div class="inicio-nuevo-categorias">
-          <div class="inicio-nuevo-anillo" style="background:${grafico}">
-            <div class="inicio-nuevo-anillo-centro">
-              <strong>${money(totalGastos)}</strong>
-              <small>${textoApp("Este mes", "This month")}</small>
-            </div>
-          </div>
-          <div class="inicio-nuevo-leyenda">
-            ${segmentos.map(([nombre,monto],i) => `
-              <div class="inicio-nuevo-leyenda-fila">
-                <span class="inicio-nuevo-punto" style="background:${colores[i]}"></span>
-                <span title="${safe(nombre)}">${safe(nombre)}</span>
-                <strong>${Math.round(monto / totalGastos * 100)}%</strong>
-              </div>
-            `).join("") || `<p class="note">${textoApp("Sin gastos este mes", "No expenses this month")}</p>`}
-          </div>
-        </div>
-      </div>
-
-      <div class="inicio-nuevo-panel" data-bloque-inicio="comparacion">${vistaComparacionMensual()}</div>
-
-      <div class="inicio-nuevo-resumen" data-bloque-inicio="pagos">
-        <div class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--menta">
-          <div class="inicio-nuevo-label"><span class="inicio-nuevo-icono">↻</span>${textoApp("Suscripciones", "Subscriptions")}<span class="subs-contador" aria-label="${textoApp("Cobros de suscripciones este mes", "Subscription charges this month")}: ${suscripciones.length}">${suscripciones.length}</span></div>
-          <strong>${money(totalSuscripciones)}</strong>
-          <small>${textoApp("Programadas este mes", "Scheduled this month")}</small>
-          <button type="button" class="inicio-nuevo-enlace" onclick="go('suscripciones')">
-            ${textoApp("Ver todas", "View all")} ›
-          </button>
-        </div>
-        <div class="inicio-nuevo-tarjeta inicio-nuevo-tarjeta--lila">
-          <div class="inicio-nuevo-label"><span class="inicio-nuevo-icono">▦</span>${textoApp("Próximos pagos", "Upcoming payments")}</div>
-          <div class="inicio-nuevo-mini">
-            ${pendientes.map(s => `
-              <div class="inicio-nuevo-mini-fila">
-                <span title="${safe(s.nombre)}">${safe(s.nombre)}</span>
-                <strong>${money(s.monto)}</strong>
-              </div>
-            `).join("") || `<p>${textoApp("Sin pagos programados", "No scheduled payments")}</p>`}
-          </div>
-          <button type="button" class="inicio-nuevo-enlace" onclick="go('movimientos')">
-            ${textoApp("Ver calendario", "View calendar")} ›
-          </button>
-        </div>
-      </div>
-
+  const avisos = datosAvisosVencimiento(false, {dias:30,tipos:{tarjeta:true,vehiculo:true,suscripcion:true,prestamo:true}})
+    .filter(p => p.tipoAviso !== "suscripcion" || sinPagar({id:p.identificador,fecha:p.fecha}));
+  const totalAvisos = avisos.reduce((total,p) => total + (p.importe || 0),0);
+  const suscripciones = cobrosMes.filter(s => s.categoria === "suscripcion" && !s.canceladaEn && !suscripcionPausada(s));
+  const totalSuscripciones = suscripciones.reduce((total,s) => total + (importeCobroSuscripcion(s) || 0),0);
+  const deuda = data.tarjetas.reduce((total,tarjeta) => total + (Number(tarjeta.saldo) || 0),0);
+  const categorias = resumenCategoriasInicio(data,mes,movimientosGastoDelMes(data,mes).filter(m => m.fecha <= hoy)).categorias.slice(0,4);
+  const colores = ["#16965d","#eb791e","#168ce5","#854bd1"];
+  const registroMeta = data.metasAhorro?.[0];
+  let meta;
+  try { if (registroMeta) meta = resumenMetaAhorro(registroMeta,cuentas); } catch {}
+  const vehiculo = data.vehiculos[0];
+  const fechaCorta = fecha => validDate(fecha) ? new Date(fecha+"T12:00:00Z").toLocaleDateString(
+    idiomaActual()==="en" ? "en-US" : "es",{day:"numeric",month:"short",timeZone:"UTC"}) : "";
+  const logoBanco = nombre => {
+    const dominio = [["chase","chase.com"],["apple","apple.com"],["amex","americanexpress.com"],
+      ["american express","americanexpress.com"],["capital one","capitalone.com"],["sofi","sofi.com"]]
+      .find(([marca]) => String(nombre).toLowerCase().includes(marca))?.[1];
+    const imagen = logoCompaniaIntegrado(nombre) || (dominio ? urlLogoDominio(dominio) : "");
+    return `<span class="panorama-logo" aria-hidden="true">${safe(String(nombre || "•").trim().slice(0,1))}
+      ${imagen ? `<img src="${safe(imagen)}" alt="" loading="lazy" onerror="this.remove()">` : imagenCompania(nombre)}</span>`;
+  };
+  const titulo = (nombre,icono) => `<span class="panorama-titulo"><span aria-hidden="true">${iconoAjuste(icono)}</span><strong>${nombre}</strong></span>`;
+  const resumen = (nombre,icono,monto,base,clase) => {
+    const variacion = base > 0 ? Math.round((monto-base)/base*100) : null;
+    return `<div class="panorama-panel panorama-metrica ${clase}">
+      ${titulo(nombre,icono)}
+      <strong class="panorama-importe">${money(monto)}</strong>
+      <small>${!modoDiscretoInicio && variacion !== null ? (variacion > 0 ? "+" : "") + variacion + "% " + t("vs. mes anterior a esta fecha","vs. same point last month") : t("Este mes","This month")}</small>
+    </div>`;
+  };
+  const tile = (nombre,icono,pagina,contenido) => `<button type="button" class="panorama-panel panorama-tile" onclick="go('${pagina}')">
+    ${titulo(nombre,icono)}<span class="panorama-chevron" aria-hidden="true">›</span>${contenido}</button>`;
+  el().innerHTML = `<section class="inicio-nuevo inicio-panorama">
+    ${avisosVencimiento()}
+    <div class="panorama-fila" data-bloque-inicio="cuentasTarjetas">
+      ${resumen(t("Gastos","Expenses"),"dinero",actual.gastos,previo.gastos,"panorama-gastos")}
+      ${resumen(t("Ingresos","Income"),"ordenBancos",actual.ingresos,previo.ingresos,"panorama-ingresos")}
+    </div>
+    <section class="panorama-panel panorama-balance" data-bloque-inicio="comparacion">
+      <div class="panorama-cabecera"><h3>${titulo(t("Panorama financiero","Financial overview"),"progreso")}</h3>${botonModoDiscretoInicio()}</div>
+      <strong class="panorama-importe">${money(actual.ingresos-actual.gastos)}</strong><small>${t("Balance del mes","Monthly balance")}</small>
+      ${modoDiscretoInicio ? "" : `${graficoPanoramaInicio(actual.porDia,Number(hoy.slice(8,10)),ultimoDia,previstos)}
+        <div class="panorama-leyenda"><span>${t("Registrado","Recorded")}</span>${previstos.size ? `<span>${t("Proyección de cobros","Scheduled-charge projection")}</span>` : ""}</div>`}
     </section>
-  `;
+    <section class="panorama-panel" data-bloque-inicio="cuentas">
+      <div class="panorama-cabecera"><h3>${titulo(t("Cuentas de cheques","Checking accounts"),"ordenBancos")}</h3>
+        <button class="inicio-nuevo-enlace" type="button" onclick="go('cuentas')">${t("Ver todas","View all")} ›</button></div>
+      <small>${t("Disponible en cheques","Available in checking")} · ${money(saldoCheques)}</small>
+      <div class="panorama-cheques">${cheques.map(c => `<button type="button" data-cuenta="${safe(String(c.id))}" onclick="abrirCuentaBanco(this.dataset.cuenta)">
+        ${logoBanco(c.nombre)}<span><small>${safe(c.nombre)}</small><strong>${money(c.saldo)}</strong></span></button>`).join("") ||
+        `<p class="note">${t("Todavía no tienes cuentas de cheques.","No checking accounts yet.")}</p>`}</div>
+    </section>
+    <section class="panorama-panel" data-bloque-inicio="categorias">
+      <div class="panorama-cabecera"><h3>${titulo(t("Categorías del mes","Monthly categories"),"categorias")}</h3>
+        <button class="inicio-nuevo-enlace" type="button" onclick="go('historialMovimientos')">${t("Ver todas","View all")} ›</button></div>
+      <div class="panorama-categorias">${categorias.map((c,i) => `<div style="--panorama-categoria:${colores[i]}">
+        ${iconoCategoriaMovimiento(c.nombre || "Otros")}<small>${safe(nombreCategoriaPersonal(c.nombre) || c.nombre || t("Otros","Other"))}</small>
+        ${modoDiscretoInicio ? "" : barraProgreso(c.porcentaje,colores[i])}</div>`).join("") ||
+        `<p class="note">${t("Sin gastos este mes.","No expenses this month.")}</p>`}</div>
+    </section>
+    <div class="panorama-fila panorama-accesos" data-bloque-inicio="pagos">
+      ${tile(t("Tarjetas de crédito","Credit cards"),"ordenCredito","tarjetas",`<strong>${money(deuda)}</strong><small>${t("Deuda actual","Current debt")}</small>
+        <span class="panorama-logos">${data.tarjetas.slice(0,3).map(c=>logoBanco(c.nombre)).join("")}</span>`)}
+      ${tile(t("Próximos pagos","Upcoming payments"),"avisos","pagosPendientes",`<strong>${avisos.length} ${t("pendientes","pending")}</strong>
+        <small>${t("Total confirmado","Confirmed total")} · ${money(totalAvisos)}</small>
+        ${avisos.slice(0,2).map(p=>`<small class="panorama-cobro"><span>${safe(p.nombre)}</span><span>${fechaCorta(p.fecha)}</span></small>`).join("")}`)}
+      ${tile(t("Suscripciones","Subscriptions"),"listas","suscripciones",`<strong>${money(totalSuscripciones)}</strong><small>${t("Programado este mes","Scheduled this month")}</small>
+        <span class="panorama-logos">${[...new Set(suscripciones.map(s=>s.nombre))].slice(0,3).map(logoBanco).join("")}</span>`)}
+      ${tile(t("Metas de ahorro","Savings goals"),"progreso","metasAhorro",meta ? `<strong>${money(meta.ahorrado)}</strong><small>${safe(registroMeta.nombre || "")} · ${money(meta.objetivo)}</small>
+        ${modoDiscretoInicio ? "" : barraProgreso(meta.porcentaje,"#ff7900")}` : `<small>${t("Ver metas","View goals")} ›</small>`)}
+    </div>
+    ${widgetTransaccionesInicio(cuentas)}
+    ${vehiculo ? `<section class="panorama-panel" data-bloque-inicio="vehiculos">
+      <div class="panorama-cabecera"><h3>${titulo(t("Vehículos","Vehicles"),"inicio")}</h3></div>
+      <button class="panorama-vehiculo" type="button" onclick="abrirVehiculoPanorama()">
+        ${vehiculo.fotoGaleria || vehiculo.foto ? `<img src="${safe(vehiculo.fotoGaleria || vehiculo.foto)}" alt="" loading="lazy" onerror="this.remove()">` : logoMarcaVehiculo(vehiculo)}
+        <span><strong>${safe([vehiculo.nombre,vehiculo.modelo].filter(Boolean).join(" "))}</strong>
+          <small>${t("Saldo pendiente","Outstanding balance")} · ${money(vehiculo.saldo)}</small>
+          <small>${t("Pago mensual","Monthly payment")} · ${money(vehiculo.pago)}</small>${Number(vehiculo.vencimiento) > 0 ? `<small>${t("Vence el día","Due on day")} ${safe(vehiculo.vencimiento)}</small>` : ""}</span>
+      </button></section>` : ""}
+    ${widgetPresupuestos()}
+  </section>`;
 }
 
 function cuentasVistaNueva() {
@@ -13306,7 +13415,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.74</p>
+      <p class="ajustes-version">Balance One · 0.7.0</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13589,7 +13698,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.74 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.0 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13598,7 +13707,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.74</p>
+    <p class="note">Balance One 0.7.0</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13821,7 +13930,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.74</span>
+          <span class="note">${t("Versión", "Version")} 0.7.0</span>
         </div>`
     }
   };
@@ -16384,7 +16493,7 @@ function configuracionesApariencia() {
       aplicar: cambiarDisenoInicio,
       opciones: [
         ["clasico", textoApp("Clásico · Mi inicio de siempre", "Classic · My original home")],
-        ["nuevo", textoApp("Nuevo · Tarjetas y gráficos", "New · Cards and charts")]
+        ["nuevo", textoApp("Nuevo · Panorama financiero", "New · Financial overview")]
       ]
     },
     barraFlotante: {
