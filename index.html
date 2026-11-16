@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.2 Beta</title>
+<title>Balance One 0.7.3 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5307,13 +5307,29 @@ html.inicio-nuevo-activo body > main#content {padding-top:12px}
   display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
 }
 .inicio-panorama .panorama-metrica .panorama-titulo > span {border-radius:50%}
+</style><style>
+.inicio-panorama .panorama-cheques button {
+  background:#e7edf7;border:0;border-radius:999px;padding:7px 9px;box-shadow:0 2px 5px #20396715;
+}
+html.tema-oscuro .inicio-panorama .panorama-cheques button {background:#343f51}
+.inicio-panorama .panorama-categorias > div {padding:6px 5px 7px}
+.inicio-panorama .panorama-categorias .panorama-categoria-icono {
+  display:grid;place-items:center;width:25px;height:25px;border-radius:50%;
+  background:var(--panorama-categoria);color:#fff;
+}
+.inicio-panorama .panorama-categorias .panorama-categoria-icono svg {width:15px;height:15px;color:inherit}
+.inicio-panorama .panorama-categorias .panorama-categoria-progreso {
+  display:block;width:75%;height:6px;border-radius:999px;overflow:hidden;
+  background:color-mix(in srgb,var(--panorama-categoria) 20%,transparent);
+}
+.panorama-categoria-progreso > span {display:block;height:100%;border-radius:inherit;background:var(--panorama-categoria)}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.2 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.3 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6238,8 +6254,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.2 Beta",
-      "Smart control of your finances · 0.7.2 Beta"
+      "Control inteligente de tus finanzas · 0.7.3 Beta",
+      "Smart control of your finances · 0.7.3 Beta"
     );
   }
 }
@@ -8144,15 +8160,18 @@ function datosPanoramaInicio(mes, hasta = "") {
     validDate(m.fecha) && m.fecha.slice(0,7) === mes && (!hasta || m.fecha <= hasta));
   const gastos = movimientosGastoDelMes(data,mes).filter(m => !hasta || m.fecha <= hasta);
   const porDia = new Map();
-  const sumar = (registros, signo) => registros.reduce((total,m) => {
+  const ingresosCentavos = ingresos.reduce((total,m) => {
     const monto = Number(m.monto);
-    if (!validAmount(monto)) return total;
-    const centavos = Math.round(monto*100);
-    const dia = Number(m.fecha.slice(8,10));
-    porDia.set(dia,(porDia.get(dia) || 0) + signo*centavos);
-    return total+centavos;
-  },0)/100;
-  return {ingresos:sumar(ingresos,1),gastos:sumar(gastos,-1),porDia};
+    return validAmount(monto) ? total + Math.round(monto*100) : total;
+  },0);
+  let gastosCentavos = 0;
+  for (const movimiento of gastos) {
+    const centavos = Math.round(Number(movimiento.monto)*100);
+    const dia = Number(movimiento.fecha.slice(8,10));
+    gastosCentavos += centavos;
+    porDia.set(dia,(porDia.get(dia) || 0) + centavos);
+  }
+  return {ingresos:ingresosCentavos/100,gastos:gastosCentavos/100,porDia};
 }
 
 function graficoPanoramaInicio(porDia, diaActual, ultimoDia, previstos) {
@@ -8164,7 +8183,7 @@ function graficoPanoramaInicio(porDia, diaActual, ultimoDia, previstos) {
   }
   const proyectado = [saldo];
   for (let dia = diaActual + 1; dia <= ultimoDia; dia++) {
-    saldo -= previstos.get(dia) || 0;
+    saldo += previstos.get(dia) || 0;
     proyectado.push(saldo);
   }
   const min = Math.min(0,...real,...proyectado);
@@ -8192,7 +8211,7 @@ function graficoPanoramaInicio(porDia, diaActual, ultimoDia, previstos) {
   const proyeccion = curva(proyectado,diaActual);
   const ahora = x(diaActual);
   const t = textoApp;
-  return `<svg class="panorama-grafico" viewBox="0 0 324 102" role="img" aria-label="${t("Balance registrado por día y proyección según cobros programados","Daily recorded balance and scheduled-charge projection")}">
+  return `<svg class="panorama-grafico" viewBox="0 0 324 102" role="img" aria-label="${t("Gastos acumulados y proyección de cobros programados","Cumulative spending and scheduled-charge projection")}">
     <defs>
       <linearGradient id="panoramaRellenoReal" x2="0%" y2="100%"><stop stop-color="#1c97ef" stop-opacity=".37"/><stop offset="1" stop-color="#1c97ef" stop-opacity=".05"/></linearGradient>
       <linearGradient id="panoramaRellenoPrevisto" x2="0%" y2="100%"><stop stop-color="#ff954c" stop-opacity=".29"/><stop offset="1" stop-color="#ff954c" stop-opacity=".04"/></linearGradient>
@@ -8224,6 +8243,7 @@ function inicioNuevo() {
   const ultimoDia = new Date(Date.UTC(Number(mes.slice(0,4)),mesNum,0)).getUTCDate();
   const cuentas = (() => { try {return cuentasMetasAhorro();} catch {return [];} })();
   const cheques = ordenarElementosInicio(cuentas,"bancos").filter(c => c.tipo !== "ahorro");
+  const disponible = cuentas.reduce((total,c) => total + (Number(c.saldo) || 0),0);
   const saldoCheques = cheques.reduce((total,c) => total + (Number(c.saldo) || 0),0);
   const pagados = new Set(data.movimientos.filter(m => m.tipo === "gasto" && m.suscripcionId != null)
     .map(m => JSON.stringify([String(m.suscripcionId),m.vencimientoSuscripcion])));
@@ -8261,15 +8281,15 @@ function inicioNuevo() {
     const iconoHerramienta = pagina && document.querySelector(`[data-herramienta="${pagina}"] .am-herramienta-icono svg`);
     return `<span class="panorama-titulo"><span aria-hidden="true">${iconoHerramienta?.outerHTML || iconoAjuste(icono)}</span><strong>${nombre}</strong></span>`;
   };
-  const resumen = (nombre,icono,monto,base,clase) => {
+  const resumen = (nombre,icono,monto,base,clase,etiqueta) => {
     const variacion = base > 0 ? Math.round((monto-base)/base*100) : null;
-    const favorable = clase === "panorama-gastos" ? variacion < 0 : variacion > 0;
+    const favorable = variacion > 0;
     return `<div class="panorama-panel panorama-metrica ${clase}">
       ${titulo(nombre,icono)}
       ${!modoDiscretoInicio && variacion !== null ? `<span class="panorama-cambio ${favorable ? "panorama-cambio-favorable" : ""}"
           title="${t("Frente al mes anterior a esta fecha","Compared with this point last month")}">${variacion > 0 ? "↑ " : variacion < 0 ? "↓ " : ""}${Math.abs(variacion)}%</span>` : ""}
       <strong class="panorama-importe">${money(monto)}</strong>
-      <small>${t("Este mes","This month")}</small>
+      <small>${etiqueta}</small>
     </div>`;
   };
   const tile = (nombre,icono,pagina,contenido) => `<button type="button" class="panorama-panel panorama-tile" onclick="go('${pagina}')">
@@ -8277,14 +8297,14 @@ function inicioNuevo() {
   el().innerHTML = `<section class="inicio-nuevo inicio-panorama">
     ${avisosVencimiento()}
     <div class="panorama-fila" data-bloque-inicio="cuentasTarjetas">
-      ${resumen(t("Gastos","Expenses"),"dinero",actual.gastos,previo.gastos,"panorama-gastos")}
-      ${resumen(t("Ingresos","Income"),"ordenBancos",actual.ingresos,previo.ingresos,"panorama-ingresos")}
+      ${resumen(t("Dinero disponible","Available funds"),"dinero",disponible,null,"panorama-gastos",t("Cheques y ahorros","Checking and savings"))}
+      ${resumen(t("Ingresos","Income"),"ordenBancos",actual.ingresos,previo.ingresos,"panorama-ingresos",t("Este mes","This month"))}
     </div>
     <section class="panorama-panel panorama-balance" data-bloque-inicio="comparacion">
       <div class="panorama-cabecera"><h3>${titulo(t("Panorama financiero","Financial overview"),"grafico")}</h3>${botonModoDiscretoInicio()}</div>
-      <strong class="panorama-importe">${money(actual.ingresos-actual.gastos)}</strong><small class="panorama-epigrafe">${t("Balance del mes","Monthly balance")}</small>
+      <strong class="panorama-importe">${money(actual.gastos)}</strong><small class="panorama-epigrafe">${t("Gastos del mes","Monthly expenses")}</small>
       ${modoDiscretoInicio ? "" : `${graficoPanoramaInicio(actual.porDia,Number(hoy.slice(8,10)),ultimoDia,previstos)}
-        <div class="panorama-leyenda"><span>${t("Registrado","Recorded")}</span>${previstos.size ? `<span>${t("Proyección de cobros","Scheduled-charge projection")}</span>` : ""}</div>`}
+        <div class="panorama-leyenda"><span>${t("Gastos registrados","Recorded expenses")}</span>${previstos.size ? `<span>${t("Proyección de cobros","Scheduled-charge projection")}</span>` : ""}</div>`}
     </section>
     <section class="panorama-panel" data-bloque-inicio="cuentas">
       <div class="panorama-cabecera"><h3>${titulo(t("Cuentas de cheques","Checking accounts"),"ordenBancos")}</h3>
@@ -8298,8 +8318,8 @@ function inicioNuevo() {
       <div class="panorama-cabecera"><h3>${titulo(t("Categorías del mes","Monthly categories"),"categorias")}</h3>
         <button class="inicio-nuevo-enlace" type="button" onclick="go('historialMovimientos')">${t("Ver todas","View all")} ›</button></div>
       <div class="panorama-categorias">${categorias.map((c,i) => `<div style="--panorama-categoria:${colores[i]}">
-        ${iconoCategoriaMovimiento(c.nombre || "Otros")}<small>${safe(nombreCategoriaPersonal(c.nombre) || c.nombre || t("Otros","Other"))}</small>
-        ${modoDiscretoInicio ? "" : barraProgreso(c.porcentaje,colores[i])}</div>`).join("") ||
+        <i class="panorama-categoria-icono" aria-hidden="true">${iconoCategoriaMovimiento(c.nombre || "Otros")}</i><small>${safe(nombreCategoriaPersonal(c.nombre) || c.nombre || t("Otros","Other"))}</small>
+        ${modoDiscretoInicio ? "" : `<span class="panorama-categoria-progreso" role="meter" aria-label="${safe(nombreCategoriaPersonal(c.nombre) || c.nombre || t("Otros","Other"))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(c.porcentaje)}"><span style="width:${c.porcentaje}%"></span></span>`}</div>`).join("") ||
         `<p class="note">${t("Sin gastos este mes.","No expenses this month.")}</p>`}</div>
     </section>
     <div class="panorama-fila panorama-accesos" data-bloque-inicio="pagos">
@@ -13464,7 +13484,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.2 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.3 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13748,7 +13768,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.2 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.3 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13757,7 +13777,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.2 Beta</p>
+    <p class="note">Balance One 0.7.3 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13980,7 +14000,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.2 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.3 Beta</span>
         </div>`
     }
   };
