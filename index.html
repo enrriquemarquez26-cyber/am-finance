@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.0</title>
+<title>Balance One 0.7.1 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5252,24 +5252,57 @@ html.tema-oscuro .panorama-titulo > span {color:#a5c1e9}
 .inicio-panorama section.panorama-panel:has(> .inicio-widget-flecha) .panorama-cabecera {margin-inline-end:25px}
 </style>
 <style>
-.panorama-marca,.panorama-perfil {display:none}
-html.inicio-nuevo-activo .panorama-marca,html.inicio-nuevo-activo .panorama-perfil {
- display:inline-grid;place-items:center;border:0;border-radius:50%;width:36px;height:36px;padding:0;
+html.inicio-nuevo-activo:not(.tema-oscuro) body {
+ background:radial-gradient(ellipse at 85% 25%,#e2ecff 0,transparent 41%),radial-gradient(ellipse at 5% 40%,#fff1e9 0,transparent 38%),#f0f4fe;
 }
-html.inicio-nuevo-activo .panorama-marca {margin-inline-end:8px;vertical-align:middle;background:#15253a;color:#fff}
-html.inicio-nuevo-activo .panorama-perfil {background:var(--accion-ovalada);color:inherit}
-.panorama-vehiculo-datos {display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.panorama-vehiculo-datos div {min-width:0;background:var(--accion-ovalada);border-radius:15px;padding:8px;overflow-wrap:anywhere}
-.panorama-vehiculo-datos dt {font-size:.75rem}
-.panorama-vehiculo-datos dd {margin:4px 0 0;font-weight:700}
-</style></head>
+html.inicio-nuevo-activo:not(.tema-oscuro) body > header {background:transparent}
+.inicio-nuevo.inicio-panorama {gap:9px;max-width:680px;color:#131d2f}
+html.tema-oscuro .inicio-panorama {color:#f1f4fa}
+.inicio-panorama .panorama-panel {
+ border-radius:20px;padding:10px 12px;border:1px solid #ffffffd9;
+ background:linear-gradient(145deg,#ffffffeb,#f4f7fddb);box-shadow:0 6px 14px #20396717;
+}
+.inicio-panorama .panorama-metrica {position:relative;isolation:isolate;overflow:hidden;min-height:106px;display:grid;justify-items:start;align-content:start}
+.inicio-panorama .panorama-gastos {--curva:#ff9b58;background:linear-gradient(138deg,#fffcfb,#ffe7d8)}
+.inicio-panorama .panorama-ingresos {--curva:#559ef4;background:linear-gradient(138deg,#f9fcff,#dbeaff)}
+.inicio-panorama .panorama-metrica::before,.inicio-panorama .panorama-metrica::after {
+ content:"";position:absolute;z-index:-1;right:-18%;bottom:-55%;width:73%;aspect-ratio:1;border-radius:50%;background:var(--curva);opacity:.29;transform:rotate(-23deg) scaleX(.8);
+}
+.inicio-panorama .panorama-metrica::after {right:-30%;bottom:-65%;opacity:.36}
+.inicio-panorama .panorama-metrica .panorama-titulo > span {background:#ffffff91;border-radius:9px;width:25px;height:25px}
+.inicio-panorama .panorama-cambio {margin-top:3px;font-size:.68rem;font-weight:700;border-radius:999px;padding:2px 7px;background:#e3eaf6;color:#243c60;line-height:1.2}
+.inicio-panorama .panorama-cambio-favorable {background:#d8f7e4;color:#087a35}
+.inicio-panorama .panorama-metrica .panorama-importe {line-height:1.06;margin:4px 0 2px}
+.inicio-panorama .panorama-panel .panorama-titulo {letter-spacing:-.02em;font-size:.83rem}
+.inicio-panorama .panorama-panel small,.panorama-epigrafe {color:#435675;opacity:1}
+.inicio-panorama .panorama-balance {padding-bottom:9px}
+.inicio-panorama .panorama-balance .panorama-titulo > span {color:#e56b15}
+.inicio-panorama .panorama-balance .inicio-ojo {width:30px;height:30px;min-width:30px;padding:4px}
+.inicio-panorama .panorama-balance .inicio-ojo svg {width:17px;height:17px}
+.inicio-panorama .panorama-balance .panorama-importe {margin:0}
+.inicio-panorama .panorama-grafico {height:auto;aspect-ratio:324/102;margin-top:4px}
+.inicio-panorama .panorama-grafico text {font-size:8px;fill:#435675}
+.inicio-panorama .panorama-leyenda {color:#435675}
+.inicio-panorama .panorama-cheques button,.inicio-panorama .panorama-categorias > div {background:#ffffffb5;border:1px solid #fff;box-shadow:0 2px 5px #20396712;border-radius:13px}
+.inicio-panorama .panorama-categorias {gap:7px}
+.inicio-panorama .panorama-categorias > div {min-height:55px}
+.inicio-panorama .panorama-categorias svg {width:22px;height:22px}
+.inicio-panorama .panorama-accesos {grid-auto-rows:1fr}
+.inicio-panorama .panorama-tile {min-height:106px}
+.inicio-panorama .panorama-logo {width:28px;height:28px;flex-basis:28px}
+html.tema-oscuro .inicio-panorama .panorama-panel {border-color:#ffffff17}
+html.tema-oscuro .inicio-panorama .panorama-panel small,html.tema-oscuro .inicio-panorama .panorama-leyenda {color:#b9c9e3}
+html.tema-oscuro .inicio-panorama .panorama-grafico text {fill:#b9c9e3}
+html.tema-oscuro .inicio-panorama :is(.panorama-cheques button,.panorama-categorias > div) {background:#ffffff0d;border-color:#ffffff12}
+html.tema-oscuro .inicio-panorama .panorama-metrica .panorama-titulo > span {background:#ffffff15}
+</style>
+</head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
-<div class="logo"><i class="panorama-marca" aria-hidden="true"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 18v-5m7 5V6m7 12v-8"/></svg></i>Balance <span>One</span></div>
-<button type="button" class="panorama-perfil" onclick="go('perfil')" aria-label="Perfil"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1Z"/></svg></button>
+<div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.0</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.1 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5769,10 +5802,7 @@ function opcionesTarjetasInicio(diseno) {
     comparacion:t("Panorama financiero","Financial overview"),
     cuentas:t("Cuentas de cheques","Checking accounts"),
     categorias:t("Categorías del mes","Monthly categories"),
-    pagos:t("Tarjetas, pagos y metas","Cards, payments and goals"),
-    transacciones:t("Últimas transacciones","Recent transactions"),
-    vehiculos:t("Vehículos","Vehicles"),
-    presupuestos:t("Presupuestos","Budgets")
+    pagos:t("Tarjetas, pagos y metas","Cards, payments and goals")
   } : {
     resumen:t("Ingresos y gastos","Income and expenses"), presupuestos:t("Presupuestos","Budgets"),
     deudas:t("Mis deudas pendientes","Outstanding debts"), transacciones:t("Últimas transacciones","Recent transactions"),
@@ -6194,12 +6224,11 @@ function aplicarIdiomaGeneral() {
   });
 
   actualizarBarraFlotante();
-  document.querySelector(".panorama-perfil")?.setAttribute("aria-label",textoApp("Perfil","Profile"));
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.0",
-      "Smart control of your finances · 0.7.0"
+      "Control inteligente de tus finanzas · 0.7.1 Beta",
+      "Smart control of your finances · 0.7.1 Beta"
     );
   }
 }
@@ -6368,7 +6397,7 @@ function dibujarInicio() {
     if (diseno === "nuevo") inicioNuevo();
     else inicio();
     aplicarTarjetasInicio(diseno);
-    prepararWidgetsPlegables(diseno);
+    if (diseno === "clasico") prepararWidgetsPlegables(diseno);
   } finally {
     ocultarImportesAlDibujarInicio = false;
   }
@@ -8127,34 +8156,48 @@ function graficoPanoramaInicio(porDia, diaActual, ultimoDia, previstos) {
     saldo -= previstos.get(dia) || 0;
     proyectado.push(saldo);
   }
-  const min = Math.min(...real,...proyectado);
-  const max = Math.max(...real,...proyectado);
-  const x = dia => 8 + dia / ultimoDia * 304;
-  const y = monto => min === max ? 49 : 86 - (monto-min)/(max-min)*72;
-  const puntos = (serie,desde) => serie.map((m,i) => x(i+desde).toFixed(2)+","+y(m).toFixed(2)).join(" ");
-  return `<svg class="panorama-grafico" viewBox="0 0 320 96" role="img" aria-label="${textoApp("Balance registrado por día y proyección según cobros programados","Daily recorded balance and scheduled-charge projection")}">
-    <path d="M8 17H312M8 41H312M8 65H312M8 89H312" stroke="currentColor" opacity=".12" stroke-dasharray="3 4"/>
-    <polygon points="8,89 ${puntos(real,0)} ${x(diaActual)},89" fill="#1595f4" opacity=".12"/>
-    <polyline points="${puntos(real,0)}" fill="none" stroke="#168ce5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    ${previstos.size ? `<polyline points="${puntos(proyectado,diaActual)}" fill="none" stroke="#ed7b22" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
-    <circle cx="${x(diaActual)}" cy="${y(real.at(-1))}" r="4" fill="#168ce5"/>
-  </svg>`;
-}
-
-function abrirVehiculoPanorama() {
-  const v = data.vehiculos[0];
-  if (!v) return;
+  const min = Math.min(0,...real,...proyectado);
+  const max = Math.max(0,...real,...proyectado);
+  const escala = (max-min)/4 || 100;
+  const potencia = 10 ** Math.floor(Math.log10(escala));
+  const paso = [1,2,2.5,5,10].find(n => n*potencia >= escala)*potencia;
+  const inferior = Math.floor(min/paso)*paso;
+  const superior = Math.max(inferior+paso,Math.ceil(max/paso)*paso);
+  const x = dia => 43 + dia / ultimoDia * 276;
+  const y = monto => 80 - (monto-inferior)/(superior-inferior)*69;
+  const curva = (serie,desde) => {
+    const puntos = serie.map((m,i) => [x(i+desde),y(m)]);
+    return puntos.reduce((trazo,[px,py],i) => {
+      if (!i) return `M${px} ${py}`;
+      const [ax,ay] = puntos[i-1];
+      const centro = (ax+px)/2;
+      return trazo+` C${centro} ${ay} ${centro} ${py} ${px} ${py}`;
+    },"");
+  };
+  const formato = new Intl.NumberFormat(idiomaActual() === "en" ? "en-US" : "es",
+    {notation:"compact",maximumFractionDigits:1});
+  const guias = Array.from({length:1+Math.round((superior-inferior)/paso)},(_,i) => inferior+i*paso);
+  const linea = curva(real,0);
+  const proyeccion = curva(proyectado,diaActual);
+  const ahora = x(diaActual);
   const t = textoApp;
-  const ventana = crearVentanaApariencia([v.nombre,v.modelo].filter(Boolean).join(" "),
-    `<dl class="panorama-vehiculo-datos">
-      <div><dt>${t("Banco","Lender")}</dt><dd>${safe(v.banco || "—")}</dd></div>
-      <div><dt>${t("Saldo pendiente","Outstanding balance")}</dt><dd>${saldoDiscreto(v.saldo)}</dd></div>
-      <div><dt>${t("Pago mensual","Monthly payment")}</dt><dd>${saldoDiscreto(v.pago)}</dd></div>
-      <div><dt>APR</dt><dd>${v.apr === "" || v.apr == null ? "—" : safe(v.apr) + "%"}</dd></div>
-    </dl><div class="acciones-vidrio"><button type="button" class="vidrio-principal" data-ver-vehiculos>${t("Ver vehículos","View vehicles")}</button></div>`,
-    true, "ventana-formulario", false);
-  if (ventana) ventana.querySelector("[data-ver-vehiculos]").onclick = () =>
-    cerrarVentanaApariencia(ventana, () => go("vehiculos"));
+  return `<svg class="panorama-grafico" viewBox="0 0 324 102" role="img" aria-label="${t("Balance registrado por día y proyección según cobros programados","Daily recorded balance and scheduled-charge projection")}">
+    <defs>
+      <linearGradient id="panoramaRellenoReal" x2="0%" y2="100%"><stop stop-color="#1c97ef" stop-opacity=".37"/><stop offset="1" stop-color="#1c97ef" stop-opacity=".05"/></linearGradient>
+      <linearGradient id="panoramaRellenoPrevisto" x2="0%" y2="100%"><stop stop-color="#ff954c" stop-opacity=".29"/><stop offset="1" stop-color="#ff954c" stop-opacity=".04"/></linearGradient>
+    </defs>
+    ${guias.map(valor => `<text x="37" y="${y(valor)+3}" text-anchor="end">${safe(formato.format(valor/100))}</text>
+      <path d="M43 ${y(valor)}H319" stroke="currentColor" opacity=".13" stroke-dasharray="3 4"/>`).join("")}
+    <path d="${linea} L${ahora} 80H43Z" fill="url(#panoramaRellenoReal)"/>
+    ${previstos.size ? `<path d="${proyeccion} L319 80H${ahora}Z" fill="url(#panoramaRellenoPrevisto)"/>
+      <path d="${proyeccion}" fill="none" stroke="#ed7b22" stroke-width="2.2" stroke-dasharray="5 4" stroke-linecap="round"/>` : ""}
+    <path d="${linea}" fill="none" stroke="#138ce6" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M${ahora} 11V80" stroke="#168ce5" stroke-dasharray="3 3"/>
+    <circle cx="${ahora}" cy="${y(real.at(-1))}" r="4.5" fill="#168ce5" stroke="#fff" stroke-width="1.6"/>
+    <text x="43" y="95">${t("Inicio del mes","Start of month")}</text>
+    <text x="${Math.max(124,Math.min(252,ahora))}" y="95" text-anchor="middle">${t("Hoy","Today")}</text>
+    <text x="319" y="95" text-anchor="end">${t("Fin del mes","End of month")}</text>
+  </svg>`;
 }
 
 function inicioNuevo() {
@@ -8193,7 +8236,6 @@ function inicioNuevo() {
   const registroMeta = data.metasAhorro?.[0];
   let meta;
   try { if (registroMeta) meta = resumenMetaAhorro(registroMeta,cuentas); } catch {}
-  const vehiculo = data.vehiculos[0];
   const fechaCorta = fecha => validDate(fecha) ? new Date(fecha+"T12:00:00Z").toLocaleDateString(
     idiomaActual()==="en" ? "en-US" : "es",{day:"numeric",month:"short",timeZone:"UTC"}) : "";
   const logoBanco = nombre => {
@@ -8207,10 +8249,13 @@ function inicioNuevo() {
   const titulo = (nombre,icono) => `<span class="panorama-titulo"><span aria-hidden="true">${iconoAjuste(icono)}</span><strong>${nombre}</strong></span>`;
   const resumen = (nombre,icono,monto,base,clase) => {
     const variacion = base > 0 ? Math.round((monto-base)/base*100) : null;
+    const favorable = clase === "panorama-gastos" ? variacion < 0 : variacion > 0;
     return `<div class="panorama-panel panorama-metrica ${clase}">
       ${titulo(nombre,icono)}
+      ${!modoDiscretoInicio && variacion !== null ? `<span class="panorama-cambio ${favorable ? "panorama-cambio-favorable" : ""}"
+          title="${t("Frente al mes anterior a esta fecha","Compared with this point last month")}">${variacion > 0 ? "↑ " : variacion < 0 ? "↓ " : ""}${Math.abs(variacion)}%</span>` : ""}
       <strong class="panorama-importe">${money(monto)}</strong>
-      <small>${!modoDiscretoInicio && variacion !== null ? (variacion > 0 ? "+" : "") + variacion + "% " + t("vs. mes anterior a esta fecha","vs. same point last month") : t("Este mes","This month")}</small>
+      <small>${t("Este mes","This month")}</small>
     </div>`;
   };
   const tile = (nombre,icono,pagina,contenido) => `<button type="button" class="panorama-panel panorama-tile" onclick="go('${pagina}')">
@@ -8223,7 +8268,7 @@ function inicioNuevo() {
     </div>
     <section class="panorama-panel panorama-balance" data-bloque-inicio="comparacion">
       <div class="panorama-cabecera"><h3>${titulo(t("Panorama financiero","Financial overview"),"progreso")}</h3>${botonModoDiscretoInicio()}</div>
-      <strong class="panorama-importe">${money(actual.ingresos-actual.gastos)}</strong><small>${t("Balance del mes","Monthly balance")}</small>
+      <strong class="panorama-importe">${money(actual.ingresos-actual.gastos)}</strong><small class="panorama-epigrafe">${t("Balance del mes","Monthly balance")}</small>
       ${modoDiscretoInicio ? "" : `${graficoPanoramaInicio(actual.porDia,Number(hoy.slice(8,10)),ultimoDia,previstos)}
         <div class="panorama-leyenda"><span>${t("Registrado","Recorded")}</span>${previstos.size ? `<span>${t("Proyección de cobros","Scheduled-charge projection")}</span>` : ""}</div>`}
     </section>
@@ -8254,16 +8299,6 @@ function inicioNuevo() {
       ${tile(t("Metas de ahorro","Savings goals"),"progreso","metasAhorro",meta ? `<strong>${money(meta.ahorrado)}</strong><small>${safe(registroMeta.nombre || "")} · ${money(meta.objetivo)}</small>
         ${modoDiscretoInicio ? "" : barraProgreso(meta.porcentaje,"#ff7900")}` : `<small>${t("Ver metas","View goals")} ›</small>`)}
     </div>
-    ${widgetTransaccionesInicio(cuentas)}
-    ${vehiculo ? `<section class="panorama-panel" data-bloque-inicio="vehiculos">
-      <div class="panorama-cabecera"><h3>${titulo(t("Vehículos","Vehicles"),"inicio")}</h3></div>
-      <button class="panorama-vehiculo" type="button" onclick="abrirVehiculoPanorama()">
-        ${vehiculo.fotoGaleria || vehiculo.foto ? `<img src="${safe(vehiculo.fotoGaleria || vehiculo.foto)}" alt="" loading="lazy" onerror="this.remove()">` : logoMarcaVehiculo(vehiculo)}
-        <span><strong>${safe([vehiculo.nombre,vehiculo.modelo].filter(Boolean).join(" "))}</strong>
-          <small>${t("Saldo pendiente","Outstanding balance")} · ${money(vehiculo.saldo)}</small>
-          <small>${t("Pago mensual","Monthly payment")} · ${money(vehiculo.pago)}</small>${Number(vehiculo.vencimiento) > 0 ? `<small>${t("Vence el día","Due on day")} ${safe(vehiculo.vencimiento)}</small>` : ""}</span>
-      </button></section>` : ""}
-    ${widgetPresupuestos()}
   </section>`;
 }
 
@@ -13415,7 +13450,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.0</p>
+      <p class="ajustes-version">Balance One · 0.7.1 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13698,7 +13733,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.0 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.1 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13707,7 +13742,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.0</p>
+    <p class="note">Balance One 0.7.1 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13930,7 +13965,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.0</span>
+          <span class="note">${t("Versión", "Version")} 0.7.1 Beta</span>
         </div>`
     }
   };
