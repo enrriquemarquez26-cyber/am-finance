@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.73</title>
+<title>Balance One 0.6.74</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5176,13 +5176,30 @@ html.tema-oscuro [data-listado-sus][data-modelo-sus="tarjetas"] .subs-modelo-tar
 .subs-cobro-detalle small {font-size:inherit;opacity:.8}
 html:root body .subs-formulario-dialogo > .carrusel-cerrar {top:38px}
 html:root body .subs-formulario-dialogo > h2 {padding-inline-end:38px;overflow-wrap:anywhere}
+</style><style>
+@media (width < 1000px) {
+  .inicio-transacciones .inicio-transacciones-carrusel {overflow-x:hidden;touch-action:pan-y pinch-zoom}
+}
+.inicio-widget-plegable {position:relative}
+.inicio-widget-titulo-plegado {display:none}
+.inicio-widget-flecha {display:grid;place-items:center;flex:none;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:var(--accion-ovalada);color:inherit}
+.inicio-widget-plegable > .inicio-widget-flecha {position:absolute;top:7px;right:9px;z-index:1}
+.inicio-widget-plegable > :is(.cal-movs-cabecera,.cuentas-cabecera) > .inicio-widget-flecha {margin-inline-start:5px}
+.inicio-widget-plegable.inicio-widget-plegado {display:flex!important;align-items:center;min-height:48px;height:auto!important;padding:7px 52px 7px 15px!important;border-radius:24px!important;background:var(--accion-ovalada);text-align:start}
+.inicio-widget-plegado > :not(.inicio-widget-titulo-plegado,.inicio-widget-flecha) {display:none!important}
+.inicio-widget-plegado > .inicio-widget-titulo-plegado {display:block}
+.inicio-widget-plegado .inicio-widget-flecha svg {transform:rotate(180deg)}
+.subs-listado-dialogo .subs-panel-selector {margin-top:5px;margin-bottom:18px;gap:8px}
+[data-listado-sus][data-modelo-sus="tarjetas"] .subs-panel-lista {gap:12px;grid-auto-rows:1fr}
+[data-listado-sus][data-modelo-sus="tarjetas"] .subs-panel-fila > button {display:flex;flex:1;min-height:0}
+[data-listado-sus][data-modelo-sus="tarjetas"] [data-vacio-sus] {grid-column:1/-1}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.73</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.74</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5724,6 +5741,65 @@ function aplicarTarjetasInicio(diseno) {
   }
 }
 
+function prepararWidgetsPlegables(diseno) {
+  const inicio = el().querySelector(diseno === "nuevo" ? ".inicio-nuevo" : ".inicio-adaptable");
+  if (!inicio) return;
+  const nombres = opcionesTarjetasInicio(diseno);
+  const clave = "balanceone-widgets-plegados-" + diseno;
+  let plegados = new Set();
+  try {
+    const guardados = JSON.parse(localStorage.getItem(clave));
+    if (Array.isArray(guardados)) plegados = new Set(guardados);
+  } catch {}
+  for (const original of inicio.querySelectorAll(":scope > [data-bloque-inicio]:not([hidden])")) {
+    const id = original.dataset.bloqueInicio;
+    const nombre = nombres[id];
+    if (!nombre) continue;
+    let widget = original;
+    if (original.tagName === "BUTTON") {
+      widget = document.createElement("div");
+      widget.className = "inicio-widget-contenedor";
+      original.before(widget);
+      widget.append(original);
+    }
+    widget.classList.add("inicio-widget-plegable");
+    const titulo = document.createElement("strong");
+    titulo.className = "inicio-widget-titulo-plegado";
+    titulo.textContent = nombre;
+    const flecha = document.createElement("button");
+    flecha.type = "button";
+    flecha.className = "inicio-widget-flecha";
+    flecha.innerHTML = '<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5-5 5 5"/></svg>';
+    const actualizar = () => {
+      const plegado = plegados.has(id);
+      widget.classList.toggle("inicio-widget-plegado", plegado);
+      flecha.setAttribute("aria-expanded", String(!plegado));
+      flecha.setAttribute("aria-label", (plegado ? textoApp("Mostrar ","Show ") : textoApp("Plegar ","Collapse ")) + nombre);
+    };
+    flecha.onclick = () => {
+      const altura = widget.offsetHeight;
+      if (plegados.has(id)) plegados.delete(id);
+      else plegados.add(id);
+      actualizar();
+      try { localStorage.setItem(clave, JSON.stringify([...plegados])); } catch {}
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        widget.animate?.([{opacity:.7,clipPath:`inset(0 0 ${Math.max(0,widget.offsetHeight-altura)}px 0 round 22px)`},
+          {opacity:1,clipPath:"inset(0 round 22px)"}], {duration:180,easing:"ease-out"});
+      }
+    };
+    const cabecera = widget.querySelector(":scope > :is(.cal-movs-cabecera,.cuentas-cabecera)");
+    (cabecera || widget).append(flecha);
+    widget.append(titulo);
+    if (cabecera) {
+      flecha.addEventListener("click", () => (widget.classList.contains("inicio-widget-plegado") ? widget : cabecera).append(flecha));
+      if (plegados.has(id)) widget.append(flecha);
+    }
+    actualizar();
+  }
+  const carrusel = inicio.querySelector("#inicioTransaccionesCarrusel");
+  if (carrusel) prepararDeslizamientoTransacciones(carrusel);
+}
+
 function abrirTarjetasInicio() {
   const abierta = document.querySelector(".apariencia-ventana[open]");
   if (abierta) {
@@ -6042,8 +6118,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.73",
-      "Smart control of your finances · 0.6.73"
+      "Control inteligente de tus finanzas · 0.6.74",
+      "Smart control of your finances · 0.6.74"
     );
   }
 }
@@ -6212,6 +6288,7 @@ function dibujarInicio() {
     if (diseno === "nuevo") inicioNuevo();
     else inicio();
     aplicarTarjetasInicio(diseno);
+    prepararWidgetsPlegables(diseno);
   } finally {
     ocultarImportesAlDibujarInicio = false;
   }
@@ -7386,6 +7463,41 @@ function actualizarIndicadoresTransacciones(carrusel) {
   }
   carrusel.closest(".inicio-transacciones").querySelectorAll("[data-vista-transacciones]")
     .forEach((boton, indice) => boton.setAttribute("aria-pressed", String(indice === pagina)));
+}
+
+function prepararDeslizamientoTransacciones(carrusel) {
+  let gesto, ignorarClickHasta = 0, ultimoScroll = 0;
+  const compacto = matchMedia("(width < 1000px)");
+  carrusel.addEventListener("pointerdown", e => {
+    if (compacto.matches && e.isPrimary && e.button === 0 && e.pointerType === "touch") {
+      gesto = {id:e.pointerId,x:e.clientX,y:e.clientY,pagina:Number(carrusel.dataset.pagina || 0)};
+    }
+  });
+  carrusel.addEventListener("pointercancel", () => {gesto = null;});
+  carrusel.addEventListener("pointerup", e => {
+    if (gesto?.id !== e.pointerId) return;
+    const {x,y,pagina} = gesto;
+    gesto = null;
+    const dx = e.clientX-x;
+    if (Math.abs(dx) < 32 || Math.abs(dx) <= Math.abs(e.clientY-y)) return;
+    ignorarClickHasta = performance.now()+350;
+    irVistaTransacciones(pagina + (dx < 0 ? 1 : -1));
+  });
+  carrusel.addEventListener("click", e => {
+    if (e.detail && performance.now() < ignorarClickHasta) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  }, true);
+  carrusel.addEventListener("wheel", e => {
+    if (!compacto.matches || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    const ahora = performance.now();
+    if (ahora - ultimoScroll > 230 || !ultimoScroll) {
+      irVistaTransacciones(Number(carrusel.dataset.pagina || 0) + (e.deltaX > 0 ? 1 : -1));
+    }
+    ultimoScroll = ahora;
+  }, {passive:false});
 }
 
 function irVistaTransacciones(pagina) {
@@ -11349,6 +11461,7 @@ function resumenPreciosSuscripcion(registro) {
     : Number.isFinite(monto) ? "≈" + money(monto * (frecuencia === "cada14dias" ? 26 : frecuencia === "anual" ? 1 : 12)) : "—";
   const etiqueta = frecuencia === "cada14dias"
     ? textoApp("Cada 14 días", "Every 14 days") : textoApp("Mes", "Month");
+  if (registro.categoria === "cuotas" && registro.fin) return `${etiqueta}: ${mes}`;
   return `${etiqueta}: ${mes} · ${textoApp("Año", "Year")}: ${anio}`;
 }
 
@@ -13193,7 +13306,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.73</p>
+      <p class="ajustes-version">Balance One · 0.6.74</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13476,7 +13589,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.73 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.74 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13485,7 +13598,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.73</p>
+    <p class="note">Balance One 0.6.74</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13708,7 +13821,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.73</span>
+          <span class="note">${t("Versión", "Version")} 0.6.74</span>
         </div>`
     }
   };
