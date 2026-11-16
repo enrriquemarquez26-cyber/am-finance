@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.4 Beta</title>
+<title>Balance One 0.7.5 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5325,6 +5325,55 @@ html.tema-oscuro .inicio-panorama .panorama-cheques button {background:#343f51}
 .panorama-categoria-progreso > span {display:block;height:100%;border-radius:inherit;background:var(--panorama-categoria)}
 </style><style>
 .panorama-selector {max-width:100%;min-width:0;width:auto;margin:3px 0;padding:3px 7px;border:0;border-radius:999px;background:var(--accion-ovalada);color:inherit;font:inherit;font-size:.68rem;min-height:28px}
+
+.panorama-metrica .panorama-selector {
+  position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;
+}
+.panorama-metrica:focus-within {outline:2px solid var(--balanceone-color,#ff7900);outline-offset:2px}
+.panorama-trazo-recorte,.panorama-punto-hoy {transform-box:fill-box}
+.panorama-trazo-recorte {transform-origin:left center}
+.panorama-punto-hoy {transform-origin:center}
+@media (prefers-reduced-motion:no-preference) {
+  html.inicio-nuevo-activo.panorama-bienvenida:not(.tema-oscuro) body {
+    background-repeat:no-repeat;
+    animation:panorama-fondo-bienvenida 15s ease-in-out;
+  }
+  .inicio-panorama.panorama-bienvenida .panorama-metrica::before {
+    animation:panorama-ondas-bienvenida 15s ease-in-out var(--panorama-retraso,0ms);
+  }
+  .inicio-panorama.panorama-bienvenida .panorama-metrica::after {
+    animation:panorama-ondas-bienvenida 15s ease-in-out var(--panorama-retraso,0ms) reverse;
+  }
+  .panorama-bienvenida .panorama-trazo-real {
+    animation:panorama-revelar-trazo 1.25s ease-out var(--panorama-retraso,0ms) both;
+  }
+  .panorama-bienvenida .panorama-trazo-previsto {
+    animation:panorama-revelar-trazo .68s ease-out calc(1.25s + var(--panorama-retraso,0ms)) both;
+  }
+  .panorama-bienvenida .panorama-punto-hoy {
+    animation:panorama-pulso-hoy .55s ease-in-out calc(1.25s + var(--panorama-retraso,0ms)) both;
+  }
+}
+@keyframes panorama-fondo-bienvenida {
+  0%,100% {background-size:100% 100%,100% 100%,auto;background-position:right top,left top,left top}
+  33% {background-size:118% 110%,114% 117%,auto;background-position:right top,left center,left top}
+  68% {background-size:110% 124%,120% 106%,auto;background-position:right center,left top,left top}
+}
+@keyframes panorama-ondas-bienvenida {
+  0%,100% {transform:rotate(-23deg) scaleX(.8)}
+  32% {transform:translate(-12%,-9%) rotate(-15deg) scaleX(.91)}
+  67% {transform:translate(5%,-5%) rotate(-31deg) scaleX(.76)}
+}
+@keyframes panorama-revelar-trazo {
+  from {transform:scaleX(0)}
+  to {transform:scaleX(1)}
+}
+@keyframes panorama-pulso-hoy {
+  0% {opacity:0;transform:scale(.7)}
+  45% {opacity:1;transform:scale(1.38)}
+  100% {opacity:1;transform:scale(1)}
+}
+
 .panorama-controles {display:flex;align-items:center;gap:4px;flex:none}
 .panorama-grafico-boton {display:block;width:100%;border:0;background:none;padding:0;color:inherit;cursor:pointer;border-radius:12px}
 .panorama-grafico-boton:focus-visible,.panorama-categorias button:focus-visible {outline:2px solid var(--balanceone-color,#ff7900)}
@@ -5341,7 +5390,7 @@ html.tema-oscuro .inicio-panorama .panorama-categorias > button {background:#fff
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.4 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.5 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6266,8 +6315,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.4 Beta",
-      "Smart control of your finances · 0.7.4 Beta"
+      "Control inteligente de tus finanzas · 0.7.5 Beta",
+      "Smart control of your finances · 0.7.5 Beta"
     );
   }
 }
@@ -8225,7 +8274,10 @@ function preferenciaPanorama(clave, opciones, defecto) {
 }
 
 function selectorPanorama(clave, titulo, opciones, actual) {
-  return `<select class="panorama-selector" data-selector-panorama="${clave}" aria-label="${titulo}">
+  // The native selector covers the whole metric card and stays usable on touch and with a keyboard.
+  const etiqueta = clave === "gastos" ? "" :
+    `<span class="panorama-selector" aria-hidden="true">${opciones.find(([valor]) => valor === actual)[1]} ⌄</span>`;
+  return `${etiqueta}<select class="panorama-selector" data-selector-panorama="${clave}" aria-label="${titulo}">
     ${opciones.map(([valor,nombre]) => `<option value="${valor}"${actual === valor ? " selected" : ""}>${nombre}</option>`).join("")}
   </select>`;
 }
@@ -8307,19 +8359,44 @@ function graficoPanoramaInicio(porDia, diaActual, ultimoDia, previstos, periodo)
     <defs>
       <linearGradient id="panoramaRellenoReal" x2="0%" y2="100%"><stop stop-color="#1c97ef" stop-opacity=".37"/><stop offset="1" stop-color="#1c97ef" stop-opacity=".05"/></linearGradient>
       <linearGradient id="panoramaRellenoPrevisto" x2="0%" y2="100%"><stop stop-color="#ff954c" stop-opacity=".29"/><stop offset="1" stop-color="#ff954c" stop-opacity=".04"/></linearGradient>
+      <clipPath id="panoramaRecorteReal"><rect class="panorama-trazo-recorte panorama-trazo-real" x="40" y="0" width="${ahora-37}" height="102"/></clipPath>
+      <clipPath id="panoramaRecortePrevisto"><rect class="panorama-trazo-recorte panorama-trazo-previsto" x="${ahora-3}" y="0" width="${326-ahora}" height="102"/></clipPath>
     </defs>
     ${guias.map(valor => `<text x="37" y="${y(valor)+3}" text-anchor="end">${safe(formato.format(valor/100))}</text>
       <path d="M43 ${y(valor)}H319" stroke="currentColor" opacity=".13" stroke-dasharray="3 4"/>`).join("")}
-    <path d="${linea} L${ahora} 80H43Z" fill="url(#panoramaRellenoReal)"/>
-    ${previstos.size ? `<path d="${proyeccion} L319 80H${ahora}Z" fill="url(#panoramaRellenoPrevisto)"/>
-      <path d="${proyeccion}" fill="none" stroke="#ed7b22" stroke-width="2.2" stroke-dasharray="5 4" stroke-linecap="round"/>` : ""}
-    <path d="${linea}" fill="none" stroke="#138ce6" stroke-width="2.4" stroke-linecap="round"/>
-    <path d="M${ahora} 11V80" stroke="#168ce5" stroke-dasharray="3 3"/>
-    <circle cx="${ahora}" cy="${y(real.at(-1))}" r="4.5" fill="#168ce5" stroke="#fff" stroke-width="1.6"/>
+    <g clip-path="url(#panoramaRecorteReal)">
+      <path d="${linea} L${ahora} 80H43Z" fill="url(#panoramaRellenoReal)"/>
+      <path d="${linea}" fill="none" stroke="#138ce6" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+    ${previstos.size ? `<g clip-path="url(#panoramaRecortePrevisto)">
+      <path d="${proyeccion} L319 80H${ahora}Z" fill="url(#panoramaRellenoPrevisto)"/>
+      <path d="${proyeccion}" fill="none" stroke="#ed7b22" stroke-width="2.2" stroke-dasharray="5 4" stroke-linecap="round"/>
+    </g>` : ""}
+      <path d="M${ahora} 11V80" stroke="#168ce5" stroke-dasharray="3 3"/>
+      <circle class="panorama-punto-hoy" cx="${ahora}" cy="${y(real.at(-1))}" r="4.5" fill="#168ce5" stroke="#fff" stroke-width="1.6"/>
     <text x="43" y="95">${safe(fechaVisiblePanorama(periodo.inicio))}</text>
     <text x="${Math.max(124,Math.min(252,ahora))}" y="95" text-anchor="middle">${t("Hoy","Today")}</text>
     <text x="319" y="95" text-anchor="end">${safe(fechaVisiblePanorama(periodo.fin))}</text>
   </svg>`;
+}
+
+let inicioBienvenidaPanorama;
+
+function animarBienvenidaPanorama(panel) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const ahora = performance.now();
+  if (inicioBienvenidaPanorama === undefined) {
+    inicioBienvenidaPanorama = ahora;
+    const raiz = document.documentElement;
+    raiz.classList.add("panorama-bienvenida");
+    setTimeout(() => raiz.classList.remove("panorama-bienvenida"),15000);
+  }
+  const transcurrido = ahora-inicioBienvenidaPanorama;
+  if (transcurrido >= 15000) return;
+
+  panel.style.setProperty("--panorama-retraso",`-${transcurrido}ms`);
+  panel.classList.add("panorama-bienvenida");
 }
 
 function inicioNuevo() {
@@ -8441,6 +8518,7 @@ function inicioNuevo() {
     </div>
   </section>`;
   const panel = el().querySelector(".inicio-panorama");
+  animarBienvenidaPanorama(panel);
   panel.querySelectorAll("[data-selector-panorama]").forEach(control => {
     control.onchange = () => {
       const clave = control.dataset.selectorPanorama;
@@ -13626,7 +13704,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.4 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.5 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13910,7 +13988,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.4 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.5 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13919,7 +13997,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.4 Beta</p>
+    <p class="note">Balance One 0.7.5 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14142,7 +14220,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.4 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.5 Beta</span>
         </div>`
     }
   };
