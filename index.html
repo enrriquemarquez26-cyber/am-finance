@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.72</title>
+<title>Balance One 0.6.73</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5167,13 +5167,22 @@ dialog:is(.subs-listado-dialogo,.subs-detalle-dialogo) > h2 {margin:0 40px 15px 
 [data-modelo-sus="tarjetas"] .subs-estado-interruptor:has(input:focus-visible) {outline:2px solid var(--balanceone-color,#ff7900)}
 [data-modelo-sus="tarjetas"] .subs-estado-interruptor::after {content:"";width:6px;height:6px;border-radius:50%;background:#87909d}
 [data-modelo-sus="tarjetas"] .subs-estado-interruptor:has(input:checked)::after {background:var(--balanceone-color,#ff7900)}
+</style><style>
+[data-listado-sus][data-modelo-sus="tarjetas"] .subs-modelo-tarjeta {--cobro-fondo:#f0f2f5}
+html.tema-oscuro [data-listado-sus][data-modelo-sus="tarjetas"] .subs-modelo-tarjeta {--cobro-fondo:#2d3440}
+[data-listado-sus][data-modelo-sus="tarjetas"] .subs-estado-interruptor {bottom:8px;right:10px}
+.suscripciones-programadas[data-modelo-sus="tarjetas"] .programada-detalle {display:none}
+.subs-cobro-datos > .subs-cobro-detalle {grid-column:1/-1;border:0;padding:5px 0 0;font-size:.65rem;line-height:1.35}
+.subs-cobro-detalle small {font-size:inherit;opacity:.8}
+html:root body .subs-formulario-dialogo > .carrusel-cerrar {top:38px}
+html:root body .subs-formulario-dialogo > h2 {padding-inline-end:38px;overflow-wrap:anywhere}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.72</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.73</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6033,8 +6042,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.72",
-      "Smart control of your finances · 0.6.72"
+      "Control inteligente de tus finanzas · 0.6.73",
+      "Smart control of your finances · 0.6.73"
     );
   }
 }
@@ -7359,11 +7368,22 @@ function cambiarVistaTransaccionesConTeclado(evento) {
   irVistaTransacciones(actual + (evento.key === "ArrowRight" ? 1 : -1));
 }
 
+const animacionesPaginasTransacciones = new WeakMap();
+
 function actualizarIndicadoresTransacciones(carrusel) {
   if (!carrusel.clientWidth) return;
   const pagina = Math.round(carrusel.scrollLeft / carrusel.clientWidth);
   if (carrusel.dataset.pagina === String(pagina)) return;
+  const anterior = Number(carrusel.dataset.pagina || 0);
   carrusel.dataset.pagina = pagina;
+  animacionesPaginasTransacciones.get(carrusel)?.cancel();
+  const contenido = carrusel.children[pagina]?.firstElementChild;
+  if (contenido?.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const distancia = pagina > anterior ? 6 : -6;
+    animacionesPaginasTransacciones.set(carrusel, contenido.animate(
+      [{opacity:.68,translate:distancia + "px 0"}, {opacity:1,translate:"0 0"}],
+      {duration:210,easing:"ease-out"}));
+  }
   carrusel.closest(".inicio-transacciones").querySelectorAll("[data-vista-transacciones]")
     .forEach((boton, indice) => boton.setAttribute("aria-pressed", String(indice === pagina)));
 }
@@ -8452,6 +8472,13 @@ function movimientos(){
         placeholder="${textoApp("Supermercado", "Groceries")}"
         maxlength="80" required>
 
+      <label for="movCategoriaCalendario">${textoApp("Categoría", "Category")}</label>
+      <select id="movCategoriaCalendario" name="categoria">
+        ${[...document.getElementById("movVentanaCategoria").options]
+          .filter(o => !o.hasAttribute("data-categoria-copia"))
+          .map(o => `<option value="${safe(o.value)}">${safe(o.textContent)}</option>`).join("")}
+      </select>
+
       <label for="movMonto">
         ${textoImporte("Cantidad", "Amount")}
       </label>
@@ -8646,6 +8673,7 @@ formulario.onsubmit = e => {
     id: id(),
     ...origenPagoSeleccionado(cuentaId),
     nombre,
+    categoria:String(f.get("categoria") || ""),
     tipo,
     monto,
     fecha
@@ -11545,7 +11573,7 @@ function cambiarModeloSuscripciones(campo) {
   catch {}
 }
 
-function tarjetaModeloSuscripcion(r, importe, fecha, impuestos = null) {
+function tarjetaModeloSuscripcion(r, importe, fecha, impuestos = null, detalle = "") {
   const t = textoApp;
   const plan = r.planSuscripcion || (r.frecuencia === "anual" ? t("Anual","Yearly") :
     r.frecuencia === "cada14dias" ? t("Cada 14 días","Every 14 days") : t("Mensual","Monthly"));
@@ -11553,7 +11581,8 @@ function tarjetaModeloSuscripcion(r, importe, fecha, impuestos = null) {
     <span class="subs-cobro-burbuja">${safe(plan)}</span>
     <span class="subs-cobro-logo"><span class="subs-logo" aria-hidden="true">↻ ${imagenCompania(r.nombre)}</span></span>
     <span class="subs-cobro-datos"><span><strong>${safe(r.nombre)}</strong><small>${fecha}</small></span>
-      <span><strong>${importe}</strong>${impuestos ? `<small>${t("Impuesto estimado","Estimated tax")} · ${money(impuestos.impuesto)}</small>` : ""}</span></span>
+      <span><strong>${importe}</strong>${impuestos ? `<small>${t("Impuesto estimado","Estimated tax")} · ${money(impuestos.impuesto)}</small>` : ""}</span>
+      ${detalle ? `<span class="subs-cobro-detalle">${detalle}</span>` : ""}</span>
   </span>`;
 }
 
@@ -13164,7 +13193,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.72</p>
+      <p class="ajustes-version">Balance One · 0.6.73</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13447,7 +13476,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.72 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.73 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13456,7 +13485,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.72</p>
+    <p class="note">Balance One 0.6.73</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13679,7 +13708,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.72</span>
+          <span class="note">${t("Versión", "Version")} 0.6.73</span>
         </div>`
     }
   };
@@ -18300,13 +18329,14 @@ function bloqueSuscripcionesCalendario(fecha) {
     <div class="programadas-lista">
       ${lista.map(s => {
         const frecuencia = s.frecuencia === "anual" ? textoApp("Anual", "Yearly") : s.frecuencia === "cada14dias" ? textoApp("Cada 14 días", "Every 14 days") : textoApp("Mensual", "Monthly");
+        const detalle = `<span>${resumenPreciosSuscripcion(s)}</span><small>${s.canceladaEn ? textoApp("Cancelada", "Cancelled") : s.fin ? textoApp("Hasta ", "Until ") + safe(s.fin) : textoApp("Hasta que canceles", "Until cancelled")}</small>`;
         return `<article class="subs-tarjeta">
           <div class="programada-principal"><span class="programada-logo" aria-hidden="true">↻${imagenCompania(s.nombre)}</span>
             <span class="programada-identidad"><strong>${safe(s.nombre)}</strong><small>${textoApp("Día ", "Day ")}${Number(s.fecha.slice(8,10))} · ${frecuencia}</small></span>
             <strong class="programada-importe">${importeProgramado(s)}</strong></div>
-          ${tarjetaModeloSuscripcion(s, importeProgramado(s), textoApp("Día ", "Day ") + Number(s.fecha.slice(8,10)))}
+          ${tarjetaModeloSuscripcion(s, importeProgramado(s), textoApp("Día ", "Day ") + Number(s.fecha.slice(8,10)), null, detalle)}
           <button type="button" class="programada-registrar" onclick="registrarCobroProgramado(${safe(JSON.stringify(String(s.id)))}, '${s.fecha}')">${data.movimientos.some(m=>String(m.suscripcionId)===String(s.id) && m.vencimientoSuscripcion===s.fecha) ? textoApp("Gasto registrado", "Expense recorded") : textoApp("Registrar gasto", "Record expense")}</button>
-          <div class="programada-detalle"><span>${resumenPreciosSuscripcion(s)}</span><small>${s.canceladaEn ? textoApp("Cancelada", "Cancelled") : s.fin ? textoApp("Hasta ", "Until ") + safe(s.fin) : textoApp("Hasta que canceles", "Until cancelled")}</small></div>
+          <div class="programada-detalle">${detalle}</div>
         </article>`;
       }).join("") || `<p class="programadas-nota">${textoApp("No hay suscripciones para este mes.", "No subscriptions for this month.")}</p>`}
     </div>
@@ -18454,7 +18484,7 @@ function abrirFormularioSuscripcionCalendario(indice = null) {
     </form>`, true, true
   );
   if (!ventana) return;
-  ventana.classList.add("apariencia-ventana--suscripciones");
+  ventana.classList.add("apariencia-ventana--suscripciones", "subs-formulario-dialogo");
   const form = ventana.querySelector("#formSuscripcionCalendario");
   seleccionarOrigenSuscripcion(form.elements.origenPreferido, actual.origenPreferido);
   activarFormularioSuscripcion(form);
