@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.71</title>
+<title>Balance One 0.6.72</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5140,13 +5140,40 @@ dialog:is(.subs-listado-dialogo,.subs-detalle-dialogo) > h2 {margin:0 40px 15px 
 [data-modelo-sus="tarjetas"] .subs-estado-interruptor input:checked::before {left:15px}
 .subs-impuesto-form {padding:10px;border-radius:18px;background:var(--accion-ovalada)}
 .subs-impuesto-form summary {cursor:pointer;font-weight:650}
+</style><style>
+.subs-pantalla .card.subs-panel-total {padding:10px 15px 13px;border-radius:26px!important;gap:0}
+.subs-panel-total .subs-periodo {margin-bottom:2px}
+.subs-panel-total .subs-periodo button {min-height:32px;padding:4px 9px}
+.subs-total-estimado {text-align:start;gap:2px}
+.subs-estimado-etiqueta,.subs-estimado-importes {display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 9px}
+.subs-estimado-etiqueta {align-items:center}
+.subs-estimado-etiqueta button {border:0;background:none;color:inherit;font:inherit;padding:0 4px;min-width:25px;min-height:26px}
+.subs-estimado-importes strong {font-size:1.65rem;line-height:1.12}
+.subs-total-estimado .subs-panel-datos {justify-content:flex-start;margin-top:5px}
+.subs-total-estimado .subs-panel-datos button {min-height:30px;padding:4px 9px}
+[data-modelo-sus="tarjetas"] .subs-panel-lista {align-items:stretch}
+[data-modelo-sus="tarjetas"] .subs-panel-lista > .subs-panel-fila {background:none;padding:0}
+[data-modelo-sus="tarjetas"] .subs-panel-fila > button {min-height:100%}
+[data-modelo-sus="tarjetas"] .subs-modelo-tarjeta {align-self:stretch}
+[data-modelo-sus="tarjetas"] .subs-panel-fila:has(.subs-estado-interruptor) .subs-cobro-datos {padding-bottom:36px}
+[data-modelo-sus="tarjetas"] .subs-estado-interruptor {
+  display:inline-flex;flex-direction:row-reverse;right:9px;bottom:7px;min-height:27px;
+  padding:2px 8px;gap:5px;border-radius:999px;background:rgba(128,138,154,.13);color:inherit;line-height:1;
+}
+[data-modelo-sus="tarjetas"] .subs-estado-interruptor:has(input:checked) {background:#ff79001c}
+[data-modelo-sus="tarjetas"] .subs-estado-interruptor input {
+  position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;
+}
+[data-modelo-sus="tarjetas"] .subs-estado-interruptor:has(input:focus-visible) {outline:2px solid var(--balanceone-color,#ff7900)}
+[data-modelo-sus="tarjetas"] .subs-estado-interruptor::after {content:"";width:6px;height:6px;border-radius:50%;background:#87909d}
+[data-modelo-sus="tarjetas"] .subs-estado-interruptor:has(input:checked)::after {background:var(--balanceone-color,#ff7900)}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.71</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.72</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6006,8 +6033,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.71",
-      "Smart control of your finances · 0.6.71"
+      "Control inteligente de tus finanzas · 0.6.72",
+      "Smart control of your finances · 0.6.72"
     );
   }
 }
@@ -11766,13 +11793,13 @@ function suscripciones() {
           <button type="button" data-periodo-sus="estimado" aria-pressed="${periodoResumenSuscripciones === "estimado"}">${t("Estimado","Estimate")}</button>
           <button type="button" data-periodo-sus="mes" aria-pressed="${periodoResumenSuscripciones === "mes"}">${t("Este mes","This month")}</button>
         </div>
-        <div class="subs-total-estimado" data-total-sus="estimado" ${periodoResumenSuscripciones === "mes" ? "hidden" : ""}><small>${t("Gasto mensual estimado","Estimated monthly spending")}</small>
-        <strong>${money(total)}</strong><small>${money(total*12)} ${t("al año","per year")}</small>
+        <div class="subs-total-estimado" data-total-sus="estimado" ${periodoResumenSuscripciones === "mes" ? "hidden" : ""}><div class="subs-estimado-etiqueta"><small>${t("Gasto mensual estimado","Estimated monthly spending")}</small>
+          ${activas.some(({r}) => r.importeVariable) ? `<button type="button" data-ayuda-estimado aria-haspopup="dialog" aria-label="${t("Cómo se calcula el estimado","How the estimate is calculated")}">ⓘ</button>` : ""}</div>
+        <div class="subs-estimado-importes"><strong>${money(total)}</strong><small>${money(total*12)} ${t("al año","per year")}</small></div>
         <div class="subs-panel-datos">
           <button type="button" aria-haspopup="dialog" onclick="abrirListadoSuscripciones('activas')">${activas.length} ${t("activas","active")}</button>
           <button type="button" aria-haspopup="dialog" data-semana-sus>${semana.length} ${t("en 7 días","in 7 days")}</button>
         </div>
-        ${activas.some(({r}) => r.importeVariable) ? `<small>${t("El total incluye importes fijos.","Total includes fixed amounts.")}</small>` : ""}
         </div>
         <div class="subs-total-mes" data-total-sus="mes" ${periodoResumenSuscripciones === "estimado" ? "hidden" : ""}>
           <div><small>${t("Pagado","Paid")}</small><strong>${money(resumenMes.pagado)}</strong></div>
@@ -11859,6 +11886,11 @@ function suscripciones() {
       </div>
     </template>
     </section>`;
+  const ayudaEstimado = el().querySelector("[data-ayuda-estimado]");
+  if (ayudaEstimado) ayudaEstimado.onclick = () =>
+    crearVentanaApariencia(t("Gasto mensual estimado","Estimated monthly spending"),
+      `<p class="note">${t("El total incluye importes fijos. Consulta las facturas variables en Este mes.","The total includes fixed amounts. See variable bills under This month.")}</p>`,
+      true, "subs-detalle-dialogo", false);
   const botonesPeriodo = el().querySelectorAll("[data-periodo-sus]");
   const totales = el().querySelectorAll("[data-total-sus]");
   botonesPeriodo.forEach(boton => {
@@ -13132,7 +13164,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.71</p>
+      <p class="ajustes-version">Balance One · 0.6.72</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13415,7 +13447,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.71 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.72 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13424,7 +13456,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.71</p>
+    <p class="note">Balance One 0.6.72</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13647,7 +13679,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.71</span>
+          <span class="note">${t("Versión", "Version")} 0.6.72</span>
         </div>`
     }
   };
