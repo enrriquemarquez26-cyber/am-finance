@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.6.69</title>
+<title>Balance One 0.6.70</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5117,13 +5117,16 @@ dialog:is(.subs-listado-dialogo,.subs-detalle-dialogo) > h2 {margin:0 40px 15px 
 .subs-total-mes div {display:grid;gap:4px;padding:8px 4px;border-radius:18px;background:var(--accion-ovalada);overflow-wrap:anywhere}
 .subs-total-mes > small,.subs-total-mes > button {grid-column:1/-1}
 .subs-total-mes button {justify-self:center;background:var(--accion-ovalada)}
+</style><style>
+.subs-total-mes > .subs-total-pendiente {grid-column:auto;justify-self:stretch;display:grid;align-content:center;gap:4px;padding:8px 4px;border-radius:18px;font-size:inherit;overflow-wrap:anywhere}
+.subs-total-pendiente strong span {color:var(--balanceone-color,#ff7900)}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.6.69</div>
+<div class="sub">Control inteligente de tus finanzas · 0.6.70</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5983,8 +5986,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.6.69",
-      "Smart control of your finances · 0.6.69"
+      "Control inteligente de tus finanzas · 0.6.70",
+      "Smart control of your finances · 0.6.70"
     );
   }
 }
@@ -11603,6 +11606,7 @@ let periodoResumenSuscripciones = "estimado";
 function resumenMensualSuscripciones(mes, pagos, cobros) {
   const identidad = (id,fecha) => JSON.stringify([String(id),fecha]);
   const registrados = new Set();
+  const detallePendiente = [];
   let pagado = 0, pendiente = 0, porConfirmar = 0;
   for (const pago of pagos) {
     if (pago.tipo !== "gasto" || pago.suscripcionId == null) continue;
@@ -11615,9 +11619,12 @@ function resumenMensualSuscripciones(mes, pagos, cobros) {
     if (registrados.has(identidad(cobro.id,cobro.fecha))) continue;
     const importe = importeCobroSuscripcion(cobro);
     if (importe === null) porConfirmar++;
-    else pendiente += Math.round(importe*100);
+    else {
+      pendiente += Math.round(importe*100);
+      detallePendiente.push({cobro, importe});
+    }
   }
-  return {pagado:pagado/100, pendiente:pendiente/100, porConfirmar};
+  return {pagado:pagado/100, pendiente:pendiente/100, porConfirmar, detallePendiente};
 }
 
 function abrirCalendarioSuscripcionesMes() {
@@ -11716,7 +11723,9 @@ function suscripciones() {
         </div>
         <div class="subs-total-mes" data-total-sus="mes" ${periodoResumenSuscripciones === "estimado" ? "hidden" : ""}>
           <div><small>${t("Pagado","Paid")}</small><strong>${money(resumenMes.pagado)}</strong></div>
-          <div><small>${t("Pendiente confirmado","Confirmed pending")}</small><strong>${money(resumenMes.pendiente)}</strong></div>
+          <button type="button" class="subs-total-pendiente" data-pendiente-sus aria-haspopup="dialog">
+            <small>${t("Pendiente confirmado","Confirmed pending")}</small><strong>${money(resumenMes.pendiente)} <span aria-hidden="true">›</span></strong>
+          </button>
           <small>${resumenMes.porConfirmar} ${t("por confirmar","to be confirmed")}</small>
           <button type="button" onclick="abrirCalendarioSuscripcionesMes()">${t("Ver en calendario","View in calendar")} ›</button>
         </div>
@@ -11753,6 +11762,18 @@ function suscripciones() {
           </div>
           <ul>${segmentos.map(g => `<li style="border-color:${g.color}"><button type="button" aria-haspopup="dialog" data-grupo-sus="${g.clave}"><strong>${Math.round(g.fin-g.inicio)}%</strong><span>${g.nombre}</span></button></li>`).join("")}</ul>
         </div></div>
+    <template id="subs-resumen-pendientes">
+      <div class="subs-detalle-resumen"><div><strong>${money(resumenMes.pendiente)}</strong>
+        <small>${t("Total pendiente confirmado","Total confirmed pending")}</small></div></div>
+      <div class="subs-resumen-filas">${resumenMes.detallePendiente.map(({cobro,importe}) => {
+        const i = lista.findIndex(r => String(r.id) === String(cobro.id));
+        const origen = nombreOrigenSuscripcion(cobro.origenPreferido);
+        return `<button type="button" class="subs-resumen-fila" data-detalle-sus="${i}" data-fecha-sus="${cobro.fecha}">
+          ${logo(cobro)}<span><strong>${safe(cobro.nombre)}</strong><small>${fechaCorta(cobro.fecha)} · ${safe(origen || t("Sin cuenta asignada","No account assigned"))}</small></span>
+          <strong>${money(importe)} <span aria-hidden="true">›</span></strong>
+        </button>`;
+      }).join("") || `<p class="note">${t("No hay cobros confirmados pendientes este mes.","No confirmed charges pending this month.")}</p>`}</div>
+    </template>
     <template id="subs-resumen-semana">
       <div class="subs-detalle-resumen"><div><strong>${money(totalSemana)}</strong>
         <small>${t("Total de importes confirmados","Total confirmed amounts")}</small></div></div>
@@ -11793,6 +11814,8 @@ function suscripciones() {
       totales.forEach(panel => {panel.hidden = panel.dataset.totalSus !== periodoResumenSuscripciones;});
     };
   });
+  el().querySelector("[data-pendiente-sus]").onclick = () =>
+    abrirResumenSuscripciones("pendientes",t("Pendiente confirmado","Confirmed pending"));
   el().querySelector("[data-semana-sus]").onclick = () =>
     abrirResumenSuscripciones("semana",t("Cobros en los próximos 7 días","Charges in the next 7 days"));
   for (const g of segmentos) {
@@ -13054,7 +13077,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.6.69</p>
+      <p class="ajustes-version">Balance One · 0.6.70</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13337,7 +13360,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.6.69 · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.6.70 · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13346,7 +13369,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.6.69</p>
+    <p class="note">Balance One 0.6.70</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -13569,7 +13592,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.6.69</span>
+          <span class="note">${t("Versión", "Version")} 0.6.70</span>
         </div>`
     }
   };
