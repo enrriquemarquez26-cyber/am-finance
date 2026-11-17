@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.9 Beta</title>
+<title>Balance One 0.7.10 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5428,13 +5428,46 @@ html.tema-oscuro .inicio-panorama .panorama-categorias > button {background:#fff
 .panorama-dia-icono,.compra-icono-previo {position:relative;width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--accion-ovalada);overflow:hidden}
 .panorama-dia-icono svg,.compra-icono-previo svg {width:21px;height:21px}
 .compra-vista-previa {display:flex;align-items:center;gap:8px;margin:7px 0}
+
+.cuentas-billetera {max-width:680px;margin:auto;display:grid;gap:18px;padding-bottom:110px}
+.billetera-cabecera {display:flex;align-items:center;gap:9px}
+.billetera-cabecera h2 {flex:1;margin:0;font-size:1.15rem}
+.billetera-cabecera .inicio-nuevo-enlace {white-space:nowrap}
+.billetera-tarjetas {position:relative;height:calc(218px + (var(--cantidad) - 1)*39px);margin:8px 4px 0}
+.billetera-tarjeta {position:absolute;left:0;top:calc(var(--nivel)*39px);width:100%;height:218px;border:0;border-radius:23px;padding:15px 18px;text-align:start;font:inherit;display:flex;flex-direction:column;gap:6px;overflow:hidden;color:#fff;box-shadow:0 7px 17px #101d3530;cursor:pointer;transform:scale(calc(.88 + .12*(var(--nivel) + 1)/var(--cantidad)));transform-origin:center top;background:linear-gradient(125deg,#344253,#60758b)}
+.billetera-chase {background:linear-gradient(125deg,#123568,#2467a2)}
+.billetera-amex {background:linear-gradient(125deg,#075774,#147d97)}
+.billetera-apple {background:linear-gradient(125deg,#f2d9c0,#e4d3ee 55%,#eadf9d);color:#202735}
+.billetera-capital {background:linear-gradient(125deg,#23334b,#42597c)}
+.billetera-banco {display:flex;align-items:center;gap:9px;min-width:0}
+.billetera-banco strong {overflow-wrap:anywhere}
+.billetera-logo {position:relative;display:grid;place-items:center;width:29px;height:29px;flex:none;border-radius:50%;overflow:hidden;background:#ffffff25}
+.billetera-tipo {font-size:.8rem;opacity:.88}
+.billetera-saldo {margin-top:auto;display:grid;gap:4px}
+.billetera-saldo small {opacity:.85}
+.billetera-saldo strong {font-size:1.8rem;overflow-wrap:anywhere}
+.billetera-total,.billetera-acciones {padding:15px 17px;border-radius:25px;background:var(--accion-ovalada)}
+.billetera-total {display:flex;align-items:center;justify-content:space-between;gap:10px}
+.billetera-total > span {display:grid;gap:4px;min-width:0}
+.billetera-total strong {font-size:1.15rem;overflow-wrap:anywhere}
+.billetera-total small {opacity:.7}
+.billetera-total button {border:0;border-radius:99px;background:var(--accion-ovalada);color:inherit;font:inherit;padding:8px 12px}
+.billetera-acciones h3 {margin:0 0 10px;font-size:1rem}
+.billetera-acciones [data-cuenta-accion="eliminar"] {color:#ca4358}
+.billetera-expandida {display:grid;gap:14px;height:auto;margin-inline:0}
+.billetera-expandida .billetera-tarjeta {position:relative;top:auto;transform:none;height:190px}
+.billetera-tarjeta:focus-visible {outline:3px solid var(--balanceone-color,#ff7900);outline-offset:3px}
+@media(prefers-reduced-motion:no-preference) {
+ .billetera-tarjeta {animation:billetera-aparecer .28s ease-out}
+ @keyframes billetera-aparecer {from{opacity:.6;translate:0 7px}to{opacity:1;translate:0 0}}
+}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.9 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.10 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6360,8 +6393,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.9 Beta",
-      "Smart control of your finances · 0.7.9 Beta"
+      "Control inteligente de tus finanzas · 0.7.10 Beta",
+      "Smart control of your finances · 0.7.10 Beta"
     );
   }
 }
@@ -8693,51 +8726,73 @@ function inicioNuevo() {
   });
 }
 
+let cuentaBilleteraActiva = null;
+let cuentasBilleteraExpandidas = false;
+
 function cuentasVistaNueva() {
+  const t = textoApp;
   let cuentas = [];
   try {
-    cuentas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
-    if (!Array.isArray(cuentas)) cuentas = [];
-  } catch { cuentas = []; }
-
-  el().innerHTML = `
-    <section class="inicio-nuevo">
-      <button type="button" class="inicio-nuevo-enlace" onclick="go('inicio')">
-        ‹ ${textoApp("Volver al inicio", "Back to home")}
-      </button>
-      <div class="row" style="align-items:flex-start">
-        <h2>${textoApp("Mis cuentas bancarias", "My bank accounts")}</h2>
-        ${botonModoDiscretoInicio()}
-        <button type="button" class="inicio-nuevo-enlace" onclick="abrirNuevaCuenta()">
-          + ${textoApp("Agregar", "Add")}
-        </button>
-      </div>
-      ${cuentas.map(cuenta => `
-        <div class="inicio-nuevo-tarjeta" data-cuenta-id="${safe(String(cuenta.id))}">
-          <span class="inicio-nuevo-label">${safe(cuenta.nombre)}</span>
-          <strong>${saldoDiscreto(cuenta.saldo)}</strong>
-          <small>${cuenta.tipo === "ahorro"
-            ? textoApp("Ahorros", "Savings")
-            : textoApp("Cheques", "Checking")}</small>
-          <div class="inicio-nuevo-cuentas-acciones">
-            <button type="button" onclick="abrirCuentaBanco(this.closest('[data-cuenta-id]').dataset.cuentaId)">
-              ${textoApp("Depositar o retirar", "Deposit or withdraw")}
-            </button>
-            <button type="button" onclick="editarCuentaBanco(this.closest('[data-cuenta-id]').dataset.cuentaId)">
-              ${textoApp("Editar", "Edit")}
-            </button>
-            <button type="button" onclick="eliminarCuentaBanco(this.closest('[data-cuenta-id]').dataset.cuentaId)">
-              ${textoApp("Eliminar", "Delete")}
-            </button>
-          </div>
-        </div>
-      `).join("") || `
-        <div class="inicio-nuevo-panel">
-          <p class="note">${textoApp("Agrega tu primera cuenta bancaria.", "Add your first bank account.")}</p>
-        </div>
-      `}
-    </section>
-  `;
+    const guardadas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
+    if (Array.isArray(guardadas)) cuentas = guardadas;
+  } catch {}
+  const seleccionada = cuentas.find(c => String(c.id) === cuentaBilleteraActiva) || cuentas[0];
+  cuentaBilleteraActiva = seleccionada ? String(seleccionada.id) : null;
+  const total = cuentas.reduce((suma,c) => suma + Math.round((Number(c.saldo) || 0)*100),0)/100;
+  const orden = seleccionada ? [...cuentas.filter(c => c !== seleccionada),seleccionada] : [];
+  const visibles = cuentasBilleteraExpandidas ? cuentas : orden.slice(-4);
+  const tarjeta = (c,i) => {
+    const activa = String(c.id) === cuentaBilleteraActiva;
+    const nombre = String(c.nombre || t("Cuenta","Account"));
+    const marca = nombre.toLowerCase();
+    const estilo = marca.includes("chase") ? "chase" : /amex|american express/.test(marca) ? "amex"
+      : marca.includes("apple") ? "apple" : marca.includes("capital") ? "capital" : "neutra";
+    return `<button type="button" class="billetera-tarjeta billetera-${estilo}"
+      data-billetera-id="${safe(String(c.id))}" aria-pressed="${activa}"
+      style="--nivel:${i};--cantidad:${visibles.length}">
+      <span class="billetera-banco"><span class="billetera-logo" aria-hidden="true">${nombre.slice(0,1) ? safe(nombre.slice(0,1)) : "•"}${imagenCompania(nombre)}</span>
+        <strong>${safe(nombre)}</strong></span>
+      <span class="billetera-tipo">${c.tipo === "ahorro" ? t("Ahorros","Savings") : t("Cheques","Checking")}</span>
+      <span class="billetera-saldo"><small>${t("Saldo disponible","Available balance")}</small><strong>${saldoDiscreto(c.saldo)}</strong></span>
+    </button>`;
+  };
+  el().innerHTML = `<section class="cuentas-billetera">
+    <button type="button" class="inicio-nuevo-enlace" onclick="go('inicio')">‹ ${t("Volver al inicio","Back to home")}</button>
+    <div class="billetera-cabecera"><h2>${t("Mis cuentas bancarias","My bank accounts")}</h2>
+      ${botonModoDiscretoInicio()}<button type="button" class="inicio-nuevo-enlace" onclick="abrirNuevaCuenta()">+ ${t("Agregar","Add")}</button></div>
+    ${cuentas.length ? `
+      <div class="billetera-tarjetas ${cuentasBilleteraExpandidas ? "billetera-expandida" : ""}" style="--cantidad:${visibles.length}">
+        ${visibles.map(tarjeta).join("")}</div>
+      <div class="billetera-total"><span><strong>${saldoDiscreto(total)}</strong><small>${t("Saldo total","Total balance")} · ${cuentas.length} ${t("cuentas","accounts")}</small></span>
+        <button type="button" data-billetera-expandir aria-expanded="${cuentasBilleteraExpandidas}">${cuentasBilleteraExpandidas ? t("Recoger","Collapse") : t("Expandir","Expand")} <span aria-hidden="true">${cuentasBilleteraExpandidas ? "⌃" : "⌄"}</span></button></div>
+      <div class="billetera-acciones" aria-label="${t("Acciones de la cuenta","Account actions")}">
+        <h3>${safe(seleccionada.nombre)}</h3>
+        <div class="inicio-nuevo-cuentas-acciones">
+          <button type="button" data-cuenta-accion="deposito">${t("Depositar o retirar","Deposit or withdraw")}</button>
+          <button type="button" data-cuenta-accion="editar">${t("Editar","Edit")}</button>
+          <button type="button" data-cuenta-accion="eliminar">${t("Eliminar","Delete")}</button>
+        </div></div>` : `<p class="note">${t("Agrega tu primera cuenta bancaria.","Add your first bank account.")}</p>`}
+  </section>`;
+  el().querySelectorAll("[data-billetera-id]").forEach(boton => {
+    boton.onclick = () => {
+      cuentaBilleteraActiva = boton.dataset.billeteraId;
+      cuentasVistaNueva();
+      const activa = [...el().querySelectorAll("[data-billetera-id]")].find(b => b.dataset.billeteraId === cuentaBilleteraActiva);
+      activa?.focus({preventScroll:true});
+    };
+  });
+  const expandir = el().querySelector("[data-billetera-expandir]");
+  if (expandir) expandir.onclick = () => {
+    cuentasBilleteraExpandidas = !cuentasBilleteraExpandidas;
+    cuentasVistaNueva();
+    el().querySelector("[data-billetera-expandir]")?.focus({preventScroll:true});
+  };
+  el().querySelectorAll("[data-cuenta-accion]").forEach(boton => {
+    boton.onclick = () => {
+      const acciones = {deposito:abrirCuentaBanco,editar:editarCuentaBanco,eliminar:eliminarCuentaBanco};
+      acciones[boton.dataset.cuentaAccion](cuentaBilleteraActiva);
+    };
+  });
 }
 
 // Un origen de crédito usa un prefijo para distinguirlo de los ID bancarios.
@@ -13841,7 +13896,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.9 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.10 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14125,7 +14180,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.9 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.10 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14134,7 +14189,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.9 Beta</p>
+    <p class="note">Balance One 0.7.10 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14357,7 +14412,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.9 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.10 Beta</span>
         </div>`
     }
   };
