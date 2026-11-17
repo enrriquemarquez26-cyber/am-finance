@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.8 Beta</title>
+<title>Balance One 0.7.9 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5406,13 +5406,35 @@ html.tema-oscuro .inicio-panorama .panorama-categorias > button {background:#fff
 .panorama-etiqueta-fecha input {width:100%;min-width:0}
 .panorama-detalle-totales {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:12px}
 .panorama-detalle-totales > div {display:grid;gap:4px;padding:9px;background:var(--accion-ovalada);border-radius:16px;overflow-wrap:anywhere}
+
+.inicio-panorama .panorama-autos {border-radius:34px;padding:12px}
+.panorama-autos > h3 {margin-bottom:8px}
+.panorama-autos-grid {gap:9px}
+.inicio-panorama .panorama-auto {border-radius:26px;padding:10px;gap:5px}
+.panorama-auto-foto {height:clamp(48px,15vw,82px);border-radius:18px}
+.panorama-auto-foto img {mix-blend-mode:multiply}
+.panorama-auto-progreso {gap:5px}
+.panorama-dia-fecha {display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.panorama-dia-fecha label {flex:1;min-width:0;margin:0}
+.panorama-dia-fecha input {width:100%;box-sizing:border-box}
+.panorama-dia-fecha button {border:0;border-radius:50%;width:36px;height:36px;flex:none;background:var(--accion-ovalada);color:inherit;font:inherit}
+.panorama-dia-fecha button:disabled {opacity:.35}
+.panorama-detalle-totales > div:first-child {background:rgba(255,135,32,.13)}
+.panorama-detalle-totales > div:first-child strong {font-size:1.45rem}
+.panorama-dia-filas {display:grid;gap:8px}
+.panorama-dia-fila {display:flex;align-items:center;gap:10px;padding:11px;border-radius:23px;background:var(--accion-ovalada)}
+.panorama-dia-fila > span:nth-child(2) {flex:1;min-width:0;overflow-wrap:anywhere}
+.panorama-dia-fila small {display:block;color:var(--muted,#87909d);margin-top:3px}
+.panorama-dia-icono,.compra-icono-previo {position:relative;width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--accion-ovalada);overflow:hidden}
+.panorama-dia-icono svg,.compra-icono-previo svg {width:21px;height:21px}
+.compra-vista-previa {display:flex;align-items:center;gap:8px;margin:7px 0}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.8 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.9 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6338,8 +6360,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.8 Beta",
-      "Smart control of your finances · 0.7.8 Beta"
+      "Control inteligente de tus finanzas · 0.7.9 Beta",
+      "Smart control of your finances · 0.7.9 Beta"
     );
   }
 }
@@ -8340,31 +8362,47 @@ function fechaVisiblePanorama(fecha) {
 
 function filasDetallePanorama(registros) {
   const t = textoApp;
-  return [...registros].sort((a,b) => b.fecha.localeCompare(a.fecha)).map(m =>
-    `<div><span><strong>${safe(m.nombre || nombreCategoriaPersonal(m.categoria) || m.categoria || t("Gasto","Expense"))}</strong>
-      <small>${safe(fechaVisiblePanorama(m.fecha))}</small></span><strong>${saldoDiscreto(m.monto)}</strong></div>`
-  ).join("") || `<p class="note">${t("Todavía no hay gastos registrados.","No expenses recorded yet.")}</p>`;
+  return [...registros].sort((a,b) => b.fecha.localeCompare(a.fecha)).map(m => {
+    const cuentaId = m.bancoId || m.cuentaId;
+    const cuenta = cuentasMetasAhorro().find(c => String(c.id) === String(cuentaId));
+    const cuentaNombre = cuenta?.nombre || "";
+    const nombre = m.nombre || nombreCategoriaPersonal(m.categoria) || m.categoria || t("Gasto","Expense");
+    return `<div class="panorama-dia-fila">
+      <span class="panorama-dia-icono" aria-hidden="true">${iconoRegistroFinanciero(m)}</span>
+      <span><strong>${safe(nombre)}</strong><small>${safe(fechaVisiblePanorama(m.fecha))}
+        ${cuentaNombre ? " · "+safe(cuentaNombre) : ""}</small></span>
+      <strong>${saldoDiscreto(m.monto)}</strong></div>`;
+  }).join("") || `<p class="note">${t("Todavía no hay gastos registrados.","No expenses recorded yet.")}</p>`;
 }
 
 function abrirDiaPanorama(inicio,hoy,fecha) {
   const t = textoApp;
   const gastos = gastosPeriodoPanorama(inicio,hoy);
   const ventana = crearVentanaApariencia(t("Gastos por día","Daily expenses"), `
-    <label class="panorama-etiqueta-fecha">${t("Fecha","Date")}
-      <input data-dia-panorama type="date" min="${inicio}" max="${hoy}" value="${fecha}"></label>
-    <div data-detalle-dia-panorama></div>`,true,"subs-detalle-dialogo",false);
+    <div class="panorama-dia-fecha">
+      <button type="button" data-dia-anterior aria-label="${t("Día anterior","Previous day")}">‹</button>
+      <label class="panorama-etiqueta-fecha">${t("Fecha","Date")}
+        <input data-dia-panorama type="date" min="${inicio}" max="${hoy}" value="${fecha}"></label>
+      <button type="button" data-dia-siguiente aria-label="${t("Día siguiente","Next day")}">›</button>
+    </div><div data-detalle-dia-panorama></div>`,true,"subs-detalle-dialogo",false);
   if (!ventana) return;
   const campo = ventana.querySelector("[data-dia-panorama]");
+  const anterior = ventana.querySelector("[data-dia-anterior]");
+  const siguiente = ventana.querySelector("[data-dia-siguiente]");
   const mostrar = () => {
     const dia = campo.value;
     if (!validDate(dia) || dia < inicio || dia > hoy) return;
+    anterior.disabled = dia === inicio;
+    siguiente.disabled = dia === hoy;
     const delDia = gastos.filter(m => m.fecha === dia);
     ventana.querySelector("[data-detalle-dia-panorama]").innerHTML = `
       <div class="panorama-detalle-totales">
         <div><small>${t("Gasto del día","Daily spending")}</small><strong>${saldoDiscreto(centavosPanorama(delDia)/100)}</strong></div>
         <div><small>${t("Acumulado del período","Period to date")}</small><strong>${saldoDiscreto(centavosPanorama(gastos.filter(m => m.fecha <= dia))/100)}</strong></div>
-      </div><div class="subs-detalle-historial">${filasDetallePanorama(delDia)}</div>`;
+      </div><div class="panorama-dia-filas">${filasDetallePanorama(delDia)}</div>`;
   };
+  anterior.onclick = () => {campo.value = fechaPanoramaDesplazada(campo.value,-1);mostrar();};
+  siguiente.onclick = () => {campo.value = fechaPanoramaDesplazada(campo.value,1);mostrar();};
   campo.addEventListener("change",mostrar);
   mostrar();
 }
@@ -13803,7 +13841,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.8 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.9 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14087,7 +14125,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.8 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.9 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14096,7 +14134,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.8 Beta</p>
+    <p class="note">Balance One 0.7.9 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14319,7 +14357,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.8 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.9 Beta</span>
         </div>`
     }
   };
@@ -16580,7 +16618,40 @@ function logoMarcaVehiculo(vehiculo) {
   return `<span class="marca-auto-logo" role="img" aria-label="${safe(marca.nombre)}" title="${safe(marca.nombre)}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m5 7-2 6v7h3v-3h12v3h3v-7l-2-6H5Z"/><path d="M3 13h18M7 14v1m10-1v1"/></svg>${imagenCompania(marca.nombre)}</span>`;
 }
 
+function categoriaPorNombreCompra(nombre) {
+  const texto = String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  const reglas = [
+    [/gasolina|\bgas\b|shell|exxon|chevron|valero/,"Gasolina"],
+    [/restaurante|restaurant|comida|mcdonald|starbucks|pizza/,"Alimentación"],
+    [/supermercado|walmart|costco|heb|h-e-b|grocery/,"Supermercado"],
+    [/renta|rent|alquiler/,"Vivienda"],
+    [/amazon|compra|shopping/,"Compras"],
+    [/luz|electric|internet|telefono|verizon|spectrum/,"Servicios"]
+  ];
+  return reglas.find(([patron]) => patron.test(texto))?.[1] || "Otros";
+}
+
+document.addEventListener("input", event => {
+  const campo = event.target;
+  if (!(campo instanceof HTMLInputElement) || campo.name !== "nombre" ||
+      !campo.closest("form") || campo.id.startsWith("perfil")) return;
+  const form = campo.closest("form");
+  if (!form.querySelector('[name="monto"]') && !["movVentanaNota","movNombre"].includes(campo.id)) return;
+  let vista = campo.nextElementSibling;
+  if (!vista?.matches("[data-compra-vista]")) {
+    vista = document.createElement("div");
+    vista.className = "compra-vista-previa";
+    vista.dataset.compraVista = "";
+    campo.after(vista);
+  }
+  vista.hidden = !campo.value.trim();
+  vista.innerHTML = campo.value.trim() ? `<span class="compra-icono-previo" aria-hidden="true">${iconoRegistroFinanciero({
+    nombre:campo.value,categoria:categoriaPorNombreCompra(campo.value)
+  })}</span><span>${safe(campo.value.trim())}</span>` : "";
+});
+
 function iconoRegistroFinanciero(registro) {
+  registro = {...registro,categoria:registro.categoria || (registro.tipo === "ingreso" || registro.esPago || registro.pagoTarjeta || registro.tipo === "vehiculo" || registro.tipo === "tarjeta" ? "" : categoriaPorNombreCompra(registro.nombre))};
   let icono;
   if (registro.esTransferencia || registro.tipo === "transferencia") {
     icono = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18m-4-4 4 4-4 4M21 17H3m4-4-4 4 4 4"/></svg>';
