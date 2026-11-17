@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.10 Beta</title>
+<title>Balance One 0.7.11 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5461,13 +5461,30 @@ html.tema-oscuro .inicio-panorama .panorama-categorias > button {background:#fff
  .billetera-tarjeta {animation:billetera-aparecer .28s ease-out}
  @keyframes billetera-aparecer {from{opacity:.6;translate:0 7px}to{opacity:1;translate:0 0}}
 }
+
+.billetera-titulo {margin:0;text-align:center;font-size:1.2rem}
+.billetera-cabecera {justify-content:space-between}
+.billetera-controles {display:flex;align-items:center;gap:8px}
+.billetera-vistas {position:relative}
+.billetera-vistas summary {display:grid;place-items:center;width:42px;height:42px;padding:10px;border:0;border-radius:50%;box-sizing:border-box;background:var(--accion-ovalada);color:inherit;cursor:pointer;list-style:none}
+.billetera-vistas summary::-webkit-details-marker {display:none}
+.billetera-vistas summary svg {width:22px;height:22px}
+.billetera-vistas .carrusel-vistas-opciones {right:0;left:auto;z-index:20}
+.billetera-tarjetas {--alto-tarjeta:218px;height:calc(var(--alto-tarjeta) + (var(--cantidad) - 1)*39px)}
+.billetera-tarjeta {height:var(--alto-tarjeta)}
+.billetera-tamano-mediana .billetera-tarjetas {--alto-tarjeta:174px}
+.billetera-tamano-compacta .billetera-tarjetas {--alto-tarjeta:136px}
+.billetera-expandida {height:auto}
+.billetera-expandida .billetera-tarjeta {height:var(--alto-tarjeta)}
+.billetera-tamano-compacta .billetera-saldo strong {font-size:1.3rem}
+.billetera-tamano-compacta .billetera-tarjeta {padding:10px 15px;gap:3px}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.10 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.11 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6393,8 +6410,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.10 Beta",
-      "Smart control of your finances · 0.7.10 Beta"
+      "Control inteligente de tus finanzas · 0.7.11 Beta",
+      "Smart control of your finances · 0.7.11 Beta"
     );
   }
 }
@@ -8736,6 +8753,9 @@ function cuentasVistaNueva() {
     const guardadas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
     if (Array.isArray(guardadas)) cuentas = guardadas;
   } catch {}
+  let tamano = "grande";
+  try { tamano = localStorage.getItem("balanceone-billetera-tamano") || "grande"; } catch {}
+  if (!["grande","mediana","compacta"].includes(tamano)) tamano = "grande";
   const seleccionada = cuentas.find(c => String(c.id) === cuentaBilleteraActiva) || cuentas[0];
   cuentaBilleteraActiva = seleccionada ? String(seleccionada.id) : null;
   const total = cuentas.reduce((suma,c) => suma + Math.round((Number(c.saldo) || 0)*100),0)/100;
@@ -8756,15 +8776,25 @@ function cuentasVistaNueva() {
       <span class="billetera-saldo"><small>${t("Saldo disponible","Available balance")}</small><strong>${saldoDiscreto(c.saldo)}</strong></span>
     </button>`;
   };
-  el().innerHTML = `<section class="cuentas-billetera">
-    <button type="button" class="inicio-nuevo-enlace" onclick="go('inicio')">‹ ${t("Volver al inicio","Back to home")}</button>
-    <div class="billetera-cabecera"><h2>${t("Mis cuentas bancarias","My bank accounts")}</h2>
-      ${botonModoDiscretoInicio()}<button type="button" class="inicio-nuevo-enlace" onclick="abrirNuevaCuenta()">+ ${t("Agregar","Add")}</button></div>
+  el().innerHTML = `<section class="cuentas-billetera billetera-tamano-${tamano}">
+    <h2 class="billetera-titulo">${t("Mis cuentas bancarias","My bank accounts")}</h2>
+    <div class="billetera-cabecera">
+      <button type="button" class="inicio-nuevo-enlace" onclick="go('inicio')">‹ ${t("Volver al inicio","Back to home")}</button>
+      <span class="billetera-controles">${botonModoDiscretoInicio()}
+        <details class="carrusel-vistas billetera-vistas">
+          <summary aria-label="${t("Tamaño de tarjetas","Card size")}">
+            ${iconoAjuste("ordenCredito")}</summary>
+          <div class="carrusel-vistas-opciones" role="group" aria-label="${t("Tamaño de tarjetas","Card size")}">
+            ${[["grande",t("Grande","Large")],["mediana",t("Mediana","Medium")],["compacta",t("Compacta","Compact")]].map(([valor,nombre]) =>
+              `<button type="button" data-tamano-billetera="${valor}" aria-pressed="${valor === tamano}">${nombre}</button>`).join("")}
+            <button type="button" data-billetera-expandir aria-expanded="${cuentasBilleteraExpandidas}">${cuentasBilleteraExpandidas ? t("Recoger","Collapse") : t("Ver todas","View all")}</button>
+          </div>
+        </details></span></div>
     ${cuentas.length ? `
       <div class="billetera-tarjetas ${cuentasBilleteraExpandidas ? "billetera-expandida" : ""}" style="--cantidad:${visibles.length}">
         ${visibles.map(tarjeta).join("")}</div>
       <div class="billetera-total"><span><strong>${saldoDiscreto(total)}</strong><small>${t("Saldo total","Total balance")} · ${cuentas.length} ${t("cuentas","accounts")}</small></span>
-        <button type="button" data-billetera-expandir aria-expanded="${cuentasBilleteraExpandidas}">${cuentasBilleteraExpandidas ? t("Recoger","Collapse") : t("Expandir","Expand")} <span aria-hidden="true">${cuentasBilleteraExpandidas ? "⌃" : "⌄"}</span></button></div>
+        <button type="button" onclick="abrirNuevaCuenta()">+ ${t("Agregar","Add")}</button></div>
       <div class="billetera-acciones" aria-label="${t("Acciones de la cuenta","Account actions")}">
         <h3>${safe(seleccionada.nombre)}</h3>
         <div class="inicio-nuevo-cuentas-acciones">
@@ -8781,11 +8811,18 @@ function cuentasVistaNueva() {
       activa?.focus({preventScroll:true});
     };
   });
+  el().querySelectorAll("[data-tamano-billetera]").forEach(boton => {
+    boton.onclick = () => {
+      try { localStorage.setItem("balanceone-billetera-tamano",boton.dataset.tamanoBilletera); } catch {}
+      cuentasVistaNueva();
+      el().querySelector(".billetera-vistas summary")?.focus({preventScroll:true});
+    };
+  });
   const expandir = el().querySelector("[data-billetera-expandir]");
   if (expandir) expandir.onclick = () => {
     cuentasBilleteraExpandidas = !cuentasBilleteraExpandidas;
     cuentasVistaNueva();
-    el().querySelector("[data-billetera-expandir]")?.focus({preventScroll:true});
+    el().querySelector(".billetera-vistas summary")?.focus({preventScroll:true});
   };
   el().querySelectorAll("[data-cuenta-accion]").forEach(boton => {
     boton.onclick = () => {
@@ -13896,7 +13933,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.10 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.11 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14180,7 +14217,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.10 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.11 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14189,7 +14226,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.10 Beta</p>
+    <p class="note">Balance One 0.7.11 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14412,7 +14449,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.10 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.11 Beta</span>
         </div>`
     }
   };
