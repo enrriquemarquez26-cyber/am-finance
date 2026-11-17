@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.12 Beta</title>
+<title>Balance One 0.7.13 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -3066,22 +3066,6 @@ html.tema-oscuro .mov28 #movCalendario .cal-controles .cal-mes {border-color:rgb
 .apariencia-barras { margin-bottom: 16px; }
 .apariencia-barras h3 { margin: 0 8px 8px; font-size: .78rem; }
 
-/* Original debit card fronts embedded for reliable offline display. */
-.billetera-debito-real {isolation:isolate;background:#132f51}
-.billetera-debito-real::before,.billetera-debito-real::after {display:none}
-.billetera-arte {position:absolute;inset:0;z-index:-2;overflow:hidden;border-radius:inherit;pointer-events:none}
-.billetera-arte img {display:block;width:100%;height:100%;object-fit:fill}
-.billetera-arte img.billetera-arte-capital {position:absolute;width:107.5%;height:170.7%;left:-3.75%;top:-35.35%}
-.billetera-debito-real .billetera-banco {align-self:flex-start;border-radius:20px;background:#091b31d9;color:#fff;padding:3px 9px 3px 4px;max-width:100%;box-sizing:border-box}
-.billetera-debito-real .billetera-banco strong {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.billetera-debito-real .billetera-tipo {align-self:flex-start;background:#091b31d9;color:#fff;padding:2px 8px;border-radius:12px;font-size:.75rem}
-.billetera-debito-real .billetera-saldo {position:relative;align-self:flex-start;padding:5px 11px;border-radius:15px;background:#091b31e8;color:#fff;gap:1px}
-.billetera-debito-real .billetera-saldo small {color:#fff}
-.billetera-debito-real .billetera-saldo strong {color:#fff;font-size:1.5rem;line-height:1.1}
-.billetera-tamano-compacta .billetera-debito-real .billetera-tipo {display:none}
-.billetera-tamano-compacta .billetera-debito-real .billetera-saldo strong {font-size:1.2rem}
-.billetera-tamano-compacta .billetera-debito-real .billetera-saldo small {font-size:.65rem}
-
 </style>
 <style id="balanceone-calendario-tarjetas-028">
 /* Calendario real (pestaña Calendario y Movimientos): casillas independientes,
@@ -5479,7 +5463,7 @@ html.tema-oscuro .inicio-panorama .panorama-categorias > button {background:#fff
  @keyframes billetera-aparecer {from{opacity:.6;translate:0 7px}to{opacity:1;translate:0 0}}
 }
 
-.billetera-titulo {margin:0;text-align:center;font-size:1.2rem}
+.billetera-titulo {margin:0;text-align:left;font-size:1.2rem}
 .billetera-cabecera {justify-content:space-between}
 .billetera-controles {display:flex;align-items:center;gap:8px}
 .billetera-vistas {position:relative}
@@ -5495,13 +5479,39 @@ html.tema-oscuro .inicio-panorama .panorama-categorias > button {background:#fff
 .billetera-expandida .billetera-tarjeta {height:var(--alto-tarjeta)}
 .billetera-tamano-compacta .billetera-saldo strong {font-size:1.3rem}
 .billetera-tamano-compacta .billetera-tarjeta {padding:10px 15px;gap:3px}
+
+/* Debit art uses its original proportions, with account details below it. */
+.billetera-titulo {text-align:left}
+.billetera-tarjetas {--alto-tarjeta:282px}
+.billetera-tamano-mediana .billetera-tarjetas {--alto-tarjeta:238px}
+.billetera-tamano-compacta .billetera-tarjetas {--alto-tarjeta:200px}
+.billetera-debito-real {isolation:isolate}
+.billetera-debito-real::before,.billetera-debito-real::after {display:none}
+.billetera-arte {position:absolute;inset:0 0 66px;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none;background:inherit;border-radius:23px 23px 0 0}
+.billetera-arte-marco {display:block;position:relative;height:100%;max-width:100%;aspect-ratio:1.575;overflow:hidden;border-radius:14px}
+.billetera-arte img {display:block;width:100%;height:100%;object-fit:contain}
+.billetera-arte img.billetera-arte-capital {position:absolute;width:107.5%;height:170.7%;left:-3.75%;top:-35.35%;object-fit:fill}
+.billetera-debito-pie {position:absolute;inset:auto 0 0;min-height:66px;box-sizing:border-box;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card,#fff);color:var(--text,#182230);text-align:left}
+.billetera-debito-pie > span {display:grid;gap:3px;min-width:0}
+.billetera-debito-pie > span:last-child {text-align:right}
+.billetera-debito-pie strong {font-size:.95rem;overflow-wrap:anywhere;line-height:1.15}
+.billetera-debito-pie small {font-size:.72rem;opacity:.75;line-height:1.15}
+.billetera-debito-real[aria-pressed="true"] > .billetera-banco,
+.billetera-debito-real[aria-pressed="true"] > .billetera-tipo,
+.billetera-debito-real[aria-pressed="true"] > .billetera-saldo,
+.billetera-expandida .billetera-debito-real > .billetera-banco,
+.billetera-expandida .billetera-debito-real > .billetera-tipo,
+.billetera-expandida .billetera-debito-real > .billetera-saldo {visibility:hidden}
+.billetera-tarjetas:not(.billetera-expandida) .billetera-debito-real[aria-pressed="false"] .billetera-arte {visibility:hidden}
+.billetera-vistas summary svg {fill:none;stroke:currentColor}
+html.tema-oscuro .billetera-debito-pie {background:#202630;color:#f5f6f8}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.12 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.13 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6427,8 +6437,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.12 Beta",
-      "Smart control of your finances · 0.7.12 Beta"
+      "Control inteligente de tus finanzas · 0.7.13 Beta",
+      "Smart control of your finances · 0.7.13 Beta"
     );
   }
 }
@@ -8794,11 +8804,12 @@ function cuentasVistaNueva() {
     return `<button type="button" class="billetera-tarjeta billetera-${estilo} ${debito ? "billetera-debito-real" : ""}"
       data-billetera-id="${safe(String(c.id))}" aria-pressed="${activa}"
       style="--nivel:${i};--cantidad:${visibles.length}">
-      ${debito ? `<span class="billetera-arte" aria-hidden="true"><img class="billetera-arte-${estilo}" src="${debito}" alt="" draggable="false"></span>` : ""}
+      ${debito ? `<span class="billetera-arte" aria-hidden="true"><span class="billetera-arte-marco"><img class="billetera-arte-${estilo}" src="${debito}" alt="" draggable="false"></span></span>` : ""}
       <span class="billetera-banco"><span class="billetera-logo" aria-hidden="true">${nombre.slice(0,1) ? safe(nombre.slice(0,1)) : "•"}${imagenCompania(nombre)}</span>
         <strong>${safe(nombre)}</strong></span>
       <span class="billetera-tipo">${c.tipo === "ahorro" ? t("Ahorros","Savings") : t("Cheques","Checking")}</span>
       <span class="billetera-saldo"><small>${t("Saldo disponible","Available balance")}</small><strong>${saldoDiscreto(c.saldo)}</strong></span>
+      ${debito ? `<span class="billetera-debito-pie"><span><strong>${safe(nombre)}</strong><small>${t("Cheques","Checking")}</small></span><span><small>${t("Saldo disponible","Available balance")}</small><strong>${saldoDiscreto(c.saldo)}</strong></span></span>` : ""}
     </button>`;
   };
   el().innerHTML = `<section class="cuentas-billetera billetera-tamano-${tamano}">
@@ -8808,7 +8819,7 @@ function cuentasVistaNueva() {
       <span class="billetera-controles">${botonModoDiscretoInicio()}
         <details class="carrusel-vistas billetera-vistas">
           <summary aria-label="${t("Tamaño de tarjetas","Card size")}">
-            ${iconoAjuste("ordenCredito")}</summary>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="15" height="13" rx="3"/><path d="M7 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1M3 11h15"/></svg></summary>
           <div class="carrusel-vistas-opciones" role="group" aria-label="${t("Tamaño de tarjetas","Card size")}">
             ${[["grande",t("Grande","Large")],["mediana",t("Mediana","Medium")],["compacta",t("Compacta","Compact")]].map(([valor,nombre]) =>
               `<button type="button" data-tamano-billetera="${valor}" aria-pressed="${valor === tamano}">${nombre}</button>`).join("")}
@@ -13958,7 +13969,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.12 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.13 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14242,7 +14253,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.12 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.13 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14251,7 +14262,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.12 Beta</p>
+    <p class="note">Balance One 0.7.13 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14474,7 +14485,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.12 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.13 Beta</span>
         </div>`
     }
   };
