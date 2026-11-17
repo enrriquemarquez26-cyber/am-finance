@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.5 Beta</title>
+<title>Balance One 0.7.6 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5198,7 +5198,7 @@ html:root body .subs-formulario-dialogo > h2 {padding-inline-end:38px;overflow-w
 .inicio-nuevo.inicio-panorama > * {grid-column:1/-1;min-width:0}
 .inicio-panorama [hidden] {display:none!important}
 .inicio-panorama .avisos-ancla {margin:0}
-.panorama-fila {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.panorama-fila {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .panorama-panel {
   min-width:0;background:#fcfdff;color:#142035;border:1px solid rgba(129,146,175,.13);
   box-shadow:0 4px 13px rgba(43,66,107,.07);padding:11px 12px;border-radius:21px;overflow-wrap:anywhere;
@@ -5256,7 +5256,7 @@ html.inicio-nuevo-activo:not(.tema-oscuro) body {
  background:radial-gradient(ellipse at 85% 25%,#e2ecff 0,transparent 41%),radial-gradient(ellipse at 5% 40%,#fff1e9 0,transparent 38%),#f0f4fe;
 }
 html.inicio-nuevo-activo:not(.tema-oscuro) body > header {background:transparent}
-.inicio-nuevo.inicio-panorama {gap:9px;max-width:680px;color:#131d2f}
+.inicio-nuevo.inicio-panorama {gap:14px;max-width:680px;color:#131d2f}
 html.tema-oscuro .inicio-panorama {color:#f1f4fa}
 .inicio-panorama .panorama-panel {
  border-radius:20px;padding:10px 12px;border:1px solid #ffffffd9;
@@ -5374,6 +5374,16 @@ html.tema-oscuro .inicio-panorama .panorama-cheques button {background:#343f51}
   100% {opacity:1;transform:scale(1)}
 }
 
+ .panorama-autos {display:grid;gap:14px}
+.inicio-panorama .panorama-auto {width:100%;display:grid;gap:9px;color:inherit;text-align:start;font:inherit;cursor:pointer}
+.panorama-auto-cabecera,.panorama-auto-cuota {display:flex;align-items:center;gap:10px;justify-content:space-between}
+.panorama-auto-cabecera strong {flex:1;min-width:0;overflow-wrap:anywhere}
+.panorama-auto-cabecera img {width:74px;height:42px;object-fit:cover;border-radius:12px}
+.panorama-auto-cuota {border-top:1px solid currentColor;border-top-color:color-mix(in srgb,currentColor 13%,transparent);padding-top:8px;flex-wrap:wrap}
+.panorama-auto-cuota small {display:block}
+.panorama-auto-vencimiento {padding:4px 8px;border-radius:99px;background:rgba(255,135,32,.16);font-size:.75rem}
+.panorama-auto-progreso {margin:12px 0}
+.panorama-auto-pagar {width:100%;margin-top:12px}
 .panorama-controles {display:flex;align-items:center;gap:4px;flex:none}
 .panorama-grafico-boton {display:block;width:100%;border:0;background:none;padding:0;color:inherit;cursor:pointer;border-radius:12px}
 .panorama-grafico-boton:focus-visible,.panorama-categorias button:focus-visible {outline:2px solid var(--balanceone-color,#ff7900)}
@@ -5390,7 +5400,7 @@ html.tema-oscuro .inicio-panorama .panorama-categorias > button {background:#fff
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.5 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.6 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -5890,7 +5900,8 @@ function opcionesTarjetasInicio(diseno) {
     comparacion:t("Panorama financiero","Financial overview"),
     cuentas:t("Cuentas de cheques","Checking accounts"),
     categorias:t("Categorías del mes","Monthly categories"),
-    pagos:t("Tarjetas, pagos y metas","Cards, payments and goals")
+    pagos:t("Tarjetas, pagos y metas","Cards, payments and goals"),
+    vehiculos:t("Autos","Vehicles")
   } : {
     resumen:t("Ingresos y gastos","Income and expenses"), presupuestos:t("Presupuestos","Budgets"),
     deudas:t("Mis deudas pendientes","Outstanding debts"), transacciones:t("Últimas transacciones","Recent transactions"),
@@ -6315,8 +6326,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.5 Beta",
-      "Smart control of your finances · 0.7.5 Beta"
+      "Control inteligente de tus finanzas · 0.7.6 Beta",
+      "Smart control of your finances · 0.7.6 Beta"
     );
   }
 }
@@ -8380,6 +8391,57 @@ function graficoPanoramaInicio(porDia, diaActual, ultimoDia, previstos, periodo)
   </svg>`;
 }
 
+function tarjetaAutoPanorama(auto, indice) {
+  const t = textoApp;
+  const nombre = [auto.nombre, auto.modelo].filter(Boolean).join(" ") || t("Auto","Vehicle");
+  const foto = auto.fotoGaleria || auto.foto;
+  const dia = Number(auto.vencimiento);
+  const faltan = Number.isInteger(dia) && dia >= 1 && dia <= 31 ? diasParaVencer(dia) : null;
+  const pago = Number(auto.pago);
+  let aviso = t("Sin fecha","No due date");
+  if (faltan !== null) {
+    const pagado = registradoEnPeriodo("vehiculo",auto.id,siguienteFechaAviso(faltan),pago);
+    if (pagado) aviso = t("Cuota registrada","Payment recorded");
+    else if (faltan === 0) aviso = t("Vence hoy","Due today");
+    else if (faltan === 1) aviso = t("Vence mañana","Due tomorrow");
+    else aviso = t(`Vence en ${faltan} días`,`Due in ${faltan} days`);
+  }
+  return `<button type="button" class="panorama-panel panorama-auto" data-auto-panorama="${indice}" aria-haspopup="dialog">
+    <span class="panorama-auto-cabecera">
+      ${foto ? `<img src="${safe(foto)}" alt="" loading="lazy" onerror="this.hidden=true">` : logoMarcaVehiculo(auto)}
+      <strong>${safe(nombre)}</strong><span aria-hidden="true">›</span>
+    </span>
+    <span class="panorama-auto-cuota">
+      <span><strong>${Number.isFinite(pago) && pago > 0 ? saldoDiscreto(pago) : "—"}</strong>
+        <small>${t("Próxima cuota","Next payment")}</small></span>
+      <span class="panorama-auto-vencimiento">${aviso}</span>
+    </span>
+  </button>`;
+}
+
+function abrirAutoPanorama(indice) {
+  const auto = data.vehiculos[indice];
+  if (!auto) return;
+  const t = textoApp;
+  const inicial = Number(auto.montoInicial);
+  const saldo = Number(auto.saldo);
+  const nombre = [auto.nombre, auto.modelo].filter(Boolean).join(" ") || t("Auto","Vehicle");
+  const progreso = inicial > 0 && Number.isFinite(saldo)
+    ? Math.round(Math.min(100,Math.max(0,(1-saldo/inicial)*100))) : null;
+  const ventana = crearVentanaApariencia(nombre,`
+    <div class="label">${t("Saldo pendiente","Outstanding balance")}</div>
+    <div class="smallamount">${Number.isFinite(saldo) ? saldoDiscreto(saldo) : "—"}</div>
+    ${modoDiscretoInicio ? "" : progreso === null
+      ? `<p class="note">${t("Añade el monto inicial en Datos del vehículo para ver el progreso.","Add the original loan amount in Vehicle details to see your progress.")}</p>`
+      : `<div class="panorama-auto-progreso"><div class="label">${t("Pagado","Paid")} ${progreso}%</div>${barraProgreso(progreso)}</div>`}
+    <button type="button" class="primary panorama-auto-pagar">${t("Registrar pago","Record payment")}</button>`,
+    true,"subs-detalle-dialogo",false);
+  if (ventana) ventana.querySelector(".panorama-auto-pagar").onclick = () => {
+    ventana.close();
+    abrirPagoPendiente("vehiculo",indice);
+  };
+}
+
 let inicioBienvenidaPanorama;
 
 function animarBienvenidaPanorama(panel) {
@@ -8516,8 +8578,14 @@ function inicioNuevo() {
       ${tile(t("Metas de ahorro","Savings goals"),"progreso","metasAhorro",meta ? `<strong>${money(meta.ahorrado)}</strong><small>${safe(registroMeta.nombre || "")} · ${money(meta.objetivo)}</small>
         ${modoDiscretoInicio ? "" : barraProgreso(meta.porcentaje,"#ff7900")}` : `<small>${t("Ver metas","View goals")} ›</small>`)}
     </div>
+    ${data.vehiculos.length ? `<section class="panorama-autos" data-bloque-inicio="vehiculos" aria-label="${t("Autos","Vehicles")}">
+      ${data.vehiculos.map(tarjetaAutoPanorama).join("")}
+    </section>` : ""}
   </section>`;
   const panel = el().querySelector(".inicio-panorama");
+  panel.querySelectorAll("[data-auto-panorama]").forEach(boton => {
+    boton.onclick = () => abrirAutoPanorama(Number(boton.dataset.autoPanorama));
+  });
   animarBienvenidaPanorama(panel);
   panel.querySelectorAll("[data-selector-panorama]").forEach(control => {
     control.onchange = () => {
@@ -13704,7 +13772,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.5 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.6 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -13988,7 +14056,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.5 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.6 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -13997,7 +14065,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.5 Beta</p>
+    <p class="note">Balance One 0.7.6 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14220,7 +14288,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.5 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.6 Beta</span>
         </div>`
     }
   };
