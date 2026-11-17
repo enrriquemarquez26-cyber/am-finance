@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.13 Beta</title>
+<title>Balance One 0.7.14 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5480,38 +5480,42 @@ html.tema-oscuro .inicio-panorama .panorama-categorias > button {background:#fff
 .billetera-tamano-compacta .billetera-saldo strong {font-size:1.3rem}
 .billetera-tamano-compacta .billetera-tarjeta {padding:10px 15px;gap:3px}
 
-/* Debit art uses its original proportions, with account details below it. */
+/* Wallet cards keep a bank-card ratio. Balance information stays outside the artwork. */
+.cuentas-billetera {container-type:inline-size}
 .billetera-titulo {text-align:left}
-.billetera-tarjetas {--alto-tarjeta:282px}
-.billetera-tamano-mediana .billetera-tarjetas {--alto-tarjeta:238px}
-.billetera-tamano-compacta .billetera-tarjetas {--alto-tarjeta:200px}
+.billetera-tarjetas {--ancho-tarjeta:calc(100cqw - 8px);--alto-tarjeta:calc(var(--ancho-tarjeta) / 1.586);width:var(--ancho-tarjeta);margin-inline:auto}
+.billetera-tamano-mediana .billetera-tarjetas {--ancho-tarjeta:calc((100cqw - 8px) * .88);--alto-tarjeta:calc(var(--ancho-tarjeta) / 1.586)}
+.billetera-tamano-compacta .billetera-tarjetas {--ancho-tarjeta:calc((100cqw - 8px) * .76);--alto-tarjeta:calc(var(--ancho-tarjeta) / 1.586)}
 .billetera-debito-real {isolation:isolate}
 .billetera-debito-real::before,.billetera-debito-real::after {display:none}
-.billetera-arte {position:absolute;inset:0 0 66px;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none;background:inherit;border-radius:23px 23px 0 0}
-.billetera-arte-marco {display:block;position:relative;height:100%;max-width:100%;aspect-ratio:1.575;overflow:hidden;border-radius:14px}
-.billetera-arte img {display:block;width:100%;height:100%;object-fit:contain}
+.billetera-arte {position:absolute;inset:0;display:block;overflow:hidden;pointer-events:none;border-radius:inherit}
+.billetera-arte-marco {display:block;position:relative;width:100%;height:100%;overflow:hidden}
+.billetera-arte img {display:block;width:100%;height:100%;object-fit:cover}
+.billetera-arte img.billetera-arte-chase {transform:scale(1.018)}
 .billetera-arte img.billetera-arte-capital {position:absolute;width:107.5%;height:170.7%;left:-3.75%;top:-35.35%;object-fit:fill}
-.billetera-debito-pie {position:absolute;inset:auto 0 0;min-height:66px;box-sizing:border-box;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card,#fff);color:var(--text,#182230);text-align:left}
-.billetera-debito-pie > span {display:grid;gap:3px;min-width:0}
-.billetera-debito-pie > span:last-child {text-align:right}
-.billetera-debito-pie strong {font-size:.95rem;overflow-wrap:anywhere;line-height:1.15}
-.billetera-debito-pie small {font-size:.72rem;opacity:.75;line-height:1.15}
-.billetera-debito-real[aria-pressed="true"] > .billetera-banco,
-.billetera-debito-real[aria-pressed="true"] > .billetera-tipo,
-.billetera-debito-real[aria-pressed="true"] > .billetera-saldo,
-.billetera-expandida .billetera-debito-real > .billetera-banco,
-.billetera-expandida .billetera-debito-real > .billetera-tipo,
-.billetera-expandida .billetera-debito-real > .billetera-saldo {visibility:hidden}
-.billetera-tarjetas:not(.billetera-expandida) .billetera-debito-real[aria-pressed="false"] .billetera-arte {visibility:hidden}
+.billetera-cuenta-info {display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:#fff;color:#17212e;border-radius:23px;text-align:left}
+.billetera-cuenta-info > span {display:grid;gap:4px;min-width:0}
+.billetera-cuenta-info > span:last-child {text-align:right}
+.billetera-cuenta-info strong {font-size:1rem;overflow-wrap:anywhere;line-height:1.2}
+.billetera-cuenta-info small {font-size:.75rem;color:#687482;line-height:1.2}
+.billetera-expandida .billetera-cuenta-info {margin-top:8px}
+.billetera-expandida .billetera-unidad {min-width:0}
 .billetera-vistas summary svg {fill:none;stroke:currentColor}
-html.tema-oscuro .billetera-debito-pie {background:#202630;color:#f5f6f8}
+.cuentas-billetera .billetera-vistas .carrusel-vistas-opciones {background:#fff;color:#17212e;opacity:1;border:0;box-shadow:0 9px 28px #10203a33;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:30;padding:9px;border-radius:24px;min-width:160px}
+.cuentas-billetera .billetera-vistas .carrusel-vistas-opciones button {background:#f0f1f5;color:#17212e;border:0;opacity:1;min-height:42px}
+.cuentas-billetera .billetera-vistas .carrusel-vistas-opciones button[aria-pressed="true"] {background:#ffe2c5;color:#713500}
+html.tema-oscuro .billetera-cuenta-info {background:#202630;color:#f5f6f8}
+html.tema-oscuro .billetera-cuenta-info small {color:#b8c0cc}
+html.tema-oscuro .cuentas-billetera .billetera-vistas .carrusel-vistas-opciones {background:#252b35;color:#f5f6f8;box-shadow:0 9px 28px #0008}
+html.tema-oscuro .cuentas-billetera .billetera-vistas .carrusel-vistas-opciones button {background:#353d49;color:#f5f6f8}
+html.tema-oscuro .cuentas-billetera .billetera-vistas .carrusel-vistas-opciones button[aria-pressed="true"] {background:#6b3d19;color:#fff0df}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.13 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.14 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6437,8 +6441,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.13 Beta",
-      "Smart control of your finances · 0.7.13 Beta"
+      "Control inteligente de tus finanzas · 0.7.14 Beta",
+      "Smart control of your finances · 0.7.14 Beta"
     );
   }
 }
@@ -8794,6 +8798,7 @@ function cuentasVistaNueva() {
   const total = cuentas.reduce((suma,c) => suma + Math.round((Number(c.saldo) || 0)*100),0)/100;
   const orden = seleccionada ? [...cuentas.filter(c => c !== seleccionada),seleccionada] : [];
   const visibles = cuentasBilleteraExpandidas ? cuentas : orden.slice(-4);
+  const informacionCuenta = c => `<div class="billetera-cuenta-info"><span><strong>${safe(String(c.nombre || t("Cuenta","Account")))}</strong><small>${c.tipo === "ahorro" ? t("Ahorros","Savings") : t("Cheques","Checking")}</small></span><span><small>${t("Saldo disponible","Available balance")}</small><strong>${saldoDiscreto(c.saldo)}</strong></span></div>`;
   const tarjeta = (c,i) => {
     const activa = String(c.id) === cuentaBilleteraActiva;
     const nombre = String(c.nombre || t("Cuenta","Account"));
@@ -8801,16 +8806,17 @@ function cuentasVistaNueva() {
     const estilo = marca.includes("chase") ? "chase" : /amex|american express/.test(marca) ? "amex"
       : marca.includes("apple") ? "apple" : marca.includes("capital") ? "capital" : "neutra";
     const debito = imagenDebitoBilletera(c,estilo);
-    return `<button type="button" class="billetera-tarjeta billetera-${estilo} ${debito ? "billetera-debito-real" : ""}"
+    const mostrarArte = debito && (activa || cuentasBilleteraExpandidas);
+    const boton = `<button type="button" class="billetera-tarjeta billetera-${estilo} ${debito ? "billetera-debito-real" : ""}"
       data-billetera-id="${safe(String(c.id))}" aria-pressed="${activa}"
+      aria-label="${safe(nombre)} · ${c.tipo === "ahorro" ? t("Ahorros","Savings") : t("Cheques","Checking")}"
       style="--nivel:${i};--cantidad:${visibles.length}">
-      ${debito ? `<span class="billetera-arte" aria-hidden="true"><span class="billetera-arte-marco"><img class="billetera-arte-${estilo}" src="${debito}" alt="" draggable="false"></span></span>` : ""}
-      <span class="billetera-banco"><span class="billetera-logo" aria-hidden="true">${nombre.slice(0,1) ? safe(nombre.slice(0,1)) : "•"}${imagenCompania(nombre)}</span>
-        <strong>${safe(nombre)}</strong></span>
+      ${mostrarArte ? `<span class="billetera-arte" aria-hidden="true"><span class="billetera-arte-marco"><img class="billetera-arte-${estilo}" src="${debito}" alt="" draggable="false"></span></span>` : `
+      <span class="billetera-banco"><span class="billetera-logo" aria-hidden="true">${nombre.slice(0,1) ? safe(nombre.slice(0,1)) : "•"}${imagenCompania(nombre)}</span><strong>${safe(nombre)}</strong></span>
       <span class="billetera-tipo">${c.tipo === "ahorro" ? t("Ahorros","Savings") : t("Cheques","Checking")}</span>
-      <span class="billetera-saldo"><small>${t("Saldo disponible","Available balance")}</small><strong>${saldoDiscreto(c.saldo)}</strong></span>
-      ${debito ? `<span class="billetera-debito-pie"><span><strong>${safe(nombre)}</strong><small>${t("Cheques","Checking")}</small></span><span><small>${t("Saldo disponible","Available balance")}</small><strong>${saldoDiscreto(c.saldo)}</strong></span></span>` : ""}
+      <span class="billetera-saldo"><small>${t("Saldo disponible","Available balance")}</small><strong>${saldoDiscreto(c.saldo)}</strong></span>`}
     </button>`;
+    return cuentasBilleteraExpandidas ? `<div class="billetera-unidad">${boton}${debito ? informacionCuenta(c) : ""}</div>` : boton;
   };
   el().innerHTML = `<section class="cuentas-billetera billetera-tamano-${tamano}">
     <h2 class="billetera-titulo">${t("Mis cuentas bancarias","My bank accounts")}</h2>
@@ -8829,6 +8835,7 @@ function cuentasVistaNueva() {
     ${cuentas.length ? `
       <div class="billetera-tarjetas ${cuentasBilleteraExpandidas ? "billetera-expandida" : ""}" style="--cantidad:${visibles.length}">
         ${visibles.map(tarjeta).join("")}</div>
+      ${!cuentasBilleteraExpandidas && seleccionada.tipo !== "ahorro" && /chase|amex|american express|capital/.test(String(seleccionada.nombre || "").toLowerCase()) ? informacionCuenta(seleccionada) : ""}
       <div class="billetera-total"><span><strong>${saldoDiscreto(total)}</strong><small>${t("Saldo total","Total balance")} · ${cuentas.length} ${t("cuentas","accounts")}</small></span>
         <button type="button" onclick="abrirNuevaCuenta()">+ ${t("Agregar","Add")}</button></div>
       <div class="billetera-acciones" aria-label="${t("Acciones de la cuenta","Account actions")}">
@@ -13969,7 +13976,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.13 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.14 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14253,7 +14260,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.13 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.14 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14262,7 +14269,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.13 Beta</p>
+    <p class="note">Balance One 0.7.14 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14485,7 +14492,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.13 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.14 Beta</span>
         </div>`
     }
   };
