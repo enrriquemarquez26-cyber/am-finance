@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.22 Beta</title>
+<title>Balance One 0.7.23 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5579,7 +5579,7 @@ html.tema-oscuro #avisosUnificados.is-abierto {--fila-aviso:#37414e; background:
   mask-image:linear-gradient(#000 84%,transparent 100%);
 }
 .panorama-auto-foto[data-marca="Hyundai"] {--curva-auto:#bed6ed}
-.panorama-auto-foto > img {position:relative; z-index:1; width:88%; height:89%; align-self:center; mix-blend-mode:normal}
+.panorama-auto-foto > img {position:relative; z-index:1; width:80%; height:81%; justify-self:center; align-self:center; mix-blend-mode:normal}
 .panorama-auto-emblema {z-index:2}
 @keyframes curva-auto-bienvenida {
   0%,100% {transform:translateX(0)}
@@ -5603,13 +5603,17 @@ html.tema-oscuro #avisosUnificados.is-abierto {--fila-aviso:#37414e; background:
 .panorama-auto-emblema .marca-auto-logo {width:25px;height:15px;margin:0;background:transparent}
 .panorama-auto-emblema .marca-auto-logo .compania-logo {padding:0!important;border-radius:0!important}
 html.tema-oscuro .panorama-auto-foto::before {filter:brightness(.75)}
+.panorama-cheques .saldo-mini,.panorama-cheques .ahorro-mini {display:flex;align-items:center;gap:4px}
+.panorama-cheques .saldo-mini {flex-wrap:wrap}
+.panorama-cheques .ahorro-mini progress {width:25px;height:4px}
+.panorama-cheques .ahorro-mini small {font-size:.62rem}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.22 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.23 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6535,8 +6539,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.22 Beta",
-      "Smart control of your finances · 0.7.22 Beta"
+      "Control inteligente de tus finanzas · 0.7.23 Beta",
+      "Smart control of your finances · 0.7.23 Beta"
     );
   }
 }
@@ -6980,7 +6984,9 @@ function datosAvisosVencimiento(incluirPagados = false, preferencias = preferenc
         nombre:String(s.nombre || textoApp("Suscripción", "Subscription")),
         tipoAviso:"suscripcion", identificador, faltan, fecha:s.fecha,
         importe:Number(s.monto)>0?Number(s.monto):null, destino:"suscripciones",
-        clave:claveAviso("suscripcion",identificador,s.fecha), pagoRegistrado:false
+        clave:claveAviso("suscripcion",identificador,s.fecha),
+        pagoRegistrado:s.id != null && data.movimientos.some(m => m.tipo === "gasto" &&
+          String(m.suscripcionId) === String(s.id) && m.vencimientoSuscripcion === s.fecha)
       });
     }
   }
@@ -7196,8 +7202,7 @@ function tarjetaRecordatorio(c, pagado) {
   </div>`;
 }
 function avisosVencimiento() {
-  const todos=datosAvisosVencimiento(true);
-  const pagosProximos=todos.filter(c=>!c.pagado);
+  const pagosProximos=datosAvisosVencimiento(false);
   const respaldoPendiente=necesitaGuardarCopia() ? {
     nombre:textoApp("Copia de seguridad","Backup"),
     descripcion:ultimaCopiaPreparada()
@@ -7208,12 +7213,9 @@ function avisosVencimiento() {
   // Un único menú para vencimientos financieros y recordatorios de respaldo.
   // Si también hay pagos, conservar el principal financiero que el usuario conoce.
   const proximos=respaldoPendiente ? [...pagosProximos,respaldoPendiente] : pagosProximos;
-  const pagados=todos.filter(c=>c.pagado);
   const contenido=`<div class="aviso-lista">
     ${proximos.map(c=>tarjetaRecordatorio(c,false)).join("") || `<div class="aviso-lista--vacia">${textoApp("No tienes avisos pendientes","You have no pending reminders")}</div>`}
-    ${pagados.length?`<div class="aviso-pagados-titulo">✓ ${textoApp("Marcados como pagados", "Marked as paid")}</div>
-      ${pagados.map(c=>tarjetaRecordatorio(c,true)).join("")}`:""}
-    ${todos.length ? `<p class="aviso-nota-pagos">${textoApp("Marcar pagado solo confirma el recordatorio; no descuenta dinero ni registra transacciones.",
+    ${pagosProximos.length ? `<p class="aviso-nota-pagos">${textoApp("Marcar pagado solo confirma el recordatorio; no descuenta dinero ni registra transacciones.",
       "Mark as paid only confirms the reminder; it does not deduct money or record transactions.")}</p>` : ""}
   </div>`;
   const cerrar = `<button type="button" class="carrusel-cerrar avisos-cerrar" data-boton-x aria-label="${textoApp("Cerrar", "Close")}" onclick="animarBotonX(this, cerrarPanelAvisos)">×</button>`;
@@ -8717,6 +8719,17 @@ function animarBienvenidaPanorama(panel) {
 
 const claveSeleccionCheques = "balanceone-inicio-cheques-visibles";
 
+function porcentajeMetaCuenta(c) {
+  const meta = Number(c.meta);
+  if (modoDiscretoInicio || c.tipo !== "ahorro" || !(meta > 0)) return null;
+  return Math.min(100, Math.max(0, (Number(c.saldo) || 0) / meta * 100));
+}
+
+function barraAhorroInicio(c) {
+  const porcentaje = porcentajeMetaCuenta(c);
+  return porcentaje === null ? "" : `<span class="billetera-meta ahorro-mini"><progress max="100" value="${porcentaje}" aria-label="${textoApp("Progreso de ahorro","Savings progress")}"></progress><small>${Math.round(porcentaje)}%</small></span>`;
+}
+
 function cuentasVisiblesInicio(cuentas) {
   let ids;
   try { ids = JSON.parse(localStorage.getItem(claveSeleccionCheques)); } catch {}
@@ -8864,7 +8877,7 @@ function inicioNuevo() {
       <small>${visiblesInicio.some(c => c.tipo === "ahorro") ? t("Disponible en estas cuentas","Available in these accounts") : t("Disponible en cheques","Available in checking")} · ${money(saldoCheques)}</small>
       ${cuentas.length ? `<button class="inicio-nuevo-enlace" type="button" onclick="acomodarChequesInicio()">${t("Acomodar","Arrange")}</button>` : ""}
       <div class="panorama-cheques">${visiblesInicio.map(c => `<button type="button" data-cuenta="${safe(String(c.id))}" onclick="abrirCuentaBanco(this.dataset.cuenta)">
-        ${logoBanco(c.nombre)}<span><small>${safe(c.nombre)}</small><strong>${money(c.saldo)}</strong></span></button>`).join("") ||
+        ${logoBanco(c.nombre)}<span><small>${safe(c.nombre)}</small><span class="saldo-mini"><strong>${money(c.saldo)}</strong>${barraAhorroInicio(c)}</span></span></button>`).join("") ||
         `<p class="note">${cuentas.length ? t("Elige las cuentas que quieres ver.","Choose accounts to display.") : t("Todavía no tienes cuentas de cheques.","No checking accounts yet.")}</p>`}</div>
     </section>
     <section class="panorama-panel" data-bloque-inicio="categorias">
@@ -8982,10 +8995,9 @@ function cuentasVistaNueva() {
     return "neutra";
   }
   function avanceCuenta(c) {
-    if (modoDiscretoInicio || c.tipo !== "ahorro") return "";
+    const porcentaje = porcentajeMetaCuenta(c);
+    if (porcentaje === null) return "";
     const meta = Number(c.meta);
-    if (!(meta > 0)) return "";
-    const porcentaje = Math.min(100, Math.max(0, (Number(c.saldo) || 0) / meta * 100));
     return `<span class="billetera-meta"><small>${t("Meta","Goal")} · ${money(meta)}</small>
       <progress max="100" value="${porcentaje}" aria-label="${t("Progreso de ahorro","Savings progress")}"></progress>
       <b>${Math.round(porcentaje)}%</b></span>`;
@@ -14239,7 +14251,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.22 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.23 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14523,7 +14535,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.22 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.23 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14532,7 +14544,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.22 Beta</p>
+    <p class="note">Balance One 0.7.23 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14755,7 +14767,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.22 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.23 Beta</span>
         </div>`
     }
   };
