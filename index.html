@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.19 Beta</title>
+<title>Balance One 0.7.20 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5547,13 +5547,25 @@ html.tema-oscuro .cheques-menu div {background:#292f38}
 @media(prefers-reduced-motion:no-preference) {
 .billetera-vista-sola .billetera-tarjeta {transform:perspective(850px) rotateY(var(--giro-banco,0deg)) scale(var(--escala-banco,1));transform-origin:center}
 }
+
+.cuentas-billetera .cheques-panel {padding:10px 14px;border-radius:22px}
+.cuentas-billetera .cheques-panel .cheques-fila {margin:4px 0;min-height:0;gap:5px 8px}
+.cuentas-billetera .cheques-panel .cheques-fila b {font-size:1.35rem;line-height:1.18}
+.cuentas-billetera .cheques-panel .banco-operaciones {gap:4px;margin-inline-start:auto}
+.cuentas-billetera .cheques-panel button {padding:6px 8px}
+.cuentas-billetera .cheques-panel footer {margin-top:9px;padding-top:9px;gap:5px}
+.cuentas-billetera .cheques-panel footer strong {display:inline-block;margin-inline-start:5px}
+.cuentas-billetera .cheques-panel > .billetera-meta {margin:6px 0 0 auto}
+#avisosUnificados:not(.is-abierto) {--oval-fondo:#dce2ea;--oval-borde:#959fad}
+html.tema-oscuro #avisosUnificados:not(.is-abierto) {--oval-fondo:#45505f;--oval-borde:#808c9c}
+#avisosUnificados:not(.is-abierto) :is(.aviso-logos-trio > .aviso-vencimiento-icono,.aviso-vencimiento-flecha) {background:var(--oval-fondo);box-shadow:0 0 0 1px var(--oval-borde)}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.19 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.20 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6479,8 +6491,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.19 Beta",
-      "Smart control of your finances · 0.7.19 Beta"
+      "Control inteligente de tus finanzas · 0.7.20 Beta",
+      "Smart control of your finances · 0.7.20 Beta"
     );
   }
 }
@@ -8812,7 +8824,18 @@ function inicioNuevo() {
   });
 }
 
+const claveCuentaBilletera = "balanceone-billetera-ultima-cuenta";
 let cuentaBilleteraActiva = null;
+try { cuentaBilleteraActiva = localStorage.getItem(claveCuentaBilletera); } catch {}
+
+function recordarCuentaBilletera(id) {
+  if (id === cuentaBilleteraActiva) return;
+  cuentaBilleteraActiva = id;
+  try {
+    if (id === null) localStorage.removeItem(claveCuentaBilletera);
+    else localStorage.setItem(claveCuentaBilletera, id);
+  } catch {}
+}
 
 
 // Debit artwork sources: personal.chase.com/K132-002/images/secure_card_new.jpg;
@@ -8834,7 +8857,7 @@ function cuentasVistaNueva() {
   if (!["sola","apiladas","todas"].includes(vista)) vista = "apiladas";
   const cuentasBilleteraExpandidas = vista === "todas";
   const seleccionada = cuentas.find(c => String(c.id) === cuentaBilleteraActiva) || cuentas[0];
-  cuentaBilleteraActiva = seleccionada ? String(seleccionada.id) : null;
+  recordarCuentaBilletera(seleccionada ? String(seleccionada.id) : null);
   const total = cuentas.reduce((suma,c) => suma + Math.round((Number(c.saldo) || 0)*100),0)/100;
   const orden = seleccionada ? [...cuentas.filter(c => c !== seleccionada),seleccionada] : [];
   const visibles = vista === "apiladas" ? orden.slice(-4) : cuentas;
@@ -8880,8 +8903,9 @@ function cuentasVistaNueva() {
         <button data-cuenta-accion="editar">${t("Editar cuenta","Edit account")}</button>
         <button data-cuenta-accion="eliminar">${t("Eliminar cuenta","Delete account")}</button></div></details></header>
       <div class="cheques-fila"><span><b>${saldoDiscreto(seleccionada.saldo)}</b><small>${t("Saldo disponible","Available balance")}</small></span>
-      ${avanceCuenta(seleccionada)}</div>
-      <div class="banco-operaciones"><button data-cuenta-accion="deposito">↓ ${t("Depositar","Deposit")}</button> <button data-cuenta-accion="retiro">↑ ${t("Retirar","Withdraw")}</button></div>
+
+      <div class="banco-operaciones"><button data-cuenta-accion="deposito">↓ ${t("Depositar","Deposit")}</button> <button data-cuenta-accion="retiro">↑ ${t("Retirar","Withdraw")}</button></div></div>
+      ${avanceCuenta(seleccionada)}
       <footer><span>${t("Saldo total","Total balance")} · ${cuentas.length} ${t("cuentas","accounts")}<strong>${saldoDiscreto(total)}</strong></span>
       <button onclick="abrirNuevaCuenta()">+ ${t("Agregar cuenta","Add account")}</button></footer></div>`;
   }
@@ -8909,7 +8933,7 @@ function cuentasVistaNueva() {
         boton.scrollIntoView({block:"nearest",inline:"start"});
         return;
       }
-      cuentaBilleteraActiva = boton.dataset.billeteraId;
+      recordarCuentaBilletera(boton.dataset.billeteraId);
       cuentasVistaNueva();
       const activa = [...el().querySelectorAll("[data-billetera-id]")].find(b => b.dataset.billeteraId === cuentaBilleteraActiva);
       activa?.focus({preventScroll:true});
@@ -8941,7 +8965,7 @@ function cuentasVistaNueva() {
       if (!lista.isConnected || !lista.clientWidth) return;
       const i = Math.max(0, Math.min(cuentas.length-1, Math.round(lista.scrollLeft/lista.clientWidth)));
       if (String(cuentas[i].id) === cuentaBilleteraActiva) return;
-      cuentaBilleteraActiva = String(cuentas[i].id);
+      recordarCuentaBilletera(String(cuentas[i].id));
       botones.forEach((boton,n) => boton.setAttribute("aria-pressed",String(n === i)));
       panel.innerHTML = panelCuenta(cuentas[i]);
       if (!movimiento.matches) panel.animate?.([{opacity:.55},{opacity:1}], {duration:170,easing:"ease-out"});
@@ -8955,6 +8979,7 @@ function cuentasVistaNueva() {
         boton.style.setProperty("--giro-banco", (distancia * 8) + "deg");
         boton.style.setProperty("--escala-banco", 1-Math.abs(distancia)*.045);
       });
+      if (Math.abs(pagina - Math.round(pagina)) < .002) confirmarCuenta();
       clearTimeout(finScroll);
       finScroll = setTimeout(confirmarCuenta,120);
     };
@@ -14063,7 +14088,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.19 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.20 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14347,7 +14372,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.19 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.20 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14356,7 +14381,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.19 Beta</p>
+    <p class="note">Balance One 0.7.20 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14579,7 +14604,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.19 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.20 Beta</span>
         </div>`
     }
   };
