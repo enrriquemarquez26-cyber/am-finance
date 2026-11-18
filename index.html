@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.17 Beta</title>
+<title>Balance One 0.7.18 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5519,13 +5519,31 @@ html.tema-oscuro .cuentas-billetera .billetera-vistas .carrusel-vistas-opciones 
 .billetera-meta progress::-webkit-progress-bar {background:#a7b0b644}
 .billetera-meta progress::-webkit-progress-value {background:#29956e;border-radius:99px}
 .billetera-meta progress::-moz-progress-bar {background:#29956e;border-radius:99px}
+
+.billetera-vista-sola .billetera-tarjetas {display:flex;height:var(--alto-tarjeta);overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:23px}
+.billetera-vista-sola .billetera-tarjeta {position:relative;inset:auto;transform:none;flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;box-sizing:border-box}
+.cheques-panel {background:#fff;color:#17212e;border-radius:25px;padding:14px 16px;text-align:start}
+html.tema-oscuro .cheques-panel {background:#202630;color:#f5f6f8}
+.cheques-panel :is(header,footer,.cheques-fila) {position:relative;inset:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0;background:transparent;padding:0}
+.cheques-panel .cheques-fila {margin:8px 0 14px}
+.cheques-fila b {display:block;font-size:1.55rem}
+.cheques-panel small,.cheques-panel footer span {font-size:.78rem}
+.cheques-panel footer {border-top:1px solid #989da333;padding-top:10px}
+.cheques-panel footer strong {display:block}
+.cheques-panel button,.cheques-menu summary {background:#8882;color:inherit;border:0;border-radius:20px;padding:8px 10px;font:inherit;font-size:.78rem;cursor:pointer}
+.cheques-menu {position:relative}
+.cheques-menu summary {list-style:none;text-align:center;min-width:36px;font-weight:bold}
+.cheques-menu summary::-webkit-details-marker {display:none}
+.cheques-menu div {position:absolute;z-index:3;right:0;top:100%;display:grid;gap:5px;padding:7px;width:max-content;background:#fff;border-radius:15px;box-shadow:0 4px 18px #0003}
+html.tema-oscuro .cheques-menu div {background:#292f38}
+.cheques-menu [data-cuenta-accion="eliminar"] {color:#c74352}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.17 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.18 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6451,8 +6469,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.17 Beta",
-      "Smart control of your finances · 0.7.17 Beta"
+      "Control inteligente de tus finanzas · 0.7.18 Beta",
+      "Smart control of your finances · 0.7.18 Beta"
     );
   }
 }
@@ -8785,7 +8803,7 @@ function inicioNuevo() {
 }
 
 let cuentaBilleteraActiva = null;
-let cuentasBilleteraExpandidas = false;
+
 
 // Debit artwork sources: personal.chase.com/K132-002/images/secure_card_new.jpg;
 // cardskin.app/img/9wsaDgMBpc/thumb; exiap.com/wp-content/uploads/2023/12/capital-one-debit-card.jpg.
@@ -8801,14 +8819,15 @@ function cuentasVistaNueva() {
     const guardadas = JSON.parse(localStorage.getItem("amfinance-cuentas-banco") || "[]");
     if (Array.isArray(guardadas)) cuentas = guardadas;
   } catch {}
-  let tamano = "grande";
-  try { tamano = localStorage.getItem("balanceone-billetera-tamano") || "grande"; } catch {}
-  if (!["grande","mediana","compacta"].includes(tamano)) tamano = "grande";
+  let vista = "apiladas";
+  try { vista = localStorage.getItem("balanceone-billetera-vista") || vista; } catch {}
+  if (!["sola","apiladas","todas"].includes(vista)) vista = "apiladas";
+  const cuentasBilleteraExpandidas = vista === "todas";
   const seleccionada = cuentas.find(c => String(c.id) === cuentaBilleteraActiva) || cuentas[0];
   cuentaBilleteraActiva = seleccionada ? String(seleccionada.id) : null;
   const total = cuentas.reduce((suma,c) => suma + Math.round((Number(c.saldo) || 0)*100),0)/100;
   const orden = seleccionada ? [...cuentas.filter(c => c !== seleccionada),seleccionada] : [];
-  const visibles = cuentasBilleteraExpandidas ? cuentas : orden.slice(-4);
+  const visibles = vista === "apiladas" ? orden.slice(-4) : cuentas;
   function estiloBanco(cuenta) {
     const marca = String(cuenta.nombre || "").toLowerCase();
     if (marca.includes("chase")) return "chase";
@@ -8832,7 +8851,7 @@ function cuentasVistaNueva() {
     const nombre = String(c.nombre || t("Cuenta","Account"));
     const estilo = estiloBanco(c);
     const debito = imagenDebitoBilletera(c, estilo);
-    const mostrarArte = debito && (activa || cuentasBilleteraExpandidas);
+    const mostrarArte = debito && (activa || vista !== "apiladas");
     const boton = `<button type="button" class="billetera-tarjeta billetera-${estilo} ${debito ? "billetera-debito-real" : ""}"
       data-billetera-id="${safe(String(c.id))}" aria-pressed="${activa}"
       aria-label="${safe(nombre)} · ${c.tipo === "ahorro" ? t("Ahorros","Savings") : t("Cheques","Checking")}"
@@ -8844,24 +8863,8 @@ function cuentasVistaNueva() {
     </button>`;
     return cuentasBilleteraExpandidas ? `<div class="billetera-unidad">${boton}${debito ? informacionCuenta(c) : ""}</div>` : boton;
   };
-  el().innerHTML = `<section class="cuentas-billetera billetera-tamano-${tamano}">
-    <h2 class="billetera-titulo">${t("Mis cuentas bancarias","My bank accounts")}</h2>
-    <div class="billetera-cabecera">
-      <button type="button" class="inicio-nuevo-enlace" onclick="go('inicio')">‹ ${t("Volver al inicio","Back to home")}</button>
-      <span class="billetera-controles">${botonModoDiscretoInicio()}
-        <details class="carrusel-vistas billetera-vistas">
-          <summary aria-label="${t("Tamaño de tarjetas","Card size")}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="15" height="13" rx="3"/><path d="M7 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1M3 11h15"/></svg></summary>
-          <div class="carrusel-vistas-opciones" role="group" aria-label="${t("Tamaño de tarjetas","Card size")}">
-            ${[["grande",t("Grande","Large")],["mediana",t("Mediana","Medium")],["compacta",t("Compacta","Compact")]].map(([valor,nombre]) =>
-              `<button type="button" data-tamano-billetera="${valor}" aria-pressed="${valor === tamano}">${nombre}</button>`).join("")}
-            <button type="button" data-billetera-expandir aria-expanded="${cuentasBilleteraExpandidas}">${cuentasBilleteraExpandidas ? t("Recoger","Collapse") : t("Ver todas","View all")}</button>
-          </div>
-        </details></span></div>
-    ${cuentas.length ? `
-      <div class="billetera-tarjetas ${cuentasBilleteraExpandidas ? "billetera-expandida" : ""}" style="--cantidad:${visibles.length}">
-        ${visibles.map(tarjeta).join("")}</div>
-      ${!cuentasBilleteraExpandidas && imagenDebitoBilletera(seleccionada, estiloBanco(seleccionada)) ? informacionCuenta(seleccionada) : ""}
+  function panelCuenta(seleccionada) {
+    if (seleccionada.tipo === "ahorro") return `      ${!cuentasBilleteraExpandidas && imagenDebitoBilletera(seleccionada, estiloBanco(seleccionada)) ? informacionCuenta(seleccionada) : ""}
       <div class="billetera-total"><span><strong>${saldoDiscreto(total)}</strong><small>${t("Saldo total","Total balance")} · ${cuentas.length} ${t("cuentas","accounts")}</small></span>
         <button type="button" onclick="abrirNuevaCuenta()">+ ${t("Agregar","Add")}</button></div>
       <div class="billetera-acciones" aria-label="${t("Acciones de la cuenta","Account actions")}">
@@ -8870,10 +8873,41 @@ function cuentasVistaNueva() {
           <button type="button" data-cuenta-accion="deposito">${t("Depositar o retirar","Deposit or withdraw")}</button>
           <button type="button" data-cuenta-accion="editar">${t("Editar","Edit")}</button>
           <button type="button" data-cuenta-accion="eliminar">${t("Eliminar","Delete")}</button>
-        </div></div>` : `<p class="note">${t("Agrega tu primera cuenta bancaria.","Add your first bank account.")}</p>`}
+        </div></div>`;
+    return `<div class="cheques-panel">
+      <header><strong>${safe(seleccionada.nombre)} · ${t("Cheques","Checking")}</strong>
+      <details class="cheques-menu"><summary aria-label="${t("Opciones de cuenta","Account options")}">···</summary><div>
+        <button data-cuenta-accion="editar">${t("Editar cuenta","Edit account")}</button>
+        <button data-cuenta-accion="eliminar">${t("Eliminar cuenta","Delete account")}</button></div></details></header>
+      <div class="cheques-fila"><span><b>${saldoDiscreto(seleccionada.saldo)}</b><small>${t("Saldo disponible","Available balance")}</small></span>
+      <div><button data-cuenta-accion="deposito">↓ ${t("Depositar","Deposit")}</button> <button data-cuenta-accion="retiro">↑ ${t("Retirar","Withdraw")}</button></div></div>
+      <footer><span>${t("Saldo total","Total balance")} · ${cuentas.length} ${t("cuentas","accounts")}<strong>${saldoDiscreto(total)}</strong></span>
+      <button onclick="abrirNuevaCuenta()">+ ${t("Agregar cuenta","Add account")}</button></footer></div>`;
+  }
+  el().innerHTML = `<section class="cuentas-billetera billetera-vista-${vista}">
+    <h2 class="billetera-titulo">${t("Mis cuentas bancarias","My bank accounts")}</h2>
+    <div class="billetera-cabecera">
+      <button type="button" class="inicio-nuevo-enlace" onclick="go('inicio')">‹ ${t("Volver al inicio","Back to home")}</button>
+      <span class="billetera-controles">${botonModoDiscretoInicio()}
+        <details class="carrusel-vistas billetera-vistas">
+          <summary aria-label="${t("Vista de cuentas","Account view")}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="15" height="13" rx="3"/><path d="M7 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1M3 11h15"/></svg></summary>
+          <div class="carrusel-vistas-opciones" role="group" aria-label="${t("Vista de cuentas","Account view")}">
+            ${[["sola",t("Sola","Single")],["apiladas",t("Apiladas","Stacked")],["todas",t("Ver todas","View all")]].map(([valor,nombre]) =>
+              `<button type="button" data-tamano-billetera="${valor}" aria-pressed="${valor === vista}">${nombre}</button>`).join("")}
+          </div>
+        </details></span></div>
+    ${cuentas.length ? `
+      <div class="billetera-tarjetas ${cuentasBilleteraExpandidas ? "billetera-expandida" : ""}" style="--cantidad:${visibles.length}">
+        ${visibles.map(tarjeta).join("")}</div>
+      <div data-panel-banco>${panelCuenta(seleccionada)}</div>` : `<p class="note">${t("Agrega tu primera cuenta bancaria.","Add your first bank account.")}</p>`}
   </section>`;
   el().querySelectorAll("[data-billetera-id]").forEach(boton => {
     boton.onclick = () => {
+      if (vista === "sola") {
+        boton.scrollIntoView({block:"nearest",inline:"start"});
+        return;
+      }
       cuentaBilleteraActiva = boton.dataset.billeteraId;
       cuentasVistaNueva();
       const activa = [...el().querySelectorAll("[data-billetera-id]")].find(b => b.dataset.billeteraId === cuentaBilleteraActiva);
@@ -8882,23 +8916,34 @@ function cuentasVistaNueva() {
   });
   el().querySelectorAll("[data-tamano-billetera]").forEach(boton => {
     boton.onclick = () => {
-      try { localStorage.setItem("balanceone-billetera-tamano",boton.dataset.tamanoBilletera); } catch {}
+      try { localStorage.setItem("balanceone-billetera-vista",boton.dataset.tamanoBilletera); } catch {}
       cuentasVistaNueva();
       el().querySelector(".billetera-vistas summary")?.focus({preventScroll:true});
     };
   });
-  const expandir = el().querySelector("[data-billetera-expandir]");
-  if (expandir) expandir.onclick = () => {
-    cuentasBilleteraExpandidas = !cuentasBilleteraExpandidas;
-    cuentasVistaNueva();
-    el().querySelector(".billetera-vistas summary")?.focus({preventScroll:true});
+  const panel = el().querySelector("[data-panel-banco]");
+  if (!panel) return;
+  panel.onclick = evento => {
+    const accion = evento.target.closest("[data-cuenta-accion]")?.dataset.cuentaAccion;
+    if (!accion) return;
+    panel.querySelector("details")?.removeAttribute("open");
+    if (accion === "editar") editarCuentaBanco(cuentaBilleteraActiva);
+    else if (accion === "eliminar") eliminarCuentaBanco(cuentaBilleteraActiva);
+    else abrirCuentaBanco(cuentaBilleteraActiva,accion);
   };
-  el().querySelectorAll("[data-cuenta-accion]").forEach(boton => {
-    boton.onclick = () => {
-      const acciones = {deposito:abrirCuentaBanco,editar:editarCuentaBanco,eliminar:eliminarCuentaBanco};
-      acciones[boton.dataset.cuentaAccion](cuentaBilleteraActiva);
+  if (vista === "sola") {
+    const lista = el().querySelector(".billetera-tarjetas");
+    const botones = [...lista.children];
+    lista.scrollLeft = cuentas.indexOf(seleccionada) * lista.clientWidth;
+    lista.onscroll = () => {
+      if (!lista.clientWidth) return;
+      const i = Math.max(0,Math.min(cuentas.length-1,Math.round(lista.scrollLeft/lista.clientWidth)));
+      if (String(cuentas[i].id) === cuentaBilleteraActiva) return;
+      cuentaBilleteraActiva = String(cuentas[i].id);
+      botones.forEach((boton,n) => boton.setAttribute("aria-pressed",String(n === i)));
+      panel.innerHTML = panelCuenta(cuentas[i]);
     };
-  });
+  }
 }
 
 // Un origen de crédito usa un prefijo para distinguirlo de los ID bancarios.
@@ -14002,7 +14047,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.17 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.18 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14286,7 +14331,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.17 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.18 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14295,7 +14340,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.17 Beta</p>
+    <p class="note">Balance One 0.7.18 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14518,7 +14563,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.17 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.18 Beta</span>
         </div>`
     }
   };
@@ -14987,7 +15032,7 @@ function prepararOperacionBanco(cuentas, origenId, operacion, entrada, destinoId
   return copia;
 }
 
-function abrirCuentaBanco(identificador) {
+function abrirCuentaBanco(identificador, operacionInicial = "deposito") {
   const clave = "amfinance-cuentas-banco";
   let cuentas;
   try {
@@ -15009,7 +15054,7 @@ function abrirCuentaBanco(identificador) {
           ["deposito", textoApp("Depositar", "Deposit"), '<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>'],
           ["retiro", textoApp("Retirar", "Withdraw"), '<path d="M12 15V3m-5 5 5-5 5 5M4 16v5h16v-5"/>'],
           ["transferencia", textoApp("Transferir", "Transfer"), '<path d="M3 7h18m-5-5 5 5-5 5M21 17H3m5-5-5 5 5 5"/>']
-        ].map(([valor,nombre,trazos], i) => `<label><input type="radio" name="operacion" value="${valor}" ${i===0 ? "checked" : ""}>
+        ].map(([valor,nombre,trazos]) => `<label><input type="radio" name="operacion" value="${valor}" ${valor === operacionInicial ? "checked" : ""}>
           <span>${icono(trazos)}${nombre}</span></label>`).join("")}
       </fieldset>
       <label data-destino-banco hidden>${textoApp("Transferir a", "Transfer to")}
