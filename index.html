@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.21 Beta</title>
+<title>Balance One 0.7.22 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5570,13 +5570,31 @@ html.tema-oscuro #avisosUnificados.is-abierto {--fila-aviso:#37414e; background:
   --curva-auto:#cbd1dc;
   position:relative; isolation:isolate; margin:-10px -10px 0;
   height:clamp(80px,23vw,124px); border-radius:0; align-self:start;
+}
+.panorama-auto-foto::before {
+  content:""; position:absolute; inset:0 -16%; z-index:0; pointer-events:none;
   background:linear-gradient(to bottom,transparent 55%,var(--accion-ovalada)),
     radial-gradient(ellipse 115% 135% at 0% -35%,#eff1f6 83%,transparent 84%),
     linear-gradient(135deg,#f1f3f7,var(--curva-auto));
   mask-image:linear-gradient(#000 84%,transparent 100%);
 }
 .panorama-auto-foto[data-marca="Hyundai"] {--curva-auto:#bed6ed}
-.panorama-auto-foto > img {width:88%; height:92%; align-self:end; mix-blend-mode:multiply}
+.panorama-auto-foto > img {position:relative; z-index:1; width:88%; height:89%; align-self:center; mix-blend-mode:normal}
+.panorama-auto-emblema {z-index:2}
+@keyframes curva-auto-bienvenida {
+  0%,100% {transform:translateX(0)}
+  25%,75% {transform:translateX(10%)}
+  50% {transform:translateX(-10%)}
+}
+@media (prefers-reduced-motion:no-preference) {
+  .inicio-panorama.panorama-bienvenida .panorama-auto-foto::before {animation:curva-auto-bienvenida 15s ease-in-out var(--panorama-retraso,0ms) both}
+}
+.cheques-editar-fila {display:flex;align-items:center;gap:6px;padding:6px 0}
+.cheques-editar-fila label {flex:1;display:flex;align-items:center;gap:8px}
+.cheques-editar-fila input {width:18px;height:18px}
+.cheques-editar-fila button,.cheques-editar-fila [data-arrastrar] {width:34px;min-height:36px;margin:0;padding:4px;display:grid;place-items:center}
+.cheques-editar-fila [data-arrastrar] {touch-action:none;cursor:grab}
+
 .panorama-auto-foto > .panorama-auto-emblema {
   display:grid; place-items:center; position:absolute; top:6px; left:7px;
   width:32px; height:18px; border-radius:99px; color:#152133; background:#fffffff0;
@@ -5584,14 +5602,14 @@ html.tema-oscuro #avisosUnificados.is-abierto {--fila-aviso:#37414e; background:
 .panorama-auto-emblema > svg {width:24px; height:14px}
 .panorama-auto-emblema .marca-auto-logo {width:25px;height:15px;margin:0;background:transparent}
 .panorama-auto-emblema .marca-auto-logo .compania-logo {padding:0!important;border-radius:0!important}
-html.tema-oscuro .panorama-auto-foto {filter:brightness(.9)}
+html.tema-oscuro .panorama-auto-foto::before {filter:brightness(.75)}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.21 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.22 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6517,8 +6535,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.21 Beta",
-      "Smart control of your finances · 0.7.21 Beta"
+      "Control inteligente de tus finanzas · 0.7.22 Beta",
+      "Smart control of your finances · 0.7.22 Beta"
     );
   }
 }
@@ -8697,6 +8715,57 @@ function animarBienvenidaPanorama(panel) {
   panel.classList.add("panorama-bienvenida");
 }
 
+const claveSeleccionCheques = "balanceone-inicio-cheques-visibles";
+
+function cuentasVisiblesInicio(cuentas) {
+  let ids;
+  try { ids = JSON.parse(localStorage.getItem(claveSeleccionCheques)); } catch {}
+  if (!Array.isArray(ids)) return cuentas.filter(c => c.tipo !== "ahorro");
+  const disponibles = new Map(cuentas.map(c => [String(c.id), c]));
+  return [...new Set(ids)].map(id => disponibles.get(id)).filter(Boolean);
+}
+
+function acomodarChequesInicio() {
+  const t = textoApp;
+  const cuentas = ordenarElementosInicio(cuentasMetasAhorro(),"bancos");
+  const visibles = cuentasVisiblesInicio(cuentas);
+  const seleccion = new Set(visibles.map(c => String(c.id)));
+  const orden = [...visibles, ...cuentas.filter(c => !seleccion.has(String(c.id)))];
+  const filas = orden.map(c => `<div class="cheques-editar-fila" data-id="${safe(String(c.id))}">
+    <label><input type="checkbox" ${seleccion.has(String(c.id)) ? "checked" : ""}> ${safe(c.nombre)} · ${c.tipo === "ahorro" ? t("Ahorros","Savings") : t("Cheques","Checking")}</label>
+    <button type="button" data-subir aria-label="${t("Subir","Move up")}">↑</button>
+    <button type="button" data-bajar aria-label="${t("Bajar","Move down")}">↓</button>
+    <span data-arrastrar aria-hidden="true">☰</span></div>`).join("");
+  const ventana = crearVentanaApariencia(t("Acomodar cuentas","Arrange accounts"), `<div class="cheques-editar">${filas}</div>`,true);
+  if (!ventana) return;
+  const lista = ventana.querySelector(".cheques-editar");
+  lista.onclick = e => {
+    const fila = e.target.closest("[data-id]");
+    if (!fila) return;
+    if (e.target.closest("[data-subir]") && fila.previousElementSibling) fila.previousElementSibling.before(fila);
+    if (e.target.closest("[data-bajar]") && fila.nextElementSibling) fila.nextElementSibling.after(fila);
+  };
+  lista.onpointerdown = e => {
+    if (!e.target.closest("[data-arrastrar]")) return;
+    const fila = e.target.closest("[data-id]");
+    lista.setPointerCapture(e.pointerId);
+    lista.onpointermove = move => {
+      const otra = document.elementFromPoint(move.clientX,move.clientY)?.closest(".cheques-editar-fila");
+      if (!otra || otra === fila) return;
+      const r = otra.getBoundingClientRect();
+      if (move.clientY < r.top+r.height/2) otra.before(fila);
+      else otra.after(fila);
+    };
+    lista.onlostpointercapture = () => { lista.onpointermove = null; };
+  };
+  ventana.querySelector(".apariencia-listo").onclick = () => {
+    const ids = [...lista.children].filter(f => f.querySelector("input").checked).map(f => f.dataset.id);
+    localStorage.setItem(claveSeleccionCheques,JSON.stringify(ids));
+    cerrarVentanaApariencia(ventana);
+    render();
+  };
+}
+
 function inicioNuevo() {
   const t = textoApp;
   const hoy = today();
@@ -8716,7 +8785,8 @@ function inicioNuevo() {
   const cheques = ordenarElementosInicio(cuentas,"bancos").filter(c => c.tipo !== "ahorro");
   const cuentasDisponibles = alcance === "cheques" ? cheques : cuentas;
   const disponible = cuentasDisponibles.reduce((total,c) => total + (Number(c.saldo) || 0),0);
-  const saldoCheques = cheques.reduce((total,c) => total + (Number(c.saldo) || 0),0);
+  const visiblesInicio = cuentasVisiblesInicio(ordenarElementosInicio(cuentas,"bancos"));
+  const saldoCheques = visiblesInicio.reduce((total,c) => total + (Number(c.saldo) || 0),0);
   const pagados = new Set(data.movimientos.filter(m => m.tipo === "gasto" && m.suscripcionId != null)
     .map(m => JSON.stringify([String(m.suscripcionId),m.vencimientoSuscripcion])));
   const sinPagar = s => !pagados.has(JSON.stringify([String(s.id),s.fecha]));
@@ -8791,10 +8861,11 @@ function inicioNuevo() {
     <section class="panorama-panel" data-bloque-inicio="cuentas">
       <div class="panorama-cabecera"><h3>${titulo(t("Cuentas de cheques","Checking accounts"),"ordenBancos")}</h3>
         <button class="inicio-nuevo-enlace" type="button" onclick="go('cuentas')">${t("Ver todas","View all")} ›</button></div>
-      <small>${t("Disponible en cheques","Available in checking")} · ${money(saldoCheques)}</small>
-      <div class="panorama-cheques">${cheques.map(c => `<button type="button" data-cuenta="${safe(String(c.id))}" onclick="abrirCuentaBanco(this.dataset.cuenta)">
+      <small>${visiblesInicio.some(c => c.tipo === "ahorro") ? t("Disponible en estas cuentas","Available in these accounts") : t("Disponible en cheques","Available in checking")} · ${money(saldoCheques)}</small>
+      ${cuentas.length ? `<button class="inicio-nuevo-enlace" type="button" onclick="acomodarChequesInicio()">${t("Acomodar","Arrange")}</button>` : ""}
+      <div class="panorama-cheques">${visiblesInicio.map(c => `<button type="button" data-cuenta="${safe(String(c.id))}" onclick="abrirCuentaBanco(this.dataset.cuenta)">
         ${logoBanco(c.nombre)}<span><small>${safe(c.nombre)}</small><strong>${money(c.saldo)}</strong></span></button>`).join("") ||
-        `<p class="note">${t("Todavía no tienes cuentas de cheques.","No checking accounts yet.")}</p>`}</div>
+        `<p class="note">${cuentas.length ? t("Elige las cuentas que quieres ver.","Choose accounts to display.") : t("Todavía no tienes cuentas de cheques.","No checking accounts yet.")}</p>`}</div>
     </section>
     <section class="panorama-panel" data-bloque-inicio="categorias">
       <div class="panorama-cabecera"><h3>${titulo(t("Categorías del mes","Monthly categories"),"categorias")}</h3>
@@ -10409,6 +10480,7 @@ ${textoApp("Día", "Day")} ${j+1}
 
 <label class="label">${textoApp("Foto de la galería (opcional)", "Photo from gallery (optional)")}</label>
 <input name="fotoArchivo" type="file" accept="image/*">
+${v.fotoGaleria || v.foto ? `<label><input style="width:auto" type="checkbox" name="recortarActual"> ${textoApp("Recortar la foto actual","Cut out current photo")}</label>` : ""}
 
 <p class="note">
    ${textoApp("Si eliges una foto, se usará en lugar del enlace.", "If you choose a photo, it will be used instead of the link.")}
@@ -10435,6 +10507,67 @@ vencimiento:Number(f.get("vencimiento"))
   save();render();
  };
 }
+let detectorFotoAuto;
+async function prepararRecorteAuto(origen) {
+  const t = textoApp;
+  const imagen = new Image();
+  imagen.crossOrigin = "anonymous";
+  imagen.src = origen;
+  try { await imagen.decode(); } catch {
+    throw new Error(t("No se pudo abrir la imagen. Elige la foto desde tu galería.","Could not open the image. Choose a photo from your gallery."));
+  }
+  const escala = Math.min(1,900/Math.max(imagen.naturalWidth,imagen.naturalHeight));
+  const lienzo = document.createElement("canvas");
+  lienzo.width = Math.max(1,Math.round(imagen.naturalWidth*escala));
+  lienzo.height = Math.max(1,Math.round(imagen.naturalHeight*escala));
+  const ctx = lienzo.getContext("2d");
+  ctx.drawImage(imagen,0,0,lienzo.width,lienzo.height);
+  const pixels = ctx.getImageData(0,0,lienzo.width,lienzo.height);
+  // A cutout with transparent margins can be used directly.
+  const esquinas = [0,lienzo.width-1,(lienzo.height-1)*lienzo.width,lienzo.height*lienzo.width-1];
+  if (!esquinas.every(i => pixels.data[4*i+3] === 0)) {
+    if (!detectorFotoAuto) {
+      detectorFotoAuto = import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/dist/transformers.min.js")
+        .then(async ({env,pipeline,RawImage}) => {
+          env.allowLocalModels = false;
+          env.backends.onnx.wasm.numThreads = 1;
+          const detectar = await pipeline("image-segmentation","Xenova/detr-resnet-50-panoptic",{device:"wasm",dtype:"q8"});
+          return {detectar,RawImage};
+        }).catch(error => { detectorFotoAuto = null; throw error; });
+    }
+    let partes;
+    try {
+      const {detectar,RawImage} = await detectorFotoAuto;
+      partes = await detectar(new RawImage(pixels.data,lienzo.width,lienzo.height,4), {threshold:.55});
+    } catch {
+      throw new Error(t("No se pudo cargar el recorte automático. Revisa la conexión o elige una imagen PNG ya recortada.","Could not run automatic cutout. Check your connection or select a transparent PNG."));
+    }
+    const autos = partes.filter(p => /^(car|truck|bus|motorcycle)$/i.test(p.label));
+    const area = p => p.mask.data.reduce((total,v) => total+(v>127),0);
+    const principal = autos.map(p => ({p,area:area(p)})).sort((a,b) => b.area-a.area)[0];
+    if (!principal?.area) throw new Error(t("No se distinguió el vehículo. Prueba con una foto más cercana.","Vehicle not detected. Try a closer photo."));
+    const mascara = principal.p.mask;
+    for (let y=0;y<lienzo.height;y++) {
+      const fila = Math.floor(y*mascara.height/lienzo.height)*mascara.width;
+      for (let x=0;x<lienzo.width;x++) {
+        const i = 4*(y*lienzo.width+x)+3;
+        pixels.data[i] = Math.min(pixels.data[i],mascara.data[fila+Math.floor(x*mascara.width/lienzo.width)]);
+      }
+    }
+    ctx.putImageData(pixels,0,0);
+  }
+  let izq=lienzo.width, arriba=lienzo.height, der=-1, abajo=-1;
+  for (let y=0;y<lienzo.height;y++) for (let x=0;x<lienzo.width;x++) {
+    if (pixels.data[(y*lienzo.width+x)*4+3]<16) continue;
+    izq=Math.min(izq,x); der=Math.max(der,x); arriba=Math.min(arriba,y); abajo=Math.max(abajo,y);
+  }
+  if (der<izq) throw new Error(t("La imagen está vacía.","The image is empty."));
+  const recorte = document.createElement("canvas");
+  recorte.width=der-izq+1; recorte.height=abajo-arriba+1;
+  recorte.getContext("2d").drawImage(lienzo,-izq,-arriba);
+  return recorte.toDataURL("image/webp",.9);
+}
+
 async function guardarDatosAuto(event, i) {
   event.preventDefault();
 
@@ -10467,38 +10600,15 @@ async function guardarDatosAuto(event, i) {
   try {
     let fotoGaleria = auto.fotoGaleria || "";
 
-    if (archivo && archivo.size > 0) {
-      const url = URL.createObjectURL(archivo);
-
-      try {
-        const imagen = new Image();
-
-        await new Promise((resolve, reject) => {
-          imagen.onload = resolve;
-          imagen.onerror = () => reject(
-                        new Error(textoApp("No se pudo abrir la foto. Prueba con JPG o PNG.", "Could not open the photo. Try a JPG or PNG image."))
-          );
-          imagen.src = url;
-        });
-
-        const escala = Math.min(
-          1, 900 / Math.max(imagen.naturalWidth, imagen.naturalHeight)
-        );
-
-        const lienzo = document.createElement("canvas");
-        lienzo.width = Math.max(1, Math.round(imagen.naturalWidth * escala));
-        lienzo.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
-
-        const contexto = lienzo.getContext("2d");
-                if (!contexto) throw new Error(textoApp("No se pudo preparar la foto.", "Could not process the photo."));
-
-        contexto.fillStyle = "#ffffff";
-        contexto.fillRect(0, 0, lienzo.width, lienzo.height);
-        contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
-        fotoGaleria = lienzo.toDataURL("image/jpeg", 0.8);
-      } finally {
-        URL.revokeObjectURL(url);
-      }
+    const urlArchivo = archivo?.size ? URL.createObjectURL(archivo) : "";
+    const origen = urlArchivo || (foto !== (auto.foto || "") ? foto :
+      campos.has("recortarActual") ? fotoGaleria || foto : "");
+    if (origen) {
+      if (boton) boton.textContent = textoApp("Recortando vehículo…","Cutting out vehicle…");
+      try { fotoGaleria = await prepararRecorteAuto(origen); }
+      finally { if (urlArchivo) URL.revokeObjectURL(urlArchivo); }
+    } else if (foto !== (auto.foto || "")) {
+      fotoGaleria = "";
     }
 
         const entradaInicial = String(
@@ -10545,7 +10655,7 @@ async function guardarDatosAuto(event, i) {
                 : error.message || textoApp("No se pudieron guardar los datos.", "Could not save the details.")
     );
   } finally {
-    if (boton) boton.disabled = false;
+    if (boton) { boton.disabled = false; boton.textContent = textoApp("Guardar datos","Save details"); }
   }
 }
 function imagenCredito(tarjeta) {
@@ -14129,7 +14239,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.21 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.22 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14413,7 +14523,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.21 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.22 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14422,7 +14532,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.21 Beta</p>
+    <p class="note">Balance One 0.7.22 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14645,7 +14755,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.21 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.22 Beta</span>
         </div>`
     }
   };
