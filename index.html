@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.16 Beta</title>
+<title>Balance One 0.7.17 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5519,24 +5519,13 @@ html.tema-oscuro .cuentas-billetera .billetera-vistas .carrusel-vistas-opciones 
 .billetera-meta progress::-webkit-progress-bar {background:#a7b0b644}
 .billetera-meta progress::-webkit-progress-value {background:#29956e;border-radius:99px}
 .billetera-meta progress::-moz-progress-bar {background:#29956e;border-radius:99px}
-[data-tamano="grande"] #carruselCredito {display:grid;isolation:isolate;gap:0;grid-template-columns:minmax(0,1fr);grid-auto-rows:auto;overflow:visible;scroll-snap-type:none;align-items:start}
-[data-tamano="grande"] #carruselCredito .carrusel-credito-tarjeta {display:block;position:relative;overflow:hidden;align-self:start;background:var(--credito-superficie,#252b36);border-radius:clamp(14px,4vw,24px);box-shadow:0 -1px 4px #0002}
-[data-tamano="grande"] #carruselCredito .carrusel-credito-tarjeta:not([aria-current="true"]) {height:clamp(54px,16vw,90px);border-end-start-radius:0;border-end-end-radius:0;margin-bottom:-15px;padding-bottom:15px;box-sizing:content-box}
-[data-tamano="grande"] #carruselCredito .credito-marco {width:100%;margin:0;aspect-ratio:1.586}
-[data-tamano="grande"] #carruselCredito .credito-visual {transform:none;border-radius:inherit}
-[data-tamano="grande"] #carruselCredito .credito-visual--imagen img {object-fit:contain}
-[data-tamano="grande"] #carruselCredito button:focus-visible {outline-offset:-3px;outline:3px solid #ff982c}
-
-[data-tamano="grande"] #carruselCredito button:not([aria-current="true"]) .credito-marco {position:absolute;inset:0 0 auto}
-.credito-pila-modelo {position:absolute;inset-inline-end:10px;bottom:18px;padding:3px 8px;max-width:75%;font-size:.7rem;line-height:1.3;border-radius:20px;background:#17212de0;color:#fff;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
-[aria-current="true"] > .credito-pila-modelo {display:none}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.16 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.17 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6462,8 +6451,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.16 Beta",
-      "Smart control of your finances · 0.7.16 Beta"
+      "Control inteligente de tus finanzas · 0.7.17 Beta",
+      "Smart control of your finances · 0.7.17 Beta"
     );
   }
 }
@@ -11165,7 +11154,6 @@ function pantallaCarruselCredito(tamano, orden) {
           onclick="tocarTarjetaCarrusel(this,${i})" aria-haspopup="dialog" aria-controls="dialogoCredito${i}"
           aria-label="${t("Abrir opciones de ","Open options for ")}${safe(nombre)}${terminacion}"${descripcion ? ` aria-describedby="${descripcion}"` : ""}>
           ${arteTarjetaCredito(tarjeta)}
-          ${tamano === "grande" && modeloVisibleTarjeta(tarjeta) ? `<span class="credito-pila-modelo">${safe(modeloVisibleTarjeta(tarjeta))}</span>` : ""}
           ${mediana ? datosTarjetaMediana(tarjeta, i, digitos)
             : compacta ? datosTarjetaCompacta(tarjeta, i, digitos, modelo) : ""}
         </button>`;
@@ -11211,6 +11199,7 @@ function activarCarruselCredito() {
   const anterior = el().querySelector("[data-credito-anterior]");
   const siguiente = el().querySelector("[data-credito-siguiente]");
   const posicion = el().querySelector("[data-credito-pos]");
+  const animar = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let indice = Math.max(0, orden.findIndex(t => t.id === tarjetaActualCarrusel));
 
   function actualizar(nuevo) {
@@ -11229,27 +11218,35 @@ function activarCarruselCredito() {
     actualizar(indice);
     return;
   }
-  const botones = Array.from(lista.children);
-  function seleccionar(nuevo) {
-    if (nuevo < 0 || nuevo >= botones.length) return;
-    actualizar(nuevo);
-    botones.forEach((boton, i) => {
-      const activa = i === nuevo;
-      boton.style.order = activa ? botones.length : i;
-      boton.setAttribute("aria-label", (activa ? textoApp("Abrir opciones de ","Open options for ") : textoApp("Mostrar ","Show ")) + orden[i].nombre);
-      if (activa) boton.setAttribute("aria-haspopup","dialog");
-      else boton.removeAttribute("aria-haspopup");
-    });
+  function mover(nuevo, suave = false) {
+    if (nuevo < 0 || nuevo >= orden.length) return;
+    if (suave && animar) {
+      lista.scrollTo({left:nuevo * lista.clientWidth, behavior:"smooth"});
+    } else {
+      lista.scrollLeft = nuevo * lista.clientWidth;
+      actualizar(nuevo);
+    }
   }
-  for (const [i, boton] of botones.entries()) {
-    boton.onclick = () => {
-      if (i === indice) mostrarDetalleCredito(Number(boton.dataset.indiceCredito));
-      else seleccionar(i);
-    };
-  }
-  anterior.onclick = () => seleccionar(indice - 1);
-  siguiente.onclick = () => seleccionar(indice + 1);
-  seleccionar(indice);
+  lista.onscroll = () => {
+    if (!lista.clientWidth) return;
+    const progreso = lista.scrollLeft / lista.clientWidth;
+    if (animar) {
+      for (let i = 0; i < lista.children.length; i++) {
+        const distancia = Math.max(-1, Math.min(1, i - progreso));
+        const giro = Math.sin(distancia * Math.PI / 2);
+        const estilo = lista.children[i].style;
+        estilo.setProperty("--credito-giro", (-giro * 14) + "deg");
+        estilo.setProperty("--credito-escala", 1 - Math.abs(giro) * .07);
+        estilo.setProperty("--credito-desnivel", (Math.abs(giro) * 6) + "px");
+      }
+    }
+    const nuevo = Math.max(0, Math.min(orden.length - 1, Math.round(progreso)));
+    if (nuevo !== indice) actualizar(nuevo);
+  };
+  anterior.onclick = () => mover(indice-1, true);
+  siguiente.onclick = () => mover(indice+1, true);
+  mover(indice);
+  lista.onscroll();
 }
 
 function tocarTarjetaCarrusel(boton, indice) {
@@ -14005,7 +14002,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.16 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.17 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14289,7 +14286,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.16 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.17 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14298,7 +14295,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.16 Beta</p>
+    <p class="note">Balance One 0.7.17 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14521,7 +14518,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.16 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.17 Beta</span>
         </div>`
     }
   };
