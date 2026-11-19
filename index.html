@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.24 Beta</title>
+<title>Balance One 0.7.25 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5254,14 +5254,14 @@ html.tema-oscuro .panorama-titulo > span {color:#a5c1e9}
 </style>
 <style>
 html.inicio-nuevo-activo:not(.tema-oscuro) body {
- background:radial-gradient(ellipse at center 25%,#e2ecff 0,transparent 41%),radial-gradient(ellipse at center 40%,#fff1e9 0,transparent 38%),#f0f4fe;
+ background:radial-gradient(ellipse at center 25%,#e2ecff 0,transparent 41%),radial-gradient(ellipse at center 40%,#fff1e9 0,transparent 38%),radial-gradient(ellipse at center 88%,#e2ecff 0,transparent 42%),radial-gradient(ellipse at center 96%,#fff1e9 0,transparent 40%),#f0f4fe;
 }
 html.inicio-nuevo-activo.tema-oscuro body {
- background:radial-gradient(ellipse at center 25%,#1c2a43 0,transparent 41%),radial-gradient(ellipse at center 40%,#30221f 0,transparent 38%),#101216;
+ background:radial-gradient(ellipse at center 25%,#1c2a43 0,transparent 41%),radial-gradient(ellipse at center 40%,#30221f 0,transparent 38%),radial-gradient(ellipse at center 88%,#1c2a43 0,transparent 42%),radial-gradient(ellipse at center 96%,#30221f 0,transparent 40%),#101216;
 }
 html.inicio-nuevo-activo:not(.tema-oscuro) body, html.inicio-nuevo-activo.tema-oscuro body {
- background-size:190% 100%,190% 100%,auto;
- background-position:7% top,93% top,left top;
+ background-size:190% 100%,190% 100%,175% 100%,175% 100%,auto;
+ background-position:7% top,93% top,90% bottom,10% bottom,left top;
  background-repeat:no-repeat;
 }
 html.inicio-nuevo-activo body > header {background:transparent}
@@ -5364,8 +5364,8 @@ html.tema-oscuro .inicio-panorama .panorama-cheques button {background:#343f51}
   }
 }
 @keyframes panorama-fondo-bienvenida {
-  0%,100% {background-position:7% top,93% top,left top}
-  50% {background-position:93% top,7% top,left top}
+  0%,100% {background-position:7% top,93% top,90% bottom,10% bottom,left top}
+  50% {background-position:93% top,7% top,10% bottom,90% bottom,left top}
 }
 @keyframes panorama-ondas-bienvenida {
   0%,100% {transform:rotate(-23deg) scaleX(.8)}
@@ -5611,7 +5611,7 @@ html.tema-oscuro .panorama-auto-foto {--base-auto:#363d49}
 html.tema-oscuro .panorama-auto-foto[data-marca="Hyundai"] {--base-auto:#27384e}
 .panorama-cheques .saldo-mini,.panorama-cheques .ahorro-mini {display:flex;align-items:center;gap:4px}
 .panorama-cheques .saldo-mini {flex-wrap:wrap}
-.panorama-cheques .ahorro-mini progress {width:25px;height:4px}
+.panorama-cheques .ahorro-mini progress {width:25px;height:8px}
 .panorama-cheques .ahorro-mini small {font-size:.62rem}
 </style></head>
 <body>
@@ -5619,7 +5619,7 @@ html.tema-oscuro .panorama-auto-foto[data-marca="Hyundai"] {--base-auto:#27384e}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.24 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.25 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6545,8 +6545,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.24 Beta",
-      "Smart control of your finances · 0.7.24 Beta"
+      "Control inteligente de tus finanzas · 0.7.25 Beta",
+      "Smart control of your finances · 0.7.25 Beta"
     );
   }
 }
@@ -8843,9 +8843,24 @@ function inicioNuevo() {
   const deuda = data.tarjetas.reduce((total,tarjeta) => total + (Number(tarjeta.saldo) || 0),0);
   const categorias = resumenCategoriasInicio(data,mes,movimientosGastoDelMes(data,mes).filter(m => m.fecha <= hoy)).categorias.slice(0,4);
   const colores = ["#16965d","#eb791e","#168ce5","#854bd1"];
-  const registroMeta = data.metasAhorro?.[0];
-  let meta;
-  try { if (registroMeta) meta = resumenMetaAhorro(registroMeta,cuentas); } catch {}
+  let nombreMeta, meta;
+  for (const registro of data.metasAhorro || []) {
+    try {
+      meta = resumenMetaAhorro(registro,cuentas);
+      nombreMeta = registro.nombre;
+      break;
+    } catch { continue; }
+  }
+  if (!meta) {
+    for (const cuenta of cuentas) {
+      if (cuenta.tipo !== "ahorro" || !(Number(cuenta.meta) > 0)) continue;
+      try {
+        meta = resumenMetaAhorro({objetivo:cuenta.meta,cuentaId:cuenta.id},cuentas);
+        nombreMeta = cuenta.nombre;
+        break;
+      } catch { continue; }
+    }
+  }
   const fechaCorta = fecha => validDate(fecha) ? new Date(fecha+"T12:00:00Z").toLocaleDateString(
     idiomaActual()==="en" ? "en-US" : "es",{day:"numeric",month:"short",timeZone:"UTC"}) : "";
   const logoBanco = nombre => {
@@ -8913,8 +8928,9 @@ function inicioNuevo() {
         ${avisos.slice(0,2).map(p=>`<small class="panorama-cobro"><span>${safe(p.nombre)}</span><span>${fechaCorta(p.fecha)}</span></small>`).join("")}`)}
       ${tile(t("Suscripciones","Subscriptions"),"listas","suscripciones",`<strong>${money(totalSuscripciones)}</strong><small>${t("Programado este mes","Scheduled this month")}</small>
         <span class="panorama-logos">${[...new Set(suscripciones.map(s=>s.nombre))].slice(0,3).map(logoBanco).join("")}</span>`)}
-      ${tile(t("Metas de ahorro","Savings goals"),"progreso","metasAhorro",meta ? `<strong>${money(meta.ahorrado)}</strong><small>${safe(registroMeta.nombre || "")} · ${money(meta.objetivo)}</small>
-        ${modoDiscretoInicio ? "" : barraProgreso(meta.porcentaje,"#ff7900")}` : `<small>${t("Ver metas","View goals")} ›</small>`)}
+      ${tile(t("Metas de ahorro","Savings goals"),"progreso","metasAhorro",meta ? `<small>${safe(nombreMeta || "")}</small><strong>${money(meta.ahorrado)}</strong>
+        <small>${t("de","of")} ${money(meta.objetivo)}</small>
+        ${modoDiscretoInicio ? "" : `${barraProgreso(meta.porcentaje,"#ff7900")}<small>${meta.porcentaje}% · ${meta.completa ? t("Meta alcanzada","Goal reached") : t("Faltan","Remaining") + " " + money(meta.falta)}</small>`}` : `<small>${t("Ver metas","View goals")} ›</small>`)}
     </div>
     ${data.vehiculos.length ? `<section class="panorama-panel panorama-autos" data-bloque-inicio="vehiculos" aria-labelledby="panoramaAutosTitulo">
       <h3 id="panoramaAutosTitulo">${t("Autos","Vehicles")}</h3>
@@ -14268,7 +14284,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.24 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.25 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14552,7 +14568,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.24 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.25 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14561,7 +14577,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.24 Beta</p>
+    <p class="note">Balance One 0.7.25 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14784,7 +14800,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.24 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.25 Beta</span>
         </div>`
     }
   };
