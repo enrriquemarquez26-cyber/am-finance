@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.23 Beta</title>
+<title>Balance One 0.7.24 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5387,9 +5387,11 @@ html.tema-oscuro .inicio-panorama .panorama-cheques button {background:#343f51}
 .inicio-panorama .panorama-auto {width:100%;min-width:0;display:grid;grid-template-rows:auto 1fr auto auto;align-items:start;gap:8px;padding:10px;border:0;border-radius:16px;background:var(--accion-ovalada);color:inherit;text-align:start;font:inherit;cursor:pointer;overflow-wrap:anywhere}
 .panorama-auto-foto {display:grid;place-items:center;height:clamp(54px,18vw,105px);overflow:hidden;border-radius:10px}
 .panorama-auto-foto img {width:100%;height:100%;min-height:0;object-fit:contain}
-.panorama-auto-cuota {display:flex;align-items:center;gap:6px;justify-content:space-between}
+.panorama-auto-cuota {display:grid;justify-items:start;gap:5px}
 .panorama-semanal {display:grid;gap:4px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(130,140,155,.24);overflow-wrap:anywhere}
-.panorama-auto-cuota {flex-wrap:wrap}
+.panorama-auto-version {min-height:1em;font-size:.76rem;line-height:1.1;opacity:.82}
+.panorama-auto-banco {font-size:.76rem}
+.panorama-auto-vencimiento.es-hoy {background:#ff922f;color:#251405;font-weight:750}
 .panorama-auto :is(.panorama-auto-identidad,.panorama-auto-cuota) small {display:block}
 .panorama-auto-vencimiento {padding:4px 8px;border-radius:99px;background:rgba(255,135,32,.16);font-size:.75rem}
 .panorama-auto-progreso {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:9px}
@@ -5565,18 +5567,21 @@ html.tema-oscuro #avisosUnificados.is-abierto {--fila-aviso:#37414e; background:
   margin-top:9px; background:var(--fila-aviso)!important; border:0!important;
   border-radius:27px!important; box-shadow:none!important;
 }
-.inicio-panorama .panorama-auto {overflow:hidden}
+.inicio-panorama .panorama-auto {overflow:hidden;grid-template-rows:auto auto auto 1fr auto auto}
+@supports (grid-template-rows:subgrid) {
+  .inicio-panorama .panorama-auto {grid-row:span 6;grid-template-rows:subgrid}
+}
 .panorama-auto-foto {
-  --curva-auto:#cbd1dc;
+  --curva-auto:#cbd1dc; --base-auto:#eff1f6;
   position:relative; isolation:isolate; margin:-10px -10px 0;
   height:clamp(80px,23vw,124px); border-radius:0; align-self:start;
 }
 .panorama-auto-foto::before {
   content:""; position:absolute; inset:0 -16%; z-index:0; pointer-events:none;
-  background:linear-gradient(to bottom,transparent 55%,var(--accion-ovalada)),
-    radial-gradient(ellipse 115% 135% at 0% -35%,#eff1f6 83%,transparent 84%),
-    linear-gradient(135deg,#f1f3f7,var(--curva-auto));
-  mask-image:linear-gradient(#000 84%,transparent 100%);
+  background:radial-gradient(ellipse 110% 125% at 4% -24%,var(--base-auto) 82%,transparent 83%),
+    linear-gradient(135deg,var(--base-auto) 22%,var(--curva-auto) 84%);
+  -webkit-mask-image:linear-gradient(#000 40%,transparent 100%);
+  mask-image:linear-gradient(#000 40%,transparent 100%);
 }
 .panorama-auto-foto[data-marca="Hyundai"] {--curva-auto:#bed6ed}
 .panorama-auto-foto > img {position:relative; z-index:1; width:80%; height:81%; justify-self:center; align-self:center; mix-blend-mode:normal}
@@ -5602,7 +5607,8 @@ html.tema-oscuro #avisosUnificados.is-abierto {--fila-aviso:#37414e; background:
 .panorama-auto-emblema > svg {width:24px; height:14px}
 .panorama-auto-emblema .marca-auto-logo {width:25px;height:15px;margin:0;background:transparent}
 .panorama-auto-emblema .marca-auto-logo .compania-logo {padding:0!important;border-radius:0!important}
-html.tema-oscuro .panorama-auto-foto::before {filter:brightness(.75)}
+html.tema-oscuro .panorama-auto-foto {--base-auto:#363d49}
+html.tema-oscuro .panorama-auto-foto[data-marca="Hyundai"] {--base-auto:#27384e}
 .panorama-cheques .saldo-mini,.panorama-cheques .ahorro-mini {display:flex;align-items:center;gap:4px}
 .panorama-cheques .saldo-mini {flex-wrap:wrap}
 .panorama-cheques .ahorro-mini progress {width:25px;height:4px}
@@ -5613,7 +5619,7 @@ html.tema-oscuro .panorama-auto-foto::before {filter:brightness(.75)}
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.23 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.24 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6539,8 +6545,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.23 Beta",
-      "Smart control of your finances · 0.7.23 Beta"
+      "Control inteligente de tus finanzas · 0.7.24 Beta",
+      "Smart control of your finances · 0.7.24 Beta"
     );
   }
 }
@@ -8664,6 +8670,13 @@ function tarjetaAutoPanorama(auto, indice) {
   const nombre = [auto.nombre, auto.modelo].filter(Boolean).join(" ") || t("Auto","Vehicle");
   const foto = auto.fotoGaleria || auto.foto;
   const marca = marcaAutoDetectada([auto.marca,nombre].filter(Boolean).join(" "));
+  const palabras = nombre.trim().split(/\s+/);
+  const tieneMarca = marca && nombre.toLowerCase().startsWith(marca.nombre.toLowerCase()+" ");
+  const corte = tieneMarca ? marca.nombre.split(/\s+/).length + 1 :
+    (String(auto.nombre || "").trim().split(/\s+/).length);
+  const tituloAuto = palabras.slice(0,corte).join(" ");
+  const versionAuto = palabras.slice(corte).join(" ");
+  let venceHoy = false;
   const dia = Number(auto.vencimiento);
   const faltan = Number.isInteger(dia) && dia >= 1 && dia <= 31 ? diasParaVencer(dia) : null;
   const pago = Number(auto.pago);
@@ -8675,7 +8688,10 @@ function tarjetaAutoPanorama(auto, indice) {
   if (faltan !== null) {
     const pagado = registradoEnPeriodo("vehiculo",auto.id,siguienteFechaAviso(faltan),pago);
     if (pagado) aviso = t("Cuota registrada","Payment recorded");
-    else if (faltan === 0) aviso = t("Vence hoy","Due today");
+    else if (faltan === 0) {
+      venceHoy = true;
+      aviso = t("Vence hoy","Due today");
+    }
     else if (faltan === 1) aviso = t("Vence mañana","Due tomorrow");
     else aviso = t(`Vence en ${faltan} días`,`Due in ${faltan} days`);
   }
@@ -8684,12 +8700,13 @@ function tarjetaAutoPanorama(auto, indice) {
       ${foto ? `<img src="${safe(foto)}" alt="" loading="lazy" onerror="this.hidden=true">` : ""}
       ${emblemaAutoPanorama(auto, marca)}
     </span>
-    <span class="panorama-auto-identidad"><strong>${safe(nombre)}</strong>
-        <small>${t("Financiado por","Financed by")} · ${safe(auto.banco || t("Sin banco","No lender"))}</small></span>
+    <strong class="panorama-auto-identidad">${safe(tituloAuto)}</strong>
+    <span class="panorama-auto-version">${safe(versionAuto)}</span>
+    <small class="panorama-auto-banco">${t("Financiado por","Financed by")} · ${safe(auto.banco || t("Sin banco","No lender"))}</small>
     <span class="panorama-auto-cuota">
       <span><strong>${Number.isFinite(pago) && pago > 0 ? saldoDiscreto(pago) : "—"}</strong>
         <small>${t("Cuota mensual","Monthly payment")}</small></span>
-      <span class="panorama-auto-vencimiento">${aviso}</span>
+      <span class="panorama-auto-vencimiento${venceHoy ? " es-hoy" : ""}">${aviso}</span>
     </span>
     ${modoDiscretoInicio ? "" : progreso === null
       ? `<small>${t("Progreso sin configurar","Progress not set")}</small>`
@@ -14251,7 +14268,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.23 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.24 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14535,7 +14552,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.23 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.24 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14544,7 +14561,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.23 Beta</p>
+    <p class="note">Balance One 0.7.24 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -14767,7 +14784,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.23 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.24 Beta</span>
         </div>`
     }
   };
