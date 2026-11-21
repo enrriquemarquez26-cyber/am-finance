@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.31 Beta</title>
+<title>Balance One 0.7.32 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5712,14 +5712,49 @@ html.tema-oscuro .credito-ambiente{opacity:.35}
 #balanceConexion[data-nube=conectada] [data-nube]{color:#087044}.tema-oscuro #balanceConexion[data-nube=conectada] [data-nube]{color:#73dca4}
 @media(prefers-reduced-motion:no-preference){#balanceConexion[data-nube=conectando] [data-nube]{animation:latido-conexion 1.4s infinite alternate}@keyframes latido-conexion{to{opacity:.55}}#balanceConexion[data-nube=conectada] img{animation:nube-activa 3s ease-in-out infinite}@keyframes nube-activa{50%{transform:translateY(-2px)}}}
 
+
+.inicio-panorama:not(:has(.avisos-ancla)),.inicio-adaptable:not(:has(.avisos-ancla)){padding-block-start:8px}
+#balanceCabecera.es-inicio .asistente-voz-boton{width:44px;height:44px;flex-basis:44px;position:relative;isolation:isolate;inset:auto;background:transparent;box-shadow:none}
+#balanceCabecera.es-inicio .asistente-voz-boton:before{content:"";position:absolute;inset:2px;z-index:-1;border-radius:50%;background:#fff;box-shadow:0 2px 8px #19244315}
+html.tema-oscuro #balanceCabecera.es-inicio .asistente-voz-boton:before{background:#292d34;box-shadow:0 2px 8px #0003}
+.voz-flor{display:grid;grid-template-columns:repeat(2,9px);grid-template-rows:repeat(2,9px);gap:0}
+.voz-flor i{border-radius:15% 85% 18% 80%;background:linear-gradient(145deg,#ffb739,#ff7800 70%,#ffd5aa)}
+.voz-flor i:nth-child(2){transform:scaleX(-1);background:linear-gradient(145deg,#ff83bf,#e02e86 70%,#ffb9e2)}
+.voz-flor i:nth-child(3){transform:scaleY(-1);background:linear-gradient(145deg,#9957ff,#702bd6 70%,#d9adff)}
+.voz-flor i:nth-child(4){background:linear-gradient(145deg,#8ae8f5,#00a4c8 65%,#007ce0)}
+@media(prefers-reduced-motion:no-preference){.voz-flor{animation:flor-voz 2.3s ease-in-out infinite}@keyframes flor-voz{50%{transform:scale(.91);filter:saturate(1.24)}}}
+#balanceConexion img{width:clamp(84px,24vw,100px);height:auto;aspect-ratio:1}
+.cuenta-sync-panel [hidden]{display:none!important}
+.cal-selector{position:relative;flex:0 1 auto;min-width:0}.cal-selector summary,.auto-ficha button{font:inherit;color:inherit;background:var(--accion-ovalada);border:0;border-radius:999px;cursor:pointer}
+.cal-selector summary{list-style:none;padding:9px 12px;font-size:.8rem;font-weight:650}.cal-selector summary::-webkit-details-marker{display:none}
+.cal-selector summary:after{content:"⌄";margin-inline-start:5px}
+.cal-selector div{position:absolute;z-index:12;right:0;top:calc(100% + 4px);padding:5px;background:#fff;color:#182130;border-radius:18px;box-shadow:0 8px 30px #10203828;width:max-content;max-width:80vw}
+.tema-oscuro .cal-selector div{background:#292f38;color:#f5f6f8}
+.cal-selector button{width:100%;display:block;text-align:start;font:inherit;font-size:.84rem;color:inherit;background:transparent;border:0;border-radius:14px;padding:10px 12px}
+.cal-selector button[aria-current=true]{background:var(--accion-ovalada);font-weight:700}
+.mov28 #movCalendario>.cal-fin-028{display:block}
+.auto-ficha{padding:clamp(13px,4vw,24px);border-radius:30px;background:#fafbfd;color:#17212e;box-shadow:0 5px 22px #17212e0b;margin:0 0 13px}
+.tema-oscuro .auto-ficha{background:#21252d;color:#f5f7fa}
+.auto-ficha header,.auto-ficha .auto-identidad,.auto-saldos{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.auto-ficha header{position:static;background:transparent;padding:0;border:0}.auto-ficha header h3{font-size:1rem;margin:0}.auto-ficha button{font-size:.76rem;padding:8px 12px}
+.auto-ficha .auto-identidad{justify-content:flex-start;margin:8px 0}.auto-identidad strong,.auto-identidad small{display:block}
+.auto-ficha small,.auto-ficha dt{font-size:.72rem;opacity:.8}
+.auto-ficha .foto-ficha{display:block;width:100%;height:clamp(125px,38vw,235px);object-fit:contain}
+.auto-ficha dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:12px 0;gap:6px}
+.auto-ficha dl>div+div{border-inline-start:1px solid #8593a333;padding-inline-start:6px}
+.auto-ficha dd{margin:3px 0 0;font-size:clamp(.72rem,2.8vw,1rem);font-weight:720;overflow-wrap:anywhere}
+.auto-saldos{border-top:1px solid #8593a333;padding-top:10px}.auto-saldos strong{display:block;font-size:.84rem}.auto-saldos>span:last-child{text-align:end}
+.auto-avance{background:var(--accion-ovalada);border-radius:20px;flex:1;position:relative;text-align:center;overflow:hidden;font-size:.72rem;padding:4px;color:inherit}
+.auto-avance i{position:absolute;inset:0 auto 0 0;border-radius:inherit;background:#ff8c31}.auto-avance b{position:relative;color:inherit}.auto-avance b:before{content:"";position:absolute;inset:-2px -4px;z-index:-1}
+@media(max-width:350px){.auto-ficha dl{grid-template-columns:1fr 1fr}}
 </style></head>
 <body>
 <header>
 <div id="balanceCabecera"><div class="letreros-inicio" tabindex="0"><div class="saludo-inicio"></div><div class="logo">Balance <span>One</span></div></div><button type="button" class="asistente-voz-boton" onclick="abrirAsistenteVoz()"
     aria-label="Asistente de voz" aria-haspopup="dialog">
-    <span class="voz-ondas" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
+    <span class="voz-flor" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.31 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.32 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6646,8 +6681,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.31 Beta",
-      "Smart control of your finances · 0.7.31 Beta"
+      "Control inteligente de tus finanzas · 0.7.32 Beta",
+      "Smart control of your finances · 0.7.32 Beta"
     );
   }
 }
@@ -6784,6 +6819,7 @@ let animacionCambioSeccion;
 
 function go(p, alcanceHistorial = null){
  const cambioSeccion = page !== p;
+ if(cambioSeccion && (p==="movimientos" || p==="transferencias")) vistaCalendario="hoy";
  cerrarMenuBarra();
  animacionCambioSeccion?.cancel();
  if (p !== "inicio" && !document.getElementById("movVentana").classList.contains("hidden")) cerrarMovVentana();
@@ -10526,6 +10562,39 @@ function actualizarSaldosHistorial(cuenta){
  }
 }
 
+function usaFichaVehiculo(){return data.disenoVehiculos==="nuevo";}
+function elegirDisenoVehiculos(){
+  const t=textoApp;
+  const ventana=crearVentanaApariencia(t("Diseño de vehículos","Vehicle layout"),`<div class="acciones-cuenta">${[["actual",t("Diseño actual","Current layout")],["nuevo",t("Diseño nuevo","New layout")]].map(([k,v])=>`<button type="button" data-diseno-auto="${k}" aria-pressed="${usaFichaVehiculo()===(k==="nuevo")}">${v} ${usaFichaVehiculo()===(k==="nuevo")?"✓":""}</button>`).join("")}</div>`,true);
+  if(ventana) ventana.querySelectorAll("[data-diseno-auto]").forEach(b=>b.onclick=()=>{
+    if(guardarDatosExtra({disenoVehiculos:b.dataset.disenoAuto})){ventana.close();ajustes();}
+  });
+}
+function mostrarDatosFicha(i,abrir){
+  const panel=document.getElementById("prestamoVehiculo"+i);
+  const boton=document.getElementById("verVehiculo"+i);
+  if(!panel || !boton) return;
+  panel.hidden=abrir===true?false:!panel.hidden;
+  boton.setAttribute("aria-expanded",String(!panel.hidden));
+  boton.textContent=panel.hidden?textoApp("Ver detalles ›","View details ›"):textoApp("Ocultar detalles","Hide details");
+}
+function fichaVehiculo(v,i){
+  const t=textoApp;
+  const importe=x=>x==null||x===""||!Number.isFinite(Number(x))?"—":money(x);
+  const inicial=Number(v.montoInicial),saldo=Number(v.saldo);
+  const conocido=inicial>0 && v.saldo!=null && Number.isFinite(saldo);
+  const pagado=Math.max(0,Math.min(inicial,inicial-saldo));
+  const porcentaje=conocido?Math.round(pagado/inicial*100):0;
+  const foto=v.fotoGaleria||v.foto;
+  return `<article class="auto-ficha" id="vehiculoResumen${i}" tabindex="-1">
+    <header><h3>${t("Vehículo","Vehicle")}</h3><button type="button" id="verVehiculo${i}" aria-controls="prestamoVehiculo${i}" aria-expanded="false" onclick="mostrarDatosFicha(${i})">${t("Ver detalles ›","View details ›")}</button></header>
+    <div class="auto-identidad">${logoMarcaVehiculo(v)}<div><strong>${safe(v.nombre)}</strong><small>${[v.anio,v.modelo].filter(Boolean).map(safe).join(" · ")}</small></div></div>
+    ${foto?`<img class="foto-ficha" src="${safe(foto)}" alt="${safe(v.nombre)}" onerror="this.hidden=true;this.style.display='none'">`:""}
+    <dl>${[[t("Precio","Price"),importe(v.precio)],[t("Pago mensual","Monthly payment"),importe(v.pago)],["APR",v.apr!=null && v.apr!==""?safe(v.apr)+"%":"—"],[t("Banco","Lender"),safe(v.banco||"—")]].map(([k,x])=>`<div><dt>${k}</dt><dd>${x}</dd></div>`).join("")}</dl>
+    <div class="auto-saldos"><span><small>${t("Pagado","Paid")}</small><strong>${conocido?money(pagado):"—"}</strong></span>
+    <span class="auto-avance"><i style="width:${porcentaje}%"></i><b>${conocido?porcentaje+"%":"—"}</b></span>
+    <span><small>${t("Restante","Remaining")}</small><strong>${importe(v.saldo)}</strong></span></div></article>`;
+}
 function vehiculos(){
  el().innerHTML=`
 <div class="row" style="margin-bottom:20px">
@@ -10562,7 +10631,7 @@ ${Array.from({length:31},(_,i)=>`
    p.tipo==="vehiculo"&&cuentaDePago(p)===v
   ).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
   return `
-  <div class="card vehiculo-panel" id="vehiculoResumen${i}" tabindex="-1">
+  ${usaFichaVehiculo()?fichaVehiculo(v,i):`<div class="card vehiculo-panel" id="vehiculoResumen${i}" tabindex="-1">
 ${(v.fotoGaleria || v.foto) ? `
   <img src="${safe(v.fotoGaleria || v.foto)}"
        alt="${safe(v.nombre)}"
@@ -10576,9 +10645,9 @@ ${(v.fotoGaleria || v.foto) ? `
   ${v.anio ? " · " + safe(v.anio) : ""}
 </div>
 
-</div>
+</div>`}
 
-<div class="card vehiculo-panel">
+<div class="card vehiculo-panel" id="prestamoVehiculo${i}" ${usaFichaVehiculo()?"hidden":""}>
   <h3 style="font-size:1rem;margin:0 0 6px">
         ${textoApp("Préstamo del auto", "Auto loan")}
   </h3>
@@ -10708,6 +10777,7 @@ ${textoApp("Día", "Day")} ${j+1}
     <input name="anio" type="number" min="1900" max="2100"
                       placeholder="${textoApp("Ej. 2019", "e.g. 2019")}"
            value="${safe(v.anio || "")}">
+<label class="label">${textoImporte("Precio del vehículo","Vehicle price")}<input name="precio" type="number" min="0" step="0.01" value="${safe(v.precio??"")}"></label>
 <label class="label">${textoImporte("Monto inicial del préstamo", "Original loan amount")}</label>
 <input name="montoInicial" type="number"
        min="0.01" step="0.01"
@@ -10879,6 +10949,7 @@ async function guardarDatosAuto(event, i) {
       ...auto,
       nombre,
       montoInicial,
+      precio: campos.get("precio")==="" ? null : Number(campos.get("precio")),
       modelo: String(campos.get("modelo") || "").trim(),
       anio: String(campos.get("anio") || "").trim(),
       banco: String(campos.get("banco") || "").trim(),
@@ -13921,6 +13992,7 @@ function filtrarPagosPendientes(filtro) {
 function abrirPagoPendiente(tipo, indice, fecha) {
   if (tipo === "vehiculo" && data.vehiculos[indice]) {
     go("vehiculos");
+    mostrarDatosFicha(indice,true);
     toggle("auto" + indice);
     document.getElementById("auto" + indice)?.scrollIntoView({block:"center",behavior:"smooth"});
   } else if (tipo === "tarjeta" && data.tarjetas[indice]) {
@@ -14419,6 +14491,18 @@ function calculadora() {
   `;
 }
 
+var vistaCalendario = "hoy";
+function cambiarVistaCalendario(vista) {
+  if(!["hoy","pagos","suscripciones","cuotas"].includes(vista)) return;
+  vistaCalendario=vista;
+  if(vista==="hoy") volverHoyCalendario(); else transferencias();
+  document.querySelector(".cal-selector summary")?.focus({preventScroll:true});
+}
+function selectorCalendario(){
+  const t=textoApp;
+  const opciones=[["hoy",t("Hoy","Today")],["pagos",t("Pagos del mes","Monthly payments")],["suscripciones",t("Suscripciones programadas","Scheduled subscriptions")],["cuotas",t("Cuotas de préstamo","Loan installments")]];
+  return `<details class="cal-selector"><summary>${opciones.find(([id])=>id===vistaCalendario)?.[1]||opciones[0][1]}</summary><div>${opciones.map(([id,titulo])=>`<button type="button" aria-current="${id===vistaCalendario}" onclick="cambiarVistaCalendario('${id}')">${titulo}</button>`).join("")}</div></details>`;
+}
 function transferencias() {
   const [anio, mes] = mesCalendario.split("-").map(Number);
   const primero = new Date(anio, mes - 1, 1, 12);
@@ -14484,12 +14568,10 @@ function transferencias() {
             onclick="cambiarMesCalendario(1)">›</button>
         </div>
 
-        <button type="button" onclick="volverHoyCalendario()">
-          ${textoApp("Hoy", "Today")}
-        </button>
+        ${selectorCalendario()}
       </div>
 
-      <div class="card cal-grid-panel" style="padding:10px;overflow:hidden">
+      ${vistaCalendario==="hoy" ? `<div class="card cal-grid-panel" style="padding:10px;overflow:hidden">
         <div class="cal-cuadricula">
           ${semana.map(nombre => `
             <span class="cal-semana">${nombre}</span>
@@ -14508,11 +14590,7 @@ function transferencias() {
         )}
       </p>
    
-    </div>
-    <div class="cal-listas-adaptable">
-    ${pagosMesCalendario()}
-    ${bloqueSuscripcionesCalendario()}
-    ${bloqueCuotasCalendario()}
+    ` : vistaCalendario==="pagos" ? pagosMesCalendario() : vistaCalendario==="suscripciones" ? bloqueSuscripcionesCalendario() : bloqueCuotasCalendario() || `<p class="note">${textoApp("Sin cuotas de préstamo este mes.","No loan installments this month.")}</p>`}
     </div>
      </section>
   `;
@@ -14828,7 +14906,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.31 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.32 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -15058,6 +15136,7 @@ function ajustes() {
       textoApp("Apariencia", "Appearance"),
       Object.hasOwn(temaActual, tema) ? temaActual[tema] : textoApp("Tema automático", "Automatic theme")
     ],
+    ["disenoVehiculos",textoApp("Diseño de vehículos","Vehicle layout"),usaFichaVehiculo()?textoApp("Diseño nuevo","New layout"):textoApp("Diseño actual","Current layout")],
     ["microfono",textoApp("Micrófono","Microphone"),textoApp("Dictado, idioma y modelo del botón","Dictation, language and button style")],
     [
       "categorias",
@@ -15113,7 +15192,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.31 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.32 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -15122,14 +15201,15 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.31 Beta</p>
+    <p class="note">Balance One 0.7.32 Beta</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("Rendimiento estimado, correcciones de saldo, intereses de crédito y estado de conexión.",
-              "Estimated yield, balance corrections, credit interest and connection status.")}</li>
+      <li>${t("Inicio y conexión más compactos, calendario por vistas y un diseño opcional para vehículos.",
+              "Refined home and connection panels, calendar views and an optional vehicle layout.")}</li>
     </ul>`, true);
 }
 
 function abrirAjuste(tipo, desdePerfil = false) {
+  if(tipo==="disenoVehiculos")return elegirDisenoVehiculos();
   if(tipo==="microfono")return abrirAjustesMicro();
   const t = textoApp;
 
@@ -15348,7 +15428,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.31 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.32 Beta</span>
         </div>`
     }
   };
@@ -19936,6 +20016,7 @@ function abrirDetallePagoDelMes(destino, identificador) {
     if (disenoCreditoActual() === "carrusel") return;
     objetivo = document.getElementById("creditoResumen" + indice);
   } else {
+    mostrarDatosFicha(indice,true);
     objetivo = document.getElementById("vehiculoResumen" + indice);
   }
   if (!objetivo) return;
@@ -21844,6 +21925,7 @@ const sincronizacionBalance = (() => {
     const salir = document.getElementById("balanceSyncSalir");
     if (!boton || !salir) return;
     const vinculado = localStorage.getItem(propietario);
+    boton.hidden = iniciado || !usuario;
     boton.disabled = !usuario || activando || iniciado || Boolean(vinculado && vinculado !== usuario.uid);
     boton.setAttribute("aria-busy", String(activando));
     boton.textContent = activando ? textoApp("Sincronizando…", "Syncing…")
@@ -21856,7 +21938,7 @@ const sincronizacionBalance = (() => {
   function estado(es, en) {
     ultimoEstado = [es, en];
     const nodo = document.getElementById("balanceSyncEstado");
-    if (nodo) nodo.textContent = textoApp(es, en);
+    if (nodo) {nodo.hidden = en === "Sync is on."; nodo.textContent = nodo.hidden ? "" : textoApp(es,en);}
     actualizarControlesCuenta();
   }
 
