@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.29 Beta</title>
+<title>Balance One 0.7.30 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -4879,7 +4879,7 @@ html.tema-oscuro :is(#barraCapsula,.barra-miniatura-capsula) {
   --barra-fondo:#f2f3f5;--barra-texto:#151619;
 }
 #barraCapsula {
-  position:fixed;z-index:100;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));
+  position:fixed;z-index:100;left:50%;bottom:calc(2px + env(safe-area-inset-bottom));
   width:min(392px,calc(100% - 24px));display:flex;align-items:center;gap:8px;
   transform:translateX(-50%);transition:width .28s ease;
 }
@@ -5667,13 +5667,32 @@ html.tema-oscuro :is(.cuentas-billetera,[data-cash]){--saldo-verde:#76dfaa}
 .cuentas-billetera .billetera-saldo strong{color:#9bf3bf}.cuentas-billetera .billetera-apple .billetera-saldo strong{color:#125d3c}
 .cuentas-billetera .cheques-panel>.billetera-meta{margin:6px auto 0 0}
 .acciones-cuenta{display:grid;gap:8px}.acciones-cuenta button{border:0;background:var(--accion-ovalada);color:inherit;border-radius:24px;padding:12px 16px;text-align:start;font:inherit}
+
+.avisos-ancla{--alto-aviso:44px}
+.avisos-ancla .avisos-vencimiento:not(.is-abierto){height:var(--alto-aviso);box-sizing:border-box}
+.avisos-ancla .asistente-voz-boton{width:var(--alto-aviso);height:var(--alto-aviso);border-radius:50%;padding:0;box-sizing:border-box}
+.voz-ondas{display:inline-flex;align-items:center;justify-content:center;gap:2px;height:23px}
+.voz-ondas i{display:block;width:3px;height:11px;border-radius:9px;background:#ea6232;--fase:-.7s}
+.voz-ondas i:nth-child(2){height:17px;background:#e24e89;--fase:-.35s}
+.voz-ondas i:nth-child(3){height:23px;background:#9660d8;--fase:-1.1s}
+.voz-ondas i:nth-child(4){height:18px;background:#428bc9;--fase:-.15s}
+.voz-ondas i:nth-child(5){height:12px;background:#119d9a;--fase:-.9s}
+@keyframes voz-onda-color{0%,100%{transform:scaleY(.48)}50%{transform:scaleY(1)}}
+.tarjetas-pantalla:has(.credito-ambiente){isolation:isolate}
+.credito-ambiente{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden;opacity:.26}
+html.tema-oscuro .credito-ambiente{opacity:.35}
+.credito-ambiente>i{position:absolute;inset:0;background-image:radial-gradient(ellipse at center 25%,var(--tono-a),transparent 49%),radial-gradient(ellipse at center 48%,var(--tono-b),transparent 52%),radial-gradient(ellipse at center 90%,var(--tono-a),transparent 46%),radial-gradient(ellipse at center 82%,var(--tono-b),transparent 44%);background-size:190% 100%,190% 100%,175% 100%,175% 100%;background-position:7% top,93% top,90% bottom,10% bottom;background-repeat:no-repeat}
+@media(prefers-reduced-motion:no-preference){
+ .voz-ondas i{animation:voz-onda-color 1.45s ease-in-out var(--fase) infinite}
+ .credito-ambiente>i{animation:panorama-fondo-bienvenida 15s ease-in-out both}
+}
 </style></head>
 <body>
 <header>
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="logo">Balance <span>One</span></div>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.29 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.30 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6600,8 +6619,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.29 Beta",
-      "Smart control of your finances · 0.7.29 Beta"
+      "Control inteligente de tus finanzas · 0.7.30 Beta",
+      "Smart control of your finances · 0.7.30 Beta"
     );
   }
 }
@@ -7283,9 +7302,7 @@ function avisosVencimiento() {
   const fondo=`<div id="avisosFondo" class="avisos-fondo" hidden onclick="cerrarPanelAvisos()"></div>`;
   const voz = `<button type="button" class="asistente-voz-boton" onclick="abrirAsistenteVoz()"
     aria-label="${textoApp("Asistente de voz", "Voice assistant")}" aria-haspopup="dialog">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M12 2c1.1 5.8 4.2 8.9 10 10-5.8 1.1-8.9 4.2-10 10C10.9 16.2 7.8 13.1 2 12c5.8-1.1 8.9-4.2 10-10Z"/>
-    </svg></button>`;
+    <span class="voz-ondas" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>`;
   if(!proximos.length) {
     return `${fondo}<div class="avisos-ancla"><section id="avisosUnificados"
       class="avisos-vencimiento avisos-vencimiento--vacio"
@@ -11818,6 +11835,68 @@ function cambiarTamanoCredito(tamano) {
   ], {duration:260, easing:"cubic-bezier(.2,.75,.3,1)"});
 }
 
+function coloresModeloCredito(tarjeta){
+  const nombre=[tarjeta.banco,tarjeta.modelo,tarjeta.nombre].join(" ").toLowerCase();
+  const modelos=[
+    [/freedom.*unlimited/, "#07569a","#82b543"],
+    [/blue cash|american express|amex/, "#203c74","#b9c6d8"],
+    [/quicksilver/, "#a4abb4","#546981"],
+    [/savor/, "#b86935","#64382c"],
+    [/platinum|capital one/, "#122f54","#326fb3"],
+    [/apple/, "#bdc5d4","#eee1ea"],
+    [/affirm/, "#252165","#7474e3"],
+    [/sapphire|chase/, "#123957","#398aca"]
+  ];
+  return modelos.find(([modelo])=>modelo.test(nombre))?.slice(1) || ["#24364d","#101a29"];
+}
+
+function coloresFotoCredito(imagen){
+  const lienzo=document.createElement("canvas");
+  lienzo.width=32;lienzo.height=20;
+  const ctx=lienzo.getContext("2d");
+  ctx.drawImage(imagen,0,0,32,20);
+  const pixeles=ctx.getImageData(0,0,32,20).data;
+  const grupos=new Map();
+  for(let i=0;i<pixeles.length;i+=4){
+    const [r,g,b,alfa]=pixeles.subarray(i,i+4);
+    if(alfa<160) continue;
+    const clave=(r>>5)*64+(g>>5)*8+(b>>5);
+    const grupo=grupos.get(clave) || {n:0,r:0,g:0,b:0};
+    grupo.n++;grupo.r+=r;grupo.g+=g;grupo.b+=b;grupos.set(clave,grupo);
+  }
+  const tonos=[...grupos.values()].sort((a,b)=>b.n-a.n).map(g=>[g.r,g.g,g.b].map(v=>Math.round(v/g.n)));
+  if(!tonos.length) return null;
+  const principal=tonos[0];
+  const segundo=tonos.find(rgb=>Math.hypot(...rgb.map((v,i)=>v-principal[i]))>86) || tonos[1] || principal;
+  return [principal,segundo].map(rgb=>"rgb("+rgb.join(",")+")");
+}
+
+function ambienteTarjetaCredito(tarjeta,boton){
+  const fondo=el().querySelector(".credito-ambiente");
+  if(!fondo || !tarjeta || fondo.dataset.indice===boton.dataset.indiceCredito) return;
+  fondo.dataset.indice=boton.dataset.indiceCredito;
+  const capa=document.createElement("i");
+  const pintar=([a,b])=>{capa.style.setProperty("--tono-a",a);capa.style.setProperty("--tono-b",b);};
+  pintar(coloresModeloCredito(tarjeta));
+  const anterior=fondo.lastElementChild;
+  fondo.replaceChildren(...(anterior?[anterior]:[]),capa);
+  if(anterior){
+    if(matchMedia("(prefers-reduced-motion: reduce)").matches) anterior.remove();
+    else {
+      capa.animate([{opacity:0},{opacity:1}],{duration:420});
+      anterior.animate([{opacity:1},{opacity:0}],{duration:420}).onfinish=()=>anterior.remove();
+    }
+  }
+  const imagen=boton.querySelector(".credito-visual--imagen img");
+  if(imagen && imagen.src.startsWith("data:image/")){
+    imagen.decode().then(()=>{
+      if(capa!==fondo.lastElementChild || !capa.isConnected) return;
+      const tonos=coloresFotoCredito(imagen);
+      if(tonos) pintar(tonos);
+    }).catch(()=>{});
+  }
+}
+
 function activarCarruselCredito() {
   const lista = document.getElementById("carruselCredito");
   if (!lista || !lista.children.length) return;
@@ -11832,6 +11911,7 @@ function activarCarruselCredito() {
   function actualizar(nuevo) {
     indice = nuevo;
     tarjetaActualCarrusel = orden[indice].id;
+    ambienteTarjetaCredito(orden[indice],lista.children[indice]);
     lista.querySelector('[aria-current="true"]')?.removeAttribute("aria-current");
     lista.children[indice].setAttribute("aria-current", "true");
     const indiceTarjeta = Number(lista.children[indice].dataset.indiceCredito);
@@ -12132,6 +12212,7 @@ function tarjetas(){
  const tamano = ["grande","mediana","compacta"].includes(tamanoGuardado) ? tamanoGuardado : "grande";
  el().innerHTML=`
 <div class="tarjetas-pantalla">
+  ${orden.length ? '<div class="credito-ambiente" aria-hidden="true"></div>' : ""}
   <div class="credito-cabecera">
   <div>
         <h2>${carrusel ? textoApp("Mis tarjetas", "My cards") : textoApp("Tarjetas de crédito", "Credit cards")}</h2>
@@ -12197,9 +12278,9 @@ function tarjetas(){
   ${carrusel ? `<dialog class="carrusel-credito-detalle" id="dialogoCredito${i}" aria-labelledby="tituloCredito${i}">
     <button type="button" class="carrusel-cerrar" data-boton-x aria-label="${textoApp("Cerrar detalles","Close details")}"
       onclick="animarBotonX(this, () => this.closest('dialog').close())" autofocus>×</button>` : `
-  <button type="button" class="credito-fila" id="creditoResumen${i}"
+  <button type="button" class="credito-fila" id="creditoResumen${i}" data-indice-credito="${i}"
     style="width:100%;border:0;text-align:left;color:inherit;font:inherit;padding:0"
-    onclick="toggle('detalleCredito${i}')"
+    onclick="ambienteTarjetaCredito(data.tarjetas[${i}],this);toggle('detalleCredito${i}')"
 aria-label="${textoApp("Abrir opciones de ", "Open options for ")}${safe(t.nombre)}">
     ${arteTarjetaCredito(t)}
 
@@ -12431,6 +12512,7 @@ ${!carrusel ? resumenTarjetasCredito() : ""}
   </div>`;
   
  if (carrusel) activarCarruselCredito();
+ else if(orden.length) ambienteTarjetaCredito(orden[0].tarjeta,el().querySelector(".credito-fila"));
  document.getElementById("formTarjeta").onsubmit=e=>{
   e.preventDefault();
   const f=new FormData(e.target);
@@ -14630,7 +14712,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.29 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.30 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -14915,7 +14997,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.29 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.30 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -14924,7 +15006,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.29 Beta</p>
+    <p class="note">Balance One 0.7.30 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Tamaño y tipo de letra se ajustan desde una sola ventana.",
               "Text size and typeface share one settings window.")}</li>
@@ -15148,7 +15230,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.29 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.30 Beta</span>
         </div>`
     }
   };
