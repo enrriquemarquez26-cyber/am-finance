@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.34 Beta</title>
+<title>Balance One 0.7.35 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5832,15 +5832,52 @@ dialog.mi-vehiculo{box-sizing:border-box;position:fixed;inset:0;width:100%;heigh
 .mv-registro small{margin-top:3px}
 .mv-historia-panel p{font-size:.87rem;margin:12px 0 0}
 .mv-form label:last-of-type{grid-column:1/-1}
+dialog.mi-vehiculo{background:var(--mv-fondo,#f2f2f7);--mv-panel:var(--mv-tarjeta,#fafbfd)}
+html.tema-oscuro dialog.mi-vehiculo{background:var(--mv-fondo,#101216);--mv-panel:var(--mv-tarjeta,#21252d)}
+.mi-vehiculo .mv-marca{margin-top:32px}
+.mv-estado{margin:14px 0;background:var(--mv-panel);border-radius:28px;padding:17px}
+.mv-estado h3{margin:0;font-size:1rem}.mv-estado dl{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:13px 0}
+.mv-estado dt,.mv-fila small{color:var(--mv-muted);font-size:.78rem}.mv-estado dd{margin:3px 0 0;font-weight:650;overflow-wrap:anywhere}
+.mv-estado details summary{cursor:pointer;font-size:.82rem}.mv-estado form{display:flex;align-items:center;gap:6px}
+.mv-fila{border-top:1px solid var(--mv-line);padding:9px 0}.mv-fila summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;cursor:pointer}
+.mv-fila summary>span{min-width:0;overflow-wrap:anywhere}.mv-fila button,.mv-estado button{width:auto;border:0;border-radius:99px;padding:8px 12px;background:var(--mv-field);color:inherit}
+.mv-form select,.mv-estado input{max-width:100%;border-radius:16px;background:var(--mv-field);color:inherit;padding:9px;border:0;font:inherit}
+.mv-form label:has(select){grid-column:1/-1}.mv-form select{width:100%;min-height:44px}.gasto-auto-campos label{display:grid;gap:4px}
+.gasto-auto-campos [hidden],.gasto-auto-campos[hidden]{display:none}
+.mi-vehiculo .mv-diagrama button:active,.mi-vehiculo .mv-diagrama button.elegida{color:#e87321}
+.espectro-voz{display:inline-flex;align-items:center;justify-content:center;gap:2px;height:22px;width:24px;pointer-events:none}
+.espectro-voz i{display:block;background:linear-gradient(0deg,#e96976,#ffbe62);height:8px;width:3px;border-radius:99px}
+.espectro-voz i:nth-child(2){height:15px;background:linear-gradient(#ff8b9f,#ba68c9)}
+.espectro-voz i:nth-child(3){height:20px;background:linear-gradient(#ad88ff,#8775e1)}
+.espectro-voz i:nth-child(4){height:13px;background:linear-gradient(#7777e4,#42aaba)}
+.espectro-voz i:nth-child(5){height:7px;background:#50bdb4}
+@media(prefers-reduced-motion:no-preference){
+.espectro-voz i{animation:voz-banda 2.2s ease-in-out infinite alternate}
+.espectro-voz i:nth-child(even){animation-delay:-1.6s}.espectro-voz i:nth-child(3){animation-delay:-.75s}
+:root:has([data-voz-estado=escuchando]) .espectro-voz i{animation-duration:.52s}
+:root:has([data-voz-hablando]) .espectro-voz i{animation-duration:.28s}
+@keyframes voz-banda{from{transform:scaleY(.57)}to{transform:scaleY(1.08);filter:hue-rotate(20deg)}}
+[data-fase=tarde] .saludo-cielo .disco{animation:sol-tibio 5s ease-in-out infinite alternate}
+@keyframes sol-tibio{to{transform:translateY(2px);fill:#e27044}}
+[data-fase=noche] .saludo-cielo .luna path{animation:luna-viva 4s ease-in-out infinite alternate}
+@keyframes luna-viva{to{transform:translateY(-1.4px);filter:drop-shadow(0 0 2px #bca5ff)}}
+}
+.auto-ficha.auto-compacta{padding-block:8px}
+.auto-compacta .ficha-cabeza button{padding-block:4px}
+.auto-compacta dl{margin:2px 0 4px}
+.auto-compacta dl>div:nth-child(2){order:-1;border:0;padding-inline-start:0}
+.auto-compacta .auto-saldos{padding-top:4px}
+.modelos-auto{display:grid;gap:8px}.modelos-auto button{display:flex;align-items:center;gap:12px;padding:12px;border-radius:22px;background:var(--accion-ovalada);color:inherit}.modelos-auto button b{margin-left:auto}.modelos-auto svg{width:48px;height:32px}
+.mi-vehiculo.mv-clasico{--mv-tarjeta:white}.tema-oscuro .mi-vehiculo.mv-clasico{--mv-tarjeta:#20242b}
 </style></head>
 <body>
 <header>
 <div id="encVehiculos"></div>
 <div id="balanceCabecera"><div class="letreros-inicio" tabindex="0"><div class="saludo-inicio"><svg class="saludo-cielo" aria-hidden="true" viewBox="0 0 40 40"><g class="sol"><g class="rayos" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 6v4m-11 1 3 3m16 0 3-3M4 21l4 1m24 0 4-1"/></g><path class="disco" fill="currentColor" d="M10 26a10 10 0 1 1 20 0Z"/></g><path class="horizonte" d="M5 30h30m-23 4h15" stroke-width="2" stroke-linecap="round" fill="none"/><g class="luna" fill="#7d84bd"><path d="M26 7a14 14 0 1 0 7 22A14 14 0 0 1 26 7Z"/></g><g class="estrellas" fill="#b39b63"><path class="estrella" d="m32 5 1.1 3.1L36 9.2l-2.9 1.1L32 13l-1-2.7-2.9-1.1L31 8Z"/><circle class="estrella" cx="33" cy="18" r="1.5"/></g></svg><span class="saludo-texto"></span></div><div class="logo">Balance <span>One</span></div></div><button type="button" class="asistente-voz-boton" onclick="abrirAsistenteVoz()"
     aria-label="Asistente de voz" aria-haspopup="dialog">
-    <span class="voz-flor" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
+    <span class="espectro-voz" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.34 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.35 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6622,12 +6659,63 @@ function campoPlanCuotasMovimiento(movimiento = {}) {
   </label>`;
 }
 
+function serviciosAuto() {
+  const t=textoApp;
+  return [["mantenimiento",t("Mantenimiento","Maintenance")],["seguro",t("Seguro","Insurance")],["registro",t("Registro","Registration")],["gasolina",t("Gasolina","Fuel")],["neumaticos",t("Neumáticos","Tires")],["aceite",t("Cambio de aceite","Oil change")],["bateria",t("Batería","Battery")]];
+}
+function categoriaServicio(tipo) {
+  return tipo==="gasolina"?"Gasolina":tipo==="seguro"?"Seguros":"Transporte";
+}
+function camposAutoGasto(m={}) {
+  if (!data.vehiculos.length) return "";
+  const t=textoApp;
+  return `<div class="gasto-auto-campos" data-vinculo-auto ${m.tipo==="ingreso"?"hidden":""}><label>${t("Vehículo (opcional)","Vehicle (optional)")}<select name="vehiculoId" onchange="this.closest('[data-vinculo-auto]').querySelector('[data-tipo-auto]').hidden=!this.value"><option value="">—</option>${data.vehiculos.map(v=>`<option value="${safe(v.id)}" ${m.vehiculoId===v.id?"selected":""}>${safe(v.nombre)}</option>`).join("")}</select></label><label data-tipo-auto ${m.vehiculoId?"":"hidden"}>${t("Sección del vehículo","Vehicle section")}<select name="servicioAuto"><option value="">${t("Según categoría","From category")}</option>${serviciosAuto().map(([k,n])=>`<option value="${k}" ${m.servicioAuto===k?"selected":""}>${n}</option>`).join("")}</select></label></div>`;
+}
+function vinculoAuto(campos,tipo) {
+  const v=tipo==="gasto" && data.vehiculos.find(v=>String(v.id)===campos.get("vehiculoId"));
+  const seccion=campos.get("servicioAuto") || ({Gasolina:"gasolina",Seguros:"seguro"}[campos.get("categoria")] || "mantenimiento");
+  return {vehiculoId:v?v.id:null,servicioAuto:v?seccion:null};
+}
+function candidatosAuto(v,r) {
+  return data.movimientos.filter(m=>m.tipo==="gasto" && !m.esPago && !m.esTransferencia && !m.vehiculoId && m.fecha===r.fecha && Math.round(m.monto*100)===r.centavos);
+}
+function migrarBitacorasAuto() {
+  let cambio=false;
+  for (const v of data.vehiculos) {
+    if (!Array.isArray(v.bitacoraVehiculo)) continue;
+    v.bitacoraVehiculo=v.bitacoraVehiculo.filter(r=>{
+      if (!(r?.centavos>0) || !validDate(r.fecha) || r.pendienteDeVincular) return true;
+      if(candidatosAuto(v,r).length){
+        r.pendienteDeVincular=true;
+        cambio=true;
+        return true;
+      }
+      data.movimientos.push({id:id(),tipo:"gasto",nombre:r.descripcion,monto:r.centavos/100,fecha:r.fecha,categoria:categoriaServicio(r.tipo),vehiculoId:v.id,servicioAuto:r.tipo,millas:r.millas??null,registroOriginal:r});
+      cambio=true;
+      return false;
+    });
+  }
+  return cambio;
+}
+function registrosDeAuto(v) {
+  const movimientos=data.movimientos.filter(m=>m.tipo==="gasto" && m.vehiculoId===v.id).map(m=>({id:m.id,descripcion:m.nombre,tipo:m.servicioAuto||"mantenimiento",centavos:Math.round(m.monto*100),fecha:m.fecha,millas:m.millas,mov:m}));
+  return [...(v.bitacoraVehiculo||[]),...movimientos].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+}
+function estadoAuto(v,registros) {
+  const t=textoApp;
+  const reales=registros.filter(r=>r.fecha<=today());
+  const odo=reales.filter(r=>Number.isFinite(r.millas)).sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.millas-a.millas)[0];
+  const ultimo=reales.find(r=>["mantenimiento","aceite","bateria","neumaticos"].includes(r.tipo));
+  const campos=[[t("Millaje registrado","Recorded mileage"),odo?distanciaRegistro(odo).replace(/^ · /,""):t("Sin lectura registrada","No reading yet")],[t("Próximo servicio","Next service"),v.fechaServicioProgramada || t("Sin programar","Not scheduled")],[t("Último mantenimiento","Last maintenance"),ultimo?ultimo.descripcion+" · "+ultimo.fecha:t("Sin registros","No entries")],[t("Gastos acumulados","Total expenses"),money(registros.reduce((s,r)=>s+r.centavos,0)/100)]];
+  return `<section class="mv-estado"><h3>${t("Estado de tu vehículo","Vehicle status")}</h3><dl>${campos.map(([nombre,valor])=>`<div><dt>${nombre}</dt><dd>${safe(valor)}</dd></div>`).join("")}</dl><details><summary>${t("Programar servicio","Schedule service")}</summary><form data-programar><input type="date" name="fecha" aria-label="${t("Próximo servicio","Next service")}" value="${safe(v.fechaServicioProgramada||"")}"><button>${t("Guardar","Save")}</button></form></details></section>`;
+}
+
 function camposExtraMovimiento(m = {}) {
   const t = textoApp;
   const tieneRecibo = reciboValido(m.recibo);
   const lista = m.id ? "histProyectosDisponibles" : "movProyectosDisponibles";
   const proyectos = [...proyectosMovimientos().values()];
-  return `<details class="bo047-extras" ${m.proyecto || tieneRecibo ? "open" : ""}>
+  return `${camposAutoGasto(m)}<details class="bo047-extras" ${m.proyecto || tieneRecibo ? "open" : ""}>
     <summary>${t("Proyecto y recibo","Project and receipt")}</summary>
     <div class="bo047-campos">
       <label>${t("Proyecto (opcional)","Project (optional)")}<input name="proyecto" maxlength="60" list="${lista}"
@@ -6645,7 +6733,7 @@ async function leerExtrasMovimiento(campos, tipo, anterior) {
   const archivo = campos.get("recibo");
   let recibo = !campos.has("quitarRecibo") && reciboValido(anterior?.recibo) ? anterior.recibo : "";
   if (tipo === "gasto" && archivo?.size) recibo = await comprimirRecibo(archivo);
-  return {proyecto, recibo};
+  return {proyecto, recibo,...vinculoAuto(campos,tipo)};
 }
 
 function mostrarErrorRecibo() {
@@ -6767,8 +6855,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.34 Beta",
-      "Smart control of your finances · 0.7.34 Beta"
+      "Control inteligente de tus finanzas · 0.7.35 Beta",
+      "Smart control of your finances · 0.7.35 Beta"
     );
   }
 }
@@ -6903,7 +6991,7 @@ for(const v of data.vehiculos){
    }
  }
 }
-if(changed)save();
+if(migrarBitacorasAuto() || changed)save();
 
 let page="inicio";
 let openEdit=null;
@@ -9590,7 +9678,9 @@ function firmaGasto(movimiento) {
   return JSON.stringify([nombre, origen, movimiento.fecha, Math.round(monto * 100)]);
 }
 
-function guardarMovimientoBanco(anterior, nuevo) {
+function guardarMovimientoBanco(anterior, nuevo, vehiculosActualizados=null) {
+  if(anterior && !data.movimientos.some(m=>m.id===anterior.id))return false;
+  if(!anterior && nuevo && data.movimientos.some(m=>m.id===nuevo.id))return false;
   if(anterior?.canjeTarjetaId && nuevo && (nuevo.tipo!=="ingreso" || nuevo.monto!==anterior.monto || nuevo.cuentaId!==anterior.cuentaId)){
     alert(textoApp("Elimina la transferencia y regístrala de nuevo para cambiar el importe o la cuenta.","Remove and record the transfer again to change the amount or account."));return false;
   }
@@ -9732,6 +9822,7 @@ for (const prestamo of prestamosActualizados) {
 
 const datosNuevos = {
   ...data,
+  ...(vehiculosActualizados?{vehiculos:vehiculosActualizados}:{}),
   movimientos: movimientosNuevos,
   tarjetas: tarjetasActualizadas,
   prestamos: prestamosActualizados
@@ -9771,6 +9862,7 @@ const datosNuevos = {
       throw error;
     }
 
+   if(vehiculosActualizados)data.vehiculos=vehiculosActualizados;
    data.movimientos = movimientosNuevos;
    data.tarjetas = tarjetasActualizadas;
    data.prestamos = prestamosActualizados;
@@ -9834,6 +9926,7 @@ function movimientos(){
   <div id="movCalendario" style="margin-bottom:20px"></div>
   <div class="mov-formulario" style="display:none">
     <form id="formMov">
+      ${camposAutoGasto()}
       <label for="movCuenta">${textoApp("Cuenta", "Account")}</label>
       <select id="movCuenta" name="cuentaId" required>
         <option value="">
@@ -10024,6 +10117,8 @@ function actualizarVistaMovimiento() {
 botonesTipo.forEach(boton => {
   boton.onclick = () => {
     campoTipo.value = boton.dataset.tipo;
+    const vinculo=formulario.querySelector("[data-vinculo-auto]");
+    if(vinculo)vinculo.hidden=campoTipo.value!=="gasto";
     actualizarOrigenesMovimiento();
 
     botonesTipo.forEach(b => {
@@ -10067,7 +10162,7 @@ formulario.onsubmit = e => {
     id: id(),
     ...origenPagoSeleccionado(cuentaId),
     nombre,
-    categoria:String(f.get("categoria") || ""),
+    ...vinculoAuto(f,tipo),categoria:String(f.get("categoria") || ""),
     tipo,
     monto,
     fecha
@@ -10426,7 +10521,7 @@ function editor(m){
           <input type="hidden" name="tipo" value="gasto">
         ` : `
         <label class="label">${textoApp("Tipo", "Type")}</label>
-    <select name="tipo" onchange="this.form.querySelector('[data-campo-recibo]').hidden = this.value !== 'gasto'">
+    <select name="tipo" onchange="this.form.querySelectorAll('[data-campo-recibo],[data-vinculo-auto]').forEach(el=>el.hidden=this.value!=='gasto')">
           <option value="ingreso" ${m.tipo==="ingreso"?"selected":""}>${textoApp("Ingreso", "Income")}</option>
      <option value="gasto" ${m.tipo==="gasto"?"selected":""}>${textoApp("Gasto", "Expense")}</option>
     </select>
@@ -10674,10 +10769,13 @@ function actualizarSaldosHistorial(cuenta){
  }
 }
 
-function usaFichaVehiculo(){return data.disenoVehiculos==="nuevo";}
+function modelosAuto(){
+  return [["actual",textoApp("Diseño actual","Current layout")],["compacto",textoApp("Diseño compacto","Compact layout")],["nuevo",textoApp("Diseño alternativo","Alternative layout")]];
+}
+function usaFichaVehiculo(){return ["nuevo","compacto"].includes(data.disenoVehiculos);}
 function elegirDisenoVehiculos(){
-  const t=textoApp;
-  const ventana=crearVentanaApariencia(t("Diseño de vehículos","Vehicle layout"),`<div class="acciones-cuenta">${[["actual",t("Diseño actual","Current layout")],["nuevo",t("Diseño nuevo","New layout")]].map(([k,v])=>`<button type="button" data-diseno-auto="${k}" aria-pressed="${usaFichaVehiculo()===(k==="nuevo")}">${v} ${usaFichaVehiculo()===(k==="nuevo")?"✓":""}</button>`).join("")}</div>`,true);
+  const t=textoApp, modelo=data.disenoVehiculos||"actual";
+  const ventana=crearVentanaApariencia(t("Diseño de vehículos","Vehicle layout"),`<div class="modelos-auto">${modelosAuto().map(([k,n],i)=>`<button type="button" data-diseno-auto="${k}" aria-pressed="${k===modelo}"><svg viewBox="0 0 48 32" fill="none" stroke="currentColor" aria-hidden="true"><rect x="1" y="${2+i}" width="46" height="${28-i*2}" rx="8"/><path d="${["M8 9h32M8 18h24M8 23h18","M7 11h16m4 0h13M7 19h33","M8 10h12m5 0h15M8 17h32m-32 5h13"][i]}"/></svg>${n}<b>${k===modelo?"✓":""}</b></button>`).join("")}</div>`,true);
   if(ventana) ventana.querySelectorAll("[data-diseno-auto]").forEach(b=>b.onclick=()=>{
     if(guardarDatosExtra({disenoVehiculos:b.dataset.disenoAuto})){
       ventana.close();
@@ -10756,18 +10854,12 @@ function abrirMiVehiculo(indice, botonOrigen) {
   const vehiculoId = data.vehiculos[indice]?.id;
   if (!vehiculoId) return;
   const t = textoApp;
-  const secciones = [
-    ["mantenimiento",t("Mantenimiento","Maintenance")],
-    ["seguro",t("Seguro","Insurance")],
-    ["registro",t("Registro","Registration")],
-    ["gasolina",t("Gasolina","Fuel")],
-    ["neumaticos",t("Neumáticos","Tires")],
-    ["aceite",t("Cambio de aceite","Oil change")],
-    ["bateria",t("Batería","Battery")]
-  ];
+  const secciones=serviciosAuto();
+  let editando=null;
   const dialogo = document.createElement("dialog");
   dialogo.className = "mi-vehiculo";
   dialogo.dataset.vehiculo = vehiculoId;
+  dialogo.classList.toggle("mv-clasico",!usaFichaVehiculo());
   const fotoOrigen = botonOrigen?.querySelector("img");
   let cerrando = false;
   let entradaEnCurso;
@@ -10778,7 +10870,7 @@ function abrirMiVehiculo(indice, botonOrigen) {
   function pintar() {
     const v = actual();
     if (!v) { dialogo.close(); return; }
-    const registros = Array.isArray(v.bitacoraVehiculo)?v.bitacoraVehiculo:[];
+    const registros = registrosDeAuto(v);
     const titulo = activa ? activa[1] : t("Mi Vehículo","My Vehicle");
     dialogo.innerHTML = `<div class="mv-espacio"><div class="mv-nav"><button type="button" data-volver aria-label="${t("Volver","Back")}">‹</button><h2 id="tituloMiVehiculo" tabindex="-1">${titulo}</h2></div><div class="mv-marca">${marcaDeFicha(v)}<div><strong>${safe(v.nombre)}</strong><small>${[v.anio,v.modelo].filter(Boolean).map(safe).join(" · ")}</small></div></div><div class="mv-contenido"></div></div>`;
     dialogo.querySelector("[data-volver]").onclick = retroceder;
@@ -10788,29 +10880,78 @@ function abrirMiVehiculo(indice, botonOrigen) {
       zona.innerHTML = `<div class="mv-diagrama">${foto?`<img src="${safe(foto)}" alt="${safe(v.nombre)}">`:""}${secciones.map((s,i)=>{
         const y = 11+i*13;
         return `<button type="button" data-seccion="${i}" style="top:${y}%"><span>${s[1]}</span></button>`;
-      }).join("")}</div>`;
-      zona.querySelectorAll("[data-seccion]").forEach(b=>b.onclick=()=>{if(!cerrando){activa=secciones[Number(b.dataset.seccion)];pintar()}});
+       }).join("")}</div>${estadoAuto(v,registros)}`;
+      zona.querySelector("[data-programar]").onsubmit=e=>{
+        e.preventDefault();const fecha=e.currentTarget.elements.fecha.value;
+        if(fecha && !validDate(fecha))return;
+        if(guardarDatosExtra({vehiculos:data.vehiculos.map(auto=>auto.id===vehiculoId?{...auto,fechaServicioProgramada:fecha}:auto)}))pintar();
+      };
+      zona.querySelectorAll("[data-seccion]").forEach(b=>b.onclick=async()=>{
+        if(cerrando||activa||zona.dataset.abriendo)return;
+        zona.dataset.abriendo="1";b.classList.add("elegida");
+        const suave=!matchMedia("(prefers-reduced-motion:reduce)").matches;
+        if(suave && b.animate)await b.animate([{color:getComputedStyle(dialogo).color},{color:"#ed7723"}],{duration:140}).finished.catch(()=>{});
+        if(!dialogo.open||cerrando)return;
+        activa=secciones[Number(b.dataset.seccion)];pintar();animarSeccion(false);
+      });
     } else {
-      const historial = registros.filter(r=>r.tipo===activa[0]).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+      const historial = registros.filter(r=>r.tipo===activa[0]);
       const total = historial.reduce((s,r)=>s+r.centavos,0)/100;
-      zona.innerHTML = `<form class="mv-form"><h3>${t("Nuevo registro","New entry")}</h3><label>${t("Descripción","Description")}<input name="descripcion" required maxlength="160"></label><label>${t("Fecha","Date")}<input type="date" name="fecha" value="${today()}" required></label><label>${t("Odómetro (mi)","Odometer (mi)")}<input type="number" inputmode="decimal" name="millas" min="0" step="0.01"></label><label>${t("Precio ($)","Cost ($)")}<input type="number" name="precio" min="0" step="0.01" required></label><button class="primary">${t("Guardar registro","Save entry")}</button></form>
-      <section class="mv-historia-panel"><div class="mv-historial"><h3>${t("Historial de gastos","Expense history")}</h3><strong>${money(total)}</strong></div>${historial.length?historial.map(r=>`<div class="mv-registro"><div><b>${safe(r.descripcion)}</b><small>${safe(r.fecha)}${distanciaRegistro(r)}</small></div><strong>${money(r.centavos/100)}</strong></div>`).join(""):`<p>${t("Todavía no hay registros.","No entries yet.")}</p>`}</section>`;
-      zona.querySelector("form").onsubmit = e=>{
+      const editar=historial.find(r=>r.id===editando);
+      const entradaFecha=editar?.fecha||today();
+      zona.innerHTML = `<form class="mv-form"><h3>${editar?t("Editar registro","Edit entry"):t("Nuevo registro","New entry")}</h3><label>${t("Descripción","Description")}<input name="descripcion" value="${safe(editar?.descripcion||"")}" required maxlength="160"></label><label>${t("Fecha","Date")}<input type="date" name="fecha" value="${safe(entradaFecha)}" required></label><label>${t("Odómetro (mi)","Odometer (mi)")}<input type="number" inputmode="decimal" name="millas" value="${editar?.millas!=null?Number(editar.millas.toFixed(2)):""}" min="0" step="0.01"></label><label>${t("Precio ($)","Cost ($)")}<input type="number" name="precio" value="${editar?editar.centavos/100:""}" min="${editar?.mov?"0.01":"0"}" step="0.01" required></label><label>${t("Cuenta o tarjeta","Payment account or card")}<select name="origen">${opcionesCuentasPago()}</select></label><button class="primary">${t("Guardar registro","Save entry")}</button>${editar?`<button type="button" data-cancelar>${t("Cancelar","Cancel")}</button>`:""}</form>
+      <section class="mv-historia-panel"><div class="mv-historial"><h3>${t("Historial de gastos","Expense history")}</h3><strong>${money(total)}</strong></div>${historial.length?historial.map((r,i)=>`<details class="mv-fila"><summary><span><b>${safe(r.descripcion)}</b><small>${safe(r.fecha)}${distanciaRegistro(r)}</small></span><strong>${money(r.centavos/100)}</strong></summary><div>${r.centavos>0 && (!r.mov || !valorOrigenMovimiento(r.mov))?`<small>${t("Origen de pago por completar","Payment source not recorded")}</small>`:""}<button type="button" data-editar="${i}">${t("Editar","Edit")}</button><button type="button" data-eliminar="${i}">${t("Eliminar","Delete")}</button>${!r.mov && r.centavos>0?candidatosAuto(v,r).map(m=>`<button data-vincular="${safe(m.id)}" data-fila="${i}">${t("Vincular gasto existente","Link existing expense")} · ${safe(m.nombre)} · ${money(m.monto)}</button>`).join(""):""}</div></details>`).join(""):`<p>${t("Todavía no hay registros.","No entries yet.")}</p>`}</section>`;
+      const form=zona.querySelector(".mv-form");
+      if (editar?.mov) form.elements.origen.value=valorOrigenMovimiento(editar.mov);
+      const requerirOrigen=()=>{form.elements.origen.required=Number(form.elements.precio.value)>0};
+      requerirOrigen();form.elements.precio.oninput=requerirOrigen;
+      function cambiarLocal(r,nuevo) {
+        return data.vehiculos.map(auto=>auto.id===vehiculoId?{...auto,bitacoraVehiculo:[...(auto.bitacoraVehiculo||[]).filter(x=>x.id!==r?.id),...(nuevo?[nuevo]:[])]}:auto);
+      }
+      function terminado(){editando=null;pintar()}
+      zona.querySelector("[data-cancelar]")?.addEventListener("click",terminado);
+      zona.querySelectorAll("[data-editar]").forEach(b=>b.onclick=()=>{editando=historial[b.dataset.editar].id;pintar();dialogo.querySelector("input").focus()});
+      zona.querySelectorAll("[data-eliminar]").forEach(b=>b.onclick=()=>{
+        const r=historial[b.dataset.eliminar];
+        if(!confirm(t("¿Eliminar este registro?","Delete this entry?")))return;
+        if(r.mov?guardarMovimientoBanco(r.mov,null):guardarDatosExtra({vehiculos:cambiarLocal(r,null)}))terminado();
+      });
+      zona.querySelectorAll("[data-vincular]").forEach(b=>b.onclick=()=>{
+        const r=historial[b.dataset.fila], m=candidatosAuto(v,r).find(x=>x.id===b.dataset.vincular);
+        if(!m)return;
+        const vinculado={...m,vehiculoId,servicioAuto:r.tipo,millas:r.millas,registroOriginal:r};
+        if(guardarMovimientoBanco(m,vinculado,cambiarLocal(r,null)))terminado();
+      });
+      form.onsubmit=e=>{
         e.preventDefault();
-        const registro = new FormData(e.currentTarget);
-        const descripcion = String(registro.get("descripcion")).trim();
-        const fecha = String(registro.get("fecha"));
-        const millas = registro.get("millas")==="" ? null : Number(registro.get("millas"));
-        const centavos = Math.round(Number(registro.get("precio"))*100);
-        if (!descripcion || !validDate(fecha) || !Number.isSafeInteger(centavos) || centavos<0 || (millas!==null && (!Number.isFinite(millas)||millas<0))) {alert(t("Revisa los datos del registro.","Check the entry details."));return}
-        if (!actual()) {dialogo.close();return}
-        const entrada = {id:id(),tipo:activa[0],descripcion,fecha,millas,centavos};
-        const vehiculos = data.vehiculos.map(auto=>auto.id===vehiculoId?{...auto,bitacoraVehiculo:[...(auto.bitacoraVehiculo||[]),entrada]}:auto);
-        if (guardarDatosExtra({vehiculos})) pintar();
+        if(!actual())return;
+        const f=new FormData(form), descripcion=String(f.get("descripcion")).trim(), fecha=String(f.get("fecha"));
+        const millas=f.get("millas")===""?null:Number(f.get("millas")),centavos=Math.round(Number(f.get("precio"))*100);
+        const origen=String(f.get("origen")||"");
+        if(!descripcion || !validDate(fecha) || !Number.isSafeInteger(centavos) || centavos<0 || (millas!==null && (!Number.isFinite(millas)||millas<0)) || (centavos && !origen))return;
+        if(!centavos){
+          if(editar?.mov)return;
+          const r={...editar,id:editar?.id||id(),tipo:activa[0],descripcion,fecha,millas,centavos};
+          if(guardarDatosExtra({vehiculos:cambiarLocal(editar,r)}))terminado();
+          return;
+        }
+        const anterior=editar?.mov||null;
+        const mov={...anterior,id:anterior?.id||id(),tipo:"gasto",nombre:descripcion,monto:centavos/100,fecha,categoria:anterior?.categoria||categoriaServicio(activa[0]),vehiculoId,servicioAuto:activa[0],millas};
+        delete mov.tarjetaId;delete mov.cuentaId;
+        Object.assign(mov,origenPagoSeleccionado(origen));
+        if(!mov.tarjetaId || mov.tarjetaId!==anterior?.tarjetaId)delete mov.enPlanCuotas;
+        if(anterior && [ "nombre","monto","fecha","tarjetaId"].some(k=>mov[k]!==anterior[k])){
+          for(const k of ["reembolsoAbonado","categoriaReembolso","condicionesReembolso","tasaOfertaActiva"])delete mov[k];
+        }
+        if(guardarMovimientoBanco(anterior,mov,editar&&!anterior?cambiarLocal(editar,null):null))terminado();
       };
     }
     dialogo.scrollTop=0;
     dialogo.querySelector("h2").focus({preventScroll:true});
+  }
+  function animarSeccion(volver){
+    if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+    dialogo.querySelector(".mv-contenido")?.animate?.([{opacity:.35,transform:"translateX("+(volver?-9:9)+"px)"},{opacity:1,transform:"none"}],{duration:210,easing:"ease-out"});
   }
   async function retroceder() {
     if (cerrando) return;
@@ -10822,7 +10963,7 @@ function abrirMiVehiculo(indice, botonOrigen) {
       return;
     }
     const i = secciones.indexOf(activa);
-    activa=null;pintar();dialogo.querySelector(`[data-seccion="${i}"]`).focus();
+    activa=null;editando=null;pintar();animarSeccion(true);dialogo.querySelector(`[data-seccion="${i}"]`).focus();
   }
   dialogo.oncancel = e=>{e.preventDefault();retroceder()};
   dialogo.onclose = ()=>dialogo.remove();
@@ -10839,7 +10980,7 @@ function fichaVehiculo(v,i){
   const conocido=inicial>0 && v.saldo!=null && Number.isFinite(saldo);
   const pagado=Math.max(0,Math.min(inicial,inicial-saldo));
   const porcentaje=conocido?Math.round(pagado/inicial*100):0;
-  return `<article class="auto-ficha" id="vehiculoResumen${i}" tabindex="-1">
+  return `<article class="auto-ficha ${data.disenoVehiculos==="compacto"?"auto-compacta":""}" id="vehiculoResumen${i}" tabindex="-1">
     <div class="ficha-cabeza"><div class="auto-identidad">${marcaDeFicha(v)}<div><h3>${safe(v.nombre)}</h3><small>${[v.anio,v.modelo].filter(Boolean).map(safe).join(" · ")}</small></div></div><button type="button" id="verVehiculo${i}" aria-controls="prestamoVehiculo${i}" aria-expanded="false" onclick="mostrarDatosFicha(${i})">${t("Ver detalles ›","View details ›")}</button></div>
     ${fotoInteractiva(v,i,"foto-ficha")}
     <dl>${[[t("Precio","Price"),importe(v.precio)],[t("Pago mensual","Monthly payment"),importe(v.pago)],["APR",v.apr!=null && v.apr!==""?safe(v.apr)+"%":"—"],[t("Banco","Lender"),safe(v.banco||"—")]].map(([k,x])=>`<div><dt>${k}</dt><dd>${x}</dd></div>`).join("")}</dl>
@@ -15144,7 +15285,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.34 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.35 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -15430,7 +15571,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.34 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.35 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -15439,10 +15580,10 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.34 Beta</p>
+    <p class="note">Balance One 0.7.35 Beta</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("Mi Vehículo estrena historial en millas y transiciones. El saludo de Inicio cambia con la hora.",
-              "My Vehicle adds mileage in miles and animated transitions. The Home greeting follows the time of day.")}</li>
+      <li>${t("Gastos por vehículo vinculados a las finanzas, estado del auto y tres diseños de tarjetas.",
+              "Vehicle expenses linked to finances, vehicle status and three card layouts.")}</li>
     </ul>`, true);
 }
 
@@ -15666,7 +15807,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.34 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.35 Beta</span>
         </div>`
     }
   };
@@ -15863,6 +16004,7 @@ function abrirImportacionApplePay(compra) {
           ${data.tarjetas.length ? `<optgroup label="${textoApp("Tarjetas de crédito", "Credit cards")}">${opciones("tarjeta", data.tarjetas)}</optgroup>` : ""}
         </select>
 
+        ${camposAutoGasto()}
         <label for="applePayFecha">${textoApp("Fecha", "Date")}</label>
         <input id="applePayFecha" name="fecha" type="date" value="${today()}" required>
 
@@ -15912,7 +16054,7 @@ function abrirImportacionApplePay(compra) {
 
     const movimiento = {
       id:id(), nombre, monto, fecha, tipo:"gasto",
-      origenAtajo:"applepay", registradoAtajos:Date.now(),
+      ...vinculoAuto(campos,"gasto"),origenAtajo:"applepay", registradoAtajos:Date.now(),
       ...(compra.referencia ? {applePayRef:compra.referencia} : {}),
       ...(cuenta.tipo === "banco" ? {cuentaId:cuenta.id} : {tarjetaId:cuenta.id})
     };
@@ -17095,10 +17237,7 @@ function abrirAsistenteVoz() {
           </g>
         </svg>
         <button type="button" class="asistente-voz-orbe" data-escuchar aria-label="${t("Escuchar", "Listen")}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4m-3 0h6"/>
-          </svg>
+<span class="espectro-voz" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
         </button>
         <p class="asistente-voz-indicador" data-indicador-voz role="status"></p>
         <span class="asistente-voz-puntos" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -17116,7 +17255,7 @@ function abrirAsistenteVoz() {
       <div class="asistente-voz-opciones" data-gasto-voz hidden>
         <label>${t("Cuenta o tarjeta del gasto", "Expense account or card")}
           <select data-origen-gasto-voz></select>
-        </label>
+        </label>${camposAutoGasto()}
         <div class="acciones-vidrio">
           <button type="button" class="vidrio-secundario" data-cancelar-gasto-voz>${t("Cancelar gasto", "Cancel expense")}</button>
           <button type="button" class="vidrio-principal" data-guardar-gasto-voz>${t("Confirmar gasto", "Confirm expense")}</button>
@@ -17205,7 +17344,7 @@ function abrirAsistenteVoz() {
   }
   function confirmarBorradorGasto() {
     if (!borradorGasto || !origenGasto.value) return;
-    if (!guardarMovimientoBanco(null, {...borradorGasto, ...origenPagoSeleccionado(origenGasto.value)})) {
+    if (!guardarMovimientoBanco(null, {...borradorGasto, ...vinculoAuto(new FormData(form),"gasto"), ...origenPagoSeleccionado(origenGasto.value)})) {
       informarGasto(t("No se guardó el gasto. Revisa el importe o el origen e inténtalo otra vez.",
         "The expense was not saved. Check the amount or source and try again."));
       return;
@@ -17453,6 +17592,7 @@ function abrirMovVentana(copia = null) {
     if ([...selector.options].some(o=>o.value===previo)) selector.value=previo;
   };
   actualizarOrigen();
+  if(extras.querySelector("[data-vinculo-auto]")) extras.querySelector("[data-vinculo-auto]").hidden=tipo.value!=="gasto";
   if (copia) {
     form.elements.nombre.value = String(copia.nombre ?? "");
     aplicarCategoriaBorrador(categoria, String(copia.categoria ?? ""));
@@ -17475,6 +17615,7 @@ function abrirMovVentana(copia = null) {
     actualizarPlan();
     actualizarSugerencia();
     actualizarFavoritos();
+    if(extras.querySelector("[data-vinculo-auto]")) extras.querySelector("[data-vinculo-auto]").hidden=tipo.value!=="gasto";
     extras.querySelector("[data-campo-recibo]").hidden = tipo.value !== "gasto";
   };
 
@@ -18550,7 +18691,7 @@ function etiquetaApariencia(tipo, configs) {
   if (tipo === "tipografia") return ["texto", "fuente"]
     .map(opcion => etiquetaApariencia(opcion, configs)).join(" · ");
   if (tipo === "inicio") return etiquetaDisenoInicio();
-  if (tipo === "disenoVehiculos") return usaFichaVehiculo()?textoApp("Diseño nuevo","New layout"):textoApp("Diseño actual","Current layout");
+  if (tipo === "disenoVehiculos") return (modelosAuto().find(([k])=>k===data.disenoVehiculos)||modelosAuto()[0])[1];
   if (tipo === "disenoCredito") return etiquetaDisenoCredito();
   if (tipo === "forma") return [
     configs.forma.opciones.find(([valor]) => valor === valorApariencia(configs.forma))[1],
