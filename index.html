@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.33 Beta</title>
+<title>Balance One 0.7.34 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5778,24 +5778,69 @@ dialog.mi-vehiculo{box-sizing:border-box;position:fixed;inset:0;width:100%;heigh
 .mv-marca strong{font-size:1.35rem}.mi-vehiculo small{display:block;opacity:.72}
 .mv-diagrama{position:relative;width:100%;aspect-ratio:1/1.28;isolation:isolate}
 .mv-diagrama img{position:absolute;inset:0 0 0 auto;width:58%;height:100%;object-fit:fill}
-.mv-diagrama svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.mv-diagrama polyline{fill:none;stroke:var(--mv-acento,#b5742d);stroke-width:1;vector-effect:non-scaling-stroke}
-.mv-diagrama i{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--mv-acento,#b5742d);transform:translate(-50%,-50%);box-shadow:0 0 0 1px #fff9;pointer-events:none}
 .mi-vehiculo .mv-diagrama button{position:absolute;left:0;transform:translateY(-50%);display:flex;align-items:center;width:36%;min-height:44px;padding:0;margin:0;background:none;border:0;box-shadow:none;color:inherit;text-align:start;font:600 clamp(.76rem,3.3vw,1rem)/1.15 system-ui;z-index:1}
-.mv-diagrama button::after{content:"";flex:1;margin-left:4px;border-top:1px solid var(--mv-acento,#b5742d)}
 .mv-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
 .mv-form label{min-width:0;font-size:.85rem}.mv-form label:first-child{grid-column:1/-1}
 .mv-form :is(input,button){box-sizing:border-box;width:100%;min-width:0;margin:4px 0 0}.mv-form button{align-self:end}
 .mv-historial,.mv-registro{display:flex;align-items:center;justify-content:space-between;gap:8px}.mv-registro{padding:12px 0;border-top:1px solid #8993a333;overflow-wrap:anywhere}
+.es-inicio .saludo-inicio{display:flex;align-items:center;gap:7px}
+.saludo-cielo{width:1.4em;height:1.4em;flex:none;overflow:visible}
+.saludo-cielo .sol{color:#e19422;transform-origin:20px 23px}
+.saludo-cielo .luna,.saludo-cielo .estrellas{opacity:0}
+.saludo-cielo .horizonte{stroke:#da902e}
+[data-fase=tarde] .sol{color:#eb763a;transform:translateY(3px)}
+[data-fase=tarde] .horizonte{stroke:#cf6c54}
+[data-fase=noche] :is(.sol,.horizonte){opacity:0;transform:translateY(7px)}
+[data-fase=noche] :is(.luna,.estrellas){opacity:1}
+.tema-oscuro .saludo-cielo .luna{fill:#e2e8ff}
+@media(prefers-reduced-motion:no-preference){
+.saludo-cielo :is(.sol,.luna,.estrellas,.horizonte){transition:opacity .85s ease,transform 1s ease,color 1s ease,stroke 1s ease}
+.saludo-cielo .rayos{transform-origin:20px 23px;animation:saludo-rayos 6s ease-in-out infinite alternate}
+.saludo-cielo .disco{animation:saludo-luz 4s ease-in-out infinite alternate}
+.saludo-cielo .estrella{transform-box:fill-box;transform-origin:center;animation:saludo-brillo 3.4s ease-in-out infinite alternate}
+.saludo-cielo .estrella:nth-child(2){animation-delay:-1.6s}
+.saludo-cielo .luna path{animation:saludo-luz 5s ease-in-out infinite alternate}
+@keyframes saludo-rayos{to{transform:rotate(12deg);opacity:.58}}
+@keyframes saludo-luz{to{opacity:.76;filter:drop-shadow(0 0 1.6px currentColor)}}
+@keyframes saludo-brillo{to{opacity:.38;transform:scale(.74)}}
+}
+.auto-ficha{padding-block:clamp(10px,2.7vw,16px)}
+.auto-ficha .ficha-cabeza{gap:8px}
+.auto-ficha .ficha-cabeza button{flex:none}
+.auto-ficha .auto-identidad{min-width:0;margin:0;gap:7px}
+.auto-ficha .auto-identidad h3{font-size:1.12rem;line-height:1.15;overflow-wrap:anywhere}
+.auto-ficha dl{margin-block:8px}
+.foto-clasica{margin-bottom:6px}
+.mv-foto-en-vuelo{position:fixed;z-index:2;object-fit:contain;pointer-events:none}
+.mi-vehiculo::backdrop{background:transparent;backdrop-filter:none}
+.mv-espacio{padding-top:calc(max(14px,env(safe-area-inset-top)) + 9px)}
+.mv-nav{justify-content:flex-start;padding-left:47px}
+.mv-nav h2{font-size:1.26rem;letter-spacing:-.025em}
+.mv-diagrama button span{display:block}
+.mi-vehiculo{--mv-panel:#fff;--mv-field:#f1f3f6;--mv-muted:#536071;--mv-line:#dbe0e6}
+.tema-oscuro .mi-vehiculo{--mv-panel:#21262e;--mv-field:#303640;--mv-muted:#bdc5d0;--mv-line:#3a424e}
+.mv-form,.mv-historia-panel{box-sizing:border-box;background:var(--mv-panel);border-radius:30px;padding:clamp(14px,4vw,23px)}
+.mv-form{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 10px;margin:14px 0}
+.mv-form h3,.mv-historial h3{margin:0;font-size:1rem}
+.mv-form h3,.mv-form label:first-of-type,.mv-form button{grid-column:1/-1}
+.mv-form label{color:var(--mv-muted);line-height:1.3}
+.mi-vehiculo .mv-form input{appearance:none;min-height:44px;padding:9px 13px;border-radius:17px;background:var(--mv-field);color:inherit;border:1px solid transparent;font:inherit;font-size:1rem}
+.mv-form input:focus-visible,.mv-diagrama button:focus-visible{outline:2px solid #6399c6;outline-offset:2px}
+.mi-vehiculo .mv-form button{margin-top:2px;border-radius:999px;min-height:44px}
+.mv-historial{margin-bottom:6px}.mv-registro{padding:12px 0;gap:12px;border-color:var(--mv-line)}
+.mv-registro small,.mv-historia-panel p{color:var(--mv-muted);opacity:1}
+.mv-registro small{margin-top:3px}
+.mv-historia-panel p{font-size:.87rem;margin:12px 0 0}
+.mv-form label:last-of-type{grid-column:1/-1}
 </style></head>
 <body>
 <header>
 <div id="encVehiculos"></div>
-<div id="balanceCabecera"><div class="letreros-inicio" tabindex="0"><div class="saludo-inicio"></div><div class="logo">Balance <span>One</span></div></div><button type="button" class="asistente-voz-boton" onclick="abrirAsistenteVoz()"
+<div id="balanceCabecera"><div class="letreros-inicio" tabindex="0"><div class="saludo-inicio"><svg class="saludo-cielo" aria-hidden="true" viewBox="0 0 40 40"><g class="sol"><g class="rayos" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 6v4m-11 1 3 3m16 0 3-3M4 21l4 1m24 0 4-1"/></g><path class="disco" fill="currentColor" d="M10 26a10 10 0 1 1 20 0Z"/></g><path class="horizonte" d="M5 30h30m-23 4h15" stroke-width="2" stroke-linecap="round" fill="none"/><g class="luna" fill="#7d84bd"><path d="M26 7a14 14 0 1 0 7 22A14 14 0 0 1 26 7Z"/></g><g class="estrellas" fill="#b39b63"><path class="estrella" d="m32 5 1.1 3.1L36 9.2l-2.9 1.1L32 13l-1-2.7-2.9-1.1L31 8Z"/><circle class="estrella" cx="33" cy="18" r="1.5"/></g></svg><span class="saludo-texto"></span></div><div class="logo">Balance <span>One</span></div></div><button type="button" class="asistente-voz-boton" onclick="abrirAsistenteVoz()"
     aria-label="Asistente de voz" aria-haspopup="dialog">
     <span class="voz-flor" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.33 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.34 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -6722,8 +6767,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.33 Beta",
-      "Smart control of your finances · 0.7.33 Beta"
+      "Control inteligente de tus finanzas · 0.7.34 Beta",
+      "Smart control of your finances · 0.7.34 Beta"
     );
   }
 }
@@ -6849,6 +6894,15 @@ for(const p of data.pagos){
   }
  }
 }
+for(const v of data.vehiculos){
+ if (!Array.isArray(v.bitacoraVehiculo)) continue;
+ for(const r of v.bitacoraVehiculo){
+   if (r && r.millas == null && Number.isFinite(r.km) && r.km >= 0){
+     r.millas = r.km / 1.609344;
+     changed = true;
+   }
+ }
+}
 if(changed)save();
 
 let page="inicio";
@@ -6964,16 +7018,33 @@ function actualizarFotoNavPerfil() {
  else imagen.removeAttribute("href");
 }
 
-function saludoInicio() {
-  const hora = new Date().getHours();
-  const saludo = hora < 6 || hora >= 19 ? textoApp("Buenas noches","Good evening") : hora < 12 ? textoApp("Buenos días","Good morning") : textoApp("Buenas tardes","Good afternoon");
-  return [saludo, String(data.perfil?.nombre||"").trim()].filter(Boolean).join(", ");
+function faseSaludo(hora) {
+  if (hora < 6 || hora >= 19) return "noche";
+  return hora < 12 ? "manana" : "tarde";
+}
+function actualizarSaludo() {
+  if (page !== "inicio") return;
+  const saludo = document.querySelector(".saludo-inicio");
+  const fase = faseSaludo(new Date().getHours());
+  const prefijo = fase==="manana" ? textoApp("Buenos días","Good morning") : fase==="tarde" ? textoApp("Buenas tardes","Good afternoon") : textoApp("Buenas noches","Good evening");
+  saludo.querySelector(".saludo-texto").textContent = [prefijo,String(data.perfil?.nombre||"").trim()].filter(Boolean).join(", ");
+  saludo.dataset.fase = fase;
+}
+function programarSaludo() {
+  clearTimeout(programarSaludo.temporizador);
+  if (document.hidden) return;
+  actualizarSaludo();
+  const ahora = new Date();
+  const siguiente = new Date(ahora);
+  const hora = ahora.getHours();
+  siguiente.setHours(hora<6?6:hora<12?12:hora<19?19:30,0,0,0);
+  programarSaludo.temporizador = setTimeout(programarSaludo,Math.max(1,siguiente-ahora));
 }
 function cabeceraInicio() {
   const casa = page === "inicio";
   const fila = document.getElementById("balanceCabecera");
   fila.classList.toggle("es-inicio",casa);
-  fila.querySelector(".saludo-inicio").textContent = saludoInicio();
+  if (casa) actualizarSaludo();
   fila.querySelector("button").setAttribute("aria-label",textoApp("Asistente de voz","Voice assistant"));
   if (!casa) fila.firstElementChild.scrollLeft = 0;
 }
@@ -10608,7 +10679,11 @@ function elegirDisenoVehiculos(){
   const t=textoApp;
   const ventana=crearVentanaApariencia(t("Diseño de vehículos","Vehicle layout"),`<div class="acciones-cuenta">${[["actual",t("Diseño actual","Current layout")],["nuevo",t("Diseño nuevo","New layout")]].map(([k,v])=>`<button type="button" data-diseno-auto="${k}" aria-pressed="${usaFichaVehiculo()===(k==="nuevo")}">${v} ${usaFichaVehiculo()===(k==="nuevo")?"✓":""}</button>`).join("")}</div>`,true);
   if(ventana) ventana.querySelectorAll("[data-diseno-auto]").forEach(b=>b.onclick=()=>{
-    if(guardarDatosExtra({disenoVehiculos:b.dataset.disenoAuto})){ventana.close();ajustes();}
+    if(guardarDatosExtra({disenoVehiculos:b.dataset.disenoAuto})){
+      ventana.close();
+      const valor=document.querySelector('[data-valor-apariencia="disenoVehiculos"]');
+      if(valor) valor.textContent=etiquetaApariencia("disenoVehiculos");
+    }
   });
 }
 function mostrarDatosFicha(i,abrir){
@@ -10632,26 +10707,70 @@ function vistaSuperior(v) {
 function fotoInteractiva(v,i,clase) {
   const foto = v.fotoGaleria || v.foto || vistaSuperior(v);
   const titulo = textoApp("Mi Vehículo","My Vehicle");
-  return `<button type="button" class="foto-interactiva" onclick="abrirMiVehiculo(${i})" aria-label="${titulo} · ${safe(v.nombre)}">${foto?`<img class="${clase}" src="${safe(foto)}" alt="${safe(v.nombre)}">`:titulo+" ›"}</button>`;
+  return `<button type="button" class="foto-interactiva" onclick="abrirMiVehiculo(${i},this)" aria-label="${titulo} · ${safe(v.nombre)}">${foto?`<img class="${clase}" src="${safe(foto)}" alt="${safe(v.nombre)}">`:titulo+" ›"}</button>`;
 }
-function abrirMiVehiculo(indice) {
+async function transicionMiVehiculo(dialogo, origen, alVolver) {
+  if (!dialogo.animate || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const superior = dialogo.querySelector(".mv-diagrama img");
+  const zona = dialogo.querySelector(".mv-espacio");
+  const duracion = alVolver ? 340 : 460;
+  const opciones = {duration:duracion,easing:"cubic-bezier(.22,.75,.25,1)",direction:alVolver?"reverse":"normal",fill:"both"};
+  const animaciones = [];
+  let copia;
+  try {
+    animaciones.push(dialogo.animate([{backgroundColor:"transparent"},{backgroundColor:getComputedStyle(dialogo).backgroundColor}],opciones));
+    animaciones.push(zona.animate([{opacity:0},{opacity:1,offset:.65},{opacity:1}],opciones));
+    if (origen?.isConnected && superior) {
+      const inicio = origen.getBoundingClientRect();
+      const fin = superior.getBoundingClientRect();
+      if (inicio.width && inicio.height && fin.width && fin.height) {
+        copia = origen.cloneNode(false);
+        copia.className = "mv-foto-en-vuelo";
+        copia.alt = "";
+        Object.assign(copia.style,{left:inicio.left+"px",top:inicio.top+"px",width:inicio.width+"px",height:inicio.height+"px"});
+        dialogo.append(copia);
+        const dx = fin.left+fin.width/2-inicio.left-inicio.width/2;
+        const dy = fin.top+fin.height/2-inicio.top-inicio.height/2;
+        origen.style.visibility = "hidden";
+        animaciones.push(copia.animate([{transform:"none",opacity:1},{offset:.36,transform:`translate(${dx*.42}px,${dy*.42}px) scale(1.12)`,opacity:.95},{transform:`translate(${dx}px,${dy}px) scale(1.22)`,opacity:0}],opciones));
+        animaciones.push(superior.animate([{opacity:0,transform:"scale(.94)"},{offset:.32,opacity:0,transform:"scale(.96)"},{opacity:1,transform:"none"}],opciones));
+      }
+    }
+    dialogo.querySelectorAll("[data-seccion] span").forEach((texto,i)=>{
+      animaciones.push(texto.animate([{opacity:0,transform:"translateY(4px)"},{opacity:0,offset:.19+i*.065},{opacity:1,transform:"none"}],opciones));
+    });
+    await Promise.allSettled(animaciones.map(a=>a.finished));
+  } finally {
+    if (alVolver && dialogo.open) dialogo.close();
+    animaciones.forEach(a=>a.cancel());
+    if (origen) origen.style.removeProperty("visibility");
+    copia?.remove();
+  }
+}
+
+function distanciaRegistro(r) {
+  const millas = r.millas ?? (Number.isFinite(r.km) ? r.km / 1.609344 : null);
+  return millas == null ? "" : " · "+millas.toLocaleString(textoApp("es-US","en-US"),{maximumFractionDigits:2})+" mi";
+}
+function abrirMiVehiculo(indice, botonOrigen) {
   const vehiculoId = data.vehiculos[indice]?.id;
   if (!vehiculoId) return;
   const t = textoApp;
   const secciones = [
-    ["mantenimiento",t("Mantenimiento","Maintenance"),57,25],
-    ["seguro",t("Seguro","Insurance"),70,32],
-    ["registro",t("Registro","Registration"),63,40],
-    ["gasolina",t("Gasolina","Fuel"),79,52],
-    ["neumaticos",t("Neumáticos","Tires"),52,66],
-    ["aceite",t("Cambio de aceite","Oil change"),67,79],
-    ["bateria",t("Batería","Battery"),72,90]
+    ["mantenimiento",t("Mantenimiento","Maintenance")],
+    ["seguro",t("Seguro","Insurance")],
+    ["registro",t("Registro","Registration")],
+    ["gasolina",t("Gasolina","Fuel")],
+    ["neumaticos",t("Neumáticos","Tires")],
+    ["aceite",t("Cambio de aceite","Oil change")],
+    ["bateria",t("Batería","Battery")]
   ];
   const dialogo = document.createElement("dialog");
   dialogo.className = "mi-vehiculo";
   dialogo.dataset.vehiculo = vehiculoId;
-  const hyundai = /palisade/i.test([data.vehiculos[indice].nombre,data.vehiculos[indice].modelo].join(" "));
-  if (hyundai) dialogo.style.setProperty("--mv-acento","#518ab7");
+  const fotoOrigen = botonOrigen?.querySelector("img");
+  let cerrando = false;
+  let entradaEnCurso;
   dialogo.setAttribute("aria-labelledby","tituloMiVehiculo");
   document.body.append(dialogo);
   const actual = () => data.vehiculos.find(v=>v.id===vehiculoId);
@@ -10669,26 +10788,23 @@ function abrirMiVehiculo(indice) {
       zona.innerHTML = `<div class="mv-diagrama">${foto?`<img src="${safe(foto)}" alt="${safe(v.nombre)}">`:""}${secciones.map((s,i)=>{
         const y = 11+i*13;
         return `<button type="button" data-seccion="${i}" style="top:${y}%"><span>${s[1]}</span></button>`;
-      }).join("")}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${secciones.map((s,i)=>{
-        const y = 11+i*13;
-        return `<polyline points="36,${y} 40,${y} ${s[2]},${s[3]}"/>`;
-      }).join("")}</svg>${secciones.map(s=>`<i style="left:${s[2]}%;top:${s[3]}%"></i>`).join("")}</div>`;
-      zona.querySelectorAll("[data-seccion]").forEach(b=>b.onclick=()=>{activa=secciones[Number(b.dataset.seccion)];pintar()});
+      }).join("")}</div>`;
+      zona.querySelectorAll("[data-seccion]").forEach(b=>b.onclick=()=>{if(!cerrando){activa=secciones[Number(b.dataset.seccion)];pintar()}});
     } else {
       const historial = registros.filter(r=>r.tipo===activa[0]).sort((a,b)=>b.fecha.localeCompare(a.fecha));
       const total = historial.reduce((s,r)=>s+r.centavos,0)/100;
-      zona.innerHTML = `<form class="mv-form"><label>${t("Descripción","Description")}<input name="descripcion" required maxlength="160"></label><label>${t("Fecha","Date")}<input type="date" name="fecha" value="${today()}" required></label><label>${t("Kilometraje (km)","Odometer (km)")}<input type="number" name="km" min="0" step="1"></label><label>${t("Precio ($)","Cost ($)")}<input type="number" name="precio" min="0" step="0.01" required></label><button class="primary">${t("Guardar registro","Save entry")}</button></form>
-      <div class="mv-historial"><h3>${t("Historial de gastos","Expense history")}</h3><strong>${money(total)}</strong></div>${historial.length?historial.map(r=>`<div class="mv-registro"><div><b>${safe(r.descripcion)}</b><small>${safe(r.fecha)}${r.km!=null?" · "+safe(r.km)+" km":""}</small></div><strong>${money(r.centavos/100)}</strong></div>`).join(""):`<p>${t("Todavía no hay registros.","No entries yet.")}</p>`}`;
+      zona.innerHTML = `<form class="mv-form"><h3>${t("Nuevo registro","New entry")}</h3><label>${t("Descripción","Description")}<input name="descripcion" required maxlength="160"></label><label>${t("Fecha","Date")}<input type="date" name="fecha" value="${today()}" required></label><label>${t("Odómetro (mi)","Odometer (mi)")}<input type="number" inputmode="decimal" name="millas" min="0" step="0.01"></label><label>${t("Precio ($)","Cost ($)")}<input type="number" name="precio" min="0" step="0.01" required></label><button class="primary">${t("Guardar registro","Save entry")}</button></form>
+      <section class="mv-historia-panel"><div class="mv-historial"><h3>${t("Historial de gastos","Expense history")}</h3><strong>${money(total)}</strong></div>${historial.length?historial.map(r=>`<div class="mv-registro"><div><b>${safe(r.descripcion)}</b><small>${safe(r.fecha)}${distanciaRegistro(r)}</small></div><strong>${money(r.centavos/100)}</strong></div>`).join(""):`<p>${t("Todavía no hay registros.","No entries yet.")}</p>`}</section>`;
       zona.querySelector("form").onsubmit = e=>{
         e.preventDefault();
         const registro = new FormData(e.currentTarget);
         const descripcion = String(registro.get("descripcion")).trim();
         const fecha = String(registro.get("fecha"));
-        const km = registro.get("km")==="" ? null : Number(registro.get("km"));
+        const millas = registro.get("millas")==="" ? null : Number(registro.get("millas"));
         const centavos = Math.round(Number(registro.get("precio"))*100);
-        if (!descripcion || !validDate(fecha) || !Number.isSafeInteger(centavos) || centavos<0 || (km!==null && (!Number.isSafeInteger(km)||km<0))) {alert(t("Revisa los datos del registro.","Check the entry details."));return}
+        if (!descripcion || !validDate(fecha) || !Number.isSafeInteger(centavos) || centavos<0 || (millas!==null && (!Number.isFinite(millas)||millas<0))) {alert(t("Revisa los datos del registro.","Check the entry details."));return}
         if (!actual()) {dialogo.close();return}
-        const entrada = {id:id(),tipo:activa[0],descripcion,fecha,km,centavos};
+        const entrada = {id:id(),tipo:activa[0],descripcion,fecha,millas,centavos};
         const vehiculos = data.vehiculos.map(auto=>auto.id===vehiculoId?{...auto,bitacoraVehiculo:[...(auto.bitacoraVehiculo||[]),entrada]}:auto);
         if (guardarDatosExtra({vehiculos})) pintar();
       };
@@ -10696,8 +10812,15 @@ function abrirMiVehiculo(indice) {
     dialogo.scrollTop=0;
     dialogo.querySelector("h2").focus({preventScroll:true});
   }
-  function retroceder() {
-    if (!activa) {dialogo.close();return}
+  async function retroceder() {
+    if (cerrando) return;
+    if (!activa) {
+      cerrando=true;
+      await entradaEnCurso;
+      try { await transicionMiVehiculo(dialogo,fotoOrigen,true); }
+      finally { if(dialogo.open) dialogo.close(); }
+      return;
+    }
     const i = secciones.indexOf(activa);
     activa=null;pintar();dialogo.querySelector(`[data-seccion="${i}"]`).focus();
   }
@@ -10705,6 +10828,8 @@ function abrirMiVehiculo(indice) {
   dialogo.onclose = ()=>dialogo.remove();
   dialogo.showModal();
   pintar();
+  entradaEnCurso=transicionMiVehiculo(dialogo,fotoOrigen,false);
+
 }
 
 function fichaVehiculo(v,i){
@@ -10714,10 +10839,8 @@ function fichaVehiculo(v,i){
   const conocido=inicial>0 && v.saldo!=null && Number.isFinite(saldo);
   const pagado=Math.max(0,Math.min(inicial,inicial-saldo));
   const porcentaje=conocido?Math.round(pagado/inicial*100):0;
-  const foto=v.fotoGaleria||v.foto;
   return `<article class="auto-ficha" id="vehiculoResumen${i}" tabindex="-1">
-    <div class="ficha-cabeza"><h3>${t("Vehículo","Vehicle")}</h3><button type="button" id="verVehiculo${i}" aria-controls="prestamoVehiculo${i}" aria-expanded="false" onclick="mostrarDatosFicha(${i})">${t("Ver detalles ›","View details ›")}</button></div>
-    <div class="auto-identidad">${marcaDeFicha(v)}<div><strong>${safe(v.nombre)}</strong><small>${[v.anio,v.modelo].filter(Boolean).map(safe).join(" · ")}</small></div></div>
+    <div class="ficha-cabeza"><div class="auto-identidad">${marcaDeFicha(v)}<div><h3>${safe(v.nombre)}</h3><small>${[v.anio,v.modelo].filter(Boolean).map(safe).join(" · ")}</small></div></div><button type="button" id="verVehiculo${i}" aria-controls="prestamoVehiculo${i}" aria-expanded="false" onclick="mostrarDatosFicha(${i})">${t("Ver detalles ›","View details ›")}</button></div>
     ${fotoInteractiva(v,i,"foto-ficha")}
     <dl>${[[t("Precio","Price"),importe(v.precio)],[t("Pago mensual","Monthly payment"),importe(v.pago)],["APR",v.apr!=null && v.apr!==""?safe(v.apr)+"%":"—"],[t("Banco","Lender"),safe(v.banco||"—")]].map(([k,x])=>`<div><dt>${k}</dt><dd>${x}</dd></div>`).join("")}</dl>
     <div class="auto-saldos"><span><small>${t("Pagado","Paid")}</small><strong>${conocido?money(pagado):"—"}</strong></span>
@@ -15021,7 +15144,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.33 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.34 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -15219,6 +15342,7 @@ function iconoAjuste(tipo) {
     restaurar: ['0 -0.7 24 24', '<path d="M3 11a9 9 0 1 1 3 7"/><path d="M3 4v7h7"/><path d="M12 7v5l3 2"/>'],
     archivo: ['-1.3 -1.3 26.7 26.7', '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>'],
     inicio: ['0 0 24 24', '<path d="m3 10 9-7 9 7M5 9v10a2 2 0 0 0 2 2h3v-6h4v6h3a2 2 0 0 0 2-2V9"/>'],
+    disenoVehiculos: ['0 0 24 24','<path d="m4 11 2-6h12l2 6M3 11h18v7H3zM5 18v2m14-2v2M6 14h2m8 0h2"/>'],
     disenoInicio: ['0 0 24 24', '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 9v11M13 13h4M13 16h4"/>'],
     tarjetasInicio: ['0 0 24 24', '<rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="7" height="6" rx="2"/><rect x="14" y="14" width="7" height="6" rx="2"/>'],
     ordenBancos: ['0 0 24 24', '<path d="m3 9 9-5 9 5v1H3ZM6 13v4m6-4v4m6-4v4M3 20h18"/>'],
@@ -15251,7 +15375,6 @@ function ajustes() {
       textoApp("Apariencia", "Appearance"),
       Object.hasOwn(temaActual, tema) ? temaActual[tema] : textoApp("Tema automático", "Automatic theme")
     ],
-    ["disenoVehiculos",textoApp("Diseño de vehículos","Vehicle layout"),usaFichaVehiculo()?textoApp("Diseño nuevo","New layout"):textoApp("Diseño actual","Current layout")],
     ["microfono",textoApp("Micrófono","Microphone"),textoApp("Dictado, idioma y modelo del botón","Dictation, language and button style")],
     [
       "categorias",
@@ -15307,7 +15430,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.33 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.34 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -15316,10 +15439,10 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.33 Beta</p>
+    <p class="note">Balance One 0.7.34 Beta</p>
     <ul class="ajustes-novedades-lista">
-      <li>${t("Inicio y conexión más compactos, calendario por vistas y un diseño opcional para vehículos.",
-              "Refined home and connection panels, calendar views and an optional vehicle layout.")}</li>
+      <li>${t("Mi Vehículo estrena historial en millas y transiciones. El saludo de Inicio cambia con la hora.",
+              "My Vehicle adds mileage in miles and animated transitions. The Home greeting follows the time of day.")}</li>
     </ul>`, true);
 }
 
@@ -15543,7 +15666,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.33 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.34 Beta</span>
         </div>`
     }
   };
@@ -18427,6 +18550,7 @@ function etiquetaApariencia(tipo, configs) {
   if (tipo === "tipografia") return ["texto", "fuente"]
     .map(opcion => etiquetaApariencia(opcion, configs)).join(" · ");
   if (tipo === "inicio") return etiquetaDisenoInicio();
+  if (tipo === "disenoVehiculos") return usaFichaVehiculo()?textoApp("Diseño nuevo","New layout"):textoApp("Diseño actual","Current layout");
   if (tipo === "disenoCredito") return etiquetaDisenoCredito();
   if (tipo === "forma") return [
     configs.forma.opciones.find(([valor]) => valor === valorApariencia(configs.forma))[1],
@@ -18442,6 +18566,7 @@ function interfazApariencia() {
   const grupos = [
     [t("Pantallas", "Screens"), [
       ["inicio", "inicio", "abrirAjuste('inicio')"],
+      ["disenoVehiculos","disenoVehiculos","elegirDisenoVehiculos()",t("Diseño de vehículos","Vehicle layout")],
       ["disenoCredito", "ordenCredito", "abrirDisenoTarjetas()"],
       ["barraFlotante", "apariencia", "abrirPreferenciasBarra()"]
     ]],
@@ -22424,6 +22549,9 @@ const sincronizacionBalance = (() => {
 
 <script>
 instalarInclinacion();
+programarSaludo();
+window.addEventListener("pageshow",programarSaludo);
+document.addEventListener("visibilitychange",programarSaludo);
 document.addEventListener("visibilitychange",actualizarTasasVisibles);
 setInterval(actualizarTasasVisibles,60000);
 setInterval(()=>{if(!document.hidden && page==="inicio"){cabeceraInicio();refrescarAvisosAlReanudar();}},60000);
