@@ -196,3 +196,29 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
         confirmButton={TextButton(onClick={confirmDelete=false;delete()},enabled=!busy){Text("Eliminar")}},
         dismissButton={TextButton(onClick={confirmDelete=false}){Text("Cancelar")}})
 }
+
+@Composable
+internal fun BankDialog(old: JSONObject?, busy: Boolean, failure: String,
+    close: ()->Unit, save: (NativeFinance.BankDraft)->Unit) {
+    var name by remember { mutableStateOf(old?.optString("nombre") ?: "") }
+    var type by remember { mutableStateOf(old?.optString("tipo") ?: "cheques") }
+    var balance by remember { mutableStateOf(old?.optString("saldo") ?: "0.00") }
+    var goal by remember { mutableStateOf(old?.optString("meta")?.ifBlank { "0" } ?: "0") }
+    AlertDialog(onDismissRequest={if(!busy) close()},
+        title={Text(if(old==null) "Nueva cuenta bancaria" else "Editar cuenta")},
+        text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(name,{name=it},label={Text("Banco o nombre")},singleLine=true,enabled=!busy)
+            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                FilterChip(selected=type=="cheques",onClick={type="cheques"},label={Text("Cheques")},enabled=!busy)
+                FilterChip(selected=type=="ahorro",onClick={type="ahorro"},label={Text("Ahorros")},enabled=!busy)
+            }
+            OutlinedTextField(balance,{balance=it},label={Text(if(old==null) "Saldo inicial" else "Saldo actual")},singleLine=true,
+                keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),enabled=!busy)
+            OutlinedTextField(goal,{goal=it},label={Text("Meta")},singleLine=true,
+                keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),enabled=!busy)
+            if(old!=null) Text("Cambiar el saldo registra una corrección; no genera un ingreso ni gasto.")
+            if(failure.isNotBlank()) Text(failure,color=MaterialTheme.colorScheme.error)
+        }},
+        confirmButton={TextButton(onClick={save(NativeFinance.BankDraft(name,type,balance,goal))},enabled=!busy && name.isNotBlank()){Text("Guardar")}},
+        dismissButton={TextButton(onClick=close,enabled=!busy){Text("Cancelar")}})
+}
