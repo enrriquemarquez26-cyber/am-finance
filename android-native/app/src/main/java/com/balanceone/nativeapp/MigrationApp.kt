@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.balanceone.nativeapp.migration.LocalSnapshotStore
 import com.balanceone.nativeapp.migration.OriginalBackup
 import com.balanceone.nativeapp.migration.OriginalSummary
 import java.time.YearMonth
@@ -39,18 +40,44 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     var backup by remember { mutableStateOf<OriginalBackup?>(null) }
     var pending by remember { mutableStateOf<String?>(null) }
     var password by remember { mutableStateOf("") }
-    var busy by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(true) }
+    var candidate by remember { mutableStateOf<OriginalBackup?>(null) }
+    var confirmClear by remember { mutableStateOf(false) }
+    var storedCopy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var tab by remember { mutableIntStateOf(0) }
     var more by remember { mutableStateOf(false) }
     val sections = listOf("Inicio","Calendario","Vehículos","Tarjetas","Perfil","Cuentas","Metas","Suscripciones","Pagos","Deudas","Movimientos")
     val icons = listOf(Icons.Default.Home, Icons.Default.DateRange, Icons.Default.DirectionsCar, Icons.Default.CreditCard, Icons.Default.Person)
+    LaunchedEffect(Unit) {
+        try {
+            backup = withContext(Dispatchers.IO) { LocalSnapshotStore.load(context) }
+            storedCopy = backup != null
+        } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+        catch (_: Exception) {
+            storedCopy = true
+            error = "No se pudo recuperar la copia local. Puedes importar tu respaldo original; no se ha borrado nada."
+        } finally { busy = false }
+    }
+    fun saveCandidate(value: OriginalBackup) {
+        busy = true; error = ""
+        scope.launch {
+            try {
+                withContext(Dispatchers.IO) { LocalSnapshotStore.save(context,value) }
+                backup = value; storedCopy = true; candidate = null; tab = 0
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (_: Exception) {
+                candidate = null
+                error = "No se pudo guardar la copia local. Conserva tu archivo original."
+            } finally { busy = false }
+        }
+    }
     fun decode(raw: String, secret: CharArray? = null) {
         busy = true; error = ""
         scope.launch {
             try {
-                backup = withContext(Dispatchers.Default) { OriginalBackup.parse(raw,secret) }
-                pending = null; password = ""; tab = 0
+                candidate = withContext(Dispatchers.Default) { OriginalBackup.parse(raw,secret) }
+                pending = null; password = ""
             } catch (e: kotlinx.coroutines.CancellationException) { throw e }
             catch (_: Exception) { error = "No se pudo abrir la copia. Comprueba el formato o la contraseña." }
             finally { secret?.fill('\u0000'); busy = false }
@@ -122,7 +149,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 Card(shape = RoundedCornerShape(26.dp)) {
                     Column(Modifier.padding(20.dp),verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Abre tu Balance One existente",style = MaterialTheme.typography.titleLarge)
-                        Text("Selecciona una copia de seguridad de la versión web. Se mostrará en Android sin cambiar el archivo ni sus datos. Esta vista aún no permite editar ni sincronizar.")
+                        Text("Selecciona una copia de seguridad de la versión web. Android guardará una copia local cifrada después de tu confirmación. No cambiará el respaldo original. La edición y sincronización aún no están disponibles.")
                         Button(onClick = { picker.launch(arrayOf("application/json","application/octet-stream","text/plain")) },enabled = !busy) { Text("Abrir copia") }
                     }
                 }
@@ -215,12 +242,38 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                     }
                 } }
                 item { NativePanel("Copia de seguridad") {
-                    Text("Vista temporal, sin escritura. Los datos se liberan al cerrar el proceso.")
+                    Text("La copia importada se conserva cifrada en este dispositivo y se abre sin conexión. No se sincroniza con la web.")
                     Button(onClick = { picker.launch(arrayOf("application/json","application/octet-stream","text/plain")) },enabled = !busy) { Text("Abrir otra copia") }
-                    if (snapshot != null) TextButton(onClick = { backup = null }) { Text("Cerrar copia") }
+                    if (storedCopy) TextButton(enabled = !busy,onClick = { confirmClear = true }) { Text("Eliminar copia de este dispositivo") }
                 } }
             }
         }
+    }
+    candidate?.let { value ->
+        AlertDialog(onDismissRequest = { if (!busy) candidate = null },
+            title = { Text(if (storedCopy) "Reemplazar copia local" else "Guardar copia en Android") },
+            text = { Text("Movimientos: " + value.section("movimientos").size +
+                " · Cuentas: " + value.bank.size + " · Vehículos: " + value.section("vehiculos").size +
+                ". Se guardará el respaldo completo, incluidos los campos aún no visibles. Solo se reemplaza la copia local; tu archivo y la versión web no cambian.") },
+            confirmButton = { TextButton(enabled = !busy,onClick = { saveCandidate(value) }) { Text("Confirmar") } },
+            dismissButton = { TextButton(enabled = !busy,onClick = { candidate = null }) { Text("Cancelar") } })
+    }
+    if (confirmClear) {
+        AlertDialog(onDismissRequest = { if (!busy) confirmClear = false },
+            title = { Text("Eliminar copia local") },
+            text = { Text("Se eliminarán únicamente los datos importados de este dispositivo. Conserva el archivo original para volver a importarlo.") },
+            confirmButton = { TextButton(enabled = !busy,onClick = {
+                busy = true; error = ""
+                scope.launch {
+                    try {
+                        withContext(Dispatchers.IO) { LocalSnapshotStore.clear(context) }
+                        backup = null; storedCopy = false; tab = 0
+                    } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+                    catch (_: Exception) { error = "No se pudo eliminar la copia local." }
+                    finally { busy = false; confirmClear = false }
+                }
+            }) { Text("Eliminar") } },
+            dismissButton = { TextButton(enabled = !busy,onClick = { confirmClear = false }) { Text("Cancelar") } })
     }
     pending?.let { raw ->
         AlertDialog(onDismissRequest = { if (!busy) { pending = null; password = "" } },
