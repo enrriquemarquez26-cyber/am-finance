@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
             MaterialTheme(colorScheme = if (dark) darkColorScheme(
                 primary = Color(0xFFA9D9BC), background = Color.Black, surface = Color(0xFF141414)
             ) else lightColorScheme(primary = green, background = Color(0xFFF5F6F4), surface = Color.White)) {
-                BalanceApp(dao, appearance) {
+                MigrationApp(appearance) {
                     appearance = it
                     prefs.edit().putString("theme", it).apply()
                 }
