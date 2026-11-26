@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.balanceone.nativeapp.migration.LocalSnapshotStore
 import com.balanceone.nativeapp.migration.NativeCategories
+import com.balanceone.nativeapp.migration.ExpenseFavorites
 import com.balanceone.nativeapp.migration.NativeFinance
 import com.balanceone.nativeapp.migration.NativeOperations
 import com.balanceone.nativeapp.migration.NativeCredit
@@ -245,6 +246,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         if (obj.isNull(key)) return "—"
         return obj.optString(key).toBigDecimalOrNull()?.let { format.format(it) } ?: "—"
     }
+    val favorites = remember(snapshot) { snapshot?.let { runCatching { ExpenseFavorites.list(it) }.getOrNull() } }
     val categoryNames = remember(snapshot) { snapshot?.let(NativeCategories::labels).orEmpty() }
     val customIcons = remember(snapshot) { snapshot?.let(NativeCategories::custom).orEmpty().associate { it.value("id") to it.value("icono") } }
     val filteredMovements = remember(snapshot,query,from,through) {
@@ -366,6 +368,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
             if(snapshot!=null && tab==9) item { Button(onClick={openOperation("loan")},enabled=!busy){Text("Nuevo préstamo")} }
             if(snapshot != null && tab==10) item {
+                    TextButton(onClick={openOperation("favorites")},enabled=!busy){Text("Gastos favoritos")}
                     TextButton(onClick={openOperation("categories")},enabled=!busy){Text("Gestionar categorías")}
                 Column(verticalArrangement=Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(query,{query=it},label={Text("Buscar movimientos")},singleLine=true,modifier=Modifier.fillMaxWidth())
@@ -480,6 +483,15 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             TextButton(onClick={openOperation("editPayment",row)},enabled=!busy){Text("Editar pago")}
                             TextButton(onClick={openOperation("deletePayment",row)},enabled=!busy){Text("Eliminar pago")}
                         }
+                        if(tab==10 && favorites!=null) {
+                            val template = ExpenseFavorites.fromMovement(row)
+                            if(template!=null && row.value("id").isNotBlank()) {
+                                val saved = favorites.any(template::matches)
+                                TextButton(onClick={openOperation("addFavorite",row)},enabled=!busy && !saved){
+                                    Text(if(saved) "En favoritos" else "Guardar en favoritos")
+                                }
+                            }
+                        }
                         if(tab==10 && NativeFinance.editable(row)) TextButton(onClick={editMovement(row)},enabled=!busy) { Text("Editar") }
                         fields.forEach { (key,label) ->
                             if (key=="categoria" && tab==10 && row.value(key) in customIcons) {
@@ -535,6 +547,18 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     if(snapshot!=null) {
         val row=operationRow
         when(operationDialog) {
+            "favorites" -> FavoritesDialog(snapshot,favorites,busy,operationError,::closeOperation,remove={ index,favorite ->
+                commitOperation { ExpenseFavorites.remove(it,index,favorite) }
+            })
+            "addFavorite" -> if(row!=null) AlertDialog(onDismissRequest={ if(!busy) closeOperation() },
+                title={ Text("Guardar en favoritos") },
+                text={ Column {
+                    Text(row.value("nombre"))
+                    Text("Se guardarán el nombre, la categoría y el origen para el próximo gasto.")
+                    if(operationError.isNotBlank()) Text(operationError,color=MaterialTheme.colorScheme.error)
+                } },
+                confirmButton={ TextButton(onClick={ commitOperation { ExpenseFavorites.add(it,row.value("id")) } },enabled=!busy){ Text("Guardar") } },
+                dismissButton={ TextButton(onClick=::closeOperation,enabled=!busy){ Text("Cancelar") } })
             "categories" -> CategoriesDialog(snapshot,busy,operationError,::closeOperation) { original,name,icon ->
                 commitOperation { NativeCategories.save(it,original,name,icon) }
             }
@@ -618,7 +642,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         }
     }
     if(bankOpen && snapshot!=null) BankDialog(bankRow,busy,bankError,{ bankOpen=false; bankRow=null },{ commitBank(it) })
-    if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,busy,editError,{ editorOpen=false; edited=null },{ commitMovement(it) },{ commitMovement(null) })
+    if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,favorites,busy,editError,{ editorOpen=false; edited=null },{ commitMovement(it) },{ commitMovement(null) })
     candidate?.let { value ->
         AlertDialog(onDismissRequest = { if (!busy) candidate = null },
             title = { Text(if (storedCopy) "Reemplazar copia local" else "Guardar copia en Android") },

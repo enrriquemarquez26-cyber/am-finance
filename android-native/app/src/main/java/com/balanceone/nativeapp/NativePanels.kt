@@ -18,6 +18,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.balanceone.nativeapp.migration.NativeCategories
+import com.balanceone.nativeapp.migration.ExpenseFavorites
 import com.balanceone.nativeapp.migration.NativeFinance
 import com.balanceone.nativeapp.migration.NativeSubscriptions
 import com.balanceone.nativeapp.migration.OriginalBackup
@@ -170,7 +171,7 @@ internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String, bus
 }
 
 @Composable
-internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Boolean,
+internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, favorites: List<ExpenseFavorites.Favorite>?, busy: Boolean,
     failure: String, close: ()->Unit, save: (NativeFinance.Draft)->Unit, delete: ()->Unit) {
     fun field(key:String) = if(old==null || old.isNull(key)) "" else old.optString(key)
     var name by remember { mutableStateOf(field("nombre")) }
@@ -186,6 +187,7 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
     var processing by remember { mutableStateOf(false) }
     var installment by remember { mutableStateOf(old?.optBoolean("enPlanCuotas")==true) }
     var accountsOpen by remember { mutableStateOf(false) }
+    var pickFavorite by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     AlertDialog(onDismissRequest={if(!busy) close()},
         title={Text(if(old==null) "Nuevo movimiento" else "Editar movimiento")},
@@ -194,6 +196,8 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
                 listOf("gasto","ingreso").forEach { t -> FilterChip(selected=type==t,onClick={type=t;if(t=="ingreso") installment=false;if(t=="ingreso" && account.startsWith("credito:")) account=""},
                     label={Text(if(t=="gasto") "Gasto" else "Ingreso")},enabled=!busy) }
             }
+            if(old==null && type=="gasto" && !favorites.isNullOrEmpty())
+                TextButton(onClick={pickFavorite=true},enabled=!busy && !processing){Text("Usar un gasto favorito")}
             OutlinedTextField(name,{name=it},label={Text("Nombre")},singleLine=true,enabled=!busy)
             OutlinedTextField(amount,{amount=it},label={Text("Importe")},keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),singleLine=true,enabled=!busy)
             OutlinedTextField(date,{date=it},label={Text("Fecha (AAAA-MM-DD)")},singleLine=true,enabled=!busy)
@@ -227,6 +231,13 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
         confirmButton={TextButton(onClick={save(NativeFinance.Draft(name,type,amount,date,category,account.takeUnless { it.startsWith("credito:") }.orEmpty(),project,account.removePrefix("credito:").takeIf { account.startsWith("credito:") }.orEmpty(),receipt,installment))},
             enabled=!busy && !processing && account.isNotBlank() && name.isNotBlank()) { Text("Guardar") }},
         dismissButton={TextButton(onClick=close,enabled=!busy) { Text("Cancelar") }})
+    if(pickFavorite) FavoritesDialog(snapshot,favorites,busy,"",{pickFavorite=false},select={ favorite ->
+        name=favorite.name
+        category=favorite.category
+        account=favorite.source.takeIf { source -> sources.any { it.first==source } }.orEmpty()
+        installment=false
+        pickFavorite=false
+    })
     if(confirmDelete) AlertDialog(onDismissRequest={confirmDelete=false},title={Text("Eliminar movimiento")},
         text={Text("Se revertirá su efecto sobre el saldo de la cuenta local.")},
         confirmButton={TextButton(onClick={confirmDelete=false;delete()},enabled=!busy){Text("Eliminar")}},

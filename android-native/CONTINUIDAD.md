@@ -109,3 +109,7 @@ En cada entrega que cambie la aplicación, incrementar la versión visible y el 
 - Perfil y Movimientos permiten crear categorías de gasto, elegir su icono y cambiar nombre o icono. Se conserva el identificador al editar, se validan nombres y alias y se mantiene el formato de categoriasPersonales de la web.
 - El formulario de gastos conserva la entrada de texto y permite elegir categorías del catálogo. Movimientos busca por nombre visible y muestra el icono de las categorías personales. Presupuestos, el resumen por categoría y el cálculo de reembolsos usan el catálogo compartido.
 - Sin compilar ni ejecutar pruebas ni abrir la APK por indicación del usuario.
+
+## 0.2.6 Beta · gastos favoritos (versionCode 8)
+- Movimientos permite añadir gastos al catálogo favoritosGasto y quitar plantillas. Nuevo movimiento permite reutilizar nombre, categoría y origen de un favorito desde Inicio o Movimientos. Una cuenta ausente se debe volver a elegir. El importe y la fecha del formulario se conservan. Guardar el movimiento sigue siendo una acción explícita.
+- Se conserva el formato de copias de la web y la equivalencia de nombres para detectar duplicados. Gestionar una plantilla no cambia transacciones ni saldos. Sin compilar, ejecutar pruebas ni abrir la APK por indicación del usuario.
