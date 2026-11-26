@@ -129,6 +129,20 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             error = "No se pudo recuperar la copia local. Puedes importar tu respaldo original; no se ha borrado nada."
         } finally { busy = false }
     }
+    fun startEmpty() {
+        if (busy || storedCopy || backup != null) return
+        busy = true; error = ""
+        scope.launch {
+            try {
+                backup = withContext(Dispatchers.IO) { LocalSnapshotStore.createEmpty(context) }
+                storedCopy = true; tab = 0
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (_: Exception) {
+                storedCopy = true
+                error = "No se pudo iniciar una copia nueva. No se ha reemplazado ninguna copia existente."
+            } finally { busy = false }
+        }
+    }
     fun saveCandidate(value: OriginalBackup) {
         busy = true; error = ""
         scope.launch {
@@ -253,9 +267,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             if (snapshot == null) item {
                 Card(shape = RoundedCornerShape(26.dp)) {
                     Column(Modifier.padding(20.dp),verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Abre tu Balance One existente",style = MaterialTheme.typography.titleLarge)
-                        Text("Selecciona una copia de seguridad de la versión web. Android guardará una copia local cifrada después de tu confirmación. No cambiará el respaldo original. Puedes editar movimientos bancarios comunes localmente. La sincronización aún no está disponible.")
+                        Text(if (storedCopy) "Recupera tu Balance One" else "Bienvenido a Balance One",style = MaterialTheme.typography.titleLarge)
+                        Text("Abre una copia de seguridad de la versión web para conservar tus datos, o comienza sin datos si es tu primera vez. La copia se guarda cifrada en Android y funciona sin conexión. La sincronización aún no está disponible.")
                         Button(onClick = { picker.launch(arrayOf("application/json","application/octet-stream","text/plain")) },enabled = !busy) { Text("Abrir copia") }
+                        if (!storedCopy) OutlinedButton(onClick = { startEmpty() },enabled = !busy) { Text("Empezar sin datos") }
                     }
                 }
             }
