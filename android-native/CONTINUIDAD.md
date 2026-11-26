@@ -21,3 +21,12 @@ Se agregó .github/workflows/android-native.yml en esta rama para compilar una A
 5. Pruebas, accesibilidad, icono original, widget nativo, biometría si procede, firma y APK release. Mantener Free/Pro según web; no activar cobros sin aprobación.
 ## Para continuar en otro chat
 Pega: «Continúa Balance One Android nativo desde la rama android-native de enrriquemarquez26-cyber/am-finance. Lee android-native/CONTINUIDAD.md y el último commit, comprueba qué existe y qué se ha probado; retoma la primera tarea pendiente. Actualiza CONTINUIDAD.md con cada avance. No toques main ni uses WebView».
+
+
+## Continuación — segunda sesión, 2026-11-26
+- Se verificó la rama existente y el blob original de 23.165 líneas. No se modificó main.
+- OriginalSummary.kt porta la regla de gastos del mes (10525–10564: excluye los pagos de tarjetas para evitar duplicar gastos) y el resumen de metas (16866–16912: aportes menos retiros o saldo de cuenta de ahorro vinculada). Usa centavos y no inventa cero si el cálculo falla.
+- MigrationApp muestra el gasto del mes y el progreso de metas en la vista nativa de comprobación, aún de solo lectura; no representa todavía el diseño completo original.
+- Se añadieron pruebas JVM con datos sintéticos: exclusión de abonos de tarjeta, fechas inválidas, metas manuales/vinculadas, cuenta ausente, respaldo v1/v2 y campos desconocidos, cifrado compatible y contraseña incorrecta. La dependencia JSON es exclusiva de tests. El lector usa java.util.Base64 (minSdk 26).
+- Último cambio de código: 1b61759e846db8991f29286e94e62b76b274a4c1. Pruebas escritas, NO ejecutadas; no hay SDK Android ni Gradle en este entorno. NO afirmar que hay APK disponible.
+- Retomar verificando GitHub Actions y los tests; corregir fallos antes de instalar. Después portar persistencia local segura del snapshot completo, con confirmación de importación, cifrado local, recuperación y sin escritura Firebase. Continuar los diseños y las invariantes originales por módulo. No activar sincronización ni usar datos reales hasta validar.
