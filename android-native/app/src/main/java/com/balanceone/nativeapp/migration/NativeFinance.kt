@@ -57,10 +57,10 @@ internal object NativeFinance {
     fun editable(row: JSONObject): Boolean {
         if(field(row,"id").isBlank() || field(row,"tipo") !in setOf("gasto","ingreso")) return false
         if(row.keys().asSequence().any { it !in ordinaryFields }) return false
-        if(listOf("tarjetaId","vehiculoId","autoId","tipoGastoAuto","categoriaAuto","vehiculoCategoria","servicioAuto")
+        if(listOf("vehiculoId","autoId","tipoGastoAuto","categoriaAuto","vehiculoCategoria","servicioAuto")
             .any { field(row,it).isNotBlank() }) return false
         if(row.optBoolean("enPlanCuotas") || field(row,"origen") in setOf("transferencia","pago")) return false
-        return true
+        return field(row,"tarjetaId").isBlank() || (field(row,"cuentaId").isBlank() && field(row,"tipo")=="gasto")
     }
     data class BankDraft(val name: String,val type: String,val balance: String,val goal: String)
     fun changeBank(b: OriginalBackup, id: String?, draft: BankDraft): OriginalBackup {
@@ -112,7 +112,7 @@ internal object NativeFinance {
     }
 
     data class Draft(val name: String,val type: String,val amount: String,val date: String,
-        val category: String,val accountId: String,val project: String)
+        val category: String,val accountId: String,val project: String,val cardId: String = "",val receipt:String?=null)
     fun change(b: OriginalBackup, previousId: String?, draft: Draft?): OriginalBackup {
         require(previousId != null || draft != null)
         val root = JSONObject(b.root.toString())
@@ -126,11 +126,19 @@ internal object NativeFinance {
             require(it.name.trim().isNotEmpty() && it.name.length <= 80) { "Introduce un nombre válido" }
             require(it.type in setOf("gasto","ingreso"))
             require(LocalDate.parse(it.date).toString() == it.date)
-            require(it.accountId.isNotBlank()) { "Selecciona una cuenta bancaria" }
+            require(it.accountId.isBlank() != it.cardId.isBlank()) { "Selecciona un origen" }
+            require(it.cardId.isBlank() || it.type=="gasto") { "Elige una cuenta bancaria para el ingreso" }
             require(it.project.length <= 60 && it.category.length <= 80)
             val row = old?.let { JSONObject(it.toString()) } ?: JSONObject().put("id",UUID.randomUUID().toString())
+            it.receipt?.let { receipt ->
+                require(receipt.isBlank() || (receipt.length<=180000 && receipt.matches(Regex("^data:image/jpeg;base64,[A-Za-z0-9+/]+={0,2}$")))) { "Recibo inválido" }
+                if(receipt.isBlank()) row.remove("recibo") else row.put("recibo",receipt)
+            }
+            row.remove("cuentaId")
+            row.remove("tarjetaId")
+            if(it.cardId.isNotBlank()) row.put("tarjetaId",it.cardId) else row.put("cuentaId",it.accountId)
             row.put("nombre",it.name.trim()).put("tipo",it.type).put("monto",decimal(cents(it.amount)))
-                .put("fecha",it.date).put("categoria",it.category.trim()).put("cuentaId",it.accountId)
+                .put("fecha",it.date).put("categoria",it.category.trim())
                 .put("proyecto",it.project.trim()).put("enPlanCuotas",false)
             row
         }
@@ -138,7 +146,7 @@ internal object NativeFinance {
         fun signature(r: JSONObject?): List<String>? {
             if(r == null || field(r,"tipo") != "gasto") return null
             return listOf(field(r,"nombre").trim().lowercase(java.util.Locale.ROOT),field(r,"cuentaId"),
-                field(r,"fecha"),cents(field(r,"monto")).toString())
+                field(r,"tarjetaId"),field(r,"fecha"),cents(field(r,"monto")).toString())
         }
         val sig = signature(new)
         if(sig != null && sig != signature(old)) require((0 until moves.length()).none {
@@ -146,9 +154,15 @@ internal object NativeFinance {
             field(r,"id") != previousId && runCatching { signature(r) == sig }.getOrDefault(false)
         }) { "Ya existe un gasto con el mismo nombre, fecha, importe y cuenta" }
         val changes = mutableMapOf<String,Long>()
+        val debtChanges = mutableMapOf<String,Long>()
         fun accumulate(row: JSONObject?, sign: Long) {
             if(row == null) return
             val id = field(row,"cuentaId")
+            val card = field(row,"tarjetaId")
+            if(card.isNotBlank()) {
+                require(id.isBlank() && field(row,"tipo")=="gasto") { "Compra de tarjeta inválida" }
+                debtChanges[card] = add(debtChanges[card] ?: 0, cents(field(row,"monto")) * sign)
+            }
             if(id.isBlank()) return
             val effect = cents(field(row,"monto")) * (if(field(row,"tipo") == "ingreso") 1 else -1) * sign
             changes[id] = add(changes[id] ?: 0,effect)
@@ -161,6 +175,16 @@ internal object NativeFinance {
             val balance = add(bankBalance(field(account,"saldo")),delta)
             require(balance >= 0) { "Saldo insuficiente" }
             account.put("saldo",decimal(balance))
+        }
+        val cards = data.getJSONArray("tarjetas")
+        debtChanges.forEach { (id, delta) ->
+            val card = (0 until cards.length()).map { cards.getJSONObject(it) }.singleOrNull { field(it,"id")==id }
+                ?: throw IllegalArgumentException("Tarjeta no disponible")
+            val next = add(cents(field(card,"saldo"), true), delta)
+            require(next >= 0) { "La deuda de la tarjeta quedaría negativa" }
+            val limit = cents(field(card,"limite").ifBlank { "0" }, true)
+            require(delta <= 0 || limit == 0L || next <= limit) { "Crédito disponible insuficiente" }
+            card.put("saldo",decimal(next))
         }
         val updated = JSONArray()
         for(i in 0 until moves.length()) {

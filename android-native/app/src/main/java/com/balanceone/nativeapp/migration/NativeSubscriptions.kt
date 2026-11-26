@@ -96,6 +96,27 @@ internal object NativeSubscriptions {
             Due(field(row,"id"),field(row,"nombre"),day,total)
         }
     }
+    fun recorded(b: OriginalBackup, id: String, day: LocalDate) =
+        b.section("movimientos").any { field(it,"suscripcionId")==id && field(it,"vencimientoSuscripcion")==day.toString() }
+
+    fun register(b: OriginalBackup, id: String, day: LocalDate, amount: String, source: String): OriginalBackup {
+        val subscription = b.section("suscripciones").singleOrNull { field(it,"id")==id && id.isNotBlank() }
+            ?: throw IllegalArgumentException("Suscripción no encontrada")
+        require(due(subscription,YearMonth.from(day)).any { it.date == day }) { "Fecha fuera del calendario de cobros" }
+        require(!recorded(b,id,day)) { "Este vencimiento ya está registrado" }
+        val category = when(field(subscription,"categoria")) {
+            "servicios" -> "Servicios"
+            "renta" -> "Renta"
+            else -> "Suscripciones"
+        }
+        val card = source.startsWith("credito:")
+        val result = NativeFinance.change(b,null,NativeFinance.Draft(field(subscription,"nombre"),"gasto",amount,
+            day.toString(),category,if(card) "" else source,"",if(card) source.removePrefix("credito:") else ""))
+        val moves = result.data.getJSONArray("movimientos")
+        moves.getJSONObject(moves.length()-1).put("suscripcionId",subscription.get("id")).put("vencimientoSuscripcion",day.toString())
+        return result
+    }
+
     fun invoice(b:OriginalBackup,id:String,day:LocalDate,amount:String)=edit(b,id){row->
         require(field(row,"categoria")=="servicios" && due(row,YearMonth.from(day)).any{it.date==day}) {"La factura no corresponde a un vencimiento"}
         val bills=row.optJSONObject("facturas") ?: JSONObject().also{row.put("facturas",it)}

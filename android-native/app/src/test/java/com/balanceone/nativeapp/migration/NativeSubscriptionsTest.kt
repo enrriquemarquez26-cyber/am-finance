@@ -37,4 +37,19 @@ class NativeSubscriptionsTest {
     @Test(expected=IllegalArgumentException::class) fun loanNeedsEnd() {
         NativeSubscriptions.save(OriginalBackup.empty(),null,draft("prestamo"))
     }
+
+    @Test fun calendarExpenseIsLinkedToOneDueDateAndOneCreditBalance() {
+        val base = NativeSubscriptions.save(OriginalBackup.empty(),null,draft())
+        val b = NativeCredit.edit(base,"tarjeta",null,NativeCredit.DebtDraft("Tarjeta","0","100","0","1","","","","",""))
+        val card = b.section("tarjetas").single().getString("id")
+        val id = b.section("suscripciones").single().getString("id")
+        val date = LocalDate.of(2026,2,28)
+        val paid = NativeSubscriptions.register(b,id,date,"25.60","credito:"+card)
+        assertEquals(25.6,paid.section("tarjetas").single().getDouble("saldo"),0.0)
+        assertEquals(2560,NativeFinance.totals(paid,date,date).expense)
+        assertTrue(NativeSubscriptions.recorded(paid,id,date))
+        assertFalse(NativeFinance.editable(paid.section("movimientos").single()))
+        assertThrows(IllegalArgumentException::class.java) { NativeSubscriptions.register(paid,id,date,"25.60","credito:"+card) }
+        assertEquals(0.0,b.section("tarjetas").single().getDouble("saldo"),0.0)
+    }
 }

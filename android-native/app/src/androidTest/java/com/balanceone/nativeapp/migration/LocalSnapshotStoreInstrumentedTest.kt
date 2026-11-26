@@ -103,4 +103,13 @@ class LocalSnapshotStoreInstrumentedTest {
         file.writeBytes(original)
         assertEquals("Intacta", LocalSnapshotStore.load(context)!!.bank.single().getString("nombre"))
     }
+
+    @Test fun staleEditorCannotOverwriteANewerRevision() {
+        val original = sample("Inicial")
+        LocalSnapshotStore.save(context,original)
+        val latest = sample("Actualizada")
+        LocalSnapshotStore.saveChange(context,original,latest)
+        assertTrue(runCatching { LocalSnapshotStore.saveChange(context,original,sample("Obsoleta")) }.isFailure)
+        assertEquals("Actualizada",LocalSnapshotStore.load(context)!!.bank.single().getString("nombre"))
+    }
 }

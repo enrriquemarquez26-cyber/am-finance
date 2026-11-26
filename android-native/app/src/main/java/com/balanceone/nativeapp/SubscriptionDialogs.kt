@@ -117,3 +117,21 @@ internal fun SubscriptionInvoiceDialog(row:JSONObject,busy:Boolean,error:String,
         confirmButton={TextButton(enabled=!busy && day!=null && amount.isNotBlank(),onClick={day?.let{save(it,amount)}}){Text("Guardar")}},
         dismissButton={TextButton(enabled=!busy,onClick=close){Text("Cancelar")}})
 }
+
+@Composable
+internal fun RecordDueDialog(snapshot: com.balanceone.nativeapp.migration.OriginalBackup,row:JSONObject,
+    due:NativeSubscriptions.Due,busy:Boolean,error:String,close:()->Unit,save:(String,String)->Unit) {
+    val options = snapshot.bank.associate { it.optString("id") to it.optString("nombre") } +
+        snapshot.section("tarjetas").associate { "credito:"+it.optString("id") to it.optString("nombre")+" · Crédito" }
+    var source by remember { mutableStateOf(field(row,"origenPreferido").takeIf { it in options }.orEmpty()) }
+    var amount by remember { mutableStateOf(due.cents?.let { java.math.BigDecimal.valueOf(it,2).toPlainString() }.orEmpty()) }
+    AlertDialog(onDismissRequest={if(!busy)close()},title={Text("Registrar gasto")},text={
+        Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            Text(due.name+" · "+due.date)
+            Choice("Origen",source,options,!busy){source=it}
+            OutlinedTextField(amount,{amount=it},label={Text("Importe pagado")},enabled=!busy,singleLine=true)
+            if(error.isNotBlank()) Text(error,color=MaterialTheme.colorScheme.error)
+        }
+    },confirmButton={TextButton(enabled=!busy && source in options && amount.isNotBlank(),onClick={save(amount,source)}){Text("Guardar gasto")}},
+      dismissButton={TextButton(enabled=!busy,onClick=close){Text("Cancelar")}})
+}

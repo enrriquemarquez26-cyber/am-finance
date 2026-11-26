@@ -79,6 +79,14 @@ internal object LocalSnapshotStore {
         }
     }
 
+    @Synchronized
+    fun saveChange(context: Context, previous: OriginalBackup, next: OriginalBackup) {
+        require(load(context)?.root?.toString() == previous.root.toString()) {
+            "Los datos cambiaron en otra ventana. Vuelve a abrir Balance One para cargar la copia más reciente."
+        }
+        save(context,next)
+    }
+
     /** Never replace an existing or unreadable snapshot when starting a new workspace. */
     @Synchronized
     fun createEmpty(context: Context): OriginalBackup {

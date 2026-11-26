@@ -65,7 +65,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             try {
                 val updated=withContext(Dispatchers.IO) {
                     val value=NativeFinance.changeBank(current,id,draft)
-                    LocalSnapshotStore.save(context,value)
+                    LocalSnapshotStore.saveChange(context,current,value)
                     value
                 }
                 backup=updated; bankOpen=false; bankRow=null
@@ -88,7 +88,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             try {
                 val updated=withContext(Dispatchers.IO) {
                     val value=NativeFinance.change(current,id,draft)
-                    LocalSnapshotStore.save(context,value)
+                    LocalSnapshotStore.saveChange(context,current,value)
                     value
                 }
                 backup=updated; editorOpen=false; edited=null
@@ -100,6 +100,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     }
     var operationDialog by remember { mutableStateOf("") }
     var operationRow by remember { mutableStateOf<JSONObject?>(null) }
+    var selectedDue by remember { mutableStateOf<NativeSubscriptions.Due?>(null) }
     var operationError by remember { mutableStateOf("") }
     fun openOperation(kind:String,row:JSONObject?=null) { operationDialog=kind; operationRow=row; operationError="" }
     fun closeOperation() { operationDialog=""; operationRow=null; operationError="" }
@@ -111,7 +112,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             try {
                 val updated=withContext(Dispatchers.IO) {
                     val value=transform(current)
-                    LocalSnapshotStore.save(context,value)
+                    LocalSnapshotStore.saveChange(context,current,value)
                     value
                 }
                 backup=updated; closeOperation()
@@ -121,7 +122,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             finally { busy=false }
         }
     }
-    val sections = listOf("Inicio","Calendario","Vehículos","Tarjetas","Perfil","Cuentas","Metas","Suscripciones","Pagos","Deudas","Movimientos")
+    var query by rememberSaveable { mutableStateOf("") }
+    var from by rememberSaveable { mutableStateOf("") }
+    var through by rememberSaveable { mutableStateOf("") }
+    val sections = listOf("Inicio","Calendario","Vehículos","Tarjetas","Perfil","Cuentas","Metas","Suscripciones","Pagos","Deudas","Movimientos","Calculadora")
     val icons = listOf(Icons.Default.Home, Icons.Default.DateRange, Icons.Default.DirectionsCar, Icons.Default.CreditCard, Icons.Default.Person)
     LaunchedEffect(Unit) {
         try {
@@ -240,6 +244,13 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         if (obj.isNull(key)) return "—"
         return obj.optString(key).toBigDecimalOrNull()?.let { format.format(it) } ?: "—"
     }
+    val filteredMovements = remember(snapshot,query,from,through) {
+                        snapshot?.section("movimientos").orEmpty().filter { row ->
+                            val date = row.optString("fecha")
+                            listOf("nombre","categoria","proyecto","monto").any { row.optString(it).contains(query.trim(),ignoreCase=true) } &&
+                                (from.isBlank() || date >= from) && (through.isBlank() || date <= through)
+                        }.sortedByDescending { it.optString("fecha") }
+                    }
     Scaffold(containerColor = MaterialTheme.colorScheme.background, bottomBar = {
         Surface(shape = RoundedCornerShape(32.dp), tonalElevation = 2.dp,
             modifier = Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
@@ -268,7 +279,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
             if (busy) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (error.isNotEmpty()) item { Text(error,color = MaterialTheme.colorScheme.error) }
-            if (snapshot == null) item {
+            if (snapshot == null && tab != 4 && tab != 11) item {
                 Card(shape = RoundedCornerShape(26.dp)) {
                     Column(Modifier.padding(20.dp),verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(if (storedCopy) "Recupera tu Balance One" else "Bienvenido a Balance One",style = MaterialTheme.typography.titleLarge)
@@ -280,7 +291,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
             if (snapshot != null && tab == 0) {
                 item { Panorama(snapshot,::money) }
-                item { Button(onClick={editMovement()},enabled=!busy && snapshot.bank.isNotEmpty()) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
+                item { Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
                 item {
                     val month = YearMonth.now()
                     val total = remember(snapshot, month) {
@@ -315,19 +326,37 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                     TextButton(onClick = { tab = 3 }) { Text("Ver tarjetas") }
                 } }
                 item { NativePanel("Vehículos") {
-                    snapshot.section("vehiculos").take(3).forEach { Text(listOf(it.optString("nombre"),it.optString("modelo")).joinToString(" ")) }
+                    snapshot.section("vehiculos").forEach { vehicle ->
+                        TextButton(onClick={openOperation("vehicleDetail",vehicle)}) {
+                            VehicleArt(vehicle,Modifier.widthIn(max=150.dp).height(92.dp))
+                            Column { Text(vehicle.optString("nombre")+" "+vehicle.optString("modelo"));Text(amount(vehicle,"pago")+" / mes") }
+                        }
+                    }
                     TextButton(onClick = { tab = 2 }) { Text("Ver vehículos") }
                 } }
             }
-            if (snapshot != null && tab == 1) item { NativeCalendar(snapshot,::money) }
+            if (snapshot != null && tab == 1) item { NativeCalendar(snapshot,::money,busy) { due ->
+                selectedDue=due;openOperation("recordDue",snapshot.section("suscripciones").singleOrNull { it.optString("id")==due.id })
+            } }
             if(snapshot != null && tab == 5) item { Button(onClick={editBank()},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva cuenta") } }
             if(snapshot!=null && (tab==2 || tab==3)) item { Button(onClick={openOperation(if(tab==2) "vehicle" else "card")},enabled=!busy){Icon(Icons.Default.Add,null);Text(if(tab==2) "Nuevo vehículo" else "Nueva tarjeta")} }
             if(snapshot != null && tab == 6) item { Button(onClick={openOperation("goal")},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva meta") } }
             if(snapshot != null && tab == 7) item { Button(onClick={openOperation("subscription")},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nuevo cobro previsto") } }
-            if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && snapshot.bank.isNotEmpty()) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
-            if (snapshot != null && tab != 0 && tab != 4 && tab != 1) {
+            if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
+            if(snapshot != null && tab==10) item {
+                Column(verticalArrangement=Arrangement.spacedBy(6.dp)) {
+                    OutlinedTextField(query,{query=it},label={Text("Buscar movimientos")},singleLine=true,modifier=Modifier.fillMaxWidth())
+                    Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                        OutlinedTextField(from,{from=it},label={Text("Desde")},placeholder={Text("AAAA-MM-DD")},singleLine=true,modifier=Modifier.weight(1f))
+                        OutlinedTextField(through,{through=it},label={Text("Hasta")},placeholder={Text("AAAA-MM-DD")},singleLine=true,modifier=Modifier.weight(1f))
+                    }
+                    if(listOf(from,through).any { it.isNotBlank() && runCatching { java.time.LocalDate.parse(it) }.isFailure } ||
+                       (from.isNotBlank() && through.isNotBlank() && from>through)) Text("Revisa las fechas del filtro (AAAA-MM-DD).")
+                }
+            }
+            if (snapshot != null && tab in 2..10 && tab != 4) {
                 val rows = when(tab) {
-                    1,10 -> snapshot.section("movimientos").sortedByDescending { it.optString("fecha") }
+                    10 -> filteredMovements
                     2 -> snapshot.section("vehiculos")
                     3 -> snapshot.section("tarjetas")
                     5 -> snapshot.bank
@@ -337,16 +366,24 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                     9 -> snapshot.section("prestamos")
                     else -> emptyList()
                 }
-                if (rows.isEmpty()) item { Text("No hay registros en esta sección de la copia.") }
+                if (rows.isEmpty()) item { Text(if(tab==10 && (query.isNotBlank() || from.isNotBlank() || through.isNotBlank())) "Sin resultados para este filtro." else "Sin registros.") }
                 items(rows) { row ->
                     NativePanel(row.optString("nombre").ifBlank { row.optString("fecha").ifBlank { "Registro" } }) {
                         val fields = when(tab) {
                             2 -> listOf("modelo" to "Modelo","anio" to "Año","pago" to "Pago mensual","saldo" to "Restante")
-                            3 -> listOf("modelo" to "Modelo","saldo" to "Deuda actual","limite" to "Límite","ultimos4" to "Últimos cuatro")
+                            3 -> listOf("modelo" to "Modelo","saldo" to "Deuda actual","limite" to "Límite","ultimos4" to "Últimos cuatro","apr" to "APR (%)","diaCorte" to "Día de corte","vencimiento" to "Vencimiento","pagoMinimo" to "Pago mínimo")
                             5 -> listOf("tipo" to "Tipo","saldo" to "Saldo","meta" to "Meta")
                             7 -> listOf("categoria" to "Categoría","frecuencia" to "Frecuencia","inicio" to "Inicio","fin" to "Fin")
                             else -> listOf("fecha" to "Fecha","tipo" to "Tipo","categoria" to "Categoría","monto" to "Importe")
                         }
+                        if(tab==2) {
+                            TextButton(onClick={openOperation("vehicleDetail",row)}) {
+                                VehicleArt(row,Modifier.weight(1f).heightIn(max=168.dp))
+                                Text("Ver detalles")
+                            }
+                        }
+                        if(tab==3) OfflineArtwork(row.optString("imagenPersonalizada"),cardArt(row),row.optString("nombre"),Modifier.fillMaxWidth().heightIn(max=160.dp))
+                        if(tab==10 && !row.isNull("recibo") && row.optString("recibo").isNotBlank()) TextButton(onClick={openOperation("receipt",row)}) {Text("Ver recibo")}
                         if (tab == 6) {
                             val goal = remember(snapshot,row) {
                                 runCatching { OriginalSummary.goal(row,snapshot.bank) }.getOrNull()
@@ -372,6 +409,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                     val ratio=(used.toDouble()/limit.toDouble()).coerceIn(0.0,1.0).toFloat()
                                     LinearProgressIndicator(progress={ratio},modifier=Modifier.fillMaxWidth())
                                     Text("Crédito disponible: "+format.format(limit.subtract(used)))
+                                    Text("Utilización · "+java.math.BigDecimal.valueOf(100).multiply(used).divide(limit,1,java.math.RoundingMode.HALF_UP).toPlainString()+"%")
                                 }
                             }
                         }
@@ -399,11 +437,12 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         }
                         if(tab==10 && NativeFinance.editable(row)) TextButton(onClick={editMovement(row)},enabled=!busy) { Text("Editar") }
                         fields.forEach { (key,label) ->
-                            if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto")) amount(row,key) else row.optString(key))
+                            if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto","pagoMinimo")) amount(row,key) else row.optString(key))
                         }
                     }
                 }
             }
+            if (tab == 11) item { CalculatorPanel { format.format(it) } }
             if (tab == 4) {
                 item { NativePanel("Apariencia") {
                     listOf("Sistema","Claro","Oscuro").forEach { mode ->
@@ -436,6 +475,15 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     if(snapshot!=null) {
         val row=operationRow
         when(operationDialog) {
+            "receipt" -> if(row!=null) AlertDialog(onDismissRequest=::closeOperation,title={Text("Recibo")},
+                text={OfflineArtwork(row.optString("recibo"),null,"Foto del recibo",Modifier.fillMaxWidth().heightIn(max=440.dp))},
+                confirmButton={TextButton(onClick=::closeOperation){Text("Cerrar")}})
+            "vehicleDetail" -> if(row!=null) VehicleDetailDialog(snapshot,row,::amount,::closeOperation)
+            "recordDue" -> selectedDue?.let { due ->
+                if(row!=null) RecordDueDialog(snapshot,row,due,busy,operationError,::closeOperation) { amount,source ->
+                    commitOperation { NativeSubscriptions.register(it,due.id,due.date,amount,source) }
+                }
+            }
             "editPayment" -> if (row != null) {
                 val card = snapshot.section("tarjetas").singleOrNull { it.optString("id") == row.optString("cuentaId") }
                 if (card != null) DebtPaymentDialog(snapshot,"tarjeta",card,busy,operationError,::closeOperation,row) { draft ->

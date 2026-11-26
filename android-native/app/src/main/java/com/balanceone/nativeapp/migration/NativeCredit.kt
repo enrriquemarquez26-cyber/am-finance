@@ -34,7 +34,7 @@ internal object NativeCredit {
         return n
     }
     data class DebtDraft(val name:String,val balance:String,val limitOrPayment:String,val apr:String,
-        val due:String,val bank:String,val model:String,val extra:String,val closing:String="",val minimum:String="")
+        val due:String,val bank:String,val model:String,val extra:String,val closing:String="",val minimum:String="",val photo:String?=null,val price:String?=null,val financed:String?=null)
     fun edit(b:OriginalBackup,type:String,previous:String?,draft:DebtDraft):OriginalBackup {
         require(type in setOf("tarjeta","vehiculo"))
         require(draft.name.trim().isNotEmpty() && draft.name.trim().length<=80) { "Nombre inválido" }
@@ -43,6 +43,13 @@ internal object NativeCredit {
         val list=data.getJSONArray(if(type=="tarjeta") "tarjetas" else "vehiculos")
         val row=if(previous==null) JSONObject().put("id",id()) else find(list,previous)
         row.put("nombre",draft.name.trim()).put("banco",draft.bank.trim()).put("modelo",draft.model.trim())
+        draft.photo?.let { photo ->
+            val key=if(type=="vehiculo") "fotoGaleria" else "imagenPersonalizada"
+            if(photo.isEmpty()) row.remove(key) else {
+                require(photo.startsWith("data:image/jpeg;base64,"))
+                row.put(key,photo)
+            }
+        }
         if(previous==null) setBalance(row,NativeFinance.cents(draft.balance,true))
         if(type=="tarjeta") {
             require(draft.extra.isBlank() || draft.extra.matches(Regex("[0-9]{4}"))) {"Escribe solo los últimos cuatro dígitos"}
@@ -53,7 +60,9 @@ internal object NativeCredit {
             row.put("pagoMinimo",if(draft.minimum.isBlank()) JSONObject.NULL else NativeFinance.decimal(NativeFinance.cents(draft.minimum,true)))
         } else {
             row.put("anio",draft.extra.trim())
-            if(previous==null) {
+            draft.price?.let { row.put("precio",if(it.isBlank()) JSONObject.NULL else NativeFinance.decimal(NativeFinance.cents(it,true))) }
+            draft.financed?.let { row.put("montoInicial",if(it.isBlank()) JSONObject.NULL else NativeFinance.decimal(NativeFinance.cents(it,true))) }
+            if(previous==null || draft.apr.isNotBlank() && draft.due.isNotBlank()) {
                 row.put("apr",apr(draft.apr)).put("pago",NativeFinance.decimal(NativeFinance.cents(draft.limitOrPayment,true)))
                     .put("vencimiento",day(draft.due))
             }

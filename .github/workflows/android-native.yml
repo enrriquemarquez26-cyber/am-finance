@@ -81,7 +81,10 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: cd android-native && gradle --no-daemon :app:connectedDebugAndroidTest
+          script: |
+            adb shell svc wifi disable
+            adb shell svc data disable
+            cd android-native && gradle --no-daemon :app:connectedDebugAndroidTest
       - name: Publish Android test reports
         if: always()
         uses: actions/upload-artifact@v4

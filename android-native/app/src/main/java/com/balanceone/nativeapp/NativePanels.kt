@@ -70,7 +70,7 @@ internal fun Panorama(snapshot: OriginalBackup, money: (Long)->String) {
 }
 
 @Composable
-internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String) {
+internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String, busy:Boolean, register:(NativeSubscriptions.Due)->Unit) {
     var month by remember { mutableStateOf(YearMonth.now()) }
     var day by remember { mutableStateOf(LocalDate.now()) }
     var view by remember { mutableStateOf("Mensual") }
@@ -98,7 +98,7 @@ internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String) {
                 snapshot.section("suscripciones").asSequence().flatMap { row ->
                     runCatching { NativeSubscriptions.due(row,m) }.getOrDefault(emptyList()).asSequence()
                 }
-            }.filter { it.date >= first && it.date <= last }.toList().groupBy { it.date }
+            }.filter { it.date >= first && it.date <= last && !NativeSubscriptions.recorded(snapshot,it.id,it.date) }.toList().groupBy { it.date }
     }
     val gridStart = first.minusDays((first.dayOfWeek.value-1).toLong())
     val days = generateSequence(gridStart) { it.plusDays(1) }.takeWhile { it <= last }.toList().chunked(7)
@@ -159,7 +159,7 @@ internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String) {
                 Text("Cobros previstos · no confirmados",fontWeight=FontWeight.SemiBold)
                 scheduled[day].orEmpty().forEach { due ->
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-                        Text(due.name,Modifier.weight(1f))
+                        TextButton(onClick={register(due)},enabled=!busy,modifier=Modifier.weight(1f)){Text(due.name+" · Registrar")}
                         Text(due.cents?.let(money) ?: "Por confirmar")
                     }
                 }
@@ -178,14 +178,18 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
     var date by remember { mutableStateOf(field("fecha").ifBlank { LocalDate.now().toString() }) }
     var category by remember { mutableStateOf(field("categoria")) }
     var project by remember { mutableStateOf(field("proyecto")) }
-    var account by remember { mutableStateOf(field("cuentaId")) }
+    var account by remember { mutableStateOf(field("tarjetaId").takeIf { it.isNotBlank() }?.let { "credito:"+it } ?: field("cuentaId")) }
+    val sources = snapshot.bank.map { it.optString("id") to it.optString("nombre") } +
+        if(type=="gasto") snapshot.section("tarjetas").map { "credito:"+it.optString("id") to it.optString("nombre")+" · Crédito" } else emptyList()
+    var receipt by remember { mutableStateOf(field("recibo")) }
+    var processing by remember { mutableStateOf(false) }
     var accountsOpen by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     AlertDialog(onDismissRequest={if(!busy) close()},
         title={Text(if(old==null) "Nuevo movimiento" else "Editar movimiento")},
         text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                listOf("gasto","ingreso").forEach { t -> FilterChip(selected=type==t,onClick={type=t},
+                listOf("gasto","ingreso").forEach { t -> FilterChip(selected=type==t,onClick={type=t;if(t=="ingreso" && account.startsWith("credito:")) account=""},
                     label={Text(if(t=="gasto") "Gasto" else "Ingreso")},enabled=!busy) }
             }
             OutlinedTextField(name,{name=it},label={Text("Nombre")},singleLine=true,enabled=!busy)
@@ -195,19 +199,26 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
             OutlinedTextField(project,{project=it},label={Text("Proyecto (opcional)")},singleLine=true,enabled=!busy)
             Box {
                 OutlinedButton(onClick={accountsOpen=true},enabled=!busy) {
-                    Text(snapshot.bank.firstOrNull { it.optString("id")==account }?.optString("nombre") ?: "Seleccionar cuenta")
+                    Text(sources.firstOrNull { it.first==account }?.second ?: "Seleccionar cuenta")
                 }
                 DropdownMenu(expanded=accountsOpen,onDismissRequest={accountsOpen=false}) {
-                    snapshot.bank.filter { it.optString("id").isNotBlank() }.forEach { a ->
-                        DropdownMenuItem(text={Text(a.optString("nombre"))},onClick={account=a.optString("id");accountsOpen=false})
+                    sources.forEach { (id,name) ->
+                        DropdownMenuItem(text={Text(name)},onClick={account=id;accountsOpen=false})
                     }
                 }
+            }
+            if(type=="gasto" || receipt.isNotBlank()) {
+                if(receipt.isNotBlank()) {
+                    OfflineArtwork(receipt,null,"Foto del recibo",Modifier.fillMaxWidth().height(140.dp))
+                    TextButton(enabled=!busy && !processing,onClick={receipt=""}){Text("Quitar recibo")}
+                }
+                if(type=="gasto") PhotoEditor(true,!busy && !processing,{processing=it}){receipt=it}
             }
             if(failure.isNotBlank()) Text(failure,color=MaterialTheme.colorScheme.error)
             if(old!=null) TextButton(onClick={confirmDelete=true},enabled=!busy) { Text("Eliminar movimiento") }
         }},
-        confirmButton={TextButton(onClick={save(NativeFinance.Draft(name,type,amount,date,category,account,project))},
-            enabled=!busy && account.isNotBlank() && name.isNotBlank()) { Text("Guardar") }},
+        confirmButton={TextButton(onClick={save(NativeFinance.Draft(name,type,amount,date,category,account.takeUnless { it.startsWith("credito:") }.orEmpty(),project,account.removePrefix("credito:").takeIf { account.startsWith("credito:") }.orEmpty(),receipt))},
+            enabled=!busy && !processing && account.isNotBlank() && name.isNotBlank()) { Text("Guardar") }},
         dismissButton={TextButton(onClick=close,enabled=!busy) { Text("Cancelar") }})
     if(confirmDelete) AlertDialog(onDismissRequest={confirmDelete=false},title={Text("Eliminar movimiento")},
         text={Text("Se revertirá su efecto sobre el saldo de la cuenta local.")},
