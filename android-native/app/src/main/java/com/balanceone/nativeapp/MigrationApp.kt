@@ -48,6 +48,28 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     var error by remember { mutableStateOf("") }
     var tab by remember { mutableIntStateOf(0) }
     var more by remember { mutableStateOf(false) }
+    var bankOpen by remember { mutableStateOf(false) }
+    var bankRow by remember { mutableStateOf<JSONObject?>(null) }
+    var bankError by remember { mutableStateOf("") }
+    fun editBank(row: JSONObject? = null) { bankRow=row; bankError=""; bankOpen=true }
+    fun commitBank(draft: NativeFinance.BankDraft) {
+        val current=backup ?: return
+        val id=bankRow?.optString("id")
+        busy=true; bankError=""
+        scope.launch {
+            try {
+                val updated=withContext(Dispatchers.IO) {
+                    val value=NativeFinance.changeBank(current,id,draft)
+                    LocalSnapshotStore.save(context,value)
+                    value
+                }
+                backup=updated; bankOpen=false; bankRow=null
+            } catch(e: kotlinx.coroutines.CancellationException) { throw e }
+            catch(e: IllegalArgumentException) { bankError=e.message ?: "Datos no válidos" }
+            catch(_: Exception) { bankError="No se pudo guardar la cuenta." }
+            finally { busy=false }
+        }
+    }
     var editorOpen by remember { mutableStateOf(false) }
     var edited by remember { mutableStateOf<JSONObject?>(null) }
     var editError by remember { mutableStateOf("") }
@@ -217,6 +239,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 } }
             }
             if (snapshot != null && tab == 1) item { NativeCalendar(snapshot,::money) }
+            if(snapshot != null && tab == 5) item { Button(onClick={editBank()},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva cuenta") } }
             if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && snapshot.bank.isNotEmpty()) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
             if (snapshot != null && tab != 0 && tab != 4 && tab != 1) {
                 val rows = when(tab) {
@@ -253,6 +276,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 Text("Faltan: " + format.format(BigDecimal.valueOf(goal.remaining,2)))
                             }
                         }
+                        if(tab==5) TextButton(onClick={editBank(row)},enabled=!busy && row.optString("id").isNotBlank()) { Text("Editar cuenta") }
                         if(tab==10 && NativeFinance.editable(row)) TextButton(onClick={editMovement(row)},enabled=!busy) { Text("Editar") }
                         fields.forEach { (key,label) ->
                             if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto")) amount(row,key) else row.optString(key))
@@ -277,6 +301,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
         }
     }
+    if(bankOpen && snapshot!=null) BankDialog(bankRow,busy,bankError,{ bankOpen=false; bankRow=null },{ commitBank(it) })
     if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,busy,editError,{ editorOpen=false; edited=null },{ commitMovement(it) },{ commitMovement(null) })
     candidate?.let { value ->
         AlertDialog(onDismissRequest = { if (!busy) candidate = null },
