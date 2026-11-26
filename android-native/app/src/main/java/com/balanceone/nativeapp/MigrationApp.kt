@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.balanceone.nativeapp.migration.LocalSnapshotStore
 import com.balanceone.nativeapp.migration.NativeFinance
 import com.balanceone.nativeapp.migration.NativeOperations
+import com.balanceone.nativeapp.migration.NativeCredit
 import com.balanceone.nativeapp.migration.OriginalBackup
 import com.balanceone.nativeapp.migration.OriginalSummary
 import java.time.YearMonth
@@ -298,6 +299,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
             if (snapshot != null && tab == 1) item { NativeCalendar(snapshot,::money) }
             if(snapshot != null && tab == 5) item { Button(onClick={editBank()},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva cuenta") } }
+            if(snapshot!=null && (tab==2 || tab==3)) item { Button(onClick={openOperation(if(tab==2) "vehicle" else "card")},enabled=!busy){Icon(Icons.Default.Add,null);Text(if(tab==2) "Nuevo vehículo" else "Nueva tarjeta")} }
             if(snapshot != null && tab == 6) item { Button(onClick={openOperation("goal")},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva meta") } }
             if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && snapshot.bank.isNotEmpty()) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
             if (snapshot != null && tab != 0 && tab != 4 && tab != 1) {
@@ -336,6 +338,19 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             }
                         }
                         if(tab==5) TextButton(onClick={editBank(row)},enabled=!busy && row.optString("id").isNotBlank()) { Text("Editar cuenta") }
+                        if(tab==2 || tab==3) {
+                            TextButton(onClick={openOperation(if(tab==2) "vehicle" else "card",row)},enabled=!busy){Text("Editar datos")}
+                            TextButton(onClick={openOperation(if(tab==2) "vehiclePay" else "cardPay",row)},enabled=!busy){Text("Registrar pago")}
+                            if(tab==3) {
+                                val used=row.optString("saldo").toBigDecimalOrNull()
+                                val limit=row.optString("limite").toBigDecimalOrNull()
+                                if(used!=null && limit!=null && limit.signum()>0) {
+                                    val ratio=(used.toDouble()/limit.toDouble()).coerceIn(0.0,1.0).toFloat()
+                                    LinearProgressIndicator(progress={ratio},modifier=Modifier.fillMaxWidth())
+                                    Text("Crédito disponible: "+format.format(limit.subtract(used)))
+                                }
+                            }
+                        }
                         if(tab==5) {
                             TextButton(onClick={openOperation("bank",row)},enabled=!busy && row.optString("id").isNotBlank()) { Text("Depositar · Retirar · Transferir") }
                             val history=row.optJSONArray("historial")
@@ -391,6 +406,19 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     if(snapshot!=null) {
         val row=operationRow
         when(operationDialog) {
+            "card","vehicle" -> {
+                val type=if(operationDialog=="card") "tarjeta" else "vehiculo"
+                DebtDialog(type,row,busy,operationError,::closeOperation) { draft ->
+                    commitOperation { NativeCredit.edit(it,type,row?.optString("id"),draft) }
+                }
+            }
+            "cardPay","vehiclePay" -> if(row!=null) {
+                val type=if(operationDialog=="cardPay") "tarjeta" else "vehiculo"
+                DebtPaymentDialog(snapshot,type,row,busy,operationError,::closeOperation) { draft ->
+                    commitOperation { NativeCredit.pay(it,type,row.getString("id"),draft) }
+                }
+            }
+
             "bank" -> if(row!=null) BankOperationDialog(snapshot,row,busy,operationError,::closeOperation) { draft ->
                 commitOperation { NativeOperations.bank(it,row.getString("id"),draft) }
             }

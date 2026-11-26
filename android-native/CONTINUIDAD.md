@@ -54,3 +54,8 @@ Pega: «Continúa Balance One Android nativo desde la rama android-native de enr
 - Portadas reglas del index original 16912–16972 y 17162–17210: depósitos, retiros, transferencias con historial pareado y saldo atómico; no crean ingresos/gastos. Metas: alta, edición, borrado confirmado, vinculación única a ahorro, desvinculación preservando saldo, aportes y reducciones manuales e historial con eliminación confirmada.
 - NativeOperations.kt, OperationDialogs.kt y MigrationApp integran las operaciones con el almacén cifrado local. Pruebas unitarias nuevas con datos sintéticos. No hay llamadas bancarias ni Firebase.
 - Aún sin confirmar compilación de la rama 0.2.0 ni ejecución de instrumentación. Falta portar tarjetas/pagos/cuotas, vehículos, suscripciones, préstamos, calculadora, diseños y activos, sincronización, firma estable y pruebas. No tocar main.
+
+## Continuación — tarjetas y vehículos, 2026-11-26
+- NativeCredit.kt y DebtDialogs.kt implementan altas y edición de datos básicos de tarjeta/vehículo, pago registrado con origen bancario o crédito, capital/interés del vehículo conforme al cálculo original, control de deuda y crédito disponible, vínculo con meta de pago ya existente. UI incluye registro de pagos confirmado y cálculo de crédito disponible.
+- Se añadieron tests sintéticos de pagos, principal/interés y validaciones. No hay pagos reales ni conexión a banco.
+- Pendientes: edición/eliminación reversible de pagos, cuotas, recompensas, metas de pago editables, compras con tarjeta, fotos y diseños, mantenimiento, suscripciones, préstamos, calculadora, avisos, sincronización, firma y pruebas. No afirmar paridad. No tocar main.
