@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.balanceone.nativeapp.migration.LocalSnapshotStore
+import com.balanceone.nativeapp.migration.NativeFinance
 import com.balanceone.nativeapp.migration.OriginalBackup
 import com.balanceone.nativeapp.migration.OriginalSummary
 import java.time.YearMonth
@@ -31,8 +32,8 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 
-// Native read-only port of the original backup views. No WebView, no fake data,
-// no writeback until original account/payment invariants have been ported.
+// Native port of original backups. Ordinary bank movements can be edited locally;
+// specialized operations and cloud writes remain disabled until their invariants are ported.
 @Composable
 internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit) {
     val context = LocalContext.current
@@ -47,6 +48,28 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     var error by remember { mutableStateOf("") }
     var tab by remember { mutableIntStateOf(0) }
     var more by remember { mutableStateOf(false) }
+    var editorOpen by remember { mutableStateOf(false) }
+    var edited by remember { mutableStateOf<JSONObject?>(null) }
+    var editError by remember { mutableStateOf("") }
+    fun editMovement(row: JSONObject? = null) { edited=row; editError=""; editorOpen=true }
+    fun commitMovement(draft: NativeFinance.Draft?) {
+        val current=backup ?: return
+        val id=edited?.optString("id")
+        busy=true; editError=""
+        scope.launch {
+            try {
+                val updated=withContext(Dispatchers.IO) {
+                    val value=NativeFinance.change(current,id,draft)
+                    LocalSnapshotStore.save(context,value)
+                    value
+                }
+                backup=updated; editorOpen=false; edited=null
+            } catch(e: kotlinx.coroutines.CancellationException) { throw e }
+            catch(e: IllegalArgumentException) { editError=e.message ?: "Datos no válidos" }
+            catch(_: Exception) { editError="No se pudo guardar el movimiento. Revisa los datos." }
+            finally { busy=false }
+        }
+    }
     val sections = listOf("Inicio","Calendario","Vehículos","Tarjetas","Perfil","Cuentas","Metas","Suscripciones","Pagos","Deudas","Movimientos")
     val icons = listOf(Icons.Default.Home, Icons.Default.DateRange, Icons.Default.DirectionsCar, Icons.Default.CreditCard, Icons.Default.Person)
     LaunchedEffect(Unit) {
@@ -113,6 +136,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     val currency = if (snapshot?.preferences?.optString("balanceone-moneda-importes") == "EUR") "EUR" else "USD"
     val locale = if (snapshot?.preferences?.optString("balanceone-formato-importes") == "es-ES") Locale("es","ES") else Locale.US
     val format = NumberFormat.getCurrencyInstance(locale).apply { this.currency = Currency.getInstance(currency) }
+    fun money(cents: Long): String = format.format(NativeFinance.decimal(cents))
     fun amount(obj: JSONObject, key: String): String {
         if (obj.isNull(key)) return "—"
         return obj.optString(key).toBigDecimalOrNull()?.let { format.format(it) } ?: "—"
@@ -141,7 +165,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
                 Text(if (tab == 0) "Balance One" else sections[tab],style = MaterialTheme.typography.headlineLarge,fontWeight = FontWeight.SemiBold)
-                Text("Migración 0.7.38 Beta · Vista de comprobación",style = MaterialTheme.typography.labelMedium)
+                Text("Android nativo · Beta de migración",style = MaterialTheme.typography.labelMedium)
             }
             if (busy) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (error.isNotEmpty()) item { Text(error,color = MaterialTheme.colorScheme.error) }
@@ -149,12 +173,14 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 Card(shape = RoundedCornerShape(26.dp)) {
                     Column(Modifier.padding(20.dp),verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Abre tu Balance One existente",style = MaterialTheme.typography.titleLarge)
-                        Text("Selecciona una copia de seguridad de la versión web. Android guardará una copia local cifrada después de tu confirmación. No cambiará el respaldo original. La edición y sincronización aún no están disponibles.")
+                        Text("Selecciona una copia de seguridad de la versión web. Android guardará una copia local cifrada después de tu confirmación. No cambiará el respaldo original. Puedes editar movimientos bancarios comunes localmente. La sincronización aún no está disponible.")
                         Button(onClick = { picker.launch(arrayOf("application/json","application/octet-stream","text/plain")) },enabled = !busy) { Text("Abrir copia") }
                     }
                 }
             }
             if (snapshot != null && tab == 0) {
+                item { Panorama(snapshot,::money) }
+                item { Button(onClick={editMovement()},enabled=!busy && snapshot.bank.isNotEmpty()) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
                 item {
                     val month = YearMonth.now()
                     val total = remember(snapshot, month) {
@@ -190,7 +216,9 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                     TextButton(onClick = { tab = 2 }) { Text("Ver vehículos") }
                 } }
             }
-            if (snapshot != null && tab != 0 && tab != 4) {
+            if (snapshot != null && tab == 1) item { NativeCalendar(snapshot,::money) }
+            if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && snapshot.bank.isNotEmpty()) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
+            if (snapshot != null && tab != 0 && tab != 4 && tab != 1) {
                 val rows = when(tab) {
                     1,10 -> snapshot.section("movimientos").sortedByDescending { it.optString("fecha") }
                     2 -> snapshot.section("vehiculos")
@@ -202,7 +230,6 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                     9 -> snapshot.section("prestamos")
                     else -> emptyList()
                 }
-                if (tab == 1) item { Text("Registros por fecha; calendario interactivo pendiente.") }
                 if (rows.isEmpty()) item { Text("No hay registros en esta sección de la copia.") }
                 items(rows) { row ->
                     NativePanel(row.optString("nombre").ifBlank { row.optString("fecha").ifBlank { "Registro" } }) {
@@ -226,6 +253,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 Text("Faltan: " + format.format(BigDecimal.valueOf(goal.remaining,2)))
                             }
                         }
+                        if(tab==10 && NativeFinance.editable(row)) TextButton(onClick={editMovement(row)},enabled=!busy) { Text("Editar") }
                         fields.forEach { (key,label) ->
                             if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto")) amount(row,key) else row.optString(key))
                         }
@@ -249,6 +277,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
         }
     }
+    if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,busy,editError,{ editorOpen=false; edited=null },{ commitMovement(it) },{ commitMovement(null) })
     candidate?.let { value ->
         AlertDialog(onDismissRequest = { if (!busy) candidate = null },
             title = { Text(if (storedCopy) "Reemplazar copia local" else "Guardar copia en Android") },
