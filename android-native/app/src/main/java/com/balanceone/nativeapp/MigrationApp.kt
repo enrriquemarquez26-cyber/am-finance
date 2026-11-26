@@ -19,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.balanceone.nativeapp.migration.OriginalBackup
+import com.balanceone.nativeapp.migration.OriginalSummary
+import java.time.YearMonth
+import java.math.BigDecimal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -126,6 +129,18 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
             if (snapshot != null && tab == 0) {
                 item {
+                    val month = YearMonth.now()
+                    val total = remember(snapshot, month) {
+                        runCatching { OriginalSummary.monthlyExpenses(snapshot,month) }.getOrNull()
+                    }
+                    NativePanel("Gastos del mes · " + month.toString()) {
+                        Text(total?.let { format.format(BigDecimal.valueOf(it,2)) } ?: "No se pudo calcular",
+                            style = MaterialTheme.typography.headlineMedium)
+                        Text("Sin duplicar los abonos de tarjetas de crédito.",
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                item {
                     NativePanel("Mis cuentas bancarias") {
                         snapshot.bank.take(4).forEach { Text(it.optString("nombre") + "   " + amount(it,"saldo")) }
                         TextButton(onClick = { tab = 5 }) { Text("Ver cuentas") }
@@ -169,6 +184,20 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             3 -> listOf("modelo" to "Modelo","saldo" to "Deuda actual","limite" to "Límite","ultimos4" to "Últimos cuatro")
                             5 -> listOf("tipo" to "Tipo","saldo" to "Saldo","meta" to "Meta")
                             else -> listOf("fecha" to "Fecha","tipo" to "Tipo","categoria" to "Categoría","monto" to "Importe")
+                        }
+                        if (tab == 6) {
+                            val goal = remember(snapshot,row) {
+                                runCatching { OriginalSummary.goal(row,snapshot.bank) }.getOrNull()
+                            }
+                            if (goal == null) Text("Revisa la meta o la cuenta vinculada.")
+                            else {
+                                Text("Ahorrado: " + format.format(BigDecimal.valueOf(goal.saved,2)))
+                                Text("Objetivo: " + format.format(BigDecimal.valueOf(goal.target,2)))
+                                LinearProgressIndicator(progress = {
+                                    (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat()
+                                }, modifier = Modifier.fillMaxWidth())
+                                Text("Faltan: " + format.format(BigDecimal.valueOf(goal.remaining,2)))
+                            }
                         }
                         fields.forEach { (key,label) ->
                             if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto")) amount(row,key) else row.optString(key))
