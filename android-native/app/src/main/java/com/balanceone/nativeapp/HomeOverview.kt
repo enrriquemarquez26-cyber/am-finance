@@ -1,5 +1,9 @@
 package com.balanceone.nativeapp
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Path
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -47,8 +51,34 @@ internal fun homeCharges(b:OriginalBackup,from:LocalDate,to:LocalDate):List<Home
 }
 
 @Composable
+private fun HomeMetric(title:String,income:Boolean,progress:()->Float,content:@Composable ColumnScope.()->Unit) {
+    val accent=if(income) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
+    Card(shape=androidx.compose.foundation.shape.RoundedCornerShape(24.dp),modifier=Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().drawBehind {
+            val phase=progress()*Math.PI*2
+            val shift=(kotlin.math.sin(phase)*0.15).toFloat()
+            val outline=Path().apply {
+                moveTo(0f,size.height*0.8f)
+                cubicTo(size.width*(0.32f+shift),size.height*0.3f,size.width*(0.64f+shift),size.height*1.03f,size.width,size.height*0.49f)
+                lineTo(size.width,size.height);lineTo(0f,size.height);close()
+            }
+            drawPath(outline,accent.copy(alpha=0.13f))
+        }.padding(16.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
+            Text(title,style=MaterialTheme.typography.titleMedium)
+            content()
+        }
+    }
+}
+
+@Composable
 internal fun HomeFunds(b:OriginalBackup,today:LocalDate,charges:List<HomeCharge>,money:(Long)->String,
-    busy:Boolean,save:(String,String)->Unit) {
+    busy:Boolean,save:(String,String)->Unit,welcomeStart:Long) {
+    val elapsed=(android.os.SystemClock.elapsedRealtime()-welcomeStart).coerceIn(0L,15000L)
+    val wave=remember(welcomeStart){androidx.compose.animation.core.Animatable(elapsed/15000f)}
+    LaunchedEffect(welcomeStart) {
+        val left=(15000L-(android.os.SystemClock.elapsedRealtime()-welcomeStart)).coerceIn(0L,15000L)
+        if(left>0) wave.animateTo(1f,tween(left.toInt(),easing=LinearEasing)) else wave.snapTo(1f)
+    }
     val checking=b.preferences.value("balanceone-panorama-cuentas")=="cheques"
     val incomePeriod=currentPeriod(b,"ingresos")
     val sunday=today.plusDays((7-today.dayOfWeek.value).toLong())
@@ -57,12 +87,12 @@ internal fun HomeFunds(b:OriginalBackup,today:LocalDate,charges:List<HomeCharge>
     val available=runCatching { NativeFinance.available(b,checking) }.getOrNull()
     val income=runCatching { NativeFinance.totals(b,NativeFinance.start(today,homePeriods.getValue(incomePeriod)),today).income }.getOrNull()
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-        NativePanel("Dinero disponible") {
+        HomeMetric("Dinero disponible",false,{wave.value}) {
             Choice("Cuentas incluidas",if(checking) "cheques" else "ambas",mapOf("cheques" to "Solo cheques","ambas" to "Cheques y ahorros"),!busy){save("balanceone-panorama-cuentas",it)}
             Text(available?.let(money) ?: "—",style=MaterialTheme.typography.headlineMedium)
             Text("Tras pagos vinculados de esta semana · "+(available?.let { money(it-reserved) } ?: "—"))
         }
-        NativePanel("Ingresos") {
+        HomeMetric("Ingresos",true,{wave.value}) {
             Choice("Período de ingresos",incomePeriod,homePeriods,!busy){save("balanceone-panorama-ingresos",it)}
             Text(income?.let(money) ?: "—",style=MaterialTheme.typography.headlineMedium)
         }

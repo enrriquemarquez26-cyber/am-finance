@@ -172,8 +172,8 @@ internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String, bus
 
 @Composable
 internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, copy: JSONObject?, favorites: List<ExpenseFavorites.Favorite>?, busy: Boolean,
-    failure: String, close: ()->Unit, save: (NativeFinance.Draft)->Unit, delete: ()->Unit) {
-    fun field(key:String) = if(old==null || old.isNull(key)) "" else old.optString(key)
+    failure: String, close: ()->Unit, save: (NativeFinance.Draft)->Unit, delete: ()->Unit, prepared: JSONObject? = null) {
+    fun field(key:String) = (old ?: prepared).value(key)
     var name by remember { mutableStateOf(copy?.value("nombre") ?: field("nombre")) }
     var type by remember { mutableStateOf(field("tipo").ifBlank { "gasto" }) }
     var amount by remember { mutableStateOf(if(copy==null) field("monto") else runCatching { NativeFinance.decimal(NativeFinance.cents(copy.value("monto"))).toPlainString() }.getOrDefault("")) }
@@ -183,7 +183,7 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, copy: JS
     val sources = snapshot.bank.map { it.optString("id") to it.optString("nombre") } +
         if(type=="gasto") snapshot.section("tarjetas").map { "credito:"+it.optString("id") to it.optString("nombre")+" · Crédito" } else emptyList()
     var account by remember {
-        val origin=copy ?: old
+        val origin=copy ?: old ?: prepared
         val card=origin.value("tarjetaId")
         val source=if(card.isNotBlank()) "credito:"+card else origin.value("cuentaId")
         mutableStateOf(if(copy!=null && sources.none { it.first==source }) "" else source)

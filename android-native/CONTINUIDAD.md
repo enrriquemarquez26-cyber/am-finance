@@ -121,3 +121,10 @@ En cada entrega que cambie la aplicación, incrementar la versión visible y el 
 ## 0.2.8 Beta · Inicio
 
 Portados a Compose el carrusel de transacciones, los selectores de ingresos y cuentas, el panorama de gastos con detalle diario, la organización de cuentas, los vencimientos y los controles de privacidad y plegado. Se amplió el widget de vehículos en Inicio. La prioridad es completar Inicio antes de continuar con la pantalla Autos y el resto de las secciones. La paridad visual y el asistente de Inicio siguen pendientes. Sin pruebas ni revisión del APK por indicación del propietario.
+
+## 0.2.9 Beta · Inicio
+
+- Asistente desde el micrófono de Inicio. Acepta texto y dictado local en dispositivos compatibles, consulta saldos, gastos y vencimientos, abre secciones y prepara un movimiento para revisar en el formulario existente. La lectura de importes respeta la privacidad y el modo discreto.
+- Recordatorio para exportar la copia cifrada si nunca se confirmó o han pasado 30 días. Actualiza la fecha únicamente después de escribir el archivo.
+- Metas enlazadas con ahorro en Panorama, orden de tarjetas en Inicio clásico y bienvenida animada en los paneles de disponible e ingresos.
+- Pendiente en Inicio: terminar de trasladar los detalles visuales de los dos diseños y las interacciones restantes del original. Después sigue Autos. No se compiló ni se ejecutaron pruebas.

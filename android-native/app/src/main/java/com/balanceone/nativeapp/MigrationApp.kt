@@ -80,10 +80,12 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     var editorOpen by remember { mutableStateOf(false) }
     var edited by remember { mutableStateOf<JSONObject?>(null) }
     var editError by remember { mutableStateOf("") }
+    var assistantDraft by remember { mutableStateOf<JSONObject?>(null) }
     var copySource by remember { mutableStateOf<JSONObject?>(null) }
     var repeatDraft by remember { mutableStateOf<NativeFinance.Draft?>(null) }
     fun editMovement(row: JSONObject? = null, copy: JSONObject? = null) {
         edited=row
+        assistantDraft=null
         copySource=copy
         repeatDraft=null
         editError=""
@@ -227,7 +229,19 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         it.write(payload.toByteArray(Charsets.UTF_8))
                     } ?: error("No se pudo escribir")
                 }
-                error="Copia cifrada guardada."
+                val current=backup
+                if(current!=null) {
+                    try {
+                        val updated=withContext(Dispatchers.IO) {
+                            val marked=current.withPreference("balanceone-ultima-copia-confirmada",java.time.Instant.now().toString())
+                            LocalSnapshotStore.saveChange(context,current,marked)
+                            marked
+                        }
+                        backup=updated
+                        error="Copia cifrada guardada."
+                    } catch(e:kotlinx.coroutines.CancellationException){throw e}
+                    catch(_:Exception){error="Copia cifrada guardada. No se pudo actualizar la fecha del recordatorio."}
+                }
             } catch(e: kotlinx.coroutines.CancellationException) { throw e }
             catch(_: Exception) { error="No se pudo guardar el archivo." }
             finally { busy=false }
@@ -266,6 +280,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 (from.isBlank() || date >= from) && (through.isBlank() || date <= through)
                         }.sortedByDescending { it.optString("fecha") }
                     }
+    val welcomeStart=remember { android.os.SystemClock.elapsedRealtime() }
     val homeDate=java.time.LocalDate.now()
     val homeMonth=YearMonth.from(homeDate)
     val homeSnapshot=snapshot?.takeIf { tab==0 }
@@ -338,7 +353,15 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                     }
                     Row {
                         TextButton(onClick={homePref("balanceone-modo-discreto-inicio",if(discreet) "0" else "1")},enabled=!busy){Text(if(discreet) "Mostrar importes" else "Ocultar importes")}
-                        TextButton(onClick={openOperation("homeAlerts")},enabled=!busy){Text("Avisos de vencimiento")}
+                        IconButton(onClick={openOperation("homeAssistant")},enabled=!busy){Icon(Icons.Default.Mic,contentDescription="Asistente de Balance One")}
+                        IconButton(onClick={openOperation("homeAlerts")},enabled=!busy){Icon(Icons.Default.Notifications,contentDescription="Avisos de vencimiento")}
+                    }
+                    val lastBackup=remember(snapshot) {
+                        runCatching { java.time.Instant.parse(snapshot.preferences.value("balanceone-ultima-copia-confirmada")) }.getOrNull()
+                    }
+                    val now=java.time.Instant.now()
+                    if(lastBackup==null || lastBackup>now || java.time.Duration.between(lastBackup,now).toDays()>=30) {
+                        TextButton(onClick={exportOpen=true},enabled=!busy){Text("Guardar copia de seguridad")}
                     }
                     if(operationDialog.isBlank() && operationError.isNotBlank()) Text(operationError,color=MaterialTheme.colorScheme.error)
                 }
@@ -356,7 +379,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             Text("Ingresos · "+(monthTotals?.income?.let(homeMoney) ?: "—"))
                             Text("Gastos y pagos · "+(monthTotals?.expense?.let(homeMoney) ?: "—"))
                         }
-                        "cuentasTarjetas" -> HomeFunds(snapshot,homeDate,charges,homeMoney,busy,::homePref)
+                        "cuentasTarjetas" -> HomeFunds(snapshot,homeDate,charges,homeMoney,busy,::homePref,welcomeStart)
                         "comparacion" -> HomeOutlook(snapshot,homeDate,expenses,charges,discreet,homeMoney,busy,::homePref)
                         "categorias" -> HomeCategories(snapshot,expenses,homeMonth,homeDate,discreet,homeMoney){tab=10}
                         "presupuestos" -> if(discreet) NativePanel("Presupuestos"){Text("••••")} else HomeSpending(snapshot,true,homeMoney,busy) { category ->
@@ -374,7 +397,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             {model->commitOperation { current->homeDataChange(current){it.put("widgetChequesInicio",model)} }},
                             {openOperation("arrangeHomeAccounts")},{editBank()},{row->editBank(row)},{tab=5})
                         "transacciones" -> HomeTransactions(snapshot,expenses,homeMonth,discreet,homeMoney){tab=10}
-                        "tarjetas" -> HomeCreditCards(snapshot,homeMoney){tab=3}
+                        "tarjetas" -> HomeCreditCards(snapshot,homeMoney,arrange={openOperation("arrangeHomeCards")}){tab=3}
                         "metas" -> HomeSavingsGoals(snapshot,homeMoney,discreet){tab=6}
                         "pagos" -> Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
                             HomeCreditCards(snapshot,homeMoney){tab=3}
@@ -391,7 +414,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 Text("Programado este mes · "+homeMoney(scheduled.sumOf { it.cents ?: 0L }))
                                 TextButton(onClick={tab=7}){Text("Ver suscripciones")}
                             }
-                            HomeSavingsGoals(snapshot,homeMoney,discreet){tab=6}
+                            HomeSavingsGoals(snapshot,homeMoney,discreet,featured=true){tab=6}
                         }
                         "vehiculos" -> if(snapshot.section("vehiculos").isNotEmpty()) NativePanel("Vehículos") {
                             val model=snapshot.data.value("widgetVehiculos").ifBlank { "actual" }
@@ -627,7 +650,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             "categories" -> CategoriesDialog(snapshot,busy,operationError,::closeOperation) { original,name,icon ->
                 commitOperation { NativeCategories.save(it,original,name,icon) }
             }
+            "homeAssistant" -> HomeAssistant(snapshot,homeDate,expenses,dues,discreet,homeMoney,
+                {destination->closeOperation();tab=destination},{prepared->closeOperation();editMovement();assistantDraft=prepared},::closeOperation)
             "homeAlerts","homeUpcoming" -> HomeReminderList(snapshot,dues,homeDate,operationDialog=="homeUpcoming",busy,operationError,homeMoney,::closeOperation,::commitOperation)
+            "arrangeHomeCards" -> ArrangeHomeAccounts(snapshot,true,busy,operationError,::closeOperation,::homePref,cards=true)
             "arrangeHomeAccounts" -> ArrangeHomeAccounts(snapshot,homeMode=="clasico",busy,operationError,::closeOperation,::homePref)
             "budget" -> BudgetDialog(snapshot,row?.optString("categoria"),busy,operationError,::closeOperation) { category,amount ->
                 val original=row?.optString("categoria")
@@ -643,7 +669,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             "receipt" -> if(row!=null) AlertDialog(onDismissRequest=::closeOperation,title={Text("Recibo")},
                 text={OfflineArtwork(row.optString("recibo"),null,"Foto del recibo",Modifier.fillMaxWidth().heightIn(max=440.dp))},
                 confirmButton={TextButton(onClick=::closeOperation){Text("Cerrar")}})
-            "vehicleDetail" -> if(row!=null) VehicleDetailDialog(snapshot,row,::amount,::closeOperation)
+            "vehicleDetail" -> if(row!=null) VehicleDetailDialog(snapshot,row,if(tab==0) homeAmount else ::amount,::closeOperation)
             "recordDue" -> selectedDue?.let { due ->
                 if(row!=null) RecordDueDialog(snapshot,row,due,busy,operationError,::closeOperation) { amount,source ->
                     commitOperation { NativeSubscriptions.register(it,due.id,due.date,amount,source) }
@@ -709,7 +735,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         }
     }
     if(bankOpen && snapshot!=null) BankDialog(bankRow,busy,bankError,{ bankOpen=false; bankRow=null },{ commitBank(it) })
-    if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,copySource,favorites,busy,editError,{ editorOpen=false; edited=null; copySource=null; repeatDraft=null },{ commitMovement(it) },{ commitMovement(null) })
+    if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,copySource,favorites,busy,editError,{ editorOpen=false; edited=null; copySource=null; repeatDraft=null; assistantDraft=null },{ commitMovement(it) },{ commitMovement(null) },assistantDraft)
     repeatDraft?.let { draft ->
         AlertDialog(onDismissRequest={ repeatDraft=null },title={Text("¿Guardar también este gasto?")},
             text={Text("Ya hay un gasto con el mismo nombre, importe, fecha y origen.\n"+draft.name+" · "+draft.amount+" · "+draft.date)},
@@ -765,11 +791,12 @@ internal fun NativePanel(title: String, content: @Composable ColumnScope.() -> U
 }
 
 @Composable
-private fun HomeCreditCards(snapshot: OriginalBackup, money:(Long)->String, open:()->Unit) {
+private fun HomeCreditCards(snapshot: OriginalBackup, money:(Long)->String, arrange:(()->Unit)?=null, open:()->Unit) {
     val cards=orderedHomeRows(snapshot,snapshot.section("tarjetas"),"balanceone-orden-inicio-credito")
     NativePanel("Tarjetas de crédito") {
         val total=runCatching { cards.sumOf { NativeFinance.cents(it.value("saldo"),true) } }.getOrNull()
         Text("Deuda actual · "+(total?.let(money) ?: "—"))
+        if(arrange!=null && cards.size>1) TextButton(onClick=arrange){Text("Acomodar tarjetas")}
         cards.forEach { card->
             Row(verticalAlignment=Alignment.CenterVertically) {
                 OfflineArtwork(card.value("imagenPersonalizada"),cardArt(card),card.value("nombre"),Modifier.width(60.dp).height(40.dp))
@@ -787,16 +814,25 @@ private fun HomeCreditCards(snapshot: OriginalBackup, money:(Long)->String, open
 }
 
 @Composable
-private fun HomeSavingsGoals(snapshot: OriginalBackup, money:(Long)->String, hidden:Boolean, open:()->Unit) {
+private fun HomeSavingsGoals(snapshot: OriginalBackup, money:(Long)->String, hidden:Boolean, featured:Boolean=false, open:()->Unit) {
+    val goals=remember(snapshot,featured) {
+        val named=snapshot.section("metasAhorro").mapNotNull { row->
+            runCatching { row.value("nombre") to OriginalSummary.goal(row,snapshot.bank) }.getOrNull()
+        }
+        if(!featured) named else named.take(1).ifEmpty {
+            snapshot.bank.filter { it.value("tipo")=="ahorro" }.firstNotNullOfOrNull { account->
+                val linked=JSONObject().put("objetivo",account.value("meta")).put("cuentaId",account.value("id")).put("aportes",org.json.JSONArray())
+                runCatching { account.value("nombre") to OriginalSummary.goal(linked,snapshot.bank) }.getOrNull()
+            }?.let { listOf(it) }.orEmpty()
+        }
+    }
     NativePanel("Metas de ahorro") {
-                    snapshot.section("metasAhorro").take(3).forEach { row ->
-                        val goal=runCatching { OriginalSummary.goal(row,snapshot.bank) }.getOrNull()
-                        Text(row.value("nombre"))
-                        if(goal!=null) {
-                            Text(money(goal.saved)+" de "+money(goal.target))
-                            if(!hidden) LinearProgressIndicator(progress={ (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
-                        }
-                    }
-                    TextButton(onClick=open){Text("Ver metas")}
-                }
+        if(goals.isEmpty()) Text("Sin metas de ahorro")
+        goals.forEach { (name,goal)->
+            Text(name)
+            Text(money(goal.saved)+" de "+money(goal.target))
+            if(!hidden) LinearProgressIndicator(progress={ (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+        }
+        TextButton(onClick=open){Text("Ver metas")}
+    }
 }

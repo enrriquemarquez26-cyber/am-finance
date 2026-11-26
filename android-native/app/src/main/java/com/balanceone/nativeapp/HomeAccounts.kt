@@ -63,15 +63,16 @@ internal fun HomeAccounts(b:OriginalBackup,classic:Boolean,hidden:Boolean,money:
 }
 
 @Composable
-internal fun ArrangeHomeAccounts(b:OriginalBackup,classic:Boolean,busy:Boolean,error:String,close:()->Unit,save:(String,String)->Unit) {
-    val all=remember(b){orderedHomeRows(b,b.bank,bankHomeOrder)}
+internal fun ArrangeHomeAccounts(b:OriginalBackup,classic:Boolean,busy:Boolean,error:String,close:()->Unit,save:(String,String)->Unit,cards:Boolean=false) {
+    val orderKey=if(cards) "balanceone-orden-inicio-credito" else bankHomeOrder
+    val all=remember(b,cards){orderedHomeRows(b,if(cards) b.section("tarjetas") else b.bank,orderKey)}
     val shown=remember(b){selectedAccounts(b,all).map { it.value("id") }}
     var selected by remember(b){mutableStateOf(shown.toSet())}
     var order by remember(b,classic){mutableStateOf(if(classic) all.map { it.value("id") } else (shown+all.map { it.value("id") }).distinct())}
     val names=all.associate { it.value("id") to it.value("nombre") }
     fun move(index:Int,to:Int) { order=order.toMutableList().apply { add(to,removeAt(index)) } }
-    EntryDialog("Acomodar cuentas",busy,error,close,{
-        save(if(classic) bankHomeOrder else visibleHomeAccounts, JSONArray(if(classic) order else order.filter { it in selected }).toString())
+    EntryDialog(if(cards) "Acomodar tarjetas" else "Acomodar cuentas",busy,error,close,{
+        save(if(classic) orderKey else visibleHomeAccounts, JSONArray(if(classic) order else order.filter { it in selected }).toString())
     }) {
         order.forEachIndexed { index,id->
             Row(verticalAlignment=Alignment.CenterVertically) {
