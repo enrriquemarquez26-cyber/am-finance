@@ -14,18 +14,18 @@ class NativeCreditTest {
     @Test fun cardPaymentAdjustsDebtAndBankAndPreservesGoal() {
         val original=sample()
         val next=NativeCredit.pay(original,"tarjeta","c",NativeCredit.Payment("a","25",LocalDate.now().toString()))
-        assertEquals(7500L,NativeFinance.cents(next.section("tarjetas").first().getString("saldo")))
-        assertEquals(47500L,NativeFinance.cents(next.bank.first().getString("saldo")))
+        assertEquals(7500L,NativeFinance.cents(next.section("tarjetas").first().get("saldo").toString()))
+        assertEquals(47500L,NativeFinance.cents(next.bank.first().get("saldo").toString()))
         assertEquals("m",next.section("pagos").single().getString("metaPagoId"))
         assertEquals(0L,OriginalSummary.monthlyExpenses(next,java.time.YearMonth.now()))
-        assertEquals(10000L,NativeFinance.cents(original.section("tarjetas").first().getString("saldo")))
+        assertEquals(10000L,NativeFinance.cents(original.section("tarjetas").first().get("saldo").toString()))
     }
     @Test fun loanPaymentSplitsPrincipalAndInterest() {
         val next=NativeCredit.pay(sample(),"vehiculo","v",NativeCredit.Payment("a","100",LocalDate.now().toString()))
         val payment=next.section("pagos").single()
-        assertEquals(1000L,NativeFinance.cents(payment.getString("interes")))
-        assertEquals(9000L,NativeFinance.cents(payment.getString("capital")))
-        assertEquals(91000L,NativeFinance.cents(next.section("vehiculos").single().getString("saldo")))
+        assertEquals(1000L,NativeFinance.cents(payment.get("interes").toString()))
+        assertEquals(9000L,NativeFinance.cents(payment.get("capital").toString()))
+        assertEquals(91000L,NativeFinance.cents(next.section("vehiculos").single().get("saldo").toString()))
     }
     @Test fun selfPaymentAndOverpaymentRejected() {
         val b=sample()

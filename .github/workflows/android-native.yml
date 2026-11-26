@@ -34,6 +34,15 @@ jobs:
       - name: Build debug APK and run unit tests
         working-directory: android-native
         run: gradle --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:assembleDebugAndroidTest
+      - name: Publish JVM test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Balance-One-native-unit-test-results
+          path: |
+            android-native/app/build/reports/tests/testDebugUnitTest/
+            android-native/app/build/test-results/testDebugUnitTest/
+          if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         with:
           name: Balance-One-native-debug

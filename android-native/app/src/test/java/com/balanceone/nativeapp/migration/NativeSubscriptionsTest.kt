@@ -13,7 +13,7 @@ class NativeSubscriptionsTest {
         val updated=NativeSubscriptions.save(original,null,draft())
         val row=updated.section("suscripciones").single()
         assertEquals(LocalDate.parse("2026-02-28"),NativeSubscriptions.due(row,YearMonth.of(2026,2)).single().date)
-        assertEquals(2500L,NativeSubscriptions.due(row,YearMonth.of(2026,2)).single().cents)
+        assertEquals(java.lang.Long.valueOf(2500L),NativeSubscriptions.due(row,YearMonth.of(2026,2)).single().cents)
         assertTrue(original.section("suscripciones").isEmpty())
         assertTrue(updated.section("movimientos").isEmpty())
         assertTrue(updated.section("pagos").isEmpty())
@@ -32,7 +32,7 @@ class NativeSubscriptionsTest {
         val month=YearMonth.of(2026,2)
         assertNull(NativeSubscriptions.due(row,month).single().cents)
         val updated=NativeSubscriptions.invoice(b,row.getString("id"),LocalDate.parse("2026-02-28"),"49.50")
-        assertEquals(4950L,NativeSubscriptions.due(updated.section("suscripciones").single(),month).single().cents)
+        assertEquals(java.lang.Long.valueOf(4950L),NativeSubscriptions.due(updated.section("suscripciones").single(),month).single().cents)
     }
     @Test(expected=IllegalArgumentException::class) fun loanNeedsEnd() {
         NativeSubscriptions.save(OriginalBackup.empty(),null,draft("prestamo"))
