@@ -99,3 +99,8 @@ Pega: «Continúa Balance One Android nativo desde la rama android-native de enr
 
 ## Versionado de Android
 En cada entrega que cambie la aplicación, incrementar la versión visible y el versionCode en app/build.gradle.kts e indicar la versión en estas notas. La personalización de Inicio corresponde a 0.2.3 Beta (versionCode 5).
+
+## 0.2.4 Beta · presupuestos mensuales (versionCode 6)
+- Inicio clásico permite agregar, cambiar de categoría, editar el límite y eliminar un presupuesto con confirmación. Acepta las categorías personalizadas importadas. El límite se guarda en datos.presupuestos, en centavos, y se aplica cada mes.
+- El widget muestra los tres presupuestos con mayor proporción usada, el importe disponible o excedido y los estados del 80 % y del límite. Ver todos despliega los restantes. Los abonos de tarjeta siguen excluidos del gasto.
+- Trabajo sobre el código fuente. Por indicación del usuario, sin compilación, pruebas ni revisión de APK.

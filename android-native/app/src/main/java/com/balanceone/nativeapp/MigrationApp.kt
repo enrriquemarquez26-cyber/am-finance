@@ -309,7 +309,9 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 Text("Gastos · "+(totals?.expense?.let(::money) ?: "—"))
                             }
                         }
-                        "presupuestos","categorias" -> HomeSpending(snapshot,widget.key=="presupuestos",::money)
+                        "presupuestos","categorias" -> HomeSpending(snapshot,widget.key=="presupuestos",::money,busy) { category ->
+                            openOperation("budget",category?.let { JSONObject().put("categoria",it) })
+                        }
                         "deudas" -> NativePanel(widget.label) {
                             val debts=listOf("vehiculos" to "Vehículos","tarjetas" to "Tarjetas","prestamos" to "Préstamos").map { (key,label) ->
                                 label to runCatching { snapshot.section(key).fold(0L){ a,row->Math.addExact(a,NativeFinance.cents(row.value("saldo"),true)) } }.getOrNull()
@@ -522,6 +524,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     if(snapshot!=null) {
         val row=operationRow
         when(operationDialog) {
+            "budget" -> BudgetDialog(snapshot,row?.optString("categoria"),busy,operationError,::closeOperation) { category,amount ->
+                val original=row?.optString("categoria")
+                commitOperation { com.balanceone.nativeapp.migration.NativeBudgets.change(it,original,category,amount) }
+            }
             "homeLayout" -> HomeLayoutDialog(snapshot,busy,operationError,::closeOperation) { mode,layouts ->
                 commitOperation { HomeLayout.save(it,mode,layouts) }
             }

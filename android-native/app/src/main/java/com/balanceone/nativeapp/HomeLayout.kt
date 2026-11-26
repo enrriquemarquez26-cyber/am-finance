@@ -96,7 +96,7 @@ private val aliases=mapOf("rent" to "renta","alquiler" to "renta","supermercados
     "subscriptions" to "suscripciones","other" to "otros")
 
 @Composable
-internal fun HomeSpending(snapshot:OriginalBackup,budgets:Boolean,money:(Long)->String) {
+internal fun HomeSpending(snapshot:OriginalBackup,budgets:Boolean,money:(Long)->String,busy:Boolean,edit:(String?)->Unit) {
     val month=YearMonth.now()
     val totals=remember(snapshot,month) {
         val expenses=snapshot.section("movimientos").filter { it.value("tipo")=="gasto" }+
@@ -111,18 +111,13 @@ internal fun HomeSpending(snapshot:OriginalBackup,budgets:Boolean,money:(Long)->
             }
         }.groupBy({it.first},{it.second}).mapValues { (_,values)->values.sum() }
     }
-    NativePanel(if(budgets) "Presupuestos" else "Categorías del mes") {
-        if(budgets) {
-            val rows=snapshot.section("presupuestos").mapNotNull { p->
-                val limit=p.optLong("limiteCentavos")
-                val name=p.value("categoria")
-                if(limit<=0 || name.isBlank()) null else Triple(name,totals[name] ?: 0L,limit)
-            }.sortedByDescending { it.second.toDouble()/it.third }
-            if(rows.isEmpty()) Text("Sin presupuestos para mostrar.")
-            rows.take(3).forEach { (name,used,limit)->Text(name+" · "+money(used)+" de "+money(limit)) }
-        } else {
-            if(totals.isEmpty()) Text("Sin gastos este mes.")
-            totals.entries.sortedByDescending { it.value }.take(5).forEach { Text(it.key+" · "+money(it.value)) }
+    if (budgets) {
+        BudgetPanel(snapshot,totals,month,money,busy,edit)
+    } else NativePanel("Categorías del mes") {
+        val labels=remember(snapshot) { com.balanceone.nativeapp.migration.NativeBudgets.categories(snapshot) }
+        if(totals.isEmpty()) Text("Sin gastos este mes.")
+        totals.entries.sortedByDescending { it.value }.take(5).forEach {
+            Text((labels[it.key] ?: it.key)+" · "+money(it.value))
         }
     }
 }
