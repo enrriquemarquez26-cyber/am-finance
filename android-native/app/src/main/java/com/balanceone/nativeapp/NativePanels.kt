@@ -18,6 +18,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.balanceone.nativeapp.migration.NativeFinance
+import com.balanceone.nativeapp.migration.NativeSubscriptions
 import com.balanceone.nativeapp.migration.OriginalBackup
 import org.json.JSONObject
 import java.time.LocalDate
@@ -91,6 +92,14 @@ internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String) {
         "Quincenal" -> if(first.dayOfMonth==1) first.withDayOfMonth(15) else YearMonth.from(first).atEndOfMonth()
         else -> month.atEndOfMonth()
     }
+    val scheduled = remember(snapshot,first,last) {
+        generateSequence(YearMonth.from(first)) { it.plusMonths(1) }
+            .takeWhile { it <= YearMonth.from(last) }.flatMap { m ->
+                snapshot.section("suscripciones").asSequence().flatMap { row ->
+                    runCatching { NativeSubscriptions.due(row,m) }.getOrDefault(emptyList()).asSequence()
+                }
+            }.filter { it.date >= first && it.date <= last }.toList().groupBy { it.date }
+    }
     val gridStart = first.minusDays((first.dayOfWeek.value-1).toLong())
     val days = generateSequence(gridStart) { it.plusDays(1) }.takeWhile { it <= last }.toList().chunked(7)
     val total = remember(snapshot,first,last) { runCatching { NativeFinance.totals(snapshot,first,last) }.getOrNull() }
@@ -126,7 +135,7 @@ internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String) {
                             .clickable(enabled=valid) { if(date!=null) day=date },contentAlignment=Alignment.Center) {
                             if(valid && date!=null) Column(horizontalAlignment=Alignment.CenterHorizontally) {
                                 Text(date.dayOfMonth.toString())
-                                if(!rows[date].isNullOrEmpty()) Text("•",color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.labelSmall)
+                                if(!rows[date].isNullOrEmpty() || !scheduled[date].isNullOrEmpty()) Text("•",color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.labelSmall)
                             }
                         }
                     }
@@ -139,11 +148,20 @@ internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String) {
             }
             HorizontalDivider()
             Text(day.format(DateTimeFormatter.ofPattern("dd MMMM yyyy",Locale("es"))),fontWeight=FontWeight.SemiBold)
-            if(rows[day].isNullOrEmpty()) Text("Sin registros")
+            if(rows[day].isNullOrEmpty() && scheduled[day].isNullOrEmpty()) Text("Sin registros")
             rows[day].orEmpty().forEach { r ->
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                     Text(r.optString("nombre"),Modifier.weight(1f))
                     Text(runCatching { money(NativeFinance.cents(r.optString("monto"))) }.getOrDefault("—"))
+                }
+            }
+            if(!scheduled[day].isNullOrEmpty()) {
+                Text("Cobros previstos · no confirmados",fontWeight=FontWeight.SemiBold)
+                scheduled[day].orEmpty().forEach { due ->
+                    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
+                        Text(due.name,Modifier.weight(1f))
+                        Text(due.cents?.let(money) ?: "Por confirmar")
+                    }
                 }
             }
         }

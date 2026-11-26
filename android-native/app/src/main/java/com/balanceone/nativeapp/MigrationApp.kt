@@ -22,6 +22,7 @@ import com.balanceone.nativeapp.migration.LocalSnapshotStore
 import com.balanceone.nativeapp.migration.NativeFinance
 import com.balanceone.nativeapp.migration.NativeOperations
 import com.balanceone.nativeapp.migration.NativeCredit
+import com.balanceone.nativeapp.migration.NativeSubscriptions
 import com.balanceone.nativeapp.migration.OriginalBackup
 import com.balanceone.nativeapp.migration.OriginalSummary
 import java.time.YearMonth
@@ -319,6 +320,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             if(snapshot != null && tab == 5) item { Button(onClick={editBank()},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva cuenta") } }
             if(snapshot!=null && (tab==2 || tab==3)) item { Button(onClick={openOperation(if(tab==2) "vehicle" else "card")},enabled=!busy){Icon(Icons.Default.Add,null);Text(if(tab==2) "Nuevo vehículo" else "Nueva tarjeta")} }
             if(snapshot != null && tab == 6) item { Button(onClick={openOperation("goal")},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva meta") } }
+            if(snapshot != null && tab == 7) item { Button(onClick={openOperation("subscription")},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nuevo cobro previsto") } }
             if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && snapshot.bank.isNotEmpty()) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
             if (snapshot != null && tab != 0 && tab != 4 && tab != 1) {
                 val rows = when(tab) {
@@ -339,6 +341,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             2 -> listOf("modelo" to "Modelo","anio" to "Año","pago" to "Pago mensual","saldo" to "Restante")
                             3 -> listOf("modelo" to "Modelo","saldo" to "Deuda actual","limite" to "Límite","ultimos4" to "Últimos cuatro")
                             5 -> listOf("tipo" to "Tipo","saldo" to "Saldo","meta" to "Meta")
+                            7 -> listOf("categoria" to "Categoría","frecuencia" to "Frecuencia","inicio" to "Inicio","fin" to "Fin")
                             else -> listOf("fecha" to "Fecha","tipo" to "Tipo","categoria" to "Categoría","monto" to "Importe")
                         }
                         if (tab == 6) {
@@ -385,6 +388,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             if(row.isNull("cuentaId") || row.optString("cuentaId").isBlank())
                                 TextButton(onClick={openOperation("progress",row)},enabled=!busy){Text("Registrar avance / historial")}
                         }
+                        if(tab==7) SubscriptionDetails(row,money,busy) { kind -> openOperation(kind,row) }
                         if(tab==10 && NativeFinance.editable(row)) TextButton(onClick={editMovement(row)},enabled=!busy) { Text("Editar") }
                         fields.forEach { (key,label) ->
                             if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto")) amount(row,key) else row.optString(key))
@@ -424,6 +428,22 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     if(snapshot!=null) {
         val row=operationRow
         when(operationDialog) {
+            "subscription" -> SubscriptionDialog(row,busy,operationError,::closeOperation) { draft ->
+                commitOperation { NativeSubscriptions.save(it,row?.optString("id"),draft) }
+            }
+            "subscriptionPause","subscriptionCancel" -> if(row!=null) {
+                val cancel=operationDialog=="subscriptionCancel"
+                AlertDialog(onDismissRequest={if(!busy) closeOperation()},
+                    title={Text(if(cancel) "Cancelar registro" else "Cambiar pausa")},
+                    text={Text((if(cancel) "Dejará de programarse en Balance One. Debes cancelar el servicio por separado con el proveedor." else "La pausa cambia los cobros previstos, no los pagos registrados.") + if(operationError.isNotBlank()) "\n"+operationError else "")},
+                    confirmButton={TextButton(enabled=!busy,onClick={
+                        commitOperation { if(cancel) NativeSubscriptions.cancel(it,row.getString("id")) else NativeSubscriptions.togglePause(it,row.getString("id")) }
+                    }){Text("Confirmar")}},
+                    dismissButton={TextButton(enabled=!busy,onClick=::closeOperation){Text("Volver")}})
+            }
+            "subscriptionInvoice" -> if(row!=null) SubscriptionInvoiceDialog(row,busy,operationError,::closeOperation) { day,amount ->
+                commitOperation { NativeSubscriptions.invoice(it,row.getString("id"),day,amount) }
+            }
             "card","vehicle" -> {
                 val type=if(operationDialog=="card") "tarjeta" else "vehiculo"
                 DebtDialog(type,row,busy,operationError,::closeOperation) { draft ->

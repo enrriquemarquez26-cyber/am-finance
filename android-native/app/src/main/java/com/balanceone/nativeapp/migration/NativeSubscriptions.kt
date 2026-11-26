@@ -85,7 +85,7 @@ internal object NativeSubscriptions {
             objects(row.optJSONArray("pausas")).any{p-> day>=date(field(p,"inicio")) && (field(p,"fin").isBlank() || day<date(field(p,"fin")))}
         }.map{day->
             val invoice=if(field(row,"categoria")=="servicios") row.optJSONObject("facturas")?.optString(day.toString())?.let{runCatching{NativeFinance.cents(it)}.getOrNull()} else null
-            val amount=invoice ?: runCatching{NativeFinance.cents(field(row,"monto"))}.getOrNull()
+            val amount=invoice ?: if(row.optBoolean("importeVariable")) null else runCatching{NativeFinance.cents(field(row,"monto"))}.getOrNull()
             val tax=row.optJSONObject("impuestoReferencia")
             val total=if(amount!=null && tax!=null && invoice==null && !tax.optBoolean("incluido")) {
                 val subtotal=NativeFinance.cents(field(tax,"subtotal"))
