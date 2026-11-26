@@ -92,3 +92,7 @@ Pega: «Continúa Balance One Android nativo desde la rama android-native de enr
 - Alta de préstamos, estimaciones, cuotas parciales con capital e interés y recálculo de vencimientos. Registro de gastos de vehículos, entradas sin coste, millaje y programación del próximo servicio.
 - Inicio muestra metas de ahorro, saldos de tarjetas y datos de financiación de los dos primeros vehículos. Perfil permite elegir moneda y formato. Se mantuvieron la calculadora, los cobros desde Calendario, los recursos originales, los recibos y las protecciones de guardado de la revisión anterior.
 - A petición del usuario no se compiló ni se ejecutaron pruebas ni se revisó la APK. Siguen pendientes la sincronización Firebase validada, los modelos y ajustes visuales restantes, notificaciones, voz, biometría, edición avanzada del historial de vehículos y la actualización remota del catálogo.
+
+## Inicio · selección de diseño, orden y visibilidad
+- Inicio > Personalizar permite elegir Clásico o Panorama financiero, reordenar y ocultar widgets por diseño. La confirmación guarda todo mediante el almacén cifrado y conserva las preferencias originales de la copia web.
+- El clásico incluye el resumen de deudas y los presupuestos importados. Panorama muestra el balance mensual y las principales categorías. Se conservaron accesos a movimientos, cuentas, tarjetas, vehículos y metas. Quedan pendientes otras vistas, estilos y ajustes del navegador. Cambio de código sin compilación ni pruebas por indicación del usuario.

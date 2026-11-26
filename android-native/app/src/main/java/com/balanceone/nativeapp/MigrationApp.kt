@@ -290,58 +290,55 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 }
             }
             if (snapshot != null && tab == 0) {
-                item { Panorama(snapshot,::money) }
-                item { Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
-                item {
-                    val month = YearMonth.now()
-                    val total = remember(snapshot, month) {
-                        runCatching { OriginalSummary.monthlyExpenses(snapshot,month) }.getOrNull()
-                    }
-                    NativePanel("Gastos del mes · " + month.toString()) {
-                        Text(total?.let { format.format(BigDecimal.valueOf(it,2)) } ?: "No se pudo calcular",
-                            style = MaterialTheme.typography.headlineMedium)
-                        Text("Sin duplicar los abonos de tarjetas de crédito.",
-                            style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-                item {
-                    NativePanel("Mis cuentas bancarias") {
-                        snapshot.bank.take(4).forEach { Text(it.optString("nombre") + "   " + amount(it,"saldo")) }
+                val mode=HomeLayout.mode(snapshot)
+                val layout=remember(snapshot,mode) { HomeLayout.widgets(snapshot,mode) }
+                item { Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) { Text("Nuevo movimiento") }
+                    TextButton(onClick={openOperation("homeLayout")},enabled=!busy){Text("Personalizar")}
+                } }
+                items(layout.filter { it.visible },key={ it.key }) { widget ->
+                    when(widget.key) {
+                        "resumen","cuentasTarjetas" -> Panorama(snapshot,::money)
+                        "comparacion" -> {
+                            val today=java.time.LocalDate.now()
+                            val totals=remember(snapshot,today) { runCatching { NativeFinance.totals(snapshot,today.withDayOfMonth(1),today) }.getOrNull() }
+                            NativePanel(widget.label) {
+                                Text("Balance del mes",style=MaterialTheme.typography.labelLarge)
+                                Text(totals?.let { money(it.income-it.expense) } ?: "—",style=MaterialTheme.typography.headlineMedium)
+                                Text("Ingresos · "+(totals?.income?.let(::money) ?: "—"))
+                                Text("Gastos · "+(totals?.expense?.let(::money) ?: "—"))
+                            }
+                        }
+                        "presupuestos","categorias" -> HomeSpending(snapshot,widget.key=="presupuestos",::money)
+                        "deudas" -> NativePanel(widget.label) {
+                            val debts=listOf("vehiculos" to "Vehículos","tarjetas" to "Tarjetas","prestamos" to "Préstamos").map { (key,label) ->
+                                label to runCatching { snapshot.section(key).fold(0L){ a,row->Math.addExact(a,NativeFinance.cents(row.value("saldo"),true)) } }.getOrNull()
+                            }
+                            val total=runCatching { debts.fold(0L){ a,v->Math.addExact(a,requireNotNull(v.second)) } }.getOrNull()
+                            Text(total?.let(::money) ?: "—",style=MaterialTheme.typography.headlineMedium)
+                            debts.forEach { (label,value)->Text(label+" · "+(value?.let(::money) ?: "—")) }
+                        }
+                        "cuentas" -> NativePanel(widget.label) {
+                        snapshot.bank.filter { mode!="nuevo" || it.value("tipo")!="ahorro" }.take(4).forEach { Text(it.optString("nombre") + "   " + amount(it,"saldo")) }
                         if (snapshot.bank.isEmpty()) {
                             Text("Agrega una cuenta para empezar a registrar movimientos.")
                             TextButton(onClick = { editBank() },enabled = !busy) { Text("Crear cuenta bancaria") }
                         } else TextButton(onClick = { tab = 5 }) { Text("Ver cuentas") }
                     }
-                }
-                item {
-                    NativePanel("Últimas transacciones") {
+                        "transacciones" -> NativePanel("Últimas transacciones") {
                         snapshot.section("movimientos").sortedByDescending { it.optString("fecha") }.take(5).forEach {
                             Text(it.optString("nombre") + "   " + amount(it,"monto"))
                         }
                         TextButton(onClick = { tab = 10 }) { Text("Ver movimientos") }
                     }
-                }
-                item { NativePanel("Metas de ahorro") {
-                    snapshot.section("metasAhorro").take(3).forEach { row ->
-                        val goal=runCatching { OriginalSummary.goal(row,snapshot.bank) }.getOrNull()
-                        Text(row.value("nombre"))
-                        if(goal!=null) {
-                            Text(money(goal.saved)+" de "+money(goal.target))
-                            LinearProgressIndicator(progress={ (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+                        "tarjetas" -> HomeCreditCards(snapshot,format,::amount) { tab=3 }
+                        "metas" -> HomeSavingsGoals(snapshot,::money) { tab=6 }
+                        "pagos" -> Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                            HomeCreditCards(snapshot,format,::amount) { tab=3 }
+                            HomeSavingsGoals(snapshot,::money) { tab=6 }
+                            OutlinedButton(onClick={tab=8}){Text("Ver pagos")}
                         }
-                    }
-                    TextButton(onClick={tab=6}){Text("Ver metas")}
-                } }
-                item { NativePanel("Tarjetas de crédito") {
-                    snapshot.section("tarjetas").take(3).forEach {
-                        Text(it.value("nombre")+" · "+amount(it,"saldo"))
-                        val limit=it.value("limite").toBigDecimalOrNull()
-                        val debt=it.value("saldo").toBigDecimalOrNull()
-                        if(limit!=null && debt!=null && limit.signum()>0) Text("Disponible · "+format.format((limit-debt).max(BigDecimal.ZERO)))
-                    }
-                    TextButton(onClick = { tab = 3 }) { Text("Ver tarjetas") }
-                } }
-                item { NativePanel("Vehículos") {
+                        "vehiculos" -> NativePanel("Vehículos") {
                     snapshot.section("vehiculos").take(2).forEach { vehicle ->
                         TextButton(onClick={openOperation("vehicleDetail",vehicle)}) {
                             VehicleArt(vehicle,Modifier.widthIn(max=150.dp).height(92.dp))
@@ -349,7 +346,9 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         }
                     }
                     TextButton(onClick = { tab = 2 }) { Text("Ver vehículos") }
-                } }
+                }
+                    }
+                }
             }
             if (snapshot != null && tab == 1) item { NativeCalendar(snapshot,::money,busy) { due ->
                 selectedDue=due;openOperation("recordDue",snapshot.section("suscripciones").singleOrNull { it.optString("id")==due.id })
@@ -523,6 +522,9 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     if(snapshot!=null) {
         val row=operationRow
         when(operationDialog) {
+            "homeLayout" -> HomeLayoutDialog(snapshot,busy,operationError,::closeOperation) { mode,layouts ->
+                commitOperation { HomeLayout.save(it,mode,layouts) }
+            }
             "rewards" -> if(row!=null) RewardDialog(snapshot,row,busy,operationError,::money,::closeOperation,::commitOperation)
             "loan","loanPayment" -> LoanDialog(snapshot,row,busy,operationError,::closeOperation,::commitOperation)
             "installment","cardGoal" -> if(row!=null) CardTracking(snapshot,row,operationDialog=="installment",busy,operationError,::money,::closeOperation,::commitOperation)
@@ -636,11 +638,39 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
 }
 
 @Composable
-private fun NativePanel(title: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun NativePanel(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(shape = RoundedCornerShape(26.dp),colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.fillMaxWidth().padding(18.dp),verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title,style = MaterialTheme.typography.titleMedium,fontWeight = FontWeight.SemiBold)
             content()
         }
     }
+}
+
+@Composable
+private fun HomeCreditCards(snapshot: OriginalBackup, format: NumberFormat, amount:(JSONObject,String)->String, open:()->Unit) {
+    NativePanel("Tarjetas de crédito") {
+                    snapshot.section("tarjetas").take(3).forEach {
+                        Text(it.value("nombre")+" · "+amount(it,"saldo"))
+                        val limit=it.value("limite").toBigDecimalOrNull()
+                        val debt=it.value("saldo").toBigDecimalOrNull()
+                        if(limit!=null && debt!=null && limit.signum()>0) Text("Disponible · "+format.format((limit-debt).max(BigDecimal.ZERO)))
+                    }
+                    TextButton(onClick=open) { Text("Ver tarjetas") }
+                }
+}
+
+@Composable
+private fun HomeSavingsGoals(snapshot: OriginalBackup, money:(Long)->String, open:()->Unit) {
+    NativePanel("Metas de ahorro") {
+                    snapshot.section("metasAhorro").take(3).forEach { row ->
+                        val goal=runCatching { OriginalSummary.goal(row,snapshot.bank) }.getOrNull()
+                        Text(row.value("nombre"))
+                        if(goal!=null) {
+                            Text(money(goal.saved)+" de "+money(goal.target))
+                            LinearProgressIndicator(progress={ (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+                        }
+                    }
+                    TextButton(onClick=open){Text("Ver metas")}
+                }
 }
