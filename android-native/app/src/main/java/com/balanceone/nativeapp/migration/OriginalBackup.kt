@@ -18,6 +18,13 @@ class OriginalBackup private constructor(val root: JSONObject) {
     private fun objects(array: JSONArray?): List<JSONObject> =
         if (array == null) emptyList() else (0 until array.length()).map { array.getJSONObject(it) }
 
+    fun withPreference(key: String, value: String): OriginalBackup {
+        val copy=JSONObject(root.toString())
+        val prefs=copy.optJSONObject("preferencias") ?: JSONObject()
+        copy.put("preferencias",prefs.put(key,value)).put("fecha",java.time.Instant.now().toString())
+        return parse(copy.toString())
+    }
+
     /** Portable encrypted backup compatible with Balance One web v0.7.38. */
     fun encryptedExport(password: CharArray): String {
         require(password.size >= 12) { "Usa una contraseña de al menos 12 caracteres" }

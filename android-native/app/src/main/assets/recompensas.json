@@ -1,0 +1,166 @@
+{
+  "american-express-blue-cash-preferred": {
+    "desde": "2026-08-05",
+    "reglas": [
+      {
+        "multiplier": 6,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "online_groceries",
+          "us_supermarkets"
+        ],
+        "spendCap": {
+          "amount": 6000,
+          "period": {
+            "unit": "year",
+            "count": 1,
+            "anchor": "calendar"
+          }
+        },
+        "terms": "6% at U.S. supermarkets on up to $6,000/year in purchases, then 1%. Excludes superstores, warehouse clubs, and gas stations that also sell groceries.",
+        "sourceUrl": "https://www.americanexpress.com/us/credit-cards/card/blue-cash-preferred/"
+      },
+      {
+        "multiplier": 6,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "streaming"
+        ],
+        "terms": "6% on select U.S. streaming subscriptions. No spend cap.",
+        "sourceUrl": "https://www.americanexpress.com/us/credit-cards/card/blue-cash-preferred/"
+      },
+      {
+        "multiplier": 3,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "gas_stations",
+          "transit"
+        ],
+        "terms": "3% at U.S. gas stations (stand-alone stations only) and on transit (including taxis/rideshare, parking, tolls, trains, buses). No spend cap.",
+        "sourceUrl": "https://www.americanexpress.com/us/credit-cards/card/blue-cash-preferred/"
+      },
+      {
+        "multiplier": 1,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "everything_else"
+        ],
+        "sourceUrl": "https://www.americanexpress.com/us/credit-cards/card/blue-cash-preferred/"
+      }
+    ]
+  },
+  "capital-one-quicksilver": {
+    "desde": "2026-07-24",
+    "reglas": [
+      {
+        "multiplier": 1.5,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "everything_else"
+        ],
+        "terms": "Unlimited 1.5% cash back on every purchase, every day"
+      },
+      {
+        "multiplier": 5,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "Capital One Entertainment purchases"
+        ],
+        "terms": "Capital One Entertainment purchases"
+      },
+      {
+        "multiplier": 5,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "Hotels, rental cars, vacation rentals and activities booked through Capital One Travel"
+        ],
+        "terms": "Hotels, rental cars, vacation rentals and activities booked through Capital One Travel"
+      }
+    ]
+  },
+  "goldman-sachs-apple-card": {
+    "desde": "2026-08-04",
+    "reglas": [
+      {
+        "multiplier": 3,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "apple",
+          "select_apple_pay_merchants"
+        ],
+        "terms": "3% Daily Cash at Apple and select merchants when paying with Apple Pay.",
+        "sourceUrl": "https://learn.applecard.apple/benefits"
+      },
+      {
+        "multiplier": 2,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "apple_pay"
+        ],
+        "terms": "2% Daily Cash on all other Apple Pay purchases.",
+        "sourceUrl": "https://learn.applecard.apple/benefits"
+      },
+      {
+        "multiplier": 1,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "everything_else"
+        ],
+        "terms": "1% Daily Cash on purchases made with the physical titanium card or card number (not Apple Pay).",
+        "sourceUrl": "https://learn.applecard.apple/benefits"
+      }
+    ]
+  },
+  "chase-freedom-unlimited": {
+    "desde": "2026-09-10",
+    "reglas": [
+      {
+        "multiplier": 5,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "chase_travel"
+        ],
+        "terms": "Travel purchased through Chase Travel.",
+        "sourceUrl": "https://creditcards.chase.com/cash-back-credit-cards/freedom/unlimited"
+      },
+      {
+        "multiplier": 3,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "dining"
+        ],
+        "terms": "Restaurants, takeout, and eligible delivery services.",
+        "sourceUrl": "https://creditcards.chase.com/cash-back-credit-cards/freedom/unlimited"
+      },
+      {
+        "multiplier": 3,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "drugstores"
+        ],
+        "sourceUrl": "https://creditcards.chase.com/cash-back-credit-cards/freedom/unlimited"
+      },
+      {
+        "multiplier": 1.5,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "everything_else"
+        ],
+        "sourceUrl": "https://creditcards.chase.com/cash-back-credit-cards/freedom/unlimited"
+      }
+    ]
+  },
+  "capital-one-platinum": {
+    "desde": "2026-10-22",
+    "reglas": [
+      {
+        "multiplier": 0,
+        "rewardUnit": "cashback_percent",
+        "eligibleCategories": [
+          "everything_else"
+        ],
+        "terms": "No purchase rewards are advertised on the product page."
+      }
+    ]
+  }
+}

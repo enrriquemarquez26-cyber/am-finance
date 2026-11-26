@@ -183,13 +183,14 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
         if(type=="gasto") snapshot.section("tarjetas").map { "credito:"+it.optString("id") to it.optString("nombre")+" · Crédito" } else emptyList()
     var receipt by remember { mutableStateOf(field("recibo")) }
     var processing by remember { mutableStateOf(false) }
+    var installment by remember { mutableStateOf(old?.optBoolean("enPlanCuotas")==true) }
     var accountsOpen by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     AlertDialog(onDismissRequest={if(!busy) close()},
         title={Text(if(old==null) "Nuevo movimiento" else "Editar movimiento")},
         text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                listOf("gasto","ingreso").forEach { t -> FilterChip(selected=type==t,onClick={type=t;if(t=="ingreso" && account.startsWith("credito:")) account=""},
+                listOf("gasto","ingreso").forEach { t -> FilterChip(selected=type==t,onClick={type=t;if(t=="ingreso") installment=false;if(t=="ingreso" && account.startsWith("credito:")) account=""},
                     label={Text(if(t=="gasto") "Gasto" else "Ingreso")},enabled=!busy) }
             }
             OutlinedTextField(name,{name=it},label={Text("Nombre")},singleLine=true,enabled=!busy)
@@ -203,9 +204,12 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
                 }
                 DropdownMenu(expanded=accountsOpen,onDismissRequest={accountsOpen=false}) {
                     sources.forEach { (id,name) ->
-                        DropdownMenuItem(text={Text(name)},onClick={account=id;accountsOpen=false})
+                        DropdownMenuItem(text={Text(name)},onClick={account=id;installment=false;accountsOpen=false})
                     }
                 }
+            }
+            if(type=="gasto" && account.startsWith("credito:") && (installment || snapshot.section("tarjetas").any { it.value("id")==account.removePrefix("credito:") && it.optJSONObject("planCuotas")!=null })) {
+                Row(verticalAlignment=Alignment.CenterVertically) { Checkbox(installment,{installment=it},enabled=!busy); Text("Agregar a pago a plazos") }
             }
             if(type=="gasto" || receipt.isNotBlank()) {
                 if(receipt.isNotBlank()) {
@@ -217,7 +221,7 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
             if(failure.isNotBlank()) Text(failure,color=MaterialTheme.colorScheme.error)
             if(old!=null) TextButton(onClick={confirmDelete=true},enabled=!busy) { Text("Eliminar movimiento") }
         }},
-        confirmButton={TextButton(onClick={save(NativeFinance.Draft(name,type,amount,date,category,account.takeUnless { it.startsWith("credito:") }.orEmpty(),project,account.removePrefix("credito:").takeIf { account.startsWith("credito:") }.orEmpty(),receipt))},
+        confirmButton={TextButton(onClick={save(NativeFinance.Draft(name,type,amount,date,category,account.takeUnless { it.startsWith("credito:") }.orEmpty(),project,account.removePrefix("credito:").takeIf { account.startsWith("credito:") }.orEmpty(),receipt,installment))},
             enabled=!busy && !processing && account.isNotBlank() && name.isNotBlank()) { Text("Guardar") }},
         dismissButton={TextButton(onClick=close,enabled=!busy) { Text("Cancelar") }})
     if(confirmDelete) AlertDialog(onDismissRequest={confirmDelete=false},title={Text("Eliminar movimiento")},

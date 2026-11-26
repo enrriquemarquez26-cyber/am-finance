@@ -321,15 +321,31 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         TextButton(onClick = { tab = 10 }) { Text("Ver movimientos") }
                     }
                 }
+                item { NativePanel("Metas de ahorro") {
+                    snapshot.section("metasAhorro").take(3).forEach { row ->
+                        val goal=runCatching { OriginalSummary.goal(row,snapshot.bank) }.getOrNull()
+                        Text(row.value("nombre"))
+                        if(goal!=null) {
+                            Text(money(goal.saved)+" de "+money(goal.target))
+                            LinearProgressIndicator(progress={ (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+                        }
+                    }
+                    TextButton(onClick={tab=6}){Text("Ver metas")}
+                } }
                 item { NativePanel("Tarjetas de crédito") {
-                    Text("${snapshot.section("tarjetas").size} tarjetas en la copia")
+                    snapshot.section("tarjetas").take(3).forEach {
+                        Text(it.value("nombre")+" · "+amount(it,"saldo"))
+                        val limit=it.value("limite").toBigDecimalOrNull()
+                        val debt=it.value("saldo").toBigDecimalOrNull()
+                        if(limit!=null && debt!=null && limit.signum()>0) Text("Disponible · "+format.format((limit-debt).max(BigDecimal.ZERO)))
+                    }
                     TextButton(onClick = { tab = 3 }) { Text("Ver tarjetas") }
                 } }
                 item { NativePanel("Vehículos") {
-                    snapshot.section("vehiculos").forEach { vehicle ->
+                    snapshot.section("vehiculos").take(2).forEach { vehicle ->
                         TextButton(onClick={openOperation("vehicleDetail",vehicle)}) {
                             VehicleArt(vehicle,Modifier.widthIn(max=150.dp).height(92.dp))
-                            Column { Text(vehicle.optString("nombre")+" "+vehicle.optString("modelo"));Text(amount(vehicle,"pago")+" / mes") }
+                            Column { Text(vehicle.optString("nombre")+" "+vehicle.optString("modelo"));Text(amount(vehicle,"pago")+" / mes");Text(vehicle.value("banco")+" · "+amount(vehicle,"saldo")) }
                         }
                     }
                     TextButton(onClick = { tab = 2 }) { Text("Ver vehículos") }
@@ -343,6 +359,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             if(snapshot != null && tab == 6) item { Button(onClick={openOperation("goal")},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva meta") } }
             if(snapshot != null && tab == 7) item { Button(onClick={openOperation("subscription")},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nuevo cobro previsto") } }
             if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
+            if(snapshot!=null && tab==9) item { Button(onClick={openOperation("loan")},enabled=!busy){Text("Nuevo préstamo")} }
             if(snapshot != null && tab==10) item {
                 Column(verticalArrangement=Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(query,{query=it},label={Text("Buscar movimientos")},singleLine=true,modifier=Modifier.fillMaxWidth())
@@ -384,6 +401,11 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         }
                         if(tab==3) OfflineArtwork(row.optString("imagenPersonalizada"),cardArt(row),row.optString("nombre"),Modifier.fillMaxWidth().heightIn(max=160.dp))
                         if(tab==10 && !row.isNull("recibo") && row.optString("recibo").isNotBlank()) TextButton(onClick={openOperation("receipt",row)}) {Text("Ver recibo")}
+                        if(tab==9) {
+                            Text("Capital pendiente · "+amount(row,"saldo"))
+                            Text("Cuota · "+amount(row,"cuota")+" · "+row.value("proximo"))
+                            TextButton(onClick={openOperation("loanPayment",row)},enabled=!busy && (row.value("saldo").toBigDecimalOrNull()?.signum()==1)){Text("Registrar cuota")}
+                        }
                         if (tab == 6) {
                             val goal = remember(snapshot,row) {
                                 runCatching { OriginalSummary.goal(row,snapshot.bank) }.getOrNull()
@@ -402,7 +424,24 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         if(tab==2 || tab==3) {
                             TextButton(onClick={openOperation(if(tab==2) "vehicle" else "card",row)},enabled=!busy){Text("Editar datos")}
                             TextButton(onClick={openOperation(if(tab==2) "vehiclePay" else "cardPay",row)},enabled=!busy){Text("Registrar pago")}
+                            if(tab==2) {
+                                TextButton(onClick={openOperation("serviceDate",row)},enabled=!busy){Text("Próximo servicio · "+row.value("fechaServicioProgramada").ifBlank { "Sin programar" })}
+                                TextButton(onClick={openOperation("vehicleLog",row)},enabled=!busy){Text("Registrar servicio o millaje")}
+                                val history=buildList<Pair<String,String>> {
+                                    row.optJSONArray("bitacoraVehiculo")?.let { log -> for(i in 0 until log.length()) {
+                                        val item=log.optJSONObject(i) ?: continue
+                                        add(item.value("fecha") to listOf(item.value("descripcion"),item.value("millas").takeIf { it.isNotBlank() }?.plus(" mi"),item.optLong("centavos").let(::money)).filterNotNull().joinToString(" · "))
+                                    } }
+                                    snapshot.section("movimientos").filter { it.value("vehiculoId")==row.value("id") && it.value("tipo")=="gasto" }.forEach {
+                                        add(it.value("fecha") to listOfNotNull(it.value("nombre"),amount(it,"monto"),it.value("millas").takeIf { v->v.isNotBlank() }?.plus(" mi")).joinToString(" · "))
+                                    }
+                                }
+                                history.sortedByDescending { it.first }.forEach { Text(it.first+" · "+it.second) }
+                            }
                             if(tab==3) {
+                                TextButton(onClick={openOperation("rewards",row)},enabled=!busy){Text("Reembolsos")}
+                                TextButton(onClick={openOperation("installment",row)},enabled=!busy){Text("Pago a plazos")}
+                                TextButton(onClick={openOperation("cardGoal",row)},enabled=!busy){Text("Meta de pago")}
                                 val used=row.optString("saldo").toBigDecimalOrNull()
                                 val limit=row.optString("limite").toBigDecimalOrNull()
                                 if(used!=null && limit!=null && limit.signum()>0) {
@@ -444,6 +483,15 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
             if (tab == 11) item { CalculatorPanel { format.format(it) } }
             if (tab == 4) {
+                if(snapshot!=null) item { NativePanel("Importes") {
+                    Choice("Moneda",currency,mapOf("USD" to "Dólar (USD)","EUR" to "Euro (EUR)"),!busy) { value ->
+                        commitOperation { it.withPreference("balanceone-moneda-importes",value) }
+                    }
+                    Choice("Formato",if(locale==Locale.US) "en-US" else "es-ES",mapOf("en-US" to "1,234.56","es-ES" to "1.234,56"),!busy) { value ->
+                        commitOperation { it.withPreference("balanceone-formato-importes",value) }
+                    }
+                    if(operationError.isNotBlank()) Text(operationError,color=MaterialTheme.colorScheme.error)
+                } }
                 item { NativePanel("Apariencia") {
                     listOf("Sistema","Claro","Oscuro").forEach { mode ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -475,6 +523,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     if(snapshot!=null) {
         val row=operationRow
         when(operationDialog) {
+            "rewards" -> if(row!=null) RewardDialog(snapshot,row,busy,operationError,::money,::closeOperation,::commitOperation)
+            "loan","loanPayment" -> LoanDialog(snapshot,row,busy,operationError,::closeOperation,::commitOperation)
+            "installment","cardGoal" -> if(row!=null) CardTracking(snapshot,row,operationDialog=="installment",busy,operationError,::money,::closeOperation,::commitOperation)
+            "serviceDate","vehicleLog" -> if(row!=null) VehicleDetailsForm(snapshot,row,operationDialog,busy,operationError,::closeOperation,::commitOperation)
             "receipt" -> if(row!=null) AlertDialog(onDismissRequest=::closeOperation,title={Text("Recibo")},
                 text={OfflineArtwork(row.optString("recibo"),null,"Foto del recibo",Modifier.fillMaxWidth().heightIn(max=440.dp))},
                 confirmButton={TextButton(onClick=::closeOperation){Text("Cerrar")}})

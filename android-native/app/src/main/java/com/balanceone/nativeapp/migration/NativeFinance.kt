@@ -59,7 +59,7 @@ internal object NativeFinance {
         if(row.keys().asSequence().any { it !in ordinaryFields }) return false
         if(listOf("vehiculoId","autoId","tipoGastoAuto","categoriaAuto","vehiculoCategoria","servicioAuto")
             .any { field(row,it).isNotBlank() }) return false
-        if(row.optBoolean("enPlanCuotas") || field(row,"origen") in setOf("transferencia","pago")) return false
+        if(field(row,"origen") in setOf("transferencia","pago")) return false
         return field(row,"tarjetaId").isBlank() || (field(row,"cuentaId").isBlank() && field(row,"tipo")=="gasto")
     }
     data class BankDraft(val name: String,val type: String,val balance: String,val goal: String)
@@ -112,8 +112,8 @@ internal object NativeFinance {
     }
 
     data class Draft(val name: String,val type: String,val amount: String,val date: String,
-        val category: String,val accountId: String,val project: String,val cardId: String = "",val receipt:String?=null)
-    fun change(b: OriginalBackup, previousId: String?, draft: Draft?): OriginalBackup {
+        val category: String,val accountId: String,val project: String,val cardId: String = "",val receipt:String?=null,val installment:Boolean=false)
+    fun change(b: OriginalBackup, previousId: String?, draft: Draft?,decorate: ((JSONObject)->Unit)?=null): OriginalBackup {
         require(previousId != null || draft != null)
         val root = JSONObject(b.root.toString())
         val data = root.getJSONObject("datos")
@@ -139,7 +139,9 @@ internal object NativeFinance {
             if(it.cardId.isNotBlank()) row.put("tarjetaId",it.cardId) else row.put("cuentaId",it.accountId)
             row.put("nombre",it.name.trim()).put("tipo",it.type).put("monto",decimal(cents(it.amount)))
                 .put("fecha",it.date).put("categoria",it.category.trim())
-                .put("proyecto",it.project.trim()).put("enPlanCuotas",false)
+                .put("proyecto",it.project.trim()).put("enPlanCuotas",it.installment)
+            if(it.installment) require(it.cardId.isNotBlank() && b.section("tarjetas").any { card -> field(card,"id")==it.cardId && (card.optJSONObject("planCuotas")!=null || (old?.optBoolean("enPlanCuotas")==true && field(old,"tarjetaId")==it.cardId)) }) { "La tarjeta necesita un plan de cuotas" }
+            decorate?.invoke(row)
             row
         }
         // Reject duplicate purchases instead of silently recording them twice.

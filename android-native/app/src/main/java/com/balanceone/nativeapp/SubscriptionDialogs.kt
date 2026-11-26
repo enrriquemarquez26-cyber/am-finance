@@ -16,7 +16,7 @@ private fun field(row:JSONObject?,key:String):String =
     if(row==null || row.isNull(key)) "" else row.optString(key)
 
 @Composable
-private fun Choice(label:String,value:String,choices:Map<String,String>,enabled:Boolean,change:(String)->Unit) {
+internal fun Choice(label:String,value:String,choices:Map<String,String>,enabled:Boolean,change:(String)->Unit) {
     var expanded by remember { mutableStateOf(false) }
     Column {
         Text(label,style=MaterialTheme.typography.labelMedium)
