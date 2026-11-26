@@ -46,6 +46,25 @@ class NativeFinanceTest {
         assertEquals(0L,NativeFinance.totals(b,day,day).expense)
         assertEquals(12000L,NativeFinance.available(b,true))
     }
+    @Test fun bankCreationAndCorrection() {
+        val b=NativeFinance.changeBank(sample(),null,NativeFinance.BankDraft("Nueva","ahorro","10","100"))
+        assertEquals(3,b.bank.size)
+        val id=b.bank.last().getString("id")
+        val c=NativeFinance.changeBank(b,id,NativeFinance.BankDraft("Nueva","ahorro","20","100"))
+        assertEquals(2000L,NativeFinance.cents(c.bank.last().optString("saldo")))
+        assertEquals(1,c.bank.last().getJSONArray("correccionesSaldo").length())
+        assertTrue(c.section("movimientos").isEmpty())
+    }
+    @Test fun portableEncryptedBackupRoundTrip() {
+        val b=NativeFinance.change(sample(),null,draft())
+        val pass="Balance-prueba-2026".toCharArray()
+        try {
+            val restored=OriginalBackup.parse(b.encryptedExport(pass),pass)
+            assertEquals(b.bank[0].optString("saldo").toBigDecimal(),restored.bank[0].optString("saldo").toBigDecimal())
+            assertEquals(b.section("movimientos").single().getString("id"),restored.section("movimientos").single().getString("id"))
+            assertTrue(restored.data.getJSONObject("unknown").getBoolean("keep"))
+        } finally { pass.fill('\u0000') }
+    }
     @Test fun linkedOperationsAreNotEditable() {
         val row=org.json.JSONObject("""{"id":"x","tipo":"gasto","suscripcionId":"s"}""")
         assertFalse(NativeFinance.editable(row))
