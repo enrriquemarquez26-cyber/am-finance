@@ -45,6 +45,13 @@ class OriginalBackup private constructor(val root: JSONObject) {
                 val a = data.getJSONArray(key)
                 for (i in 0 until a.length()) a.getJSONObject(i)
             }
+            // Reject malformed arrays used by the native screens before saving or rendering.
+            listOf("metasAhorro","suscripciones","prestamos").forEach { key ->
+                if (data.has(key)) {
+                    val a = data.getJSONArray(key)
+                    for (i in 0 until a.length()) a.getJSONObject(i)
+                }
+            }
             if (document.has("cuentasBanco")) {
                 val a = document.getJSONArray("cuentasBanco")
                 for (i in 0 until a.length()) a.getJSONObject(i)
