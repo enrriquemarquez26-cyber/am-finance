@@ -395,7 +395,8 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         }
                         "cuentas" -> HomeAccounts(snapshot,mode=="clasico",discreet,homeMoney,busy,
                             {model->commitOperation { current->homeDataChange(current){it.put("widgetChequesInicio",model)} }},
-                            {openOperation("arrangeHomeAccounts")},{editBank()},{row->editBank(row)},{tab=5})
+                            {openOperation("arrangeHomeAccounts")},{editBank()},{row->openOperation("bank",row)},
+                            {row->editBank(row)},{row->openOperation("deleteBank",row)},{tab=5})
                         "transacciones" -> HomeTransactions(snapshot,expenses,homeMonth,discreet,homeMoney){tab=10}
                         "tarjetas" -> HomeCreditCards(snapshot,homeMoney,arrange={openOperation("arrangeHomeCards")}){tab=3}
                         "metas" -> HomeSavingsGoals(snapshot,homeMoney,discreet){tab=6}
@@ -831,7 +832,11 @@ private fun HomeSavingsGoals(snapshot: OriginalBackup, money:(Long)->String, hid
         goals.forEach { (name,goal)->
             Text(name)
             Text(money(goal.saved)+" de "+money(goal.target))
-            if(!hidden) LinearProgressIndicator(progress={ (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+            if(!hidden){
+                val progress=(goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat()
+                LinearProgressIndicator(progress={progress},modifier=Modifier.fillMaxWidth())
+                Text((progress*100).toInt().toString()+" % · "+if(goal.remaining==0L) "Meta alcanzada" else "Faltan "+money(goal.remaining))
+            }
         }
         TextButton(onClick=open){Text("Ver metas")}
     }

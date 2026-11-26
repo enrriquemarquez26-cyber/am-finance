@@ -27,7 +27,7 @@ private fun selectedAccounts(b:OriginalBackup,all:List<JSONObject>):List<JSONObj
 
 @Composable
 internal fun HomeAccounts(b:OriginalBackup,classic:Boolean,hidden:Boolean,money:(Long)->String,busy:Boolean,
-    compactChange:(String)->Unit,arrange:()->Unit,create:()->Unit,open:(JSONObject)->Unit,viewAll:()->Unit) {
+    compactChange:(String)->Unit,arrange:()->Unit,create:()->Unit,open:(JSONObject)->Unit,edit:(JSONObject)->Unit,remove:(JSONObject)->Unit,viewAll:()->Unit) {
     val all=remember(b){orderedHomeRows(b,b.bank,bankHomeOrder)}
     val rows=remember(b,classic){if(classic) all else selectedAccounts(b,all)}
     NativePanel(if(classic) "Cuentas bancarias" else "Cuentas de cheques") {
@@ -48,6 +48,16 @@ internal fun HomeAccounts(b:OriginalBackup,classic:Boolean,hidden:Boolean,money:
                     if(!compact) Text(if(row.value("tipo")=="ahorro") "Ahorros" else "Cheques",style=MaterialTheme.typography.labelSmall)
                 }
                 Text(balance?.let(money) ?: "—")
+            }
+            if(classic) {
+                var menu by remember(row.value("id")){mutableStateOf(false)}
+                Box {
+                    TextButton(onClick={menu=true},enabled=!busy){Text("Opciones de "+row.value("nombre"))}
+                    DropdownMenu(expanded=menu,onDismissRequest={menu=false}){
+                        DropdownMenuItem(text={Text("Editar cuenta")},onClick={menu=false;edit(row)})
+                        DropdownMenuItem(text={Text("Eliminar cuenta")},onClick={menu=false;remove(row)})
+                    }
+                }
             }
             if(!hidden && row.value("tipo")=="ahorro" && target!=null && balance!=null) {
                 LinearProgressIndicator(progress={ (balance.toDouble()/target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())

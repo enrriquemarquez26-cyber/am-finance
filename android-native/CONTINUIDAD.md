@@ -128,3 +128,7 @@ Portados a Compose el carrusel de transacciones, los selectores de ingresos y cu
 - Recordatorio para exportar la copia cifrada si nunca se confirmó o han pasado 30 días. Actualiza la fecha únicamente después de escribir el archivo.
 - Metas enlazadas con ahorro en Panorama, orden de tarjetas en Inicio clásico y bienvenida animada en los paneles de disponible e ingresos.
 - Pendiente en Inicio: terminar de trasladar los detalles visuales de los dos diseños y las interacciones restantes del original. Después sigue Autos. No se compiló ni se ejecutaron pruebas.
+
+## 0.2.10 Beta · Acciones de Inicio
+
+Tocar la gráfica de Panorama selecciona el día y abre su gasto y el acumulado. Se puede cambiar la fecha o recorrer los días del período. Tocar una cuenta desde Inicio abre sus operaciones bancarias. El diseño clásico también permite editar o eliminar desde las opciones de cada cuenta con la confirmación existente. Las metas muestran lo que falta o si ya se alcanzaron. Pendiente: detalles visuales y gestos del diseño web. Sin pruebas ni compilación.
