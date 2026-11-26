@@ -46,14 +46,43 @@ internal object NativeFinance {
     // Whitelist ordinary records. Unknown fields and any special linked operations remain read-only.
     private val ordinaryFields = setOf("id","nombre","tipo","monto","fecha","categoria","cuentaId",
         "tarjetaId","proyecto","recibo","enPlanCuotas","origen","instante","vehiculoId","autoId",
-        "tipoGastoAuto","categoriaAuto","vehiculoCategoria")
+        "tipoGastoAuto","categoriaAuto","vehiculoCategoria","servicioAuto")
     fun editable(row: JSONObject): Boolean {
         if(field(row,"id").isBlank() || field(row,"tipo") !in setOf("gasto","ingreso")) return false
         if(row.keys().asSequence().any { it !in ordinaryFields }) return false
-        if(listOf("tarjetaId","vehiculoId","autoId","tipoGastoAuto","categoriaAuto","vehiculoCategoria")
+        if(listOf("tarjetaId","vehiculoId","autoId","tipoGastoAuto","categoriaAuto","vehiculoCategoria","servicioAuto")
             .any { field(row,it).isNotBlank() }) return false
         if(row.optBoolean("enPlanCuotas") || field(row,"origen") in setOf("transferencia","pago")) return false
         return true
+    }
+    data class BankDraft(val name: String,val type: String,val balance: String,val goal: String)
+    fun changeBank(b: OriginalBackup, id: String?, draft: BankDraft): OriginalBackup {
+        require(draft.name.trim().isNotEmpty() && draft.name.length <= 80) { "Nombre no válido" }
+        require(draft.type in setOf("cheques","ahorro"))
+        val balance = cents(draft.balance,true)
+        val goal = cents(draft.goal,true)
+        val root = JSONObject(b.root.toString())
+        val accounts = root.optJSONArray("cuentasBanco") ?: JSONArray()
+        val row = if(id == null) JSONObject().put("id",UUID.randomUUID().toString()) else
+            (0 until accounts.length()).map { accounts.getJSONObject(it) }.singleOrNull { field(it,"id")==id }
+                ?: throw IllegalArgumentException("Cuenta no encontrada")
+        if(id != null && draft.type != "ahorro") require(b.section("metasAhorro").none {
+            field(it,"cuentaId") == id
+        }) { "Desvincula la cuenta de su meta antes de cambiar el tipo" }
+        if(id != null) {
+            val previous = cents(field(row,"saldo"),true)
+            if(previous != balance) {
+                val corrections = row.optJSONArray("correccionesSaldo") ?: JSONArray()
+                require(!row.has("correccionesSaldo") || row.optJSONArray("correccionesSaldo") != null)
+                corrections.put(JSONObject().put("id",UUID.randomUUID().toString()).put("fecha",Instant.now().toString())
+                    .put("anterior",decimal(previous)).put("nuevo",decimal(balance)))
+                row.put("correccionesSaldo",corrections)
+            }
+        }
+        row.put("nombre",draft.name.trim()).put("tipo",draft.type).put("saldo",decimal(balance)).put("meta",decimal(goal))
+        if(id==null) accounts.put(row)
+        root.put("cuentasBanco",accounts).put("fecha",Instant.now().toString())
+        return OriginalBackup.parse(root.toString())
     }
     data class Draft(val name: String,val type: String,val amount: String,val date: String,
         val category: String,val accountId: String,val project: String)
