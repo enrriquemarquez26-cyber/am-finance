@@ -1,0 +1,119 @@
+package com.balanceone.nativeapp.migration
+
+import org.json.JSONArray
+import org.json.JSONObject
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.LocalDate
+import java.time.Instant
+import java.util.UUID
+
+/** Original web panorama rules, and atomic changes to ordinary bank movements. */
+internal object NativeFinance {
+    private const val LIMIT = 9007199254740991L
+    data class Totals(val income: Long, val expense: Long)
+    fun start(day: LocalDate, period: String): LocalDate = when(period) {
+        "Semanal" -> day.minusDays((day.dayOfWeek.value - 1).toLong())
+        "Quincenal" -> day.withDayOfMonth(if(day.dayOfMonth <= 15) 1 else 16)
+        else -> day.withDayOfMonth(1)
+    }
+    fun cents(value: String, allowZero: Boolean = false): Long {
+        val n = value.trim().toBigDecimalOrNull() ?: throw IllegalArgumentException("Importe no válido")
+        val amount = n.movePointRight(2).setScale(0,RoundingMode.UNNECESSARY).longValueExact()
+        require(amount in (if(allowZero) 0L else 1L)..LIMIT) { "Importe fuera de rango" }
+        return amount
+    }
+    private fun add(a: Long,b: Long) = Math.addExact(a,b).also { require(it in -LIMIT..LIMIT) }
+    fun decimal(cents: Long): BigDecimal = BigDecimal.valueOf(cents,2)
+    fun day(row: JSONObject): LocalDate? = runCatching { LocalDate.parse(row.optString("fecha")) }.getOrNull()
+    fun totals(b: OriginalBackup, from: LocalDate, to: LocalDate): Totals {
+        fun sum(rows: List<JSONObject>): Long = rows.fold(0L) { total, row ->
+            val date = day(row)
+            val raw = row.optString("monto").toBigDecimalOrNull()
+            if(date == null || date < from || date > to || raw == null || raw.signum() <= 0) total
+            else add(total, raw.movePointRight(2).setScale(0,RoundingMode.HALF_UP).longValueExact())
+        }
+        val moves = b.section("movimientos")
+        return Totals(sum(moves.filter { it.optString("tipo") == "ingreso" }),
+            sum(moves.filter { it.optString("tipo") == "gasto" } +
+                b.section("pagos").filter { it.optString("tipo") != "tarjeta" }))
+    }
+    fun available(b: OriginalBackup, checkingOnly: Boolean): Long = b.bank
+        .filter { !checkingOnly || it.optString("tipo") != "ahorro" }
+        .fold(0L) { total, row -> add(total,cents(row.optString("saldo"),true)) }
+
+    private fun field(row: JSONObject, key: String) = if(row.isNull(key)) "" else row.optString(key)
+    // Whitelist ordinary records. Unknown fields and any special linked operations remain read-only.
+    private val ordinaryFields = setOf("id","nombre","tipo","monto","fecha","categoria","cuentaId",
+        "tarjetaId","proyecto","recibo","enPlanCuotas","origen","instante","vehiculoId","autoId",
+        "tipoGastoAuto","categoriaAuto","vehiculoCategoria")
+    fun editable(row: JSONObject): Boolean {
+        if(field(row,"id").isBlank() || field(row,"tipo") !in setOf("gasto","ingreso")) return false
+        if(row.keys().asSequence().any { it !in ordinaryFields }) return false
+        if(listOf("tarjetaId","vehiculoId","autoId","tipoGastoAuto","categoriaAuto","vehiculoCategoria")
+            .any { field(row,it).isNotBlank() }) return false
+        if(row.optBoolean("enPlanCuotas") || field(row,"origen") in setOf("transferencia","pago")) return false
+        return true
+    }
+    data class Draft(val name: String,val type: String,val amount: String,val date: String,
+        val category: String,val accountId: String,val project: String)
+    fun change(b: OriginalBackup, previousId: String?, draft: Draft?): OriginalBackup {
+        require(previousId != null || draft != null)
+        val root = JSONObject(b.root.toString())
+        val data = root.getJSONObject("datos")
+        val moves = data.getJSONArray("movimientos")
+        val old = if(previousId == null) null else (0 until moves.length()).map { moves.getJSONObject(it) }
+            .singleOrNull { field(it,"id") == previousId }
+            ?: throw IllegalArgumentException("Movimiento no encontrado")
+        if(old != null) require(editable(old)) { "Operación vinculada: edición aún no disponible" }
+        val new = draft?.let {
+            require(it.name.trim().isNotEmpty() && it.name.length <= 80) { "Introduce un nombre válido" }
+            require(it.type in setOf("gasto","ingreso"))
+            require(LocalDate.parse(it.date).toString() == it.date)
+            require(it.accountId.isNotBlank()) { "Selecciona una cuenta bancaria" }
+            require(it.project.length <= 60 && it.category.length <= 80)
+            val row = old?.let { JSONObject(it.toString()) } ?: JSONObject().put("id",UUID.randomUUID().toString())
+            row.put("nombre",it.name.trim()).put("tipo",it.type).put("monto",decimal(cents(it.amount)))
+                .put("fecha",it.date).put("categoria",it.category.trim()).put("cuentaId",it.accountId)
+                .put("proyecto",it.project.trim()).put("enPlanCuotas",false)
+            row
+        }
+        // Reject duplicate purchases instead of silently recording them twice.
+        fun signature(r: JSONObject?): List<String>? {
+            if(r == null || field(r,"tipo") != "gasto") return null
+            return listOf(field(r,"nombre").trim().lowercase(java.util.Locale.ROOT),field(r,"cuentaId"),
+                field(r,"fecha"),cents(field(r,"monto")).toString())
+        }
+        val sig = signature(new)
+        if(sig != null && sig != signature(old)) require((0 until moves.length()).none {
+            val r = moves.getJSONObject(it)
+            field(r,"id") != previousId && runCatching { signature(r) == sig }.getOrDefault(false)
+        }) { "Ya existe un gasto con el mismo nombre, fecha, importe y cuenta" }
+        val changes = mutableMapOf<String,Long>()
+        fun accumulate(row: JSONObject?, sign: Long) {
+            if(row == null) return
+            val id = field(row,"cuentaId")
+            if(id.isBlank()) return
+            val effect = cents(field(row,"monto")) * (if(field(row,"tipo") == "ingreso") 1 else -1) * sign
+            changes[id] = add(changes[id] ?: 0,effect)
+        }
+        accumulate(old,-1); accumulate(new,1)
+        val bank = root.optJSONArray("cuentasBanco") ?: JSONArray()
+        changes.forEach { (id,delta) ->
+            val account = (0 until bank.length()).map { bank.getJSONObject(it) }
+                .singleOrNull { field(it,"id") == id } ?: throw IllegalArgumentException("Cuenta no encontrada")
+            val balance = add(cents(field(account,"saldo"),true),delta)
+            require(balance >= 0) { "Saldo insuficiente" }
+            account.put("saldo",decimal(balance))
+        }
+        val updated = JSONArray()
+        for(i in 0 until moves.length()) {
+            val row = moves.getJSONObject(i)
+            if(previousId == null || field(row,"id") != previousId) updated.put(row)
+        }
+        if(new != null) updated.put(new)
+        data.put("movimientos",updated)
+        root.put("fecha",Instant.now().toString())
+        return OriginalBackup.parse(root.toString())
+    }
+}
