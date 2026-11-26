@@ -39,6 +39,16 @@ class OriginalBackup private constructor(val root: JSONObject) {
     }
 
     companion object {
+        /** Same empty document and export envelope as web 0.7.38; no sample data. */
+        fun empty(): OriginalBackup {
+            val data = JSONObject()
+            listOf("movimientos", "vehiculos", "tarjetas", "pagos", "metasAhorro", "suscripciones", "prestamos")
+                .forEach { data.put(it, JSONArray()) }
+            return parse(JSONObject().put("aplicacion", "Balance One").put("version", 2)
+                .put("fecha", java.time.Instant.now().toString()).put("datos", data)
+                .put("cuentasBanco", JSONArray()).put("preferencias", JSONObject()).toString())
+        }
+
         fun parse(raw: String, password: CharArray? = null): OriginalBackup {
             var document = JSONObject(raw)
             if (document.optString("formato") == "Balance One cifrado") {
