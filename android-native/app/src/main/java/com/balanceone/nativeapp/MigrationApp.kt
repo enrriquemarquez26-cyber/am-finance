@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.balanceone.nativeapp.migration.LocalSnapshotStore
 import com.balanceone.nativeapp.migration.NativeFinance
+import com.balanceone.nativeapp.migration.NativeOperations
 import com.balanceone.nativeapp.migration.OriginalBackup
 import com.balanceone.nativeapp.migration.OriginalSummary
 import java.time.YearMonth
@@ -89,6 +90,29 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             } catch(e: kotlinx.coroutines.CancellationException) { throw e }
             catch(e: IllegalArgumentException) { editError=e.message ?: "Datos no válidos" }
             catch(_: Exception) { editError="No se pudo guardar el movimiento. Revisa los datos." }
+            finally { busy=false }
+        }
+    }
+    var operationDialog by remember { mutableStateOf("") }
+    var operationRow by remember { mutableStateOf<JSONObject?>(null) }
+    var operationError by remember { mutableStateOf("") }
+    fun openOperation(kind:String,row:JSONObject?=null) { operationDialog=kind; operationRow=row; operationError="" }
+    fun closeOperation() { operationDialog=""; operationRow=null; operationError="" }
+    fun commitOperation(transform:(OriginalBackup)->OriginalBackup) {
+        val current=backup ?: return
+        if(busy) return
+        busy=true; operationError=""
+        scope.launch {
+            try {
+                val updated=withContext(Dispatchers.IO) {
+                    val value=transform(current)
+                    LocalSnapshotStore.save(context,value)
+                    value
+                }
+                backup=updated; closeOperation()
+            } catch(e:kotlinx.coroutines.CancellationException) { throw e }
+            catch(e:IllegalArgumentException) { operationError=e.message ?: "Datos no válidos" }
+            catch(_:Exception) { operationError="No se pudo guardar. No se modificaron los datos." }
             finally { busy=false }
         }
     }
@@ -274,6 +298,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
             if (snapshot != null && tab == 1) item { NativeCalendar(snapshot,::money) }
             if(snapshot != null && tab == 5) item { Button(onClick={editBank()},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva cuenta") } }
+            if(snapshot != null && tab == 6) item { Button(onClick={openOperation("goal")},enabled=!busy) { Icon(Icons.Default.Add,null); Text("Nueva meta") } }
             if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && snapshot.bank.isNotEmpty()) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
             if (snapshot != null && tab != 0 && tab != 4 && tab != 1) {
                 val rows = when(tab) {
@@ -311,6 +336,22 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             }
                         }
                         if(tab==5) TextButton(onClick={editBank(row)},enabled=!busy && row.optString("id").isNotBlank()) { Text("Editar cuenta") }
+                        if(tab==5) {
+                            TextButton(onClick={openOperation("bank",row)},enabled=!busy && row.optString("id").isNotBlank()) { Text("Depositar · Retirar · Transferir") }
+                            val history=row.optJSONArray("historial")
+                            if(history!=null && history.length()>0) {
+                                Text("Últimas operaciones",fontWeight=FontWeight.SemiBold)
+                                for(i in history.length()-1 downTo (history.length()-5).coerceAtLeast(0)) {
+                                    val entry=history.optJSONObject(i) ?: continue
+                                    Text(entry.optString("tipo")+" · "+entry.optString("sentido")+" · "+amount(entry,"monto"))
+                                }
+                            }
+                        }
+                        if(tab==6) {
+                            TextButton(onClick={openOperation("goal",row)},enabled=!busy){Text("Editar meta")}
+                            if(row.isNull("cuentaId") || row.optString("cuentaId").isBlank())
+                                TextButton(onClick={openOperation("progress",row)},enabled=!busy){Text("Registrar avance / historial")}
+                        }
                         if(tab==10 && NativeFinance.editable(row)) TextButton(onClick={editMovement(row)},enabled=!busy) { Text("Editar") }
                         fields.forEach { (key,label) ->
                             if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto")) amount(row,key) else row.optString(key))
@@ -347,6 +388,20 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         }},
         confirmButton={TextButton(onClick={exportSnapshot()},enabled=exportPassword.length>=12 && exportPassword==exportRepeat){Text("Guardar copia")}},
         dismissButton={TextButton(onClick={exportOpen=false;exportPassword="";exportRepeat=""}){Text("Cancelar")}})
+    if(snapshot!=null) {
+        val row=operationRow
+        when(operationDialog) {
+            "bank" -> if(row!=null) BankOperationDialog(snapshot,row,busy,operationError,::closeOperation) { draft ->
+                commitOperation { NativeOperations.bank(it,row.getString("id"),draft) }
+            }
+            "goal" -> GoalEditDialog(snapshot,row,busy,operationError,::closeOperation,{ draft ->
+                commitOperation { NativeOperations.goal(it,row?.optString("id"),draft) }
+            },{ if(row!=null) commitOperation { NativeOperations.removeGoal(it,row.getString("id")) } })
+            "progress" -> if(row!=null) GoalProgressDialog(row,busy,operationError,::closeOperation,{ type,amount,date,note ->
+                commitOperation { NativeOperations.progress(it,row.getString("id"),type,amount,date,note) }
+            },{ ident -> commitOperation { NativeOperations.removeProgress(it,row.getString("id"),ident) } })
+        }
+    }
     if(bankOpen && snapshot!=null) BankDialog(bankRow,busy,bankError,{ bankOpen=false; bankRow=null },{ commitBank(it) })
     if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,busy,editError,{ editorOpen=false; edited=null },{ commitMovement(it) },{ commitMovement(null) })
     candidate?.let { value ->
