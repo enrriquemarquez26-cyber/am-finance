@@ -154,6 +154,40 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
         }
     }
+    var exportOpen by remember { mutableStateOf(false) }
+    var exportPassword by remember { mutableStateOf("") }
+    var exportRepeat by remember { mutableStateOf("") }
+    var encryptedExport by remember { mutableStateOf<String?>(null) }
+    val exportPicker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        val payload = encryptedExport
+        encryptedExport=null
+        if(uri==null || payload==null) { busy=false }
+        else scope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri,"w")?.use {
+                        it.write(payload.toByteArray(Charsets.UTF_8))
+                    } ?: error("No se pudo escribir")
+                }
+                error="Copia cifrada guardada."
+            } catch(e: kotlinx.coroutines.CancellationException) { throw e }
+            catch(_: Exception) { error="No se pudo guardar el archivo." }
+            finally { busy=false }
+        }
+    }
+    fun exportSnapshot() {
+        val current=backup ?: return
+        val secret=exportPassword.toCharArray()
+        exportPassword=""; exportRepeat=""; exportOpen=false; busy=true; error=""
+        scope.launch {
+            try {
+                encryptedExport=withContext(Dispatchers.Default) { current.encryptedExport(secret) }
+                exportPicker.launch("Balance-One-Respaldo-Cifrado.json")
+            } catch(e: kotlinx.coroutines.CancellationException) { throw e }
+            catch(_: Exception) { encryptedExport=null; busy=false; error="No se pudo preparar la copia." }
+            finally { secret.fill('\u0000') }
+        }
+    }
     val snapshot = backup
     val currency = if (snapshot?.preferences?.optString("balanceone-moneda-importes") == "EUR") "EUR" else "USD"
     val locale = if (snapshot?.preferences?.optString("balanceone-formato-importes") == "es-ES") Locale("es","ES") else Locale.US
@@ -296,11 +330,23 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 item { NativePanel("Copia de seguridad") {
                     Text("La copia importada se conserva cifrada en este dispositivo y se abre sin conexión. No se sincroniza con la web.")
                     Button(onClick = { picker.launch(arrayOf("application/json","application/octet-stream","text/plain")) },enabled = !busy) { Text("Abrir otra copia") }
+                    if(snapshot!=null) Button(onClick={exportOpen=true},enabled=!busy) { Text("Exportar copia cifrada") }
                     if (storedCopy) TextButton(enabled = !busy,onClick = { confirmClear = true }) { Text("Eliminar copia de este dispositivo") }
                 } }
             }
         }
     }
+    if(exportOpen) AlertDialog(onDismissRequest={exportOpen=false;exportPassword="";exportRepeat=""},
+        title={Text("Exportar copia cifrada")},
+        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            Text("Conserva la contraseña: la necesitarás para restaurar la copia. Compatible con la versión web.")
+            OutlinedTextField(exportPassword,{exportPassword=it},label={Text("Contraseña (mínimo 12 caracteres)")},
+                visualTransformation=PasswordVisualTransformation(),singleLine=true)
+            OutlinedTextField(exportRepeat,{exportRepeat=it},label={Text("Repetir contraseña")},
+                visualTransformation=PasswordVisualTransformation(),singleLine=true)
+        }},
+        confirmButton={TextButton(onClick={exportSnapshot()},enabled=exportPassword.length>=12 && exportPassword==exportRepeat){Text("Guardar copia")}},
+        dismissButton={TextButton(onClick={exportOpen=false;exportPassword="";exportRepeat=""}){Text("Cancelar")}})
     if(bankOpen && snapshot!=null) BankDialog(bankRow,busy,bankError,{ bankOpen=false; bankRow=null },{ commitBank(it) })
     if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,busy,editError,{ editorOpen=false; edited=null },{ commitMovement(it) },{ commitMovement(null) })
     candidate?.let { value ->
