@@ -41,6 +41,22 @@ class LocalSnapshotStoreInstrumentedTest {
         "cuentasBanco":[{"id":"test","nombre":"$name","saldo":123.45,"tipo":"cheques"}]}
     """.trimIndent())
 
+    @Test fun newWorkspaceIsEmptyAndCannotReplaceExistingSnapshot() {
+        val fresh = LocalSnapshotStore.createEmpty(context)
+        assertTrue(fresh.bank.isEmpty())
+        assertTrue(fresh.section("movimientos").isEmpty())
+        assertEquals(2, fresh.root.getInt("version"))
+        assertNotNull(LocalSnapshotStore.load(context))
+        LocalSnapshotStore.save(context, sample("Conservar"))
+        assertTrue(runCatching { LocalSnapshotStore.createEmpty(context) }.isFailure)
+        assertEquals("Conservar", LocalSnapshotStore.load(context)!!.bank.single().getString("nombre"))
+        val original = file.readBytes()
+        file.writeBytes(byteArrayOf(1, 2, 3))
+        assertTrue(runCatching { LocalSnapshotStore.createEmpty(context) }.isFailure)
+        assertArrayEquals(byteArrayOf(1, 2, 3), file.readBytes())
+        file.writeBytes(original)
+    }
+
     @Test fun savesAndRecoversFullEncryptedSnapshot() {
         assertNull(LocalSnapshotStore.load(context))
         LocalSnapshotStore.save(context, sample("Cuenta de prueba"))
