@@ -388,7 +388,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             if(row.isNull("cuentaId") || row.optString("cuentaId").isBlank())
                                 TextButton(onClick={openOperation("progress",row)},enabled=!busy){Text("Registrar avance / historial")}
                         }
-                        if(tab==7) SubscriptionDetails(row,money,busy) { kind -> openOperation(kind,row) }
+                        if(tab==7) SubscriptionDetails(row,::money,busy) { kind -> openOperation(kind,row) }
                         if(tab==10 && NativeFinance.editable(row)) TextButton(onClick={editMovement(row)},enabled=!busy) { Text("Editar") }
                         fields.forEach { (key,label) ->
                             if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto")) amount(row,key) else row.optString(key))
