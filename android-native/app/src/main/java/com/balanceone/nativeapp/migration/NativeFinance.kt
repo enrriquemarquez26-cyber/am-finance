@@ -38,9 +38,16 @@ internal object NativeFinance {
             sum(moves.filter { it.optString("tipo") == "gasto" } +
                 b.section("pagos").filter { it.optString("tipo") != "tarjeta" }))
     }
+    fun bankBalance(value: String): Long {
+        val n = value.trim().toBigDecimalOrNull() ?: throw IllegalArgumentException("Saldo inválido")
+        val cents = n.movePointRight(2).longValueExact()
+        require(cents in -LIMIT..LIMIT) { "Saldo fuera de rango" }
+        return cents
+    }
+
     fun available(b: OriginalBackup, checkingOnly: Boolean): Long = b.bank
         .filter { !checkingOnly || it.optString("tipo") != "ahorro" }
-        .fold(0L) { total, row -> add(total,cents(row.optString("saldo"),true)) }
+        .fold(0L) { total, row -> add(total,bankBalance(row.optString("saldo"))) }
 
     private fun field(row: JSONObject, key: String) = if(row.isNull(key)) "" else row.optString(key)
     // Whitelist ordinary records. Unknown fields and any special linked operations remain read-only.
@@ -59,7 +66,7 @@ internal object NativeFinance {
     fun changeBank(b: OriginalBackup, id: String?, draft: BankDraft): OriginalBackup {
         require(draft.name.trim().isNotEmpty() && draft.name.length <= 80) { "Nombre no válido" }
         require(draft.type in setOf("cheques","ahorro"))
-        val balance = cents(draft.balance,true)
+        val balance = bankBalance(draft.balance)
         val goal = cents(draft.goal,true)
         val root = JSONObject(b.root.toString())
         val accounts = root.optJSONArray("cuentasBanco") ?: JSONArray()
@@ -70,7 +77,7 @@ internal object NativeFinance {
             field(it,"cuentaId") == id
         }) { "Desvincula la cuenta de su meta antes de cambiar el tipo" }
         if(id != null) {
-            val previous = cents(field(row,"saldo"),true)
+            val previous = bankBalance(field(row,"saldo"))
             if(previous != balance) {
                 val corrections = row.optJSONArray("correccionesSaldo") ?: JSONArray()
                 require(!row.has("correccionesSaldo") || row.optJSONArray("correccionesSaldo") != null)
@@ -84,6 +91,26 @@ internal object NativeFinance {
         root.put("cuentasBanco",accounts).put("fecha",Instant.now().toString())
         return OriginalBackup.parse(root.toString())
     }
+    fun removeBank(backup: OriginalBackup, id: String): OriginalBackup {
+        require(id.isNotBlank())
+        val root = JSONObject(backup.root.toString())
+        val accounts = root.getJSONArray("cuentasBanco")
+        val index = (0 until accounts.length()).singleOrNull { accounts.getJSONObject(it).optString("id") == id }
+            ?: throw IllegalArgumentException("Cuenta no encontrada o identificador duplicado")
+        val linked = backup.section("movimientos").any { field(it, "cuentaId") == id } ||
+            backup.section("pagos").any { field(it, "bancoId") == id } ||
+            backup.section("metasAhorro").any { field(it, "cuentaId") == id } ||
+            backup.section("suscripciones").any { field(it, "origenPreferido") == id } ||
+            backup.bank.any { account ->
+                val history = account.optJSONArray("historial")
+                (0 until (history?.length() ?: 0)).any { history?.optJSONObject(it)?.optString("contraparteId") == id }
+            }
+        require(!linked) { "La cuenta tiene registros vinculados. Revisa sus movimientos, pagos, transferencias, suscripciones y metas." }
+        accounts.remove(index)
+        root.put("fecha", Instant.now().toString())
+        return OriginalBackup.parse(root.toString())
+    }
+
     data class Draft(val name: String,val type: String,val amount: String,val date: String,
         val category: String,val accountId: String,val project: String)
     fun change(b: OriginalBackup, previousId: String?, draft: Draft?): OriginalBackup {
@@ -131,7 +158,7 @@ internal object NativeFinance {
         changes.forEach { (id,delta) ->
             val account = (0 until bank.length()).map { bank.getJSONObject(it) }
                 .singleOrNull { field(it,"id") == id } ?: throw IllegalArgumentException("Cuenta no encontrada")
-            val balance = add(cents(field(account,"saldo"),true),delta)
+            val balance = add(bankBalance(field(account,"saldo")),delta)
             require(balance >= 0) { "Saldo insuficiente" }
             account.put("saldo",decimal(balance))
         }

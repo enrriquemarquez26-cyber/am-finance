@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:label="Balance One" android:allowBackup="false" android:theme="@style/AppTheme" android:icon="@drawable/ic_balance">
-        <activity android:name=".MainActivity" android:exported="true">
+    <application android:label="Balance One" android:allowBackup="false" android:theme="@style/AppTheme" android:icon="@mipmap/balance_one">
+        <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

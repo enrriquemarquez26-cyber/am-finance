@@ -43,7 +43,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val dao = LedgerDatabase.get(applicationContext).ledger()
         val prefs = getSharedPreferences("appearance", MODE_PRIVATE)
         setContent {
             var appearance by rememberSaveable { mutableStateOf(prefs.getString("theme", "Sistema") ?: "Sistema") }

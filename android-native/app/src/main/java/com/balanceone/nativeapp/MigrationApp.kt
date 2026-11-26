@@ -1,5 +1,6 @@
 package com.balanceone.nativeapp
 
+import androidx.compose.runtime.saveable.rememberSaveable
 import android.content.Intent
 import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -49,7 +50,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     var confirmClear by remember { mutableStateOf(false) }
     var storedCopy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
-    var tab by remember { mutableIntStateOf(0) }
+    var tab by rememberSaveable { mutableIntStateOf(0) }
     var more by remember { mutableStateOf(false) }
     var bankOpen by remember { mutableStateOf(false) }
     var bankRow by remember { mutableStateOf<JSONObject?>(null) }
@@ -57,6 +58,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     fun editBank(row: JSONObject? = null) { bankRow=row; bankError=""; bankOpen=true }
     fun commitBank(draft: NativeFinance.BankDraft) {
         val current=backup ?: return
+        if (busy) return
         val id=bankRow?.optString("id")
         busy=true; bankError=""
         scope.launch {
@@ -79,6 +81,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     fun editMovement(row: JSONObject? = null) { edited=row; editError=""; editorOpen=true }
     fun commitMovement(draft: NativeFinance.Draft?) {
         val current=backup ?: return
+        if (busy) return
         val id=edited?.optString("id")
         busy=true; editError=""
         scope.launch {
@@ -261,7 +264,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
                 Text(if (tab == 0) "Balance One" else sections[tab],style = MaterialTheme.typography.headlineLarge,fontWeight = FontWeight.SemiBold)
-                Text("Android nativo · Beta de migración",style = MaterialTheme.typography.labelMedium)
+                Text(BuildConfig.VERSION_NAME,style = MaterialTheme.typography.labelMedium)
             }
             if (busy) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (error.isNotEmpty()) item { Text(error,color = MaterialTheme.colorScheme.error) }
@@ -374,6 +377,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         }
                         if(tab==5) {
                             TextButton(onClick={openOperation("bank",row)},enabled=!busy && row.optString("id").isNotBlank()) { Text("Depositar · Retirar · Transferir") }
+                            TextButton(onClick={openOperation("deleteBank",row)},enabled=!busy) { Text("Eliminar cuenta") }
                             val history=row.optJSONArray("historial")
                             if(history!=null && history.length()>0) {
                                 Text("Últimas operaciones",fontWeight=FontWeight.SemiBold)
@@ -389,6 +393,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 TextButton(onClick={openOperation("progress",row)},enabled=!busy){Text("Registrar avance / historial")}
                         }
                         if(tab==7) SubscriptionDetails(row,::money,busy) { kind -> openOperation(kind,row) }
+                        if(tab==8 && row.optString("tipo")=="tarjeta") {
+                            TextButton(onClick={openOperation("editPayment",row)},enabled=!busy){Text("Editar pago")}
+                            TextButton(onClick={openOperation("deletePayment",row)},enabled=!busy){Text("Eliminar pago")}
+                        }
                         if(tab==10 && NativeFinance.editable(row)) TextButton(onClick={editMovement(row)},enabled=!busy) { Text("Editar") }
                         fields.forEach { (key,label) ->
                             if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto")) amount(row,key) else row.optString(key))
@@ -428,6 +436,25 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     if(snapshot!=null) {
         val row=operationRow
         when(operationDialog) {
+            "editPayment" -> if (row != null) {
+                val card = snapshot.section("tarjetas").singleOrNull { it.optString("id") == row.optString("cuentaId") }
+                if (card != null) DebtPaymentDialog(snapshot,"tarjeta",card,busy,operationError,::closeOperation,row) { draft ->
+                    commitOperation { NativeCredit.changeCardPayment(it,card.optString("id"),row.optString("id"),draft) }
+                } else AlertDialog(onDismissRequest=::closeOperation,title={Text("Tarjeta vinculada no disponible")},
+                    confirmButton={TextButton(onClick=::closeOperation){Text("Volver")}})
+            }
+            "deleteBank","deletePayment" -> if(row!=null) {
+                val bank = operationDialog=="deleteBank"
+                AlertDialog(onDismissRequest={if(!busy) closeOperation()},
+                    title={Text(if(bank) "Eliminar cuenta" else "Eliminar pago")},
+                    text={Text(row.optString("nombre")+" · "+(if(bank) "Se eliminarán esta cuenta y su historial local de depósitos y retiros." else "Se revertirá el importe registrado en la tarjeta y la cuenta de origen.")+
+                        if(operationError.isBlank()) "" else "\n"+operationError)},
+                    confirmButton={TextButton(enabled=!busy,onClick={commitOperation {
+                        if(bank) NativeFinance.removeBank(it,row.optString("id"))
+                        else NativeCredit.changeCardPayment(it,row.optString("cuentaId"),row.optString("id"),null)
+                    }}){Text("Confirmar eliminación")}},
+                    dismissButton={TextButton(enabled=!busy,onClick=::closeOperation){Text("Cancelar")}})
+            }
             "subscription" -> SubscriptionDialog(row,busy,operationError,::closeOperation) { draft ->
                 commitOperation { NativeSubscriptions.save(it,row?.optString("id"),draft) }
             }

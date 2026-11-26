@@ -49,15 +49,19 @@ internal fun DebtDialog(type:String,row:JSONObject?,busy:Boolean,error:String,cl
         dismissButton={TextButton(onClick=close,enabled=!busy){Text("Cancelar")}})
 }
 @Composable
-internal fun DebtPaymentDialog(snapshot:OriginalBackup,type:String,row:JSONObject,busy:Boolean,error:String,close:()->Unit,save:(NativeCredit.Payment)->Unit) {
-    var amount by remember {mutableStateOf("")}
-    var date by remember {mutableStateOf(LocalDate.now().toString())}
-    var source by remember {mutableStateOf("")}
+internal fun DebtPaymentDialog(snapshot:OriginalBackup,type:String,row:JSONObject,busy:Boolean,error:String,close:()->Unit,previous:JSONObject?=null,save:(NativeCredit.Payment)->Unit) {
+    var amount by remember { mutableStateOf(previous?.optString("monto") ?: "") }
+    var date by remember { mutableStateOf(previous?.optString("fecha") ?: LocalDate.now().toString()) }
+    var source by remember { mutableStateOf(when {
+        previous == null -> ""
+        !previous.isNull("fuenteTarjetaId") -> "credito:" + previous.optString("fuenteTarjetaId")
+        else -> previous.optString("bancoId")
+    }) }
     var open by remember {mutableStateOf(false)}
     var confirm by remember {mutableStateOf(false)}
     val sources=snapshot.bank.map{it.optString("id") to it.optString("nombre")}+
         snapshot.section("tarjetas").filter{type!="tarjeta" || it.optString("id")!=row.optString("id")}.map{"credito:"+it.optString("id") to (it.optString("nombre")+" · Crédito")}
-    AlertDialog(onDismissRequest={if(!busy) close()},title={Text("Registrar pago · "+row.optString("nombre"))},
+    AlertDialog(onDismissRequest={if(!busy) close()},title={Text((if(previous==null) "Registrar pago · " else "Editar pago · ")+row.optString("nombre"))},
         text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(amount,{amount=it;confirm=false},label={Text("Importe")},keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),enabled=!busy)
             if(type=="tarjeta") OutlinedTextField(date,{date=it;confirm=false},label={Text("Fecha (AAAA-MM-DD)")},enabled=!busy)

@@ -63,7 +63,8 @@ internal object NativeCredit {
     }
     data class Payment(val source:String,val amount:String,val date:String)
     fun pay(b:OriginalBackup,type:String,target:String,draft:Payment):OriginalBackup {
-        require(type in setOf("tarjeta","vehiculo"))
+        if (type == "tarjeta") return changeCardPayment(b, target, null, draft)
+        require(type == "vehiculo")
         val date=LocalDate.parse(draft.date)
         require(date<=LocalDate.now() && date.toString()==draft.date) { "Fecha inválida" }
         if(type=="vehiculo") require(date==LocalDate.now()) {"El pago de vehículo se registra hoy"}
@@ -87,22 +88,72 @@ internal object NativeCredit {
             setBalance(source,balance(source)-amount)
             record.put("bancoId",source.get("id"))
         }
-        if(type=="tarjeta") {
-            setBalance(row,balance(row)-amount)
-            val goal=row.optJSONObject("metaPago")
-            val targetCents=goal?.optString("objetivoCentavos")?.toLongOrNull()
-            if(goal!=null && goal.optString("id").isNotBlank() && targetCents!=null && targetCents in 1..LIMIT)
-                record.put("metaPagoId",goal.getString("id"))
-        } else {
-            val interest=java.math.BigDecimal.valueOf(balance(row)).multiply(apr(field(row,"apr")))
-                .divide(java.math.BigDecimal("1200"),0,RoundingMode.HALF_UP).longValueExact()
-            val principal=amount-interest
-            require(principal>0) { "El pago no cubre el interés mensual estimado" }
-            setBalance(row,balance(row)-principal)
-            record.put("interes",NativeFinance.decimal(interest)).put("capital",NativeFinance.decimal(principal))
-                .put("saldoRestante",row.get("saldo"))
-        }
+        val interest=java.math.BigDecimal.valueOf(balance(row)).multiply(apr(field(row,"apr")))
+            .divide(java.math.BigDecimal("1200"),0,RoundingMode.HALF_UP).longValueExact()
+        val principal=amount-interest
+        require(principal>0) { "El pago no cubre el interés mensual estimado" }
+        setBalance(row,balance(row)-principal)
+        record.put("interes",NativeFinance.decimal(interest)).put("capital",NativeFinance.decimal(principal))
+            .put("saldoRestante",row.get("saldo"))
         data.getJSONArray("pagos").put(record)
+        return finish(root)
+    }
+
+    /** Apply the net changes, including when an old payment is corrected after the source balance changed. */
+    fun changeCardPayment(b: OriginalBackup, target: String, previous: String?, draft: Payment?): OriginalBackup {
+        require(previous != null || draft != null)
+        val root = JSONObject(b.root.toString())
+        val data = root.getJSONObject("datos")
+        val cards = data.getJSONArray("tarjetas")
+        val banks = root.optJSONArray("cuentasBanco") ?: JSONArray()
+        val payments = data.getJSONArray("pagos")
+        val card = find(cards, target)
+        val old = previous?.let { find(payments, it) }
+        require(old == null || (field(old, "tipo") == "tarjeta" && field(old, "cuentaId") == target)) { "Pago incompatible" }
+        val bankChanges = mutableMapOf<String, Long>()
+        val cardChanges = mutableMapOf<String, Long>()
+        fun apply(record: JSONObject, sign: Long) {
+            val amount = NativeFinance.cents(field(record, "monto")) * sign
+            val bank = field(record, "bancoId")
+            val credit = field(record, "fuenteTarjetaId")
+            require(bank.isBlank() != credit.isBlank() && credit != target) { "Origen del pago inválido" }
+            cardChanges[target] = (cardChanges[target] ?: 0) - amount
+            if (bank.isNotBlank()) bankChanges[bank] = (bankChanges[bank] ?: 0) - amount
+            else cardChanges[credit] = (cardChanges[credit] ?: 0) + amount
+        }
+        old?.let { apply(it, -1) }
+        val replacement = draft?.let {
+            val date = LocalDate.parse(it.date)
+            require(date.toString() == it.date && date <= LocalDate.now()) { "Fecha inválida" }
+            val record = old?.let { original -> JSONObject(original.toString()) }
+                ?: JSONObject().put("id", id()).put("tipo", "tarjeta").put("cuentaId", card.get("id"))
+            record.put("nombre", field(card,"nombre")).put("fecha", it.date)
+                .put("monto", NativeFinance.decimal(NativeFinance.cents(it.amount)))
+            record.remove("fuenteTarjetaId")
+            record.remove("bancoId")
+            if (it.source.startsWith("credito:")) record.put("fuenteTarjetaId", find(cards,it.source.removePrefix("credito:")).get("id"))
+            else record.put("bancoId", find(banks,it.source).get("id"))
+            val goal = card.optJSONObject("metaPago")
+            if (old == null && goal != null && field(goal,"id").isNotBlank() &&
+                (goal.optLong("objetivoCentavos") in 1..LIMIT)) record.put("metaPagoId",goal.get("id"))
+            apply(record, 1)
+            record
+        }
+        bankChanges.forEach { (id, delta) ->
+            val bank = find(banks,id)
+            setBalance(bank,NativeFinance.bankBalance(field(bank,"saldo")) + delta)
+        }
+        cardChanges.forEach { (id, delta) ->
+            val credit = find(cards,id)
+            val result = balance(credit) + delta
+            val limit = field(credit,"limite").ifBlank { "0" }
+            require(delta <= 0 || NativeFinance.cents(limit,true).let { it == 0L || result <= it }) { "Crédito disponible insuficiente" }
+            setBalance(credit,result)
+        }
+        if (old != null) {
+            val index = (0 until payments.length()).single { payments.getJSONObject(it) === old }
+            if (replacement == null) payments.remove(index) else payments.put(index, replacement)
+        } else payments.put(requireNotNull(replacement))
         return finish(root)
     }
 }
