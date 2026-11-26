@@ -12,8 +12,8 @@ android {
         minSdk = 26
         targetSdk = 35
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 4
-        versionName = "0.2.2 Beta"
+        versionCode = 5
+        versionName = "0.2.3 Beta"
     }
     val signingFile = providers.environmentVariable("BALANCE_ONE_KEYSTORE").orNull
     if (!signingFile.isNullOrBlank()) {
