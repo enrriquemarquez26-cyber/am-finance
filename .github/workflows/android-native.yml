@@ -23,8 +23,14 @@ jobs:
           gradle-version: '8.9'
       - name: Set up Android command line tools
         uses: android-actions/setup-android@v3
-      - name: Install Android SDK
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        with:
+          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
+          log-accepted-android-sdk-licenses: false
+      - name: Verify Android SDK
+        run: |
+          sdkmanager --version
+          test -f "$ANDROID_HOME/platforms/android-35/android.jar"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2"
       - name: Build debug APK and run unit tests
         working-directory: android-native
         run: gradle --no-daemon :app:assembleDebug :app:testDebugUnitTest
