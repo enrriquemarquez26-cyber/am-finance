@@ -117,3 +117,7 @@ En cada entrega que cambie la aplicación, incrementar la versión visible y el 
 ## 0.2.7 Beta · duplicar un gasto del historial
 - Portado desde index.html web 0.7.38 Beta: gastoDuplicable, abrirMovVentana(copia), valorOrigenMovimiento, firmaGasto y la confirmación en guardarMovimientoBanco. El botón Duplicar abre un alta con nombre, importe, categoría y origen disponible, y fecha de hoy. Recibo, proyecto, vínculos y cuotas empiezan vacíos. Si coincide la firma de un gasto, el usuario puede volver al borrador o confirmar que lo desea registrar también.
 - Cada entrega de Android debe identificar la función correspondiente en la web. Versión 0.2.7 Beta, versionCode 9. Sin compilar, ejecutar pruebas ni abrir la APK por indicación del usuario.
+
+## 0.2.8 Beta · Inicio
+
+Portados a Compose el carrusel de transacciones, los selectores de ingresos y cuentas, el panorama de gastos con detalle diario, la organización de cuentas, los vencimientos y los controles de privacidad y plegado. Se amplió el widget de vehículos en Inicio. La prioridad es completar Inicio antes de continuar con la pantalla Autos y el resto de las secciones. La paridad visual y el asistente de Inicio siguen pendientes. Sin pruebas ni revisión del APK por indicación del propietario.

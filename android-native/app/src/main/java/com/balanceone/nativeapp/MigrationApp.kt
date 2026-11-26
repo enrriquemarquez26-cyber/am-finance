@@ -266,6 +266,27 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 (from.isBlank() || date >= from) && (through.isBlank() || date <= through)
                         }.sortedByDescending { it.optString("fecha") }
                     }
+    val homeDate=java.time.LocalDate.now()
+    val homeMonth=YearMonth.from(homeDate)
+    val homeSnapshot=snapshot?.takeIf { tab==0 }
+    val homeMode=homeSnapshot?.let(HomeLayout::mode) ?: "clasico"
+    val classicTotals=remember(homeSnapshot,homeMonth){homeSnapshot?.let { monthTotals(it,homeMonth) }}
+    val homeWidgets=remember(homeSnapshot,homeMode){homeSnapshot?.let { HomeLayout.widgets(it,homeMode) }.orEmpty()}
+    val expenses=remember(homeSnapshot){homeSnapshot?.let(::homeExpenses).orEmpty()}
+    val charges=remember(homeSnapshot,homeDate){homeSnapshot?.let {
+        homeCharges(it,homeMonth.atDay(1),maxOf(homeMonth.atEndOfMonth(),homeDate.plusDays(30)))
+    }.orEmpty()}
+    val dues=remember(homeSnapshot,homeDate,charges){homeSnapshot?.let { homeDues(it,homeDate,charges) }.orEmpty()}
+    val discreet=homeSnapshot?.preferences?.value("balanceone-modo-discreto-inicio")=="1"
+    val homeMoney:(Long)->String={ if(discreet) "••••" else money(it) }
+    val homeAmount:(JSONObject,String)->String={ row,key-> if(discreet) "••••" else amount(row,key) }
+    val foldedKey="balanceone-widgets-plegados-"+homeMode
+    val folded=remember(homeSnapshot,foldedKey) {
+        runCatching { org.json.JSONArray(homeSnapshot?.preferences?.value(foldedKey).orEmpty()) }.getOrNull()?.let { array->
+            (0 until array.length()).map { array.getString(it) }.toSet()
+        }.orEmpty()
+    }
+    fun homePref(key:String,value:String){commitOperation { it.withPreference(key,value) }}
     Scaffold(containerColor = MaterialTheme.colorScheme.background, bottomBar = {
         Surface(shape = RoundedCornerShape(32.dp), tonalElevation = 2.dp,
             modifier = Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
@@ -305,26 +326,40 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 }
             }
             if (snapshot != null && tab == 0) {
-                val mode=HomeLayout.mode(snapshot)
-                val layout=remember(snapshot,mode) { HomeLayout.widgets(snapshot,mode) }
-                item { Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) { Text("Nuevo movimiento") }
-                    TextButton(onClick={openOperation("homeLayout")},enabled=!busy){Text("Personalizar")}
+                val mode=homeMode
+                val monthTotals=classicTotals
+                item {
+                    val hour=java.time.LocalTime.now().hour
+                    val greeting=when(hour){in 6..11->"Buenos días";in 12..18->"Buenas tardes";else->"Buenas noches"}
+                    Text(listOf(greeting,snapshot.data.optJSONObject("perfil").value("nombre")).filter { it.isNotBlank() }.joinToString(", "),style=MaterialTheme.typography.titleMedium)
+                    Row {
+                        Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) {Text("Nuevo movimiento")}
+                        TextButton(onClick={openOperation("homeLayout")},enabled=!busy){Text("Personalizar")}
+                    }
+                    Row {
+                        TextButton(onClick={homePref("balanceone-modo-discreto-inicio",if(discreet) "0" else "1")},enabled=!busy){Text(if(discreet) "Mostrar importes" else "Ocultar importes")}
+                        TextButton(onClick={openOperation("homeAlerts")},enabled=!busy){Text("Avisos de vencimiento")}
+                    }
+                    if(operationDialog.isBlank() && operationError.isNotBlank()) Text(operationError,color=MaterialTheme.colorScheme.error)
+                }
+                if(mode=="clasico") item { NativePanel("Balance del mes"){
+                    Text(monthTotals?.let { homeMoney(it.income-it.expense) } ?: "—",style=MaterialTheme.typography.headlineLarge)
                 } }
-                items(layout.filter { it.visible },key={ it.key }) { widget ->
-                    when(widget.key) {
-                        "resumen","cuentasTarjetas" -> Panorama(snapshot,::money)
-                        "comparacion" -> {
-                            val today=java.time.LocalDate.now()
-                            val totals=remember(snapshot,today) { runCatching { NativeFinance.totals(snapshot,today.withDayOfMonth(1),today) }.getOrNull() }
-                            NativePanel(widget.label) {
-                                Text("Balance del mes",style=MaterialTheme.typography.labelLarge)
-                                Text(totals?.let { money(it.income-it.expense) } ?: "—",style=MaterialTheme.typography.headlineMedium)
-                                Text("Ingresos · "+(totals?.income?.let(::money) ?: "—"))
-                                Text("Gastos · "+(totals?.expense?.let(::money) ?: "—"))
-                            }
+                items(homeWidgets.filter { it.visible },key={ it.key }) { widget ->
+                    val collapsed=widget.key in folded
+                    TextButton(onClick={val next=if(collapsed) folded-widget.key else folded+widget.key
+                        homePref(foldedKey,org.json.JSONArray(next.toList()).toString())},enabled=!busy){
+                        Text((if(collapsed) "Mostrar " else "Plegar ")+widget.label)
+                    }
+                    if(!collapsed) when(widget.key) {
+                        "resumen" -> NativePanel("Ingresos y gastos") {
+                            Text("Ingresos · "+(monthTotals?.income?.let(homeMoney) ?: "—"))
+                            Text("Gastos y pagos · "+(monthTotals?.expense?.let(homeMoney) ?: "—"))
                         }
-                        "presupuestos","categorias" -> HomeSpending(snapshot,widget.key=="presupuestos",::money,busy) { category ->
+                        "cuentasTarjetas" -> HomeFunds(snapshot,homeDate,charges,homeMoney,busy,::homePref)
+                        "comparacion" -> HomeOutlook(snapshot,homeDate,expenses,charges,discreet,homeMoney,busy,::homePref)
+                        "categorias" -> HomeCategories(snapshot,expenses,homeMonth,homeDate,discreet,homeMoney){tab=10}
+                        "presupuestos" -> if(discreet) NativePanel("Presupuestos"){Text("••••")} else HomeSpending(snapshot,true,homeMoney,busy) { category ->
                             openOperation("budget",category?.let { JSONObject().put("categoria",it) })
                         }
                         "deudas" -> NativePanel(widget.label) {
@@ -332,38 +367,55 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 label to runCatching { snapshot.section(key).fold(0L){ a,row->Math.addExact(a,NativeFinance.cents(row.value("saldo"),true)) } }.getOrNull()
                             }
                             val total=runCatching { debts.fold(0L){ a,v->Math.addExact(a,requireNotNull(v.second)) } }.getOrNull()
-                            Text(total?.let(::money) ?: "—",style=MaterialTheme.typography.headlineMedium)
-                            debts.forEach { (label,value)->Text(label+" · "+(value?.let(::money) ?: "—")) }
+                            Text(total?.let(homeMoney) ?: "—",style=MaterialTheme.typography.headlineMedium)
+                            debts.forEach { (label,value)->Text(label+" · "+(value?.let(homeMoney) ?: "—")) }
                         }
-                        "cuentas" -> NativePanel(widget.label) {
-                        snapshot.bank.filter { mode!="nuevo" || it.value("tipo")!="ahorro" }.take(4).forEach { Text(it.optString("nombre") + "   " + amount(it,"saldo")) }
-                        if (snapshot.bank.isEmpty()) {
-                            Text("Agrega una cuenta para empezar a registrar movimientos.")
-                            TextButton(onClick = { editBank() },enabled = !busy) { Text("Crear cuenta bancaria") }
-                        } else TextButton(onClick = { tab = 5 }) { Text("Ver cuentas") }
-                    }
-                        "transacciones" -> NativePanel("Últimas transacciones") {
-                        snapshot.section("movimientos").sortedByDescending { it.optString("fecha") }.take(5).forEach {
-                            Text(it.optString("nombre") + "   " + amount(it,"monto"))
-                        }
-                        TextButton(onClick = { tab = 10 }) { Text("Ver movimientos") }
-                    }
-                        "tarjetas" -> HomeCreditCards(snapshot,format,::amount) { tab=3 }
-                        "metas" -> HomeSavingsGoals(snapshot,::money) { tab=6 }
+                        "cuentas" -> HomeAccounts(snapshot,mode=="clasico",discreet,homeMoney,busy,
+                            {model->commitOperation { current->homeDataChange(current){it.put("widgetChequesInicio",model)} }},
+                            {openOperation("arrangeHomeAccounts")},{editBank()},{row->editBank(row)},{tab=5})
+                        "transacciones" -> HomeTransactions(snapshot,expenses,homeMonth,discreet,homeMoney){tab=10}
+                        "tarjetas" -> HomeCreditCards(snapshot,homeMoney){tab=3}
+                        "metas" -> HomeSavingsGoals(snapshot,homeMoney,discreet){tab=6}
                         "pagos" -> Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
-                            HomeCreditCards(snapshot,format,::amount) { tab=3 }
-                            HomeSavingsGoals(snapshot,::money) { tab=6 }
-                            OutlinedButton(onClick={tab=8}){Text("Ver pagos")}
+                            HomeCreditCards(snapshot,homeMoney){tab=3}
+                            NativePanel("Próximos pagos") {
+                                val marks=reminderMarks(snapshot)
+                                val upcoming=dues.filter { !it.recorded && it.key !in marks }
+                                Text(upcoming.size.toString()+" pendientes · próximos 30 días")
+                                Text("Total confirmado · "+homeMoney(upcoming.sumOf { it.cents ?: 0L }))
+                                upcoming.take(2).forEach { Text(it.name+" · "+it.date) }
+                                TextButton(onClick={openOperation("homeUpcoming")}){Text("Ver próximos pagos")}
+                            }
+                            NativePanel("Suscripciones") {
+                                val scheduled=charges.filter { it.category=="suscripcion" && it.active && YearMonth.from(it.date)==homeMonth }
+                                Text("Programado este mes · "+homeMoney(scheduled.sumOf { it.cents ?: 0L }))
+                                TextButton(onClick={tab=7}){Text("Ver suscripciones")}
+                            }
+                            HomeSavingsGoals(snapshot,homeMoney,discreet){tab=6}
                         }
-                        "vehiculos" -> NativePanel("Vehículos") {
-                    snapshot.section("vehiculos").take(2).forEach { vehicle ->
-                        TextButton(onClick={openOperation("vehicleDetail",vehicle)}) {
-                            VehicleArt(vehicle,Modifier.widthIn(max=150.dp).height(92.dp))
-                            Column { Text(vehicle.optString("nombre")+" "+vehicle.optString("modelo"));Text(amount(vehicle,"pago")+" / mes");Text(vehicle.value("banco")+" · "+amount(vehicle,"saldo")) }
+                        "vehiculos" -> if(snapshot.section("vehiculos").isNotEmpty()) NativePanel("Vehículos") {
+                            val model=snapshot.data.value("widgetVehiculos").ifBlank { "actual" }
+                            Choice("Vista de vehículos",model,mapOf("actual" to "Clásico","compacto" to "Panorámico","resumen" to "Compacto"),!busy){ selected->
+                                commitOperation { current->homeDataChange(current){it.put("widgetVehiculos",selected)} }
+                            }
+                            snapshot.section("vehiculos").forEach { vehicle->
+                                val due=dues.firstOrNull { it.type=="vehiculo" && it.id==vehicle.value("id") }
+                                TextButton(onClick={openOperation("vehicleDetail",vehicle)}) {
+                                    Column(Modifier.fillMaxWidth()) {
+                                        if(model!="resumen") VehicleArt(vehicle,Modifier.fillMaxWidth().height(if(model=="compacto") 144.dp else 96.dp))
+                                        Text(listOf(vehicle.value("nombre"),vehicle.value("modelo")).filter { it.isNotBlank() }.joinToString(" "))
+                                        Text(vehicle.value("banco")+" · "+homeAmount(vehicle,"pago")+" / mes")
+                                        Text("Saldo · "+homeAmount(vehicle,"saldo"))
+                                        if(due!=null) Text(if(due.recorded) "Cuota registrada" else "Vencimiento · "+due.date)
+                                        val initial=vehicle.value("montoInicial").toDoubleOrNull()
+                                        val debt=vehicle.value("saldo").toDoubleOrNull()
+                                        if(!discreet && initial!=null && initial>0 && debt!=null) LinearProgressIndicator(progress={ (1-debt/initial).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+                                    }
+                                }
+                            }
+                            TextButton(onClick={tab=2}){Text("Ver vehículos")}
                         }
-                    }
-                    TextButton(onClick = { tab = 2 }) { Text("Ver vehículos") }
-                }
+                        else -> Unit
                     }
                 }
             }
@@ -575,6 +627,8 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             "categories" -> CategoriesDialog(snapshot,busy,operationError,::closeOperation) { original,name,icon ->
                 commitOperation { NativeCategories.save(it,original,name,icon) }
             }
+            "homeAlerts","homeUpcoming" -> HomeReminderList(snapshot,dues,homeDate,operationDialog=="homeUpcoming",busy,operationError,homeMoney,::closeOperation,::commitOperation)
+            "arrangeHomeAccounts" -> ArrangeHomeAccounts(snapshot,homeMode=="clasico",busy,operationError,::closeOperation,::homePref)
             "budget" -> BudgetDialog(snapshot,row?.optString("categoria"),busy,operationError,::closeOperation) { category,amount ->
                 val original=row?.optString("categoria")
                 commitOperation { com.balanceone.nativeapp.migration.NativeBudgets.change(it,original,category,amount) }
@@ -711,27 +765,36 @@ internal fun NativePanel(title: String, content: @Composable ColumnScope.() -> U
 }
 
 @Composable
-private fun HomeCreditCards(snapshot: OriginalBackup, format: NumberFormat, amount:(JSONObject,String)->String, open:()->Unit) {
+private fun HomeCreditCards(snapshot: OriginalBackup, money:(Long)->String, open:()->Unit) {
+    val cards=orderedHomeRows(snapshot,snapshot.section("tarjetas"),"balanceone-orden-inicio-credito")
     NativePanel("Tarjetas de crédito") {
-                    snapshot.section("tarjetas").take(3).forEach {
-                        Text(it.value("nombre")+" · "+amount(it,"saldo"))
-                        val limit=it.value("limite").toBigDecimalOrNull()
-                        val debt=it.value("saldo").toBigDecimalOrNull()
-                        if(limit!=null && debt!=null && limit.signum()>0) Text("Disponible · "+format.format((limit-debt).max(BigDecimal.ZERO)))
-                    }
-                    TextButton(onClick=open) { Text("Ver tarjetas") }
+        val total=runCatching { cards.sumOf { NativeFinance.cents(it.value("saldo"),true) } }.getOrNull()
+        Text("Deuda actual · "+(total?.let(money) ?: "—"))
+        cards.forEach { card->
+            Row(verticalAlignment=Alignment.CenterVertically) {
+                OfflineArtwork(card.value("imagenPersonalizada"),cardArt(card),card.value("nombre"),Modifier.width(60.dp).height(40.dp))
+                Column {
+                    Text(card.value("nombre"))
+                    val used=runCatching { NativeFinance.cents(card.value("saldo"),true) }.getOrNull()
+                    val limit=runCatching { NativeFinance.cents(card.value("limite")) }.getOrNull()
+                    Text("Deuda · "+(used?.let(money) ?: "—"))
+                    if(limit!=null && used!=null) Text("Disponible · "+money((limit-used).coerceAtLeast(0)))
                 }
+            }
+        }
+        TextButton(onClick=open){Text("Ver todas")}
+    }
 }
 
 @Composable
-private fun HomeSavingsGoals(snapshot: OriginalBackup, money:(Long)->String, open:()->Unit) {
+private fun HomeSavingsGoals(snapshot: OriginalBackup, money:(Long)->String, hidden:Boolean, open:()->Unit) {
     NativePanel("Metas de ahorro") {
                     snapshot.section("metasAhorro").take(3).forEach { row ->
                         val goal=runCatching { OriginalSummary.goal(row,snapshot.bank) }.getOrNull()
                         Text(row.value("nombre"))
                         if(goal!=null) {
                             Text(money(goal.saved)+" de "+money(goal.target))
-                            LinearProgressIndicator(progress={ (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+                            if(!hidden) LinearProgressIndicator(progress={ (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
                         }
                     }
                     TextButton(onClick=open){Text("Ver metas")}

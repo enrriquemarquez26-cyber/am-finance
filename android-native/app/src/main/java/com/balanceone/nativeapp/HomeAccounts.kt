@@ -1,0 +1,85 @@
+package com.balanceone.nativeapp
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.balanceone.nativeapp.migration.NativeFinance
+import com.balanceone.nativeapp.migration.OriginalBackup
+import org.json.JSONArray
+import org.json.JSONObject
+
+internal const val visibleHomeAccounts="balanceone-inicio-cheques-visibles"
+internal const val bankHomeOrder="balanceone-orden-inicio-bancos"
+
+internal fun orderedHomeRows(b:OriginalBackup,rows:List<JSONObject>,key:String):List<JSONObject> {
+    val a=runCatching { JSONArray(b.preferences.value(key)) }.getOrNull() ?: return rows
+    val positions=(0 until a.length()).associate { a.optString(it) to it }
+    return rows.sortedBy { positions[it.value("id")] ?: Int.MAX_VALUE }
+}
+private fun selectedAccounts(b:OriginalBackup,all:List<JSONObject>):List<JSONObject> {
+    val a=runCatching { JSONArray(b.preferences.value(visibleHomeAccounts)) }.getOrNull() ?: return all.filter { it.value("tipo")!="ahorro" }
+    val byId=all.associateBy { it.value("id") }
+    return (0 until a.length()).map { a.optString(it) }.distinct().mapNotNull { byId[it] }
+}
+
+@Composable
+internal fun HomeAccounts(b:OriginalBackup,classic:Boolean,hidden:Boolean,money:(Long)->String,busy:Boolean,
+    compactChange:(String)->Unit,arrange:()->Unit,create:()->Unit,open:(JSONObject)->Unit,viewAll:()->Unit) {
+    val all=remember(b){orderedHomeRows(b,b.bank,bankHomeOrder)}
+    val rows=remember(b,classic){if(classic) all else selectedAccounts(b,all)}
+    NativePanel(if(classic) "Cuentas bancarias" else "Cuentas de cheques") {
+        val compact=!classic && b.data.value("widgetChequesInicio")=="compacto"
+        if(!classic) {
+            Choice("Diseño de cuentas",if(compact) "compacto" else "actual",mapOf("actual" to "Actual","compacto" to "Compacto con saldo"),!busy,compactChange)
+            val total=runCatching { rows.sumOf { NativeFinance.bankBalance(it.value("saldo")) } }.getOrNull()
+            Text((if(rows.any { it.value("tipo")=="ahorro" }) "Disponible en estas cuentas" else "Disponible en cheques")+" · "+(total?.let(money) ?: "—"))
+        }
+        if(rows.isEmpty()) Text(if(all.isEmpty()) "Agrega tu primera cuenta bancaria." else "Elige las cuentas que quieres ver.")
+        rows.forEach { row->
+            val balance=runCatching { NativeFinance.bankBalance(row.value("saldo")) }.getOrNull()
+            val target=runCatching { NativeFinance.cents(row.value("meta")) }.getOrNull()
+            TextButton(onClick={open(row)},enabled=!busy) {
+                if(!compact) OfflineArtwork("",bankArt(row),row.value("nombre"),Modifier.width(50.dp).height(36.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(row.value("nombre"))
+                    if(!compact) Text(if(row.value("tipo")=="ahorro") "Ahorros" else "Cheques",style=MaterialTheme.typography.labelSmall)
+                }
+                Text(balance?.let(money) ?: "—")
+            }
+            if(!hidden && row.value("tipo")=="ahorro" && target!=null && balance!=null) {
+                LinearProgressIndicator(progress={ (balance.toDouble()/target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+                Text("Meta · "+money(target))
+            }
+        }
+        Row {
+            if(classic || all.isEmpty()) TextButton(onClick=create,enabled=!busy){Text("Agregar")}
+            if(all.isNotEmpty()) TextButton(onClick=arrange,enabled=!busy){Text("Acomodar")}
+            TextButton(onClick=viewAll){Text("Ver todas")}
+        }
+    }
+}
+
+@Composable
+internal fun ArrangeHomeAccounts(b:OriginalBackup,classic:Boolean,busy:Boolean,error:String,close:()->Unit,save:(String,String)->Unit) {
+    val all=remember(b){orderedHomeRows(b,b.bank,bankHomeOrder)}
+    val shown=remember(b){selectedAccounts(b,all).map { it.value("id") }}
+    var selected by remember(b){mutableStateOf(shown.toSet())}
+    var order by remember(b,classic){mutableStateOf(if(classic) all.map { it.value("id") } else (shown+all.map { it.value("id") }).distinct())}
+    val names=all.associate { it.value("id") to it.value("nombre") }
+    fun move(index:Int,to:Int) { order=order.toMutableList().apply { add(to,removeAt(index)) } }
+    EntryDialog("Acomodar cuentas",busy,error,close,{
+        save(if(classic) bankHomeOrder else visibleHomeAccounts, JSONArray(if(classic) order else order.filter { it in selected }).toString())
+    }) {
+        order.forEachIndexed { index,id->
+            Row(verticalAlignment=Alignment.CenterVertically) {
+                if(!classic) Checkbox(id in selected,{yes->selected=if(yes) selected+id else selected-id},enabled=!busy)
+                Text(names[id].orEmpty(),Modifier.weight(1f))
+                TextButton(onClick={move(index,index-1)},enabled=!busy && index>0){Text("↑")}
+                TextButton(onClick={move(index,index+1)},enabled=!busy && index<order.lastIndex){Text("↓")}
+            }
+        }
+    }
+}
