@@ -9,6 +9,8 @@ Objetivo: APK Android auténtica, Kotlin + Jetpack Compose + Room, sin WebView, 
 - Identificador provisional separado com.balanceone.nativeapp para no reemplazar la instalación anterior.
 ## Estado de verificación
 Código inicial escrito. No se ha compilado ni probado en dispositivo desde el entorno de chat: no dispone de Android SDK/Gradle. No afirmar que la APK existe hasta comprobar un artefacto de compilación.
+## Compilación automatizada
+Se agregó .github/workflows/android-native.yml en esta rama para compilar una APK debug con GitHub Actions y publicarla como artefacto Balance-One-native-debug. Al verificar, no había ejecuciones registradas todavía. Consultar https://github.com/enrriquemarquez26-cyber/am-finance/actions antes de declarar una compilación exitosa; si no arranca, revisar permisos y configuración de Actions o compilar localmente. workflow_dispatch puede requerir que el workflow exista en la rama predeterminada: no modificar main sin autorización. Aún no hay pruebas unitarias escritas.
 ## Pendientes, en orden
 1. Compilar assembleDebug con Gradle 8.9 y JDK 17, SDK 35; corregir errores; instalar en Android y probar CRUD, reinicio, orientación, tema y modo avión.
 2. Auditar index.html de main (3 MB; el conector devolvió contenido vacío al solicitar rango inicial), identificar modelos, persistencia, autenticación, backend de sincronización, diseños, activos y exportación. No adivinar credenciales ni esquema.
