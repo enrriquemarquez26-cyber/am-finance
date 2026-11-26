@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.balanceone.nativeapp.migration.NativeCategories
 import com.balanceone.nativeapp.migration.NativeFinance
 import com.balanceone.nativeapp.migration.NativeSubscriptions
 import com.balanceone.nativeapp.migration.OriginalBackup
@@ -196,7 +197,9 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, busy: Bo
             OutlinedTextField(name,{name=it},label={Text("Nombre")},singleLine=true,enabled=!busy)
             OutlinedTextField(amount,{amount=it},label={Text("Importe")},keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),singleLine=true,enabled=!busy)
             OutlinedTextField(date,{date=it},label={Text("Fecha (AAAA-MM-DD)")},singleLine=true,enabled=!busy)
-            OutlinedTextField(category,{category=it},label={Text("Categoría")},singleLine=true,enabled=!busy)
+            if(type=="gasto") MovementCategoryField(snapshot,category,busy) { category=it }
+            else if (NativeCategories.custom(snapshot).any { it.value("id")==category }) MovementCategoryField(snapshot,category,busy) { category=it }
+            else OutlinedTextField(category,{category=it},label={Text("Categoría")},singleLine=true,enabled=!busy)
             OutlinedTextField(project,{project=it},label={Text("Proyecto (opcional)")},singleLine=true,enabled=!busy)
             Box {
                 OutlinedButton(onClick={accountsOpen=true},enabled=!busy) {

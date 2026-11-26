@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.balanceone.nativeapp.migration.LocalSnapshotStore
+import com.balanceone.nativeapp.migration.NativeCategories
 import com.balanceone.nativeapp.migration.NativeFinance
 import com.balanceone.nativeapp.migration.NativeOperations
 import com.balanceone.nativeapp.migration.NativeCredit
@@ -244,10 +245,13 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         if (obj.isNull(key)) return "—"
         return obj.optString(key).toBigDecimalOrNull()?.let { format.format(it) } ?: "—"
     }
+    val categoryNames = remember(snapshot) { snapshot?.let(NativeCategories::labels).orEmpty() }
+    val customIcons = remember(snapshot) { snapshot?.let(NativeCategories::custom).orEmpty().associate { it.value("id") to it.value("icono") } }
     val filteredMovements = remember(snapshot,query,from,through) {
                         snapshot?.section("movimientos").orEmpty().filter { row ->
                             val date = row.optString("fecha")
-                            listOf("nombre","categoria","proyecto","monto").any { row.optString(it).contains(query.trim(),ignoreCase=true) } &&
+                            (listOf("nombre","categoria","proyecto","monto").any { row.optString(it).contains(query.trim(),ignoreCase=true) } ||
+                                categoryNames[row.value("categoria")]?.contains(query.trim(),ignoreCase=true)==true) &&
                                 (from.isBlank() || date >= from) && (through.isBlank() || date <= through)
                         }.sortedByDescending { it.optString("fecha") }
                     }
@@ -362,6 +366,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             if (snapshot != null && tab == 10) item { Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) { Icon(Icons.Default.Add,null); Text("Nuevo movimiento") } }
             if(snapshot!=null && tab==9) item { Button(onClick={openOperation("loan")},enabled=!busy){Text("Nuevo préstamo")} }
             if(snapshot != null && tab==10) item {
+                    TextButton(onClick={openOperation("categories")},enabled=!busy){Text("Gestionar categorías")}
                 Column(verticalArrangement=Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(query,{query=it},label={Text("Buscar movimientos")},singleLine=true,modifier=Modifier.fillMaxWidth())
                     Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
@@ -477,13 +482,19 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         }
                         if(tab==10 && NativeFinance.editable(row)) TextButton(onClick={editMovement(row)},enabled=!busy) { Text("Editar") }
                         fields.forEach { (key,label) ->
-                            if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto","pagoMinimo")) amount(row,key) else row.optString(key))
+                            if (key=="categoria" && tab==10 && row.value(key) in customIcons) {
+                                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                                    CategorySymbol(customIcons.getValue(row.value(key)))
+                                    Text(label+" · "+categoryNames[row.value(key)])
+                                }
+                            } else if (!row.isNull(key)) Text(label + ": " + if (key in listOf("pago","saldo","limite","meta","monto","pagoMinimo")) amount(row,key) else row.optString(key))
                         }
                     }
                 }
             }
             if (tab == 11) item { CalculatorPanel { format.format(it) } }
             if (tab == 4) {
+                if (snapshot!=null) item { OutlinedButton(onClick={openOperation("categories")},enabled=!busy){Text("Categorías personales")} }
                 if(snapshot!=null) item { NativePanel("Importes") {
                     Choice("Moneda",currency,mapOf("USD" to "Dólar (USD)","EUR" to "Euro (EUR)"),!busy) { value ->
                         commitOperation { it.withPreference("balanceone-moneda-importes",value) }
@@ -524,6 +535,9 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     if(snapshot!=null) {
         val row=operationRow
         when(operationDialog) {
+            "categories" -> CategoriesDialog(snapshot,busy,operationError,::closeOperation) { original,name,icon ->
+                commitOperation { NativeCategories.save(it,original,name,icon) }
+            }
             "budget" -> BudgetDialog(snapshot,row?.optString("categoria"),busy,operationError,::closeOperation) { category,amount ->
                 val original=row?.optString("categoria")
                 commitOperation { com.balanceone.nativeapp.migration.NativeBudgets.change(it,original,category,amount) }

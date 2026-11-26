@@ -30,10 +30,10 @@ internal object NativeRewards {
     val profiles=mapOf("" to "Sin seleccionar","american-express-blue-cash-preferred" to "Amex Blue Cash Preferred",
         "chase-freedom-unlimited" to "Chase Freedom Unlimited","capital-one-quicksilver" to "Capital One Quicksilver",
         "capital-one-platinum" to "Capital One Platinum","goldman-sachs-apple-card" to "Apple Card")
-    private fun category(m:JSONObject,id:String):String {
+    private fun category(m:JSONObject,id:String,labels:Map<String,String>):String {
         m.optString("categoriaReembolso").takeIf { it.isNotBlank() && it!="null" }?.let { return it }
         val n=normalize(m.optString("nombre"))
-        val c=normalize(m.optString("categoria"))
+        val c=normalize(labels[m.optString("categoria")] ?: m.optString("categoria"))
         fun matches(words:String,text:String=n)=Regex("\\b("+words+")\\b").containsMatchIn(text)
         return when(id) {
             "goldman-sachs-apple-card" -> when {
@@ -67,6 +67,7 @@ internal object NativeRewards {
     fun summary(b:OriginalBackup,t:JSONObject,catalog:JSONObject):Summary {
         val id=t.optString("id")
         val key=profile(t)
+        val labels=NativeCategories.labels(b)
         val data=catalog.optJSONObject(key)
         val rules=data?.optJSONArray("reglas")
         val lookup=mutableMapOf<String,JSONObject>()
@@ -85,7 +86,7 @@ internal object NativeRewards {
         }.sortedBy { it.optString("fecha") }.map { m ->
             val amount=NativeFinance.cents(m.optString("monto"))
             val date=m.optString("fecha")
-            val rule=lookup[category(m,key)]?.takeIf { data!=null && date>=data.optString("desde") }
+            val rule=lookup[category(m,key,labels)]?.takeIf { data!=null && date>=data.optString("desde") }
             var estimate:Long?=null
             if(rule!=null) {
                 val cap=rule.optJSONObject("spendCap")

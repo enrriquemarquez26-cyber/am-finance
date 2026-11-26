@@ -10,7 +10,7 @@ import com.balanceone.nativeapp.migration.NativeFinance
 import com.balanceone.nativeapp.migration.OriginalBackup
 import org.json.JSONArray
 import org.json.JSONObject
-import java.text.Normalizer
+import com.balanceone.nativeapp.migration.NativeCategories
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.Locale
@@ -89,11 +89,6 @@ internal fun HomeLayoutDialog(snapshot:OriginalBackup,busy:Boolean,error:String,
     }
 }
 
-private val aliases=mapOf("rent" to "renta","alquiler" to "renta","supermercados" to "supermercado","groceries" to "supermercado",
-    "restaurante" to "restaurantes","restaurants" to "restaurantes","food" to "alimentacion","transport" to "transporte",
-    "shopping" to "compras","home" to "hogar","health" to "salud","work" to "trabajo","fuel" to "gasolina","utilities" to "servicios",
-    "entertainment" to "entretenimiento","insurance" to "seguros","games" to "juegos","education" to "educacion",
-    "subscriptions" to "suscripciones","other" to "otros")
 
 @Composable
 internal fun HomeSpending(snapshot:OriginalBackup,budgets:Boolean,money:(Long)->String,busy:Boolean,edit:(String?)->Unit) {
@@ -105,9 +100,7 @@ internal fun HomeSpending(snapshot:OriginalBackup,budgets:Boolean,money:(Long)->
             val date=runCatching { LocalDate.parse(it.value("fecha").take(10)) }.getOrNull()
             val amount=runCatching { NativeFinance.cents(it.value("monto")) }.getOrNull()
             if(date==null || YearMonth.from(date)!=month || amount==null) null else {
-                val name=Normalizer.normalize(it.value("categoria").trim(),Normalizer.Form.NFD)
-                    .replace(Regex("\\p{M}+"),"").lowercase(Locale.ROOT).ifBlank { "otros" }
-                (aliases[name] ?: name) to amount
+                NativeCategories.key(it.value("categoria")) to amount
             }
         }.groupBy({it.first},{it.second}).mapValues { (_,values)->values.sum() }
     }

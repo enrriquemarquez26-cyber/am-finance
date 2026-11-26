@@ -104,3 +104,8 @@ En cada entrega que cambie la aplicación, incrementar la versión visible y el 
 - Inicio clásico permite agregar, cambiar de categoría, editar el límite y eliminar un presupuesto con confirmación. Acepta las categorías personalizadas importadas. El límite se guarda en datos.presupuestos, en centavos, y se aplica cada mes.
 - El widget muestra los tres presupuestos con mayor proporción usada, el importe disponible o excedido y los estados del 80 % y del límite. Ver todos despliega los restantes. Los abonos de tarjeta siguen excluidos del gasto.
 - Trabajo sobre el código fuente. Por indicación del usuario, sin compilación, pruebas ni revisión de APK.
+
+## 0.2.5 Beta · categorías personales (versionCode 7)
+- Perfil y Movimientos permiten crear categorías de gasto, elegir su icono y cambiar nombre o icono. Se conserva el identificador al editar, se validan nombres y alias y se mantiene el formato de categoriasPersonales de la web.
+- El formulario de gastos conserva la entrada de texto y permite elegir categorías del catálogo. Movimientos busca por nombre visible y muestra el icono de las categorías personales. Presupuestos, el resumen por categoría y el cálculo de reembolsos usan el catálogo compartido.
+- Sin compilar ni ejecutar pruebas ni abrir la APK por indicación del usuario.

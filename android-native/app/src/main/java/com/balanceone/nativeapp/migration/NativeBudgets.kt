@@ -7,24 +7,7 @@ import java.time.Instant
 internal object NativeBudgets {
     data class Limit(val category: String, val cents: Long)
 
-    fun categories(snapshot: OriginalBackup): Map<String, String> {
-        val names = linkedMapOf(
-            "renta" to "Renta", "supermercado" to "Supermercado", "restaurantes" to "Restaurantes",
-            "alimentacion" to "Alimentación", "transporte" to "Transporte", "compras" to "Compras",
-            "hogar" to "Hogar", "salud" to "Salud", "trabajo" to "Trabajo", "gasolina" to "Gasolina",
-            "servicios" to "Servicios", "entretenimiento" to "Entretenimiento", "juegos" to "Juegos",
-            "seguros" to "Seguros", "educacion" to "Educación", "suscripciones" to "Suscripciones",
-            "otros" to "Otros"
-        )
-        val custom = snapshot.data.optJSONArray("categoriasPersonales")
-        if (custom != null) for (index in 0 until custom.length()) {
-            val row = custom.optJSONObject(index) ?: continue
-            val id = row.opt("id") as? String ?: continue
-            val name = row.opt("nombre") as? String ?: continue
-            if (id.isNotBlank() && name.isNotBlank()) names[id] = name
-        }
-        return names
-    }
+    fun categories(snapshot: OriginalBackup): Map<String, String> = NativeCategories.labels(snapshot)
 
     fun limits(snapshot: OriginalBackup): List<Limit> {
         if (snapshot.data.isNull("presupuestos")) return emptyList()
