@@ -292,7 +292,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 item {
                     NativePanel("Mis cuentas bancarias") {
                         snapshot.bank.take(4).forEach { Text(it.optString("nombre") + "   " + amount(it,"saldo")) }
-                        TextButton(onClick = { tab = 5 }) { Text("Ver cuentas") }
+                        if (snapshot.bank.isEmpty()) {
+                            Text("Agrega una cuenta para empezar a registrar movimientos.")
+                            TextButton(onClick = { editBank() },enabled = !busy) { Text("Crear cuenta bancaria") }
+                        } else TextButton(onClick = { tab = 5 }) { Text("Ver cuentas") }
                     }
                 }
                 item {
