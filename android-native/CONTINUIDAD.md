@@ -113,3 +113,7 @@ En cada entrega que cambie la aplicación, incrementar la versión visible y el 
 ## 0.2.6 Beta · gastos favoritos (versionCode 8)
 - Movimientos permite añadir gastos al catálogo favoritosGasto y quitar plantillas. Nuevo movimiento permite reutilizar nombre, categoría y origen de un favorito desde Inicio o Movimientos. Una cuenta ausente se debe volver a elegir. El importe y la fecha del formulario se conservan. Guardar el movimiento sigue siendo una acción explícita.
 - Se conserva el formato de copias de la web y la equivalencia de nombres para detectar duplicados. Gestionar una plantilla no cambia transacciones ni saldos. Sin compilar, ejecutar pruebas ni abrir la APK por indicación del usuario.
+
+## 0.2.7 Beta · duplicar un gasto del historial
+- Portado desde index.html web 0.7.38 Beta: gastoDuplicable, abrirMovVentana(copia), valorOrigenMovimiento, firmaGasto y la confirmación en guardarMovimientoBanco. El botón Duplicar abre un alta con nombre, importe, categoría y origen disponible, y fecha de hoy. Recibo, proyecto, vínculos y cuotas empiezan vacíos. Si coincide la firma de un gasto, el usuario puede volver al borrador o confirmar que lo desea registrar también.
+- Cada entrega de Android debe identificar la función correspondiente en la web. Versión 0.2.7 Beta, versionCode 9. Sin compilar, ejecutar pruebas ni abrir la APK por indicación del usuario.

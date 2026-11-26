@@ -113,7 +113,13 @@ internal object NativeFinance {
 
     data class Draft(val name: String,val type: String,val amount: String,val date: String,
         val category: String,val accountId: String,val project: String,val cardId: String = "",val receipt:String?=null,val installment:Boolean=false)
-    fun change(b: OriginalBackup, previousId: String?, draft: Draft?,decorate: ((JSONObject)->Unit)?=null): OriginalBackup {
+    class DuplicateExpense : IllegalArgumentException("Ya existe un gasto con el mismo nombre, fecha, importe y origen.")
+
+    fun change(b: OriginalBackup, previousId: String?, draft: Draft?, decorate: ((JSONObject)->Unit)?=null): OriginalBackup =
+        change(b,previousId,draft,false,decorate)
+
+    fun change(b: OriginalBackup, previousId: String?, draft: Draft?, confirmedDuplicate: Boolean,
+        decorate: ((JSONObject)->Unit)?=null): OriginalBackup {
         require(previousId != null || draft != null)
         val root = JSONObject(b.root.toString())
         val data = root.getJSONObject("datos")
@@ -147,14 +153,14 @@ internal object NativeFinance {
         // Reject duplicate purchases instead of silently recording them twice.
         fun signature(r: JSONObject?): List<String>? {
             if(r == null || field(r,"tipo") != "gasto") return null
-            return listOf(field(r,"nombre").trim().lowercase(java.util.Locale.ROOT),field(r,"cuentaId"),
+            return listOf(ExpenseFavorites.normalizedName(field(r,"nombre")),field(r,"cuentaId"),
                 field(r,"tarjetaId"),field(r,"fecha"),cents(field(r,"monto")).toString())
         }
         val sig = signature(new)
-        if(sig != null && sig != signature(old)) require((0 until moves.length()).none {
+        if(!confirmedDuplicate && sig != null && sig != signature(old) && (0 until moves.length()).any {
             val r = moves.getJSONObject(it)
             field(r,"id") != previousId && runCatching { signature(r) == sig }.getOrDefault(false)
-        }) { "Ya existe un gasto con el mismo nombre, fecha, importe y cuenta" }
+        }) throw DuplicateExpense()
         val changes = mutableMapOf<String,Long>()
         val debtChanges = mutableMapOf<String,Long>()
         fun accumulate(row: JSONObject?, sign: Long) {

@@ -12,7 +12,7 @@ internal object ExpenseFavorites {
             normalizedName(name) == normalizedName(other.name)
     }
 
-    private fun normalizedName(name: String): String =
+    fun normalizedName(name: String): String =
         Normalizer.normalize(name, Normalizer.Form.NFD)
             .replace(Regex("[\u0300-\u036f]"), "").lowercase(Locale.ROOT)
             .replace(Regex("['’]"), "").replace(Regex("[^\\p{L}\\p{N}]+"), " ").trim()

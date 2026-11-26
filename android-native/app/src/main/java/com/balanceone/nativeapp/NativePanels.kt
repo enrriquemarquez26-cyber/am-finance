@@ -171,18 +171,23 @@ internal fun NativeCalendar(snapshot: OriginalBackup, money: (Long)->String, bus
 }
 
 @Composable
-internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, favorites: List<ExpenseFavorites.Favorite>?, busy: Boolean,
+internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, copy: JSONObject?, favorites: List<ExpenseFavorites.Favorite>?, busy: Boolean,
     failure: String, close: ()->Unit, save: (NativeFinance.Draft)->Unit, delete: ()->Unit) {
     fun field(key:String) = if(old==null || old.isNull(key)) "" else old.optString(key)
-    var name by remember { mutableStateOf(field("nombre")) }
+    var name by remember { mutableStateOf(copy?.value("nombre") ?: field("nombre")) }
     var type by remember { mutableStateOf(field("tipo").ifBlank { "gasto" }) }
-    var amount by remember { mutableStateOf(field("monto")) }
+    var amount by remember { mutableStateOf(if(copy==null) field("monto") else runCatching { NativeFinance.decimal(NativeFinance.cents(copy.value("monto"))).toPlainString() }.getOrDefault("")) }
     var date by remember { mutableStateOf(field("fecha").ifBlank { LocalDate.now().toString() }) }
-    var category by remember { mutableStateOf(field("categoria")) }
+    var category by remember { mutableStateOf(copy?.value("categoria") ?: field("categoria")) }
     var project by remember { mutableStateOf(field("proyecto")) }
-    var account by remember { mutableStateOf(field("tarjetaId").takeIf { it.isNotBlank() }?.let { "credito:"+it } ?: field("cuentaId")) }
     val sources = snapshot.bank.map { it.optString("id") to it.optString("nombre") } +
         if(type=="gasto") snapshot.section("tarjetas").map { "credito:"+it.optString("id") to it.optString("nombre")+" · Crédito" } else emptyList()
+    var account by remember {
+        val origin=copy ?: old
+        val card=origin.value("tarjetaId")
+        val source=if(card.isNotBlank()) "credito:"+card else origin.value("cuentaId")
+        mutableStateOf(if(copy!=null && sources.none { it.first==source }) "" else source)
+    }
     var receipt by remember { mutableStateOf(field("recibo")) }
     var processing by remember { mutableStateOf(false) }
     var installment by remember { mutableStateOf(old?.optBoolean("enPlanCuotas")==true) }
@@ -190,7 +195,7 @@ internal fun MovementDialog(snapshot: OriginalBackup, old: JSONObject?, favorite
     var pickFavorite by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     AlertDialog(onDismissRequest={if(!busy) close()},
-        title={Text(if(old==null) "Nuevo movimiento" else "Editar movimiento")},
+        title={Text(if(copy!=null) "Duplicar gasto" else if(old==null) "Nuevo movimiento" else "Editar movimiento")},
         text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 listOf("gasto","ingreso").forEach { t -> FilterChip(selected=type==t,onClick={type=t;if(t=="ingreso") installment=false;if(t=="ingreso" && account.startsWith("credito:")) account=""},

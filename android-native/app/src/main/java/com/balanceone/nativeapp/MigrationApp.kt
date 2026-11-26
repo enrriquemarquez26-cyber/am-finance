@@ -80,8 +80,16 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     var editorOpen by remember { mutableStateOf(false) }
     var edited by remember { mutableStateOf<JSONObject?>(null) }
     var editError by remember { mutableStateOf("") }
-    fun editMovement(row: JSONObject? = null) { edited=row; editError=""; editorOpen=true }
-    fun commitMovement(draft: NativeFinance.Draft?) {
+    var copySource by remember { mutableStateOf<JSONObject?>(null) }
+    var repeatDraft by remember { mutableStateOf<NativeFinance.Draft?>(null) }
+    fun editMovement(row: JSONObject? = null, copy: JSONObject? = null) {
+        edited=row
+        copySource=copy
+        repeatDraft=null
+        editError=""
+        editorOpen=true
+    }
+    fun commitMovement(draft: NativeFinance.Draft?, confirmedDuplicate: Boolean = false) {
         val current=backup ?: return
         if (busy) return
         val id=edited?.optString("id")
@@ -89,12 +97,13 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         scope.launch {
             try {
                 val updated=withContext(Dispatchers.IO) {
-                    val value=NativeFinance.change(current,id,draft)
+                    val value=NativeFinance.change(current,id,draft,confirmedDuplicate)
                     LocalSnapshotStore.saveChange(context,current,value)
                     value
                 }
-                backup=updated; editorOpen=false; edited=null
+                backup=updated; editorOpen=false; edited=null; copySource=null
             } catch(e: kotlinx.coroutines.CancellationException) { throw e }
+            catch(e: NativeFinance.DuplicateExpense) { repeatDraft=draft }
             catch(e: IllegalArgumentException) { editError=e.message ?: "Datos no válidos" }
             catch(_: Exception) { editError="No se pudo guardar el movimiento. Revisa los datos." }
             finally { busy=false }
@@ -483,6 +492,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             TextButton(onClick={openOperation("editPayment",row)},enabled=!busy){Text("Editar pago")}
                             TextButton(onClick={openOperation("deletePayment",row)},enabled=!busy){Text("Eliminar pago")}
                         }
+                        if(tab==10 && ExpenseFavorites.fromMovement(row)!=null) {
+                            TextButton(onClick={editMovement(copy=row)},enabled=!busy &&
+                                (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) { Text("Duplicar") }
+                        }
                         if(tab==10 && favorites!=null) {
                             val template = ExpenseFavorites.fromMovement(row)
                             if(template!=null && row.value("id").isNotBlank()) {
@@ -642,7 +655,13 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         }
     }
     if(bankOpen && snapshot!=null) BankDialog(bankRow,busy,bankError,{ bankOpen=false; bankRow=null },{ commitBank(it) })
-    if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,favorites,busy,editError,{ editorOpen=false; edited=null },{ commitMovement(it) },{ commitMovement(null) })
+    if(editorOpen && snapshot!=null) MovementDialog(snapshot,edited,copySource,favorites,busy,editError,{ editorOpen=false; edited=null; copySource=null; repeatDraft=null },{ commitMovement(it) },{ commitMovement(null) })
+    repeatDraft?.let { draft ->
+        AlertDialog(onDismissRequest={ repeatDraft=null },title={Text("¿Guardar también este gasto?")},
+            text={Text("Ya hay un gasto con el mismo nombre, importe, fecha y origen.\n"+draft.name+" · "+draft.amount+" · "+draft.date)},
+            confirmButton={TextButton(enabled=!busy,onClick={repeatDraft=null;commitMovement(draft,true)}){Text("Guardar también")}},
+            dismissButton={TextButton(onClick={repeatDraft=null}){Text("Volver al gasto")}})
+    }
     candidate?.let { value ->
         AlertDialog(onDismissRequest = { if (!busy) candidate = null },
             title = { Text(if (storedCopy) "Reemplazar copia local" else "Guardar copia en Android") },
