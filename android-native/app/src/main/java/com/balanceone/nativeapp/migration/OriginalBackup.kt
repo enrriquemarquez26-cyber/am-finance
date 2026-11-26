@@ -1,6 +1,6 @@
 package com.balanceone.nativeapp.migration
 
-import android.util.Base64
+import java.util.Base64
 import org.json.JSONArray
 import org.json.JSONObject
 import javax.crypto.Cipher
@@ -35,7 +35,7 @@ class OriginalBackup private constructor(val root: JSONObject) {
                 try {
                     val cipher = Cipher.getInstance("AES/GCM/NoPadding")
                     cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(key,"AES"), GCMParameterSpec(128,bytes("iv",12)))
-                    document = JSONObject(cipher.doFinal(Base64.decode(document.getString("contenido"), Base64.DEFAULT)).toString(Charsets.UTF_8))
+                    document = JSONObject(cipher.doFinal(Base64.getDecoder().decode(document.getString("contenido"))).toString(Charsets.UTF_8))
                 } finally { key.fill(0) }
             }
             require(document.optString("aplicacion") == "Balance One")
