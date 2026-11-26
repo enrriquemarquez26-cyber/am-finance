@@ -79,6 +79,16 @@ internal object LocalSnapshotStore {
         }
     }
 
+    /** Never replace an existing or unreadable snapshot when starting a new workspace. */
+    @Synchronized
+    fun createEmpty(context: Context): OriginalBackup {
+        val storage = file(context)
+        check(load(context) == null && !storage.baseFile.exists() &&
+            !File(storage.baseFile.path + ".bak").exists() &&
+            !File(storage.baseFile.path + ".new").exists()) { "Existing snapshot" }
+        return OriginalBackup.empty().also { save(context, it) }
+    }
+
     @Synchronized
     fun clear(context: Context) {
         // Only remove this device's copy, never the selected document or the web.
