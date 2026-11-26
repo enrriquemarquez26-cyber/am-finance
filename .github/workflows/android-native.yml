@@ -33,9 +33,14 @@ jobs:
           test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2"
       - name: Build debug APK and run unit tests
         working-directory: android-native
-        run: gradle --no-daemon :app:assembleDebug :app:testDebugUnitTest
+        run: gradle --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:assembleDebugAndroidTest
       - uses: actions/upload-artifact@v4
         with:
           name: Balance-One-native-debug
           path: android-native/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Balance-One-native-instrumentation-tests
+          path: android-native/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
           if-no-files-found: error

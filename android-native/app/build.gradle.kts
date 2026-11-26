@@ -11,6 +11,7 @@ android {
         applicationId = "com.balanceone.nativeapp"
         minSdk = 26
         targetSdk = 35
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = 2
         versionName = "0.2.0-native"
     }
@@ -22,6 +23,8 @@ android {
     kotlinOptions { jvmTarget = "17" }
 }
 dependencies {
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))
