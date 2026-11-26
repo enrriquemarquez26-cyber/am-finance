@@ -18,6 +18,26 @@ class OriginalBackup private constructor(val root: JSONObject) {
     private fun objects(array: JSONArray?): List<JSONObject> =
         if (array == null) emptyList() else (0 until array.length()).map { array.getJSONObject(it) }
 
+    /** Portable encrypted backup compatible with Balance One web v0.7.38. */
+    fun encryptedExport(password: CharArray): String {
+        require(password.size >= 12) { "Usa una contraseña de al menos 12 caracteres" }
+        val random = java.security.SecureRandom()
+        val salt = ByteArray(16).also { random.nextBytes(it) }
+        val iv = ByteArray(12).also { random.nextBytes(it) }
+        val spec = PBEKeySpec(password,salt,600000,256)
+        val key = try { SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded }
+            finally { spec.clearPassword() }
+        val plain = root.toString().toByteArray(Charsets.UTF_8)
+        try {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.ENCRYPT_MODE,SecretKeySpec(key,"AES"),GCMParameterSpec(128,iv))
+            fun array(bytes: ByteArray) = JSONArray().apply { bytes.forEach { put(it.toInt() and 255) } }
+            return JSONObject().put("formato","Balance One cifrado").put("version",1)
+                .put("sal",array(salt)).put("iv",array(iv))
+                .put("contenido",Base64.getEncoder().encodeToString(cipher.doFinal(plain))).toString()
+        } finally { plain.fill(0); key.fill(0) }
+    }
+
     companion object {
         fun parse(raw: String, password: CharArray? = null): OriginalBackup {
             var document = JSONObject(raw)
