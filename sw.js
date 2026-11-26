@@ -1,7 +1,7 @@
 // La caché contiene únicamente la interfaz y recursos públicos locales.
 const raiz = new URL(self.registration.scope);
 const prefijo = "balance-one:" + raiz.pathname + ":";
-const nombre = prefijo + "0.7.37";
+const nombre = prefijo + "0.7.38";
 const inicio = new URL("index.html", raiz).href;
 const manifest = new URL("manifest.webmanifest", raiz).href;
 
@@ -9,7 +9,7 @@ self.addEventListener("install", evento => {
   evento.waitUntil((async () => {
     const cache = await caches.open(nombre);
     const html = await fetch(inicio, {cache: "reload"});
-    if (!html.ok || !(await html.clone().text()).includes("Balance One 0.7.37 Beta")) {
+    if (!html.ok || !(await html.clone().text()).includes("Balance One 0.7.38 Beta")) {
       throw new Error("Versión de inicio no disponible");
     }
     await cache.put(inicio, html);

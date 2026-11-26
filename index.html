@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
       content="default">
 <meta name="apple-mobile-web-app-title" content="Balance One">
-<title>Balance One 0.7.37 Beta</title>
+<title>Balance One 0.7.38 Beta</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/balance-one-180.png?v=20261031">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/balance-one-32.png?v=20261031">
@@ -5660,19 +5660,13 @@ html.tema-oscuro .inicio-panorama .panorama-categorias > button {background:#fff
 .billetera-vistas .carrusel-vistas-opciones {right:0;left:auto;z-index:20}
 .billetera-tarjetas {--alto-tarjeta:218px;height:calc(var(--alto-tarjeta) + (var(--cantidad) - 1)*39px)}
 .billetera-tarjeta {height:var(--alto-tarjeta)}
-.billetera-tamano-mediana .billetera-tarjetas {--alto-tarjeta:174px}
-.billetera-tamano-compacta .billetera-tarjetas {--alto-tarjeta:136px}
 .billetera-expandida {height:auto}
 .billetera-expandida .billetera-tarjeta {height:var(--alto-tarjeta)}
-.billetera-tamano-compacta .billetera-saldo strong {font-size:1.3rem}
-.billetera-tamano-compacta .billetera-tarjeta {padding:10px 15px;gap:3px}
 
 /* Wallet cards keep a bank-card ratio. Balance information stays outside the artwork. */
 .cuentas-billetera {container-type:inline-size}
 .billetera-titulo {text-align:left}
 .billetera-tarjetas {--ancho-tarjeta:calc(100cqw - 8px);--alto-tarjeta:calc(var(--ancho-tarjeta) / 1.586);width:var(--ancho-tarjeta);margin-inline:auto}
-.billetera-tamano-mediana .billetera-tarjetas {--ancho-tarjeta:calc((100cqw - 8px) * .88);--alto-tarjeta:calc(var(--ancho-tarjeta) / 1.586)}
-.billetera-tamano-compacta .billetera-tarjetas {--ancho-tarjeta:calc((100cqw - 8px) * .76);--alto-tarjeta:calc(var(--ancho-tarjeta) / 1.586)}
 .billetera-debito-real {isolation:isolate}
 .billetera-debito-real::before,.billetera-debito-real::after {display:none}
 .billetera-arte {position:absolute;inset:0;display:block;overflow:hidden;pointer-events:none;border-radius:inherit}
@@ -6159,7 +6153,7 @@ html.tema-oscuro .inicio-panorama .panorama-cheques.cheques-compactos button{bac
     aria-label="Asistente de voz" aria-haspopup="dialog">
     <span class="espectro-voz" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
 </div>
-<div class="sub">Control inteligente de tus finanzas · 0.7.37 Beta</div>
+<div class="sub">Control inteligente de tus finanzas · 0.7.38 Beta</div>
 <div class="adaptable-acciones">
   <button type="button" class="adaptable-nuevo" onclick="abrirMovVentana()"><span aria-hidden="true">+</span> <span class="adaptable-nuevo-texto">Nuevo movimiento</span></button>
   <button type="button" onclick="abrirAmMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="adaptable-herramientas-texto">Herramientas</span></button>
@@ -7739,8 +7733,8 @@ function aplicarIdiomaGeneral() {
   const subtitulo = document.querySelector("header .sub");
   if (subtitulo) {
     subtitulo.textContent = textoApp(
-      "Control inteligente de tus finanzas · 0.7.37 Beta",
-      "Smart control of your finances · 0.7.37 Beta"
+      "Control inteligente de tus finanzas · 0.7.38 Beta",
+      "Smart control of your finances · 0.7.38 Beta"
     );
   }
 }
@@ -13415,106 +13409,6 @@ function deudas() {
   `;
 }
 
-function abrirNuevoPrestamo() {
-  const campos = [
-    ["nombre", "Banco o aplicación", "Bank or app", "text"],
-    ["saldo", "Saldo pendiente", "Outstanding balance", "number"],
-    ["cuota", "Importe de la cuota", "Installment amount", "number"],
-    ["proximo", "Próximo vencimiento", "Next due date", "date"],
-    ["fin", "Último pago previsto", "Expected final payment", "date"]
-  ];
-
-  const ventana = crearVentanaApariencia(
-    textoApp("Agregar préstamo", "Add loan"),
-    `
-      <form id="formPrestamoCompacto">
-        ${campos.map(([nombre, es, en, tipo]) => `
-          <label for="prestamo-${nombre}">${tipo === "number" ? textoImporte(es, en) : textoApp(es, en)}</label>
-          <input id="prestamo-${nombre}" name="${nombre}"
-            type="${tipo}" required
-            ${tipo === "number" ? 'min="0.01" step="0.01"' : ""}
-            ${tipo === "text" ? 'maxlength="80"' : ""}
-            ${nombre === "proximo" ? `value="${today()}"` : ""}>
-        `).join("")}
-
-        <label for="prestamo-frecuencia">
-          ${textoApp("Frecuencia", "Frequency")}
-        </label>
-        <select id="prestamo-frecuencia" name="frecuencia">
-          <option value="mensual">
-            ${textoApp("Mensual", "Monthly")}
-          </option>
-          <option value="cada14dias">
-            ${textoApp("Cada dos semanas", "Every two weeks")}
-          </option>
-        </select>
-
-        <button type="submit" class="primary"
-          style="background:var(--balanceone-color,#ff7900)">
-          ${textoApp("Guardar préstamo", "Save loan")}
-        </button>
-      </form>
-    `,
-    true
-  );
-
-  if (!ventana) return;
-  const form = ventana.querySelector("form");
-  conectarEstimacionPrestamo(form);
-  simplificarFormularioPrestamo(form);
-
-  form.onsubmit = event => {
-    event.preventDefault();
-    if (form.dataset.guardado === "si") return;
-
-    const f = new FormData(form);
-    const nombre = String(f.get("nombre") || "").trim();
-    const saldo = round(f.get("saldo"));
-    const cuota = round(f.get("cuota"));
-    const proximo = String(f.get("proximo"));
-    const fin = String(f.get("fin"));
-    const frecuencia = String(f.get("frecuencia"));
-
-    if (
-      !nombre || !validAmount(saldo) || !validAmount(cuota) ||
-      !validDate(proximo) || !validDate(fin) || fin < proximo ||
-      !["mensual", "cada14dias"].includes(frecuencia)
-    ) {
-      alert(textoApp(
-        "Revisa los importes y las fechas.",
-        "Check the amounts and dates."
-      ));
-      return;
-    }
-
-    const lista = Array.isArray(data.prestamos)
-      ? data.prestamos : [];
-
-    const nuevosDatos = {
-      ...data,
-      prestamos:[...lista, {
-        id:id(), nombre, saldo, saldoInicial:saldo,
-        cuota, proximo, fin, frecuencia,
-...JSON.parse(form.dataset.historiaPrestamo || "{}")
-      }]
-    };
-
-    try {
-      localStorage.setItem(KEY, JSON.stringify(nuevosDatos));
-    } catch {
-      alert(textoApp(
-        "No se pudo guardar. No se hicieron cambios.",
-        "Could not save. No changes were made."
-      ));
-      return;
-    }
-
-    form.dataset.guardado = "si";
-    data = nuevosDatos;
-    ventana.close();
-    render();
-  };
-}
 
 function verPrestamoCompacto(indice) {
   const p = (data.prestamos || [])[indice];
@@ -14146,55 +14040,6 @@ function historialMovimientos() {
 
 /* Resumen del mes: mismo patrón compacto de Últimas transacciones de Inicio.
    Es solo una vista de movimientos existentes. No registra operaciones ni modifica saldos. */
-function movimientosRecientesDelCalendario() {
-  let cuentas=[];
-  try {
-    const guardadas=JSON.parse(localStorage.getItem("amfinance-cuentas-banco")||"[]");
-    if(Array.isArray(guardadas)) cuentas=guardadas;
-  } catch {}
-  const eventos=[
-    ...data.movimientos.map(m=>({...m,bancoRef:m.cuentaId,esPago:false})),
-    ...data.pagos.map(p=>({...movimientoVistaPago(p),bancoRef:p.bancoId}))
-  ].filter(m=>validDate(String(m.fecha)) && String(m.fecha).startsWith(mesCalendario+"-"))
-   .sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)))
-   .slice(0,5);
-  if(!eventos.length) return "";
-  return `
-    <section class="card cal-movs-panel">
-      <div class="cal-movs-cabecera">
-        <h3>${textoApp("Movimientos del mes","Transactions this month")}</h3>
-        <button type="button" onclick="go('historialMovimientos')">${textoApp("Ver historial","View history")} ›</button>
-      </div>
-      <div class="cal-movs-lista">
-        ${eventos.map(m=>{
-          const ingreso=m.tipo==="ingreso";
-          const cuenta=m.bancoRef==null?null:cuentas.find(c=>String(c.id)===String(m.bancoRef));
-          const fecha=validDate(String(m.fecha))
-            ?new Date(m.fecha+"T12:00:00").toLocaleDateString(
-              idiomaActual()==="en"?"en-US":"es",{day:"numeric",month:"short"})
-            :String(m.fecha||"");
-          const detalle=[fecha,cuenta?.nombre||""].filter(Boolean).join(" · ");
-          return `
-          <button type="button" class="cal-mov-fila" onclick="abrirDiaCalendario('${m.fecha}')">
-            <span class="cal-mov-logo" aria-hidden="true">
-              ${iconoRegistroFinanciero(m)}
-            </span>
-            <span class="cal-mov-info">
-              <strong>${safe(m.nombre)}</strong>
-              <small>${safe(detalle)}</small>
-            </span>
-            <span class="cal-mov-derecha">
-              <small class="cal-mov-etiqueta ${ingreso?"cal-mov-entrada":"cal-mov-salida"}">${m.esPago
-                ?textoApp("Pago","Payment")
-                :ingreso?textoApp("Ingreso","Income"):textoApp("Gasto","Expense")}</small>
-              <strong class="${ingreso?"cal-mov-entrada":"cal-mov-salida"}">${ingreso?"+":"−"}${money(m.monto)}</strong>
-            </span>
-            <span class="cal-pago-chevron" aria-hidden="true">›</span>
-          </button>`;
-        }).join("")}
-      </div>
-    </section>`;
-}
 
 function cambiarPaginaPagosMes(boton, pagina) {
   const carrusel=boton.closest(".cal-pagos-mes").querySelector(".cal-pagos-paginas");
@@ -20029,7 +19874,7 @@ function perfil() {
         <span class="ajustes-flecha">›</span>
       </button>
 
-      <p class="ajustes-version">Balance One · 0.7.37 Beta</p>
+      <p class="ajustes-version">Balance One · 0.7.38 Beta</p>
     </section>
   `;
   const formulario = el().querySelector(".perfil-formulario");
@@ -20315,7 +20160,7 @@ function ajustes() {
 
       <button type="button" class="ajustes-version ajustes-novedades" aria-haspopup="dialog"
               onclick="abrirNovedadesAjustes()">
-        ${textoApp("Versión", "Version")} 0.7.37 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
+        ${textoApp("Versión", "Version")} 0.7.38 Beta · ${textoApp("Qué hay de nuevo", "What’s new")}
       </button>
     </section>
   `;
@@ -20324,7 +20169,7 @@ function ajustes() {
 function abrirNovedadesAjustes() {
   const t = textoApp;
   crearVentanaApariencia(t("Qué hay de nuevo", "What’s new"), `
-    <p class="note">Balance One 0.7.37 Beta</p>
+    <p class="note">Balance One 0.7.38 Beta</p>
     <ul class="ajustes-novedades-lista">
       <li>${t("Gastos por vehículo vinculados a las finanzas, estado del auto y tres diseños de tarjetas.",
               "Vehicle expenses linked to finances, vehicle status and three card layouts.")}</li>
@@ -20551,7 +20396,7 @@ function abrirAjuste(tipo, desdePerfil = false) {
         </section>
         <div class="card ayuda-acerca">
           <strong>${t("Acerca de Balance One", "About Balance One")}</strong>
-          <span class="note">${t("Versión", "Version")} 0.7.37 Beta</span>
+          <span class="note">${t("Versión", "Version")} 0.7.38 Beta</span>
         </div>`
     }
   };
