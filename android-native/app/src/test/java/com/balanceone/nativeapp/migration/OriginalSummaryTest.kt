@@ -49,6 +49,18 @@ class OriginalSummaryTest {
             OriginalSummary.goal(b.section("metasAhorro")[1],emptyList())
         }
     }
+    @Test fun decryptsIndependentWebCompatibleFixture() {
+        val encrypted = """{"formato":"Balance One cifrado","version":1,"sal":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"iv":[16,17,18,19,20,21,22,23,24,25,26,27],"contenido":"lbCynFvhGziRx/xWvxEbPr100ZuaL/RfmvxJacH8YpSmRRcLQSoknmSzk7x3P9a9e8SkuLpECnP+i49kaDMLi/2kOsp/ZhD87ow/DJZxjxjoA+IeWcjqbMgZcLgIeId4V8ld08u97q0NH3Baym323CESmAACajww99Cr"}"""
+        val password = "Prueba-ñ-🔐".toCharArray()
+        try {
+            val backup = OriginalBackup.parse(encrypted,password)
+            assertEquals(1,backup.root.getInt("version"))
+            assertTrue(backup.section("movimientos").isEmpty())
+        } finally { password.fill('\u0000') }
+        assertThrows(javax.crypto.AEADBadTagException::class.java) {
+            OriginalBackup.parse(encrypted,"wrong".toCharArray())
+        }
+    }
     @Test fun legacyBackupAndInvalidVersion() {
         val legacy = JSONObject(raw).apply { put("version",1); remove("preferencias") }
         assertTrue(OriginalBackup.parse(legacy.toString()).preferences.length() == 0)
