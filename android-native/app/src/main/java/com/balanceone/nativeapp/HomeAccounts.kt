@@ -5,6 +5,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,12 +36,30 @@ internal fun HomeAccounts(b:OriginalBackup,classic:Boolean,hidden:Boolean,money:
     compactChange:(String)->Unit,arrange:()->Unit,create:()->Unit,open:(JSONObject)->Unit,edit:(JSONObject)->Unit,remove:(JSONObject)->Unit,viewAll:()->Unit) {
     val all=remember(b){orderedHomeRows(b,b.bank,bankHomeOrder)}
     val rows=remember(b,classic){if(classic) all else selectedAccounts(b,all)}
-    NativePanel(if(classic) "Cuentas bancarias" else "Cuentas de cheques") {
+    NativePanel(if(classic) "Cuentas bancarias" else null) {
         val compact=!classic && b.data.value("widgetChequesInicio")=="compacto"
         if(!classic) {
-            Choice("Diseño de cuentas",if(compact) "compacto" else "actual",mapOf("actual" to "Actual","compacto" to "Compacto con saldo"),!busy,compactChange)
             val total=runCatching { rows.sumOf { NativeFinance.bankBalance(it.value("saldo")) } }.getOrNull()
-            Text((if(rows.any { it.value("tipo")=="ahorro" }) "Disponible en estas cuentas" else "Disponible en cheques")+" · "+(total?.let(money) ?: "—"))
+            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                Icon(Icons.Default.AccountBalance,null,Modifier.size(16.dp))
+                Text("Cuentas de cheques",Modifier.weight(1f).padding(start=5.dp),style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.Bold)
+                Box {
+                    var models by remember { mutableStateOf(false) }
+                    IconButton(onClick={models=true},enabled=!busy,modifier=Modifier.size(32.dp)){
+                        Icon(Icons.Default.Layers,"Diseño de cuentas",Modifier.size(17.dp))
+                    }
+                    DropdownMenu(models,{models=false}){
+                        for ((key,label) in mapOf("actual" to "Actual","compacto" to "Compacto con saldo")) {
+                            DropdownMenuItem(text={Text(label)},onClick={models=false;compactChange(key)})
+                        }
+                    }
+                }
+                TextButton(onClick=viewAll,contentPadding=PaddingValues(horizontal=4.dp)){Text("Ver todas ›",style=MaterialTheme.typography.labelMedium)}
+            }
+            Row(verticalAlignment=Alignment.CenterVertically) {
+            Text((if(rows.any { it.value("tipo")=="ahorro" }) "Disponible en estas cuentas" else "Disponible en cheques")+" · "+(total?.let(money) ?: "—"),Modifier.weight(1f,fill=false),style=MaterialTheme.typography.bodySmall)
+            if(all.isNotEmpty()) TextButton(onClick=arrange,enabled=!busy,contentPadding=PaddingValues(horizontal=5.dp)){Text("Acomodar",style=MaterialTheme.typography.labelMedium)}
+            }
         }
         if(rows.isEmpty()) Text(if(all.isEmpty()) "Agrega tu primera cuenta bancaria." else "Elige las cuentas que quieres ver.")
         if(!classic && rows.isNotEmpty()) BoxWithConstraints(Modifier.fillMaxWidth()){
@@ -87,10 +108,10 @@ internal fun HomeAccounts(b:OriginalBackup,classic:Boolean,hidden:Boolean,money:
                 Text("Meta · "+money(target))
             }
         }
-        Row {
+        if(classic || all.isEmpty()) Row {
             if(classic || all.isEmpty()) TextButton(onClick=create,enabled=!busy){Text("Agregar")}
             if(all.isNotEmpty()) TextButton(onClick=arrange,enabled=!busy){Text("Acomodar")}
-            TextButton(onClick=viewAll){Text("Ver todas")}
+            if(classic) TextButton(onClick=viewAll){Text("Ver todas")}
         }
     }
 }

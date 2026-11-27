@@ -5,6 +5,8 @@ import android.content.Intent
 import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -330,20 +332,54 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             val buttonCount = navTabs.size + 1
             val barWidth = maxOf(maxWidth * 0.52f, 32.dp * buttonCount + 8.dp).coerceAtMost(maxWidth)
             val buttonWidth = (barWidth - 8.dp) / buttonCount
-            Surface(shape = RoundedCornerShape(if(capsule) 40.dp else 24.dp), tonalElevation = if(capsule) 6.dp else 2.dp,
-                modifier = Modifier.width(barWidth)) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                    navTabs.forEach { index ->
-                        val title=sections[index]
-                        IconButton(modifier = Modifier.width(buttonWidth), onClick = { tab = index }) {
-                            Icon(icons[index],contentDescription = title,tint = if (tab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+            if (tab == 0) {
+                val ink = Color(0xFF101116)
+                val gap = 5.dp
+                val moreWidth = buttonWidth
+                Row(Modifier.width(barWidth),horizontalArrangement=Arrangement.spacedBy(gap),verticalAlignment=Alignment.CenterVertically) {
+                    if (navTabs.isNotEmpty()) Surface(Modifier.weight(1f),shape=RoundedCornerShape(28.dp),color=ink) {
+                        Row(Modifier.padding(3.dp),verticalAlignment=Alignment.CenterVertically) {
+                            navTabs.forEach { index ->
+                                val active = index == tab
+                                Surface(onClick={tab=index},modifier=Modifier.weight(if(active) 1.25f else 1f),
+                                    shape=RoundedCornerShape(24.dp),color=if(active) Color.White else ink) {
+                                    BoxWithConstraints(Modifier.height(40.dp),contentAlignment=Alignment.Center) {
+                                        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)) {
+                                            Icon(icons[index],sections[index],Modifier.size(19.dp),tint=if(active) ink else Color.White)
+                                            if(active && maxWidth>=64.dp) Text(sections[index],color=ink,style=MaterialTheme.typography.labelSmall)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                     Box {
-                        IconButton(modifier = Modifier.width(buttonWidth), onClick = { more = true }) { Icon(Icons.Default.MoreHoriz,contentDescription = "Más herramientas") }
-                        DropdownMenu(expanded = more,onDismissRequest = { more = false }) {
-                            sections.indices.filter {it !in navTabs}.forEach { index ->
-                                DropdownMenuItem(text = { Text(sections[index]) },onClick = { tab = index; more = false })
+                        Surface(onClick={more=true},modifier=Modifier.width(moreWidth).height(44.dp),shape=RoundedCornerShape(24.dp),color=ink){
+                            Box(contentAlignment=Alignment.Center){Icon(Icons.Default.Menu,"Más herramientas",Modifier.size(19.dp),tint=Color.White)}
+                        }
+                        DropdownMenu(expanded=more,onDismissRequest={more=false}){
+                            sections.indices.filter { it !in navTabs }.forEach { index ->
+                                DropdownMenuItem(text={Text(sections[index])},onClick={tab=index;more=false})
+                            }
+                        }
+                    }
+                }
+            } else {
+                Surface(shape = RoundedCornerShape(if(capsule) 40.dp else 24.dp), tonalElevation = if(capsule) 6.dp else 2.dp,
+                    modifier = Modifier.width(barWidth)) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                        navTabs.forEach { index ->
+                            val title=sections[index]
+                            IconButton(modifier = Modifier.width(buttonWidth), onClick = { tab = index }) {
+                                Icon(icons[index],contentDescription = title,tint = if (tab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        Box {
+                            IconButton(modifier = Modifier.width(buttonWidth), onClick = { more = true }) { Icon(Icons.Default.MoreHoriz,contentDescription = "Más herramientas") }
+                            DropdownMenu(expanded = more,onDismissRequest = { more = false }) {
+                                sections.indices.filter {it !in navTabs}.forEach { index ->
+                                    DropdownMenuItem(text = { Text(sections[index]) },onClick = { tab = index; more = false })
+                                }
                             }
                         }
                     }
@@ -351,7 +387,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
         }
     }) { padding ->
-        LazyColumn(Modifier.fillMaxSize().padding(padding).pullToAdd(listState,tab==0 && canAdd && !busy && !editorOpen){editMovement()},state=listState,contentPadding = PaddingValues(18.dp),
+        val homeBackdrop = if (tab == 0 && MaterialTheme.colorScheme.background.luminance() > .4f)
+            Modifier.background(Brush.linearGradient(listOf(Color(0xFFF0F3FA), Color(0xFFE7EEFF), Color(0xFFFFF3EB))))
+        else Modifier
+        LazyColumn(Modifier.fillMaxSize().then(homeBackdrop).padding(padding).pullToAdd(listState,tab==0 && canAdd && !busy && !editorOpen){editMovement()},state=listState,contentPadding = PaddingValues(if(tab==0) 14.dp else 18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if(tab!=0 || homeSnapshot==null) item {
                 Text(if (tab == 0) "Balance One" else sections[tab],style = MaterialTheme.typography.headlineLarge,fontWeight = FontWeight.SemiBold)
@@ -401,9 +440,9 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         val marked=remember(snapshot){reminderMarks(snapshot)}
                         val next=dues.firstOrNull { !it.recorded && it.key !in marked && flags?.optBoolean(it.type,true)!=false && it.date<=homeDate.plusDays(days.toLong()) }
                         Surface(onClick={if(next==null && needsCopy) exportOpen=true else openOperation("homeAlerts")},enabled=!busy,shape=cardCorners(24),color=MaterialTheme.colorScheme.surface){
-                            Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                            Row(Modifier.widthIn(max=260.dp).padding(horizontal=12.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
                                 Icon(Icons.Default.Notifications,null,Modifier.size(18.dp))
-                                Text(next?.let { it.name+" · "+it.date } ?: if(needsCopy)"Guarda tu copia de seguridad" else "Sin avisos pendientes",Modifier.weight(1f),style=MaterialTheme.typography.bodySmall)
+                                Text(next?.let { it.name+" · "+it.date } ?: if(needsCopy)"Guarda tu copia de seguridad" else "Sin avisos pendientes",Modifier.weight(1f,fill=false),style=MaterialTheme.typography.bodySmall)
                                 Icon(Icons.Default.KeyboardArrowRight,null,Modifier.size(16.dp))
                             }
                         }

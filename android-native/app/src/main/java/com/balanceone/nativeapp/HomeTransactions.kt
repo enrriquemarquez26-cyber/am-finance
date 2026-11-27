@@ -7,6 +7,12 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -61,19 +67,36 @@ internal fun HomeCategories(b:OriginalBackup,expenses:List<HomeExpense>,month:Ye
     val colors=listOf(Color(0xFF16965D),Color(0xFFEB791E),Color(0xFF168CE5),Color(0xFF854BD1),Color.Gray)
     val labels=remember(b){NativeCategories.labels(b)}
     var chosen by rememberSaveable { mutableStateOf("") }
-    NativePanel("Categorías del mes") {
+    NativePanel(if(tiles) null else "Categorías del mes") {
+        if(tiles) Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+            Icon(Icons.Default.LocalOffer,null,Modifier.size(16.dp))
+            Text("Categorías del mes",Modifier.weight(1f).padding(start=5.dp),style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.Bold)
+            TextButton(onClick=openHistory,contentPadding=PaddingValues(horizontal=4.dp)){Text("Ver todas ›",style=MaterialTheme.typography.labelMedium)}
+        }
         if(groups.isEmpty()) Text("Sin gastos este mes.")
         if(tiles && groups.isNotEmpty()) {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp)){
                 groups.take(4).forEachIndexed {i,(key,rows)->
                     val cents=rows.sumOf {it.cents}
-                    Surface(onClick={chosen=key},enabled=!hidden,modifier=Modifier.weight(1f),shape=cardCorners(16),color=colors[i].copy(alpha=.09f)){
+                    Surface(onClick={chosen=key},enabled=!hidden,modifier=Modifier.weight(1f),shape=cardCorners(16),color=MaterialTheme.colorScheme.surface){
                         Column(Modifier.padding(horizontal=4.dp,vertical=8.dp),horizontalAlignment=androidx.compose.ui.Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(3.dp)){
                             val custom=NativeCategories.custom(b).firstOrNull {it.value("id")==key}
-                            if(custom!=null)CategorySymbol(custom.value("icono")) else Text((labels[key] ?: key).take(1).uppercase(),color=colors[i],style=MaterialTheme.typography.titleMedium)
+                            Box(Modifier.size(25.dp).background(colors[i],CircleShape),contentAlignment=Alignment.Center){
+                                if(custom!=null) CategorySymbol(custom.value("icono")) else {
+                                    val icon=when(key.lowercase()){
+                                        "gasolina","combustible" -> Icons.Default.LocalGasStation
+                                        "servicios" -> Icons.Default.Bolt
+                                        "compras" -> Icons.Default.ShoppingBag
+                                        else -> Icons.Default.MoreHoriz
+                                    }
+                                    Icon(icon, null, Modifier.size(16.dp), tint=Color.White)
+                                }
+                            }
                             Text(labels[key] ?: key,style=MaterialTheme.typography.labelSmall,maxLines=2)
                             Text(money(cents),style=MaterialTheme.typography.labelMedium)
-                            if(!hidden && total>0)BalanceProgress({cents.toFloat()/total},Modifier.fillMaxWidth(.78f))
+                            if(!hidden && total>0) Box(Modifier.fillMaxWidth(.78f).height(4.dp).background(colors[i].copy(alpha=.18f),CircleShape)){
+                                Spacer(Modifier.fillMaxWidth((cents.toFloat()/total).coerceIn(0f,1f)).fillMaxHeight().background(colors[i],CircleShape))
+                            }
                         }
                     }
                 }
@@ -96,7 +119,7 @@ internal fun HomeCategories(b:OriginalBackup,expenses:List<HomeExpense>,month:Ye
             val cents=rows.sumOf { it.cents }
             TextButton(onClick={chosen=key},enabled=!hidden){ Text((labels[key] ?: key)+" · "+money(cents)+(if(hidden) "" else " · "+(100.0*cents/total).toInt()+" %")) }
         }
-        TextButton(onClick=openHistory){Text("Ver movimientos")}
+        if(!tiles) TextButton(onClick=openHistory){Text("Ver movimientos")}
     }
     if(chosen.isNotBlank() && !hidden) AlertDialog(onDismissRequest={chosen=""},title={Text(labels[chosen] ?: chosen)},text={
         Column(Modifier.heightIn(max=410.dp).verticalScroll(rememberScrollState())) {
