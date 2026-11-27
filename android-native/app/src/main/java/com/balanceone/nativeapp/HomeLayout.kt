@@ -19,18 +19,14 @@ internal data class HomeWidget(val key:String,val label:String,val visible:Boole
 internal object HomeLayout {
     private const val layoutKey="balanceone-diseno-inicio"
     private const val widgetsKey="balanceone-tarjetas-inicio"
-    fun mode(snapshot:OriginalBackup)=if(snapshot.preferences.optString(layoutKey)=="nuevo") "nuevo" else "clasico"
-    private fun options(mode:String)=if(mode=="nuevo") linkedMapOf(
+    private val labels=linkedMapOf(
         "cuentasTarjetas" to "Ingresos y gastos","comparacion" to "Panorama financiero","cuentas" to "Cuentas de cheques",
         "categorias" to "Categorías del mes","pagos" to "Tarjetas, pagos y metas","vehiculos" to "Autos",
         "transacciones" to "Últimas transacciones"
-    ) else linkedMapOf("resumen" to "Ingresos y gastos","presupuestos" to "Presupuestos","deudas" to "Mis deudas pendientes",
-        "transacciones" to "Últimas transacciones","cuentas" to "Cuentas bancarias","tarjetas" to "Tarjetas de crédito",
-        "vehiculos" to "Vehículos","metas" to "Metas de ahorro")
+    )
     private fun preferences(b:OriginalBackup)=runCatching { JSONObject(b.preferences.optString(widgetsKey)) }.getOrElse { JSONObject() }
-    fun widgets(b:OriginalBackup,mode:String):List<HomeWidget> {
-        val labels=options(mode)
-        val saved=preferences(b).optJSONArray(mode)
+    fun widgets(b:OriginalBackup):List<HomeWidget> {
+        val saved=preferences(b).optJSONArray("nuevo")
         val ordered=linkedMapOf<String,HomeWidget>()
         if(saved!=null) for(i in 0 until saved.length()) {
             val row=saved.optJSONObject(i) ?: continue
@@ -39,63 +35,40 @@ internal object HomeLayout {
             val visible=row.opt("visible") as? Boolean ?: continue
             ordered.putIfAbsent(key,HomeWidget(key,label,visible))
         }
-        val legacy=mode=="nuevo" && "cuentas" !in ordered
+        val legacy="cuentas" !in ordered
         labels.forEach { (key,label)->ordered.putIfAbsent(key,HomeWidget(key,label)) }
         return if(legacy) labels.keys.map { ordered.getValue(it) } else ordered.values.toList()
     }
-    fun save(b:OriginalBackup,mode:String,layouts:Map<String,List<HomeWidget>>):OriginalBackup {
+    fun save(b:OriginalBackup,rows:List<HomeWidget>):OriginalBackup {
         val prefs=preferences(b)
-        layouts.forEach { (design,list)->
-            val saved=JSONArray()
-            list.forEach { saved.put(JSONObject().put("clave",it.key).put("visible",it.visible)) }
-            val previous=prefs.optJSONArray(design)
-            if(previous!=null) for(i in 0 until previous.length()) {
-                val other=previous.optJSONObject(i) ?: continue
-                if(other.optString("clave") !in options(design)) saved.put(other)
+        val saved=JSONArray()
+        rows.forEach { saved.put(JSONObject().put("clave",it.key).put("visible",it.visible)) }
+        prefs.optJSONArray("nuevo")?.let { previous ->
+            for(i in 0 until previous.length()){
+                val row=previous.optJSONObject(i) ?: continue
+                if(row.optString("clave") !in labels) saved.put(row)
             }
-            prefs.put(design,saved)
         }
-        return b.withPreference(layoutKey,mode).withPreference(widgetsKey,prefs.toString())
+        prefs.put("nuevo",saved)
+        return b.withPreference(layoutKey,"nuevo").withPreference(widgetsKey,prefs.toString())
     }
 }
 
 @Composable
 internal fun HomeLayoutDialog(snapshot:OriginalBackup,busy:Boolean,error:String,close:()->Unit,
-    save:(String,Map<String,List<HomeWidget>>)->Unit) {
-    var mode by remember(snapshot) { mutableStateOf(HomeLayout.mode(snapshot)) }
-    var changes by remember(snapshot) { mutableStateOf(emptyMap<String,List<HomeWidget>>()) }
-    val rows=changes[mode] ?: HomeLayout.widgets(snapshot,mode)
+    save:(List<HomeWidget>)->Unit) {
+    var rows by remember(snapshot) { mutableStateOf(HomeLayout.widgets(snapshot)) }
     fun move(from:Int,to:Int) {
-        val list=rows.toMutableList()
-        list.add(to,list.removeAt(from))
-        changes=changes+(mode to list)
+        rows=rows.toMutableList().apply { add(to,removeAt(from)) }
     }
-    EntryDialog("Personalizar Inicio",busy,error,close,{save(mode,changes)}) {
-        Text("Diseño",style=MaterialTheme.typography.titleSmall)
-        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-            listOf("clasico" to "Clásico","nuevo" to "Panorama financiero").forEach { (key,title)->
-                Surface(onClick={mode=key},enabled=!busy,modifier=Modifier.weight(1f),shape=cardCorners(18),
-                    border=androidx.compose.foundation.BorderStroke(if(mode==key) 2.dp else 1.dp,if(mode==key) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)){
-                    Column(Modifier.padding(10.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){
-                        val accent=MaterialTheme.colorScheme.primary
-                        if(key=="clasico") Surface(Modifier.fillMaxWidth().height(14.dp),shape=cardCorners(8),color=accent.copy(alpha=.24f)){} 
-                        Row(horizontalArrangement=Arrangement.spacedBy(3.dp)){
-                            listOf(0,1).forEach {i->Surface(Modifier.weight(1f).height(if(key=="nuevo") 22.dp else 9.dp),shape=cardCorners(6),
-                                color=if(key=="nuevo" && i==1) androidx.compose.ui.graphics.Color(0xFF6FADEB) else accent.copy(alpha=.36f)){}}
-                        }
-                        if(key=="nuevo")Surface(Modifier.fillMaxWidth().height(9.dp),shape=cardCorners(5),color=MaterialTheme.colorScheme.outlineVariant){}
-                        Text(title,style=MaterialTheme.typography.labelMedium)
-                    }
-                }
-            }
-        }
+    EntryDialog("Personalizar Inicio",busy,error,close,{save(rows)}) {
         rows.forEachIndexed { index,widget ->
             Column {
                 Row(verticalAlignment=Alignment.CenterVertically) {
                     Text(widget.label,Modifier.weight(1f))
-                    Switch(widget.visible,{checked->changes=changes+(mode to rows.map {
+                    Switch(widget.visible,{checked->rows=rows.map {
                         if(it.key==widget.key) it.copy(visible=checked) else it
-                    })},enabled=!busy)
+                    }},enabled=!busy)
                 }
                 Row {
                     TextButton(onClick={move(index,index-1)},enabled=!busy && index>0){Text("Subir")}

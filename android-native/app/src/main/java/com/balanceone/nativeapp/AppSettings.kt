@@ -68,7 +68,7 @@ internal fun SettingsPage(b:OriginalBackup?,section:String,navigate:(String)->Un
             }
             "apariencia"->{
                 NativePanel("Pantallas"){
-                    SettingsLink("Diseño de Inicio",if(b!=null && HomeLayout.mode(b)=="nuevo") "Panorama financiero" else "Clásico"){navigate("inicio")}
+                    SettingsLink("Personalizar Inicio","Panorama financiero"){navigate("inicio")}
                     Choice("Diseño de vehículos",b?.data.value("disenoVehiculos").ifBlank {"actual"},mapOf("actual" to "Actual","compacto" to "Compacto","nuevo" to "Alternativo"),editable){save("disenoVehiculos",it)}
                     Choice("Diseño de tarjetas de crédito",value("balanceone-diseno-credito","actual"),mapOf("actual" to "Lista","carrusel" to "Galería"),editable){save("balanceone-diseno-credito",it)}
                     if(value("balanceone-diseno-credito","actual")=="carrusel")
@@ -87,9 +87,8 @@ internal fun SettingsPage(b:OriginalBackup?,section:String,navigate:(String)->Un
                     Choice("Barras de progreso",value("balanceone-progreso","clasica"),progressStyles,editable){save("balanceone-progreso",it)}
                 }
             }
-            "inicio"->NativePanel("Diseño de Inicio"){
-                Choice("Elegir diseño",if(b==null) "clasico" else HomeLayout.mode(b),mapOf("clasico" to "Clásico · Mi inicio de siempre","nuevo" to "Nuevo · Panorama financiero"),editable){save("balanceone-diseno-inicio",it)}
-                SettingsLink("Ver inicio elegido"){action("home")}
+            "inicio"->NativePanel("Panorama financiero"){
+                SettingsLink("Ver Inicio"){action("home")}
                 SettingsLink("Tarjetas de Inicio","Visibilidad y orden",enabled=editable){action("homeLayout")}
                 SettingsLink("Orden de cuentas bancarias",enabled=editable){action("settingsBankOrder")}
                 SettingsLink("Orden de tarjetas de crédito",enabled=editable){action("arrangeHomeCards")}
@@ -144,7 +143,7 @@ internal fun SettingsPage(b:OriginalBackup?,section:String,navigate:(String)->Un
                 Text("Balance One para Android · "+BuildConfig.VERSION_NAME)
             }
             "novedades"->NativePanel("Qué hay de nuevo"){
-                Text("Inicio clásico y Panorama financiero con personalización de widgets, cuentas y categorías. Ajustes de apariencia, voz, privacidad e importación de compras.")
+                Text("Panorama financiero es el único diseño de Inicio. Las tarjetas visibles siempre se muestran desplegadas. Ajustes de apariencia, voz, privacidad e importación de compras.")
                 Text(BuildConfig.VERSION_NAME)
             }
         }

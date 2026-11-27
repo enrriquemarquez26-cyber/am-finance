@@ -87,8 +87,7 @@ private fun HomeMetric(title:String,income:Boolean,modifier:Modifier,progress:()
             drawCircle(accent.copy(alpha=0.20f),size.width*0.38f,Offset(size.width*1.09f-shift,size.height*1.10f))
         }.clickable(enabled=enabled){menu=true}.padding(12.dp)) {
         Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp),
-                modifier=Modifier.padding(end=if(income) 20.dp else 0.dp)) {
+            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)) {
                 Box(Modifier.size(23.dp).background(Color.White.copy(alpha=if(dark) 0.12f else 0.65f),CircleShape),contentAlignment=Alignment.Center){
                     Icon(if(income) Icons.Default.AccountBalance else Icons.Default.AccountBalanceWallet,null,Modifier.size(15.dp),tint=if(dark) accent else if(income) Color(0xFF1675B6) else Color(0xFFAC5313))
                 }
