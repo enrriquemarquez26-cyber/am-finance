@@ -5,6 +5,22 @@ import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Path
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlin.math.roundToInt
@@ -53,21 +69,36 @@ internal fun homeCharges(b:OriginalBackup,from:LocalDate,to:LocalDate):List<Home
 }
 
 @Composable
-private fun HomeMetric(title:String,income:Boolean,progress:()->Float,content:@Composable ColumnScope.()->Unit) {
-    val accent=if(income) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
-    Card(shape=androidx.compose.foundation.shape.RoundedCornerShape(24.dp),modifier=Modifier.fillMaxWidth()) {
-        Column(Modifier.fillMaxWidth().drawBehind {
-            val phase=progress()*Math.PI*2
-            val shift=(kotlin.math.sin(phase)*0.15).toFloat()
-            val outline=Path().apply {
-                moveTo(0f,size.height*0.8f)
-                cubicTo(size.width*(0.32f+shift),size.height*0.3f,size.width*(0.64f+shift),size.height*1.03f,size.width,size.height*0.49f)
-                lineTo(size.width,size.height);lineTo(0f,size.height);close()
+private fun HomeMetric(title:String,income:Boolean,modifier:Modifier,progress:()->Float,
+    value:String,selection:String,options:Map<String,String>,enabled:Boolean,detail:String="",select:(String)->Unit) {
+    val dark=MaterialTheme.colorScheme.background.luminance()<0.4f
+    val base=if(dark) Color(0xFF22252C) else Color.White
+    val end=if(income) { if(dark) Color(0xFF263952) else Color(0xFFDBEAFF) }
+            else { if(dark) Color(0xFF413027) else Color(0xFFFFE7D8) }
+    val accent=if(income) Color(0xFF559EF4) else Color(0xFFFF9B58)
+    val ink=if(dark) Color(0xFFF2F5FB) else Color(0xFF142035)
+    var menu by remember { mutableStateOf(false) }
+    Box(modifier.clip(RoundedCornerShape(27.dp)).background(Brush.linearGradient(listOf(base,end)))
+        .drawBehind {
+            val phase=(progress()*2*Math.PI)
+            val shift=(kotlin.math.sin(phase)*0.08).toFloat()*size.width
+            drawCircle(accent.copy(alpha=0.22f),size.width*0.47f,Offset(size.width+shift,size.height*1.08f))
+            drawCircle(accent.copy(alpha=0.20f),size.width*0.38f,Offset(size.width*1.09f-shift,size.height*1.10f))
+        }.clickable(enabled=enabled){menu=true}.padding(12.dp)) {
+        Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp),
+                modifier=Modifier.padding(end=if(income) 20.dp else 0.dp)) {
+                Box(Modifier.size(23.dp).background(Color.White.copy(alpha=if(dark) 0.12f else 0.65f),CircleShape),contentAlignment=Alignment.Center){
+                    Icon(if(income) Icons.Default.AccountBalance else Icons.Default.AccountBalanceWallet,null,Modifier.size(15.dp),tint=if(dark) accent else if(income) Color(0xFF1675B6) else Color(0xFFAC5313))
+                }
+                Text(title,color=ink,fontSize=13.sp,lineHeight=15.sp,fontWeight=FontWeight.SemiBold)
             }
-            drawPath(outline,accent.copy(alpha=0.13f))
-        }.padding(16.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
-            Text(title,style=MaterialTheme.typography.titleMedium)
-            content()
+            Text((options[selection] ?: selection)+" ⌄",color=ink.copy(alpha=.80f),fontSize=11.sp,lineHeight=13.sp)
+            Text(value,color=ink,fontSize=23.sp,lineHeight=26.sp,fontWeight=FontWeight.Bold)
+            if(detail.isNotBlank()) Text(detail,color=ink.copy(alpha=.85f),fontSize=11.sp,lineHeight=14.sp)
+        }
+        DropdownMenu(expanded=menu,onDismissRequest={menu=false}) {
+            options.forEach { (key,label)->DropdownMenuItem(text={Text(label)},onClick={menu=false;select(key)}) }
         }
     }
 }
@@ -88,16 +119,12 @@ internal fun HomeFunds(b:OriginalBackup,today:LocalDate,charges:List<HomeCharge>
     val reserved=charges.filter { !it.paid && it.date in today..sunday && it.origin.isNotBlank() && it.origin in accounts && !it.origin.startsWith("credito:") }.sumOf { it.cents ?: 0L }
     val available=runCatching { NativeFinance.available(b,checking) }.getOrNull()
     val income=runCatching { NativeFinance.totals(b,NativeFinance.start(today,homePeriods.getValue(incomePeriod)),today).income }.getOrNull()
-    Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-        HomeMetric("Dinero disponible",false,{wave.value}) {
-            Choice("Cuentas incluidas",if(checking) "cheques" else "ambas",mapOf("cheques" to "Solo cheques","ambas" to "Cheques y ahorros"),!busy){save("balanceone-panorama-cuentas",it)}
-            Text(available?.let(money) ?: "—",style=MaterialTheme.typography.headlineMedium)
-            Text("Tras pagos vinculados de esta semana · "+(available?.let { money(it-reserved) } ?: "—"))
-        }
-        HomeMetric("Ingresos",true,{wave.value}) {
-            Choice("Período de ingresos",incomePeriod,homePeriods,!busy){save("balanceone-panorama-ingresos",it)}
-            Text(income?.let(money) ?: "—",style=MaterialTheme.typography.headlineMedium)
-        }
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        HomeMetric("Dinero disponible",false,Modifier.weight(1f).fillMaxHeight(),{wave.value},available?.let(money) ?: "—",
+            if(checking) "cheques" else "ambas",mapOf("cheques" to "Solo cheques","ambas" to "Cheques y ahorros"),!busy,
+            "Tras pagos vinculados de esta semana · "+(available?.let { money(it-reserved) } ?: "—")){save("balanceone-panorama-cuentas",it)}
+        HomeMetric("Ingresos",true,Modifier.weight(1f).fillMaxHeight(),{wave.value},income?.let(money) ?: "—",
+            incomePeriod,homePeriods,!busy){save("balanceone-panorama-ingresos",it)}
     }
 }
 
@@ -120,24 +147,55 @@ internal fun HomeOutlook(b:OriginalBackup,today:LocalDate,expenses:List<HomeExpe
     var dayIndex by rememberSaveable(selection,today.toString()) { mutableIntStateOf(days.indexOf(today)) }
     var details by rememberSaveable(selection) { mutableStateOf(false) }
     NativePanel("Panorama financiero") {
-        Choice("Período de gastos",selection,homePeriods,!busy){save("balanceone-panorama-gastos",it)}
+        var menu by remember { mutableStateOf(false) }
+        Box {
+            Surface(onClick={menu=true},enabled=!busy,shape=CircleShape,color=MaterialTheme.colorScheme.onSurface.copy(alpha=.08f)){
+                Text(homePeriods.getValue(selection)+" ⌄",Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)
+            }
+            DropdownMenu(menu,{menu=false}){homePeriods.forEach { (key,label)->DropdownMenuItem(text={Text(label)},onClick={menu=false;save("balanceone-panorama-gastos",key)}) }}
+        }
         Text(money(totals[days.indexOf(today)+1]),style=MaterialTheme.typography.headlineMedium)
         Text("Gastos del período")
         if(!hidden) {
-            val actualColor=MaterialTheme.colorScheme.primary
-            val projectionColor=MaterialTheme.colorScheme.tertiary
+            val actualColor=Color(0xFF168CE5)
+            val projectionColor=Color(0xFFED7B22)
+            val labelColor=MaterialTheme.colorScheme.onSurface.copy(alpha=.72f)
             Canvas(Modifier.fillMaxWidth().height(106.dp).pointerInput(start,today) {
                 detectTapGestures { point->
-                    dayIndex=((point.x/size.width.coerceAtLeast(1))*days.size).roundToInt().minus(1).coerceIn(0,days.indexOf(today))
+                    dayIndex=(((point.x-size.width*.14f)/(size.width*.84f).coerceAtLeast(1f))*days.size).roundToInt().minus(1).coerceIn(0,days.indexOf(today))
                     details=true
                 }
             }.padding(5.dp)) {
-                val maximum=(totals.maxOrNull() ?: 0L).coerceAtLeast(1)
-                fun point(i:Int)=Offset(size.width*i/days.size,size.height*(1f-totals[i].toFloat()/maximum))
-                for(i in days.indices) {
-                    val projected=days[i]>today
-                    if(!projected || future.isNotEmpty()) drawLine(if(projected) projectionColor else actualColor,point(i),point(i+1),3.dp.toPx(),
-                        pathEffect=if(projected) PathEffect.dashPathEffect(floatArrayOf(10f,8f)) else null)
+                val maximum=(totals.maxOrNull() ?: 0L).coerceAtLeast(100)
+                val left=size.width*.14f
+                val right=size.width*.98f
+                val bottom=size.height*.81f
+                val top=size.height*.1f
+                val paint=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {color=labelColor.toArgb();textSize=9.sp.toPx()}
+                fun point(i:Int)=Offset(left+(right-left)*i/days.size,bottom-(bottom-top)*totals[i].toFloat()/maximum)
+                for(tick in 0..2){
+                    val y=bottom-(bottom-top)*tick/2
+                    drawLine(labelColor.copy(alpha=.18f),Offset(left,y),Offset(right,y),1.dp.toPx())
+                    val amt=maximum.toDouble()*tick/200
+                    val label=java.text.DecimalFormat(if(amt<1 && amt>0) "0.##" else "0.#").format(if(amt>=1000000) amt/1000000 else if(amt>=1000) amt/1000 else amt)+(if(amt>=1000000) "M" else if(amt>=1000) "k" else "")
+                    drawContext.canvas.nativeCanvas.drawText(label,1f,y+3.dp.toPx(),paint)
+                }
+                val lastActual=days.indexOf(today)+1
+                fun line(from:Int,to:Int)=Path().apply {
+                    val first=point(from);moveTo(first.x,first.y)
+                    for(i in from until to){
+                        val a=point(i);val z=point(i+1);val mid=(a.x+z.x)/2
+                        cubicTo(mid,a.y,mid,z.y,z.x,z.y)
+                    }
+                }
+                val actual=line(0,lastActual)
+                drawPath(Path().apply {addPath(actual);lineTo(point(lastActual).x,bottom);lineTo(left,bottom);close()},actualColor.copy(alpha=.12f))
+                drawPath(actual,actualColor,style=Stroke(width=2.4.dp.toPx()))
+                drawCircle(actualColor,3.2.dp.toPx(),point(lastActual))
+                if(future.isNotEmpty()) drawPath(line(lastActual,days.size),projectionColor,style=Stroke(width=2.dp.toPx(),pathEffect=PathEffect.dashPathEffect(floatArrayOf(9f,7f))))
+                listOf(0,days.lastIndex/2,days.lastIndex).distinct().forEach { idx->
+                    val label=days[idx].format(DateTimeFormatter.ofPattern("dd/MM"))
+                    drawContext.canvas.nativeCanvas.drawText(label,(point(idx+1).x-paint.measureText(label)/2).coerceIn(0f,(size.width-paint.measureText(label)).coerceAtLeast(0f)),size.height,paint)
                 }
             }
             Text(if(future.isEmpty()) "Gastos registrados" else "Línea continua · gastos registrados   /   Discontinua · cobros previstos",style=MaterialTheme.typography.labelSmall)

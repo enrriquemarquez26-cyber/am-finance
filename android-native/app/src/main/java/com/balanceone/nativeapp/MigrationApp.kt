@@ -13,6 +13,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -324,7 +327,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding),contentPadding = PaddingValues(18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            item {
+            if(homeSnapshot==null || homeMode!="nuevo") item {
                 Text(if (tab == 0) "Balance One" else sections[tab],style = MaterialTheme.typography.headlineLarge,fontWeight = FontWeight.SemiBold)
                 Text(BuildConfig.VERSION_NAME,style = MaterialTheme.typography.labelMedium)
             }
@@ -346,6 +349,29 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 item {
                     val hour=java.time.LocalTime.now().hour
                     val greeting=when(hour){in 6..11->"Buenos días";in 12..18->"Buenas tardes";else->"Buenas noches"}
+                    if(mode=="nuevo") {
+                        val last=remember(snapshot){runCatching {java.time.Instant.parse(snapshot.preferences.value("balanceone-ultima-copia-confirmada"))}.getOrNull()}
+                        val now=java.time.Instant.now()
+                        val needsCopy=last==null || last>now || java.time.Duration.between(last,now).toDays()>=30
+                        var menu by remember {mutableStateOf(false)}
+                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                            Column(Modifier.weight(1f)) {
+                                Text(listOf(greeting,snapshot.data.optJSONObject("perfil").value("nombre")).filter { it.isNotBlank() }.joinToString(", "),fontWeight=FontWeight.Bold,fontSize=22.sp)
+                                Text("Balance One · "+BuildConfig.VERSION_NAME,style=MaterialTheme.typography.labelSmall)
+                            }
+                            FilledTonalIconButton(onClick={openOperation("homeAssistant")},enabled=!busy){Icon(Icons.Default.Mic,"Asistente de Balance One")}
+                            IconButton(onClick={openOperation("homeAlerts")},enabled=!busy){Icon(Icons.Default.Notifications,"Avisos de vencimiento")}
+                            Box {
+                                IconButton(onClick={menu=true},enabled=!busy){Icon(Icons.Default.MoreVert,"Opciones de Inicio")}
+                                DropdownMenu(menu,{menu=false}){
+                                    DropdownMenuItem(text={Text("Personalizar Inicio")},onClick={menu=false;openOperation("homeLayout")})
+                                    DropdownMenuItem(text={Text("Nuevo movimiento")},enabled=snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty(),onClick={menu=false;editMovement()})
+                                    DropdownMenuItem(text={Text(if(discreet) "Mostrar importes" else "Ocultar importes")},onClick={menu=false;homePref("balanceone-modo-discreto-inicio",if(discreet) "0" else "1")})
+                                    DropdownMenuItem(text={Text(if(needsCopy) "Guardar copia de seguridad" else "Exportar copia cifrada")},onClick={menu=false;exportOpen=true})
+                                }
+                            }
+                        }
+                    } else {
                     Text(listOf(greeting,snapshot.data.optJSONObject("perfil").value("nombre")).filter { it.isNotBlank() }.joinToString(", "),style=MaterialTheme.typography.titleMedium)
                     Row {
                         Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) {Text("Nuevo movimiento")}
@@ -363,6 +389,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                     if(lastBackup==null || lastBackup>now || java.time.Duration.between(lastBackup,now).toDays()>=30) {
                         TextButton(onClick={exportOpen=true},enabled=!busy){Text("Guardar copia de seguridad")}
                     }
+                    }
                     if(operationDialog.isBlank() && operationError.isNotBlank()) Text(operationError,color=MaterialTheme.colorScheme.error)
                 }
                 if(mode=="clasico") item { NativePanel("Balance del mes"){
@@ -370,10 +397,15 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 } }
                 items(homeWidgets.filter { it.visible },key={ it.key }) { widget ->
                     val collapsed=widget.key in folded
-                    TextButton(onClick={val next=if(collapsed) folded-widget.key else folded+widget.key
-                        homePref(foldedKey,org.json.JSONArray(next.toList()).toString())},enabled=!busy){
+                    val toggle={
+                        val next=if(collapsed) folded-widget.key else folded+widget.key
+                        homePref(foldedKey,org.json.JSONArray(next.toList()).toString())
+                    }
+                    if(mode!="nuevo" || collapsed) TextButton(onClick=toggle,enabled=!busy){
                         Text((if(collapsed) "Mostrar " else "Plegar ")+widget.label)
                     }
+                    CompositionLocalProvider(LocalPanorama provides (mode=="nuevo")) {
+                    Box(Modifier.fillMaxWidth()) {
                     if(!collapsed) when(widget.key) {
                         "resumen" -> NativePanel("Ingresos y gastos") {
                             Text("Ingresos · "+(monthTotals?.income?.let(homeMoney) ?: "—"))
@@ -400,22 +432,26 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         "transacciones" -> HomeTransactions(snapshot,expenses,homeMonth,discreet,homeMoney){tab=10}
                         "tarjetas" -> HomeCreditCards(snapshot,homeMoney,arrange={openOperation("arrangeHomeCards")}){tab=3}
                         "metas" -> HomeSavingsGoals(snapshot,homeMoney,discreet){tab=6}
-                        "pagos" -> Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
-                            HomeCreditCards(snapshot,homeMoney){tab=3}
-                            NativePanel("Próximos pagos") {
-                                val marks=reminderMarks(snapshot)
-                                val upcoming=dues.filter { !it.recorded && it.key !in marks }
-                                Text(upcoming.size.toString()+" pendientes · próximos 30 días")
-                                Text("Total confirmado · "+homeMoney(upcoming.sumOf { it.cents ?: 0L }))
-                                upcoming.take(2).forEach { Text(it.name+" · "+it.date) }
-                                TextButton(onClick={openOperation("homeUpcoming")}){Text("Ver próximos pagos")}
+                        "pagos" -> {
+                            val upcoming=dues.filter { !it.recorded && it.key !in reminderMarks(snapshot) }
+                            val cards=snapshot.section("tarjetas")
+                            val debt=runCatching { cards.sumOf { NativeFinance.cents(it.value("saldo"),true) } }.getOrNull()
+                            val scheduled=charges.filter { it.category=="suscripcion" && it.active && YearMonth.from(it.date)==homeMonth }
+                            val goal=snapshot.section("metasAhorro").firstNotNullOfOrNull { goal->
+                                runCatching { goal.value("nombre") to OriginalSummary.goal(goal,snapshot.bank) }.getOrNull()
+                            } ?: snapshot.bank.filter { it.value("tipo")=="ahorro" }.firstNotNullOfOrNull { bank->
+                                runCatching { bank.value("nombre") to OriginalSummary.goal(JSONObject().put("objetivo",bank.value("meta")).put("cuentaId",bank.value("id")).put("aportes",org.json.JSONArray()),snapshot.bank) }.getOrNull()
                             }
-                            NativePanel("Suscripciones") {
-                                val scheduled=charges.filter { it.category=="suscripcion" && it.active && YearMonth.from(it.date)==homeMonth }
-                                Text("Programado este mes · "+homeMoney(scheduled.sumOf { it.cents ?: 0L }))
-                                TextButton(onClick={tab=7}){Text("Ver suscripciones")}
+                            Column(verticalArrangement=Arrangement.spacedBy(10.dp)){
+                                Row(Modifier.height(IntrinsicSize.Min),horizontalArrangement=Arrangement.spacedBy(10.dp)){
+                                    PanoramaTile("Tarjetas de crédito",debt?.let(homeMoney) ?: "—","Deuda actual",Modifier.weight(1f).fillMaxHeight()){tab=3}
+                                    PanoramaTile("Próximos pagos",upcoming.size.toString()+" pendientes","Total confirmado · "+homeMoney(upcoming.sumOf {it.cents ?: 0L}),Modifier.weight(1f).fillMaxHeight()){openOperation("homeUpcoming")}
+                                }
+                                Row(Modifier.height(IntrinsicSize.Min),horizontalArrangement=Arrangement.spacedBy(10.dp)){
+                                    PanoramaTile("Suscripciones",homeMoney(scheduled.sumOf {it.cents ?: 0L}),"Programado este mes",Modifier.weight(1f).fillMaxHeight()){tab=7}
+                                    PanoramaTile("Metas de ahorro",goal?.let {homeMoney(it.second.saved)} ?: "Sin metas",goal?.let {it.first+" · de "+homeMoney(it.second.target)}.orEmpty(),Modifier.weight(1f).fillMaxHeight()){tab=6}
+                                }
                             }
-                            HomeSavingsGoals(snapshot,homeMoney,discreet,featured=true){tab=6}
                         }
                         "vehiculos" -> if(snapshot.section("vehiculos").isNotEmpty()) NativePanel("Vehículos") {
                             val model=snapshot.data.value("widgetVehiculos").ifBlank { "actual" }
@@ -440,6 +476,13 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             TextButton(onClick={tab=2}){Text("Ver vehículos")}
                         }
                         else -> Unit
+                    }
+                    if(mode=="nuevo" && !collapsed && (widget.key!="vehiculos" || snapshot.section("vehiculos").isNotEmpty())){
+                        IconButton(onClick=toggle,enabled=!busy,modifier=Modifier.align(Alignment.TopEnd).size(32.dp)){
+                            Icon(Icons.Default.KeyboardArrowUp,"Plegar "+widget.label,Modifier.size(16.dp))
+                        }
+                    }
+                    }
                     }
                 }
             }
@@ -782,10 +825,28 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
 }
 
 @Composable
+private fun PanoramaTile(title:String,value:String,detail:String,modifier:Modifier,open:()->Unit){
+    val dark=MaterialTheme.colorScheme.background.luminance()<.4f
+    Surface(onClick=open,modifier=modifier,shape=RoundedCornerShape(27.dp),
+        color=if(dark) Color(0xFF20252E) else Color(0xFFF8FAFE),contentColor=MaterialTheme.colorScheme.onSurface) {
+        Column(Modifier.padding(13.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){
+            Text(title,Modifier.padding(end=12.dp),fontSize=13.sp,fontWeight=FontWeight.SemiBold,lineHeight=16.sp)
+            Text(value,fontSize=18.sp,fontWeight=FontWeight.Bold)
+            if(detail.isNotEmpty()) Text(detail,style=MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+private val LocalPanorama=staticCompositionLocalOf { false }
+
+@Composable
 internal fun NativePanel(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Card(shape = RoundedCornerShape(26.dp),colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Column(Modifier.fillMaxWidth().padding(18.dp),verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title,style = MaterialTheme.typography.titleMedium,fontWeight = FontWeight.SemiBold)
+    val panorama=LocalPanorama.current
+    val dark=MaterialTheme.colorScheme.background.luminance()<.4f
+    val surface=if(!panorama) MaterialTheme.colorScheme.surface else if(dark) Color(0xFF20252E) else Color(0xFFF8FAFE)
+    Card(shape=RoundedCornerShape(if(panorama) 27.dp else 26.dp),colors=CardDefaults.cardColors(containerColor=surface,contentColor=MaterialTheme.colorScheme.onSurface)) {
+        Column(Modifier.fillMaxWidth().padding(if(panorama) 13.dp else 18.dp),verticalArrangement=Arrangement.spacedBy(if(panorama) 5.dp else 8.dp)) {
+            Text(title,Modifier.padding(end=if(panorama) 22.dp else 0.dp),style=if(panorama) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
             content()
         }
     }
