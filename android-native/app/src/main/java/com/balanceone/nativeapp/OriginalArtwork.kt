@@ -10,6 +10,10 @@ import android.net.Uri
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -114,22 +118,47 @@ internal fun bankArt(row:JSONObject):Int? {
     }
 }
 
-internal fun cardArt(row:JSONObject):Int? {
-    fun normalize(s:String)=s.lowercase().replace(Regex("[^a-z0-9]"),"")
-    val bank=normalize(row.optString("banco").ifBlank { row.optString("nombre") })
-    val model=normalize(row.optString("modelo").ifBlank { row.optString("nombre") }).removePrefix("capitalone")
+private fun artKey(text: String) = text.lowercase(java.util.Locale.ROOT).filter { it.isLetterOrDigit() }
+
+private fun bankLogo(name: String): Int? {
+    val key = artKey(name)
     return when {
-        bank in setOf("americanexpress","amex") && model=="bluecashpreferred" -> R.drawable.card_bluecashpreferred
-        bank=="chase" && model=="freedomunlimited" -> R.drawable.card_freedomunlimited
-        bank=="chase" && model=="sapphirepreferred" -> R.drawable.card_sapphirepreferred
-        bank.startsWith("capitalone") || bank.startsWith("quicksilver") -> when(model) {
-            "platinum" -> R.drawable.card_platinum
-            "quicksilver","quicksilvercashrewards","quicksilverrewards" -> R.drawable.card_quicksilver
-            "savor" -> R.drawable.card_savor
-            "venturerewards" -> R.drawable.card_venturerewards
-            "venturex" -> R.drawable.card_venturex
-            else -> null
-        }
+        "americanexpress" in key || "amex" in key -> R.drawable.bank_logo_amex
+        "capitalone" in key -> R.drawable.bank_logo_capital
+        "chase" in key -> R.drawable.bank_logo_chase
+        "apple" in key -> R.drawable.bank_logo_apple
+        else -> null
+    }
+}
+
+@Composable
+internal fun BankBadge(row: JSONObject, modifier: Modifier) {
+    val name = row.optString("nombre")
+    val logo = bankLogo(row.optString("banco")) ?: bankLogo(name)
+    Box(modifier.clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer), contentAlignment = Alignment.Center) {
+        if (logo != null) Image(painterResource(logo),null,Modifier.fillMaxSize())
+        else Text(name.trim().take(1).uppercase(),style=MaterialTheme.typography.labelMedium,
+            color=MaterialTheme.colorScheme.onSecondaryContainer)
+    }
+}
+
+internal fun cardArt(row: JSONObject): Int? = cardArt(row.optString("banco"), row.optString("modelo"), row.optString("nombre"))
+
+internal fun cardArt(bank: String, model: String, name: String): Int? {
+    val key = artKey(model.ifBlank { name })
+        .removePrefix("americanexpress").removePrefix("amex").removePrefix("capitalone").removePrefix("chase")
+    val issuer = bankLogo(bank.ifBlank { model + " " + name })
+    fun matches(expected: Int) = if (bank.isBlank()) issuer == null || issuer == expected else issuer == expected
+    return when {
+        key == "bluecashpreferred" && matches(R.drawable.bank_logo_amex) -> R.drawable.card_bluecashpreferred
+        key == "freedomunlimited" && matches(R.drawable.bank_logo_chase) -> R.drawable.card_freedomunlimited
+        key == "sapphirepreferred" && matches(R.drawable.bank_logo_chase) -> R.drawable.card_sapphirepreferred
+        !matches(R.drawable.bank_logo_capital) -> null
+        key == "platinum" && issuer == R.drawable.bank_logo_capital -> R.drawable.card_platinum
+        key in setOf("quicksilver","quicksilvercashrewards","quicksilverrewards") -> R.drawable.card_quicksilver
+        key == "savor" -> R.drawable.card_savor
+        key in setOf("venture","venturerewards") -> R.drawable.card_venturerewards
+        key == "venturex" -> R.drawable.card_venturex
         else -> null
     }
 }

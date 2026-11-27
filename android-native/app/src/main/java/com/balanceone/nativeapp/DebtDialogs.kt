@@ -48,7 +48,7 @@ internal fun DebtDialog(type:String,row:JSONObject?,busy:Boolean,error:String,cl
                 OutlinedTextField(financed,{financed=it},label={Text("Cantidad financiada")},keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),enabled=!busy)
             }
             val currentPhoto=photo ?: field(if(card) "imagenPersonalizada" else "fotoGaleria")
-            OfflineArtwork(currentPhoto,null,"Foto seleccionada",Modifier.fillMaxWidth().height(105.dp))
+            OfflineArtwork(currentPhoto,if(card) cardArt(bank,model,name) else null,if(card) "Imagen de la tarjeta" else "Foto seleccionada",Modifier.fillMaxWidth().height(105.dp))
             PhotoEditor(false,!busy && !processing,{processing=it}){photo=it}
             if(currentPhoto.isNotBlank()) TextButton(enabled=!busy && !processing,onClick={photo=""}){Text("Quitar foto personalizada")}
             if(card) {

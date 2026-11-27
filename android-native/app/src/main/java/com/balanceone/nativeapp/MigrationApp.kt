@@ -556,8 +556,13 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                         color=if(galleryCard==card.value("id"))MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface){
                                         Column(Modifier.padding(8.dp)){
                                             if(display=="mediana") OfflineArtwork(card.value("imagenPersonalizada"),cardArt(card),card.value("nombre"),Modifier.fillMaxWidth().height(82.dp))
-                                            Text(card.value("nombre"),style=MaterialTheme.typography.titleSmall)
-                                            Text(amount(card,"saldo"),style=MaterialTheme.typography.bodySmall)
+                                            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(7.dp)){
+                                                BankBadge(card,Modifier.size(24.dp))
+                                                Column {
+                                                    Text(card.value("nombre"),style=MaterialTheme.typography.titleSmall)
+                                                    Text(amount(card,"saldo"),style=MaterialTheme.typography.bodySmall)
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -596,7 +601,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 }
                             }
                         }
-                        if(tab==3 && !gallery) OfflineArtwork(row.optString("imagenPersonalizada"),cardArt(row),row.optString("nombre"),Modifier.fillMaxWidth().heightIn(max=160.dp))
+                        if(tab==3 && (!gallery || snapshot.preferences.value("balanceone-tamano-credito")=="compacta")) OfflineArtwork(row.optString("imagenPersonalizada"),cardArt(row),row.optString("nombre"),Modifier.fillMaxWidth().heightIn(max=160.dp))
                         if(tab==10 && !row.isNull("recibo") && row.optString("recibo").isNotBlank()) TextButton(onClick={openOperation("receipt",row)}) {Text("Ver recibo")}
                         if(tab==9) {
                             Text("Capital pendiente · "+amount(row,"saldo"))

@@ -70,7 +70,7 @@ internal fun HomeAccounts(b:OriginalBackup,classic:Boolean,hidden:Boolean,money:
                     val target=runCatching {NativeFinance.cents(row.value("meta"))}.getOrNull()
                     Surface(onClick={open(row)},enabled=!busy,modifier=Modifier.width(cardWidth),shape=RoundedCornerShape(24.dp),color=MaterialTheme.colorScheme.onSurface.copy(alpha=.07f)){
                         Row(Modifier.padding(9.dp),horizontalArrangement=Arrangement.spacedBy(6.dp),verticalAlignment=Alignment.CenterVertically){
-                            if(!compact)OfflineArtwork("",bankArt(row),row.value("nombre"),Modifier.size(31.dp))
+                            BankBadge(row, Modifier.size(if(compact) 23.dp else 31.dp))
                             Column {
                                 Text(row.value("nombre"),style=MaterialTheme.typography.labelSmall)
                                 Text(balance?.let(money)?:"—",style=MaterialTheme.typography.titleSmall)
