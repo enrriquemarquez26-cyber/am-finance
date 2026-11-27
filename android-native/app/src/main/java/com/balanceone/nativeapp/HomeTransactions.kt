@@ -126,7 +126,7 @@ internal fun HomeTransactions(b:OriginalBackup,expenses:List<HomeExpense>,month:
                     }
                     TextButton(onClick=history){Text("Ver todas")}
                 }
-                1 -> HomeCategories(b,expenses,month,month.atEndOfMonth(),hidden,money,history)
+                1 -> HomeCategories(b,expenses,month,month.atEndOfMonth(),hidden,money,openHistory=history)
                 else -> Column {
                     Text("Comparación mensual · "+month.minusMonths(1)+" / "+month)
                     MonthComparison(b,month.minusMonths(1),month,money)
