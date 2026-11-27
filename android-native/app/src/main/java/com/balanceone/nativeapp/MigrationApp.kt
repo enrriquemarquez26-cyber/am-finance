@@ -102,7 +102,18 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         scope.launch {
             try {
                 val updated=withContext(Dispatchers.IO) {
-                    val value=NativeFinance.change(current,id,draft,confirmedDuplicate)
+                    val shortcut=assistantDraft?.takeIf { it.value("origenAtajo")=="applepay" && id==null }
+                    val reference=shortcut.value("applePayRef")
+                    if(shortcut!=null) {
+                        require(draft?.type=="gasto" && NativeFinance.cents(draft.amount)<=100000000L){"Revisa el gasto en USD."}
+                        require(reference.isEmpty() || current.section("movimientos").none {it.value("origenAtajo")=="applepay" && it.value("applePayRef")==reference}){"Esta compra ya está registrada."}
+                    }
+                    val value=NativeFinance.change(current,id,draft,confirmedDuplicate){ move->
+                        if(shortcut!=null){
+                            move.put("origenAtajo","applepay").put("registradoAtajos",System.currentTimeMillis())
+                            if(reference.isNotBlank())move.put("applePayRef",reference)
+                        }
+                    }
                     LocalSnapshotStore.saveChange(context,current,value)
                     value
                 }
@@ -141,11 +152,12 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     var query by rememberSaveable { mutableStateOf("") }
     var from by rememberSaveable { mutableStateOf("") }
     var through by rememberSaveable { mutableStateOf("") }
-    val sections = listOf("Inicio","Calendario","Vehículos","Tarjetas","Perfil","Cuentas","Metas","Suscripciones","Pagos","Deudas","Movimientos","Calculadora")
-    val icons = listOf(Icons.Default.Home, Icons.Default.DateRange, Icons.Default.DirectionsCar, Icons.Default.CreditCard, Icons.Default.Person)
+    var settingSection by rememberSaveable { mutableStateOf("") }
+    val sections = listOf("Inicio","Calendario","Vehículos","Tarjetas","Perfil","Cuentas","Metas","Suscripciones","Pagos","Deudas","Movimientos","Calculadora","Ajustes")
+    val icons = listOf(Icons.Default.Home, Icons.Default.DateRange, Icons.Default.DirectionsCar, Icons.Default.CreditCard, Icons.Default.Person, Icons.Default.AccountBalance, Icons.Default.Flag, Icons.Default.Subscriptions, Icons.Default.Payments, Icons.Default.Receipt, Icons.Default.List, Icons.Default.Calculate, Icons.Default.Settings)
     LaunchedEffect(Unit) {
         try {
-            backup = withContext(Dispatchers.IO) { LocalSnapshotStore.load(context) }
+            backup = withContext(Dispatchers.IO) { LocalSnapshotStore.load(context) ?: LocalSnapshotStore.createEmpty(context) }
             storedCopy = backup != null
         } catch (e: kotlinx.coroutines.CancellationException) { throw e }
         catch (_: Exception) {
@@ -220,6 +232,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     var exportOpen by remember { mutableStateOf(false) }
     var exportPassword by remember { mutableStateOf("") }
     var exportRepeat by remember { mutableStateOf("") }
+    var plainExport by remember { mutableStateOf(false) }
     var encryptedExport by remember { mutableStateOf<String?>(null) }
     val exportPicker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         val payload = encryptedExport
@@ -241,9 +254,9 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             marked
                         }
                         backup=updated
-                        error="Copia cifrada guardada."
+                        error=if(plainExport) "Copia JSON guardada." else "Copia cifrada guardada."
                     } catch(e:kotlinx.coroutines.CancellationException){throw e}
-                    catch(_:Exception){error="Copia cifrada guardada. No se pudo actualizar la fecha del recordatorio."}
+                    catch(_:Exception){error="Copia guardada. No se pudo actualizar la fecha del recordatorio."}
                 }
             } catch(e: kotlinx.coroutines.CancellationException) { throw e }
             catch(_: Exception) { error="No se pudo guardar el archivo." }
@@ -252,6 +265,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     }
     fun exportSnapshot() {
         val current=backup ?: return
+        plainExport=false
         val secret=exportPassword.toCharArray()
         exportPassword=""; exportRepeat=""; exportOpen=false; busy=true; error=""
         scope.launch {
@@ -267,8 +281,10 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     val currency = if (snapshot?.preferences?.optString("balanceone-moneda-importes") == "EUR") "EUR" else "USD"
     val locale = if (snapshot?.preferences?.optString("balanceone-formato-importes") == "es-ES") Locale("es","ES") else Locale.US
     val format = NumberFormat.getCurrencyInstance(locale).apply { this.currency = Currency.getInstance(currency) }
-    fun money(cents: Long): String = format.format(NativeFinance.decimal(cents))
+    val masked=snapshot?.preferences.value("balanceone-modo-discreto-inicio")=="1" && (tab==3 || tab==5)
+    fun money(cents: Long): String = if(masked) "••••" else format.format(NativeFinance.decimal(cents))
     fun amount(obj: JSONObject, key: String): String {
+        if(masked)return "••••"
         if (obj.isNull(key)) return "—"
         return obj.optString(key).toBigDecimalOrNull()?.let { format.format(it) } ?: "—"
     }
@@ -286,8 +302,8 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     val welcomeStart=remember { android.os.SystemClock.elapsedRealtime() }
     val homeDate=java.time.LocalDate.now()
     val homeMonth=YearMonth.from(homeDate)
-    val homeSnapshot=snapshot?.takeIf { tab==0 }
-    val homeMode=homeSnapshot?.let(HomeLayout::mode) ?: "clasico"
+    val homeSnapshot=snapshot?.takeIf { tab==0 || operationDialog=="settingsAlerts" }
+    val homeMode=snapshot?.let(HomeLayout::mode) ?: "clasico"
     val classicTotals=remember(homeSnapshot,homeMonth){homeSnapshot?.let { monthTotals(it,homeMonth) }}
     val homeWidgets=remember(homeSnapshot,homeMode){homeSnapshot?.let { HomeLayout.widgets(it,homeMode) }.orEmpty()}
     val expenses=remember(homeSnapshot){homeSnapshot?.let(::homeExpenses).orEmpty()}
@@ -295,7 +311,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         homeCharges(it,homeMonth.atDay(1),maxOf(homeMonth.atEndOfMonth(),homeDate.plusDays(30)))
     }.orEmpty()}
     val dues=remember(homeSnapshot,homeDate,charges){homeSnapshot?.let { homeDues(it,homeDate,charges) }.orEmpty()}
-    val discreet=homeSnapshot?.preferences?.value("balanceone-modo-discreto-inicio")=="1"
+    val discreet=snapshot?.preferences?.value("balanceone-modo-discreto-inicio")=="1"
     val homeMoney:(Long)->String={ if(discreet) "••••" else money(it) }
     val homeAmount:(JSONObject,String)->String={ row,key-> if(discreet) "••••" else amount(row,key) }
     val foldedKey="balanceone-widgets-plegados-"+homeMode
@@ -305,11 +321,24 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
         }.orEmpty()
     }
     fun homePref(key:String,value:String){commitOperation { it.withPreference(key,value) }}
+    val capsule=snapshot?.preferences.value("balanceone-barra-modelo")=="capsula"
+    val navTabs=if(capsule) barKeys(snapshot).mapNotNull(barTabs::get) else (0..4).toList()
+    val webTheme=snapshot?.preferences.value("amfinance-tema")
+    LaunchedEffect(webTheme){
+        val mode=mapOf("claro" to "Claro","oscuro" to "Oscuro","auto" to "Sistema")[webTheme]
+        if(mode!=null && appearance!=mode)changeAppearance(mode)
+    }
+    val listState=androidx.compose.foundation.lazy.rememberLazyListState()
+    LaunchedEffect(tab,settingSection){listState.scrollToItem(0)}
+    val canAdd=snapshot!=null && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())
+    var galleryCard by rememberSaveable {mutableStateOf("")}
+    AppAppearance(snapshot?.preferences) {
     Scaffold(containerColor = MaterialTheme.colorScheme.background, bottomBar = {
-        Surface(shape = RoundedCornerShape(32.dp), tonalElevation = 2.dp,
+        Surface(shape = RoundedCornerShape(if(capsule) 40.dp else 24.dp), tonalElevation = if(capsule) 6.dp else 2.dp,
             modifier = Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 3.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                sections.take(5).forEachIndexed { index, title ->
+                navTabs.forEach { index ->
+                    val title=sections[index]
                     IconButton(onClick = { tab = index }) {
                         Icon(icons[index],contentDescription = title,tint = if (tab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -317,23 +346,23 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 Box {
                     IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreHoriz,contentDescription = "Más herramientas") }
                     DropdownMenu(expanded = more,onDismissRequest = { more = false }) {
-                        sections.drop(5).forEachIndexed { index, title ->
-                            DropdownMenuItem(text = { Text(title) },onClick = { tab = index + 5; more = false })
+                        sections.indices.filter {it !in navTabs}.forEach { index ->
+                            DropdownMenuItem(text = { Text(sections[index]) },onClick = { tab = index; more = false })
                         }
                     }
                 }
             }
         }
     }) { padding ->
-        LazyColumn(Modifier.fillMaxSize().padding(padding),contentPadding = PaddingValues(18.dp),
+        LazyColumn(Modifier.fillMaxSize().padding(padding).pullToAdd(listState,tab==0 && canAdd && !busy && !editorOpen){editMovement()},state=listState,contentPadding = PaddingValues(18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if(homeSnapshot==null || homeMode!="nuevo") item {
+            if(tab!=0 || homeSnapshot==null) item {
                 Text(if (tab == 0) "Balance One" else sections[tab],style = MaterialTheme.typography.headlineLarge,fontWeight = FontWeight.SemiBold)
                 Text(BuildConfig.VERSION_NAME,style = MaterialTheme.typography.labelMedium)
             }
             if (busy) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (error.isNotEmpty()) item { Text(error,color = MaterialTheme.colorScheme.error) }
-            if (snapshot == null && tab != 4 && tab != 11) item {
+            if (snapshot == null && tab != 4 && tab != 11 && tab != 12) item {
                 Card(shape = RoundedCornerShape(26.dp)) {
                     Column(Modifier.padding(20.dp),verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(if (storedCopy) "Recupera tu Balance One" else "Bienvenido a Balance One",style = MaterialTheme.typography.titleLarge)
@@ -349,7 +378,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 item {
                     val hour=java.time.LocalTime.now().hour
                     val greeting=when(hour){in 6..11->"Buenos días";in 12..18->"Buenas tardes";else->"Buenas noches"}
-                    if(mode=="nuevo") {
+                    Column(verticalArrangement=Arrangement.spacedBy(7.dp)) {
                         val last=remember(snapshot){runCatching {java.time.Instant.parse(snapshot.preferences.value("balanceone-ultima-copia-confirmada"))}.getOrNull()}
                         val now=java.time.Instant.now()
                         val needsCopy=last==null || last>now || java.time.Duration.between(last,now).toDays()>=30
@@ -359,11 +388,11 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 Text(listOf(greeting,snapshot.data.optJSONObject("perfil").value("nombre")).filter { it.isNotBlank() }.joinToString(", "),fontWeight=FontWeight.Bold,fontSize=22.sp)
                                 Text("Balance One · "+BuildConfig.VERSION_NAME,style=MaterialTheme.typography.labelSmall)
                             }
-                            FilledTonalIconButton(onClick={openOperation("homeAssistant")},enabled=!busy){Icon(Icons.Default.Mic,"Asistente de Balance One")}
-                            IconButton(onClick={openOperation("homeAlerts")},enabled=!busy){Icon(Icons.Default.Notifications,"Avisos de vencimiento")}
+                            FilledTonalIconButton(modifier=Modifier.width(if(microphone(snapshot).optString("modelo")=="ovalado") 58.dp else 44.dp),onClick={openOperation("homeAssistant")},enabled=!busy){Icon(Icons.Default.Mic,"Asistente de Balance One")}
                             Box {
                                 IconButton(onClick={menu=true},enabled=!busy){Icon(Icons.Default.MoreVert,"Opciones de Inicio")}
                                 DropdownMenu(menu,{menu=false}){
+                                    DropdownMenuItem(text={Text("Ajustes")},onClick={menu=false;settingSection="";tab=12})
                                     DropdownMenuItem(text={Text("Personalizar Inicio")},onClick={menu=false;openOperation("homeLayout")})
                                     DropdownMenuItem(text={Text("Nuevo movimiento")},enabled=snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty(),onClick={menu=false;editMovement()})
                                     DropdownMenuItem(text={Text(if(discreet) "Mostrar importes" else "Ocultar importes")},onClick={menu=false;homePref("balanceone-modo-discreto-inicio",if(discreet) "0" else "1")})
@@ -371,49 +400,58 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 }
                             }
                         }
-                    } else {
-                    Text(listOf(greeting,snapshot.data.optJSONObject("perfil").value("nombre")).filter { it.isNotBlank() }.joinToString(", "),style=MaterialTheme.typography.titleMedium)
-                    Row {
-                        Button(onClick={editMovement()},enabled=!busy && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())) {Text("Nuevo movimiento")}
-                        TextButton(onClick={openOperation("homeLayout")},enabled=!busy){Text("Personalizar")}
-                    }
-                    Row {
-                        TextButton(onClick={homePref("balanceone-modo-discreto-inicio",if(discreet) "0" else "1")},enabled=!busy){Text(if(discreet) "Mostrar importes" else "Ocultar importes")}
-                        IconButton(onClick={openOperation("homeAssistant")},enabled=!busy){Icon(Icons.Default.Mic,contentDescription="Asistente de Balance One")}
-                        IconButton(onClick={openOperation("homeAlerts")},enabled=!busy){Icon(Icons.Default.Notifications,contentDescription="Avisos de vencimiento")}
-                    }
-                    val lastBackup=remember(snapshot) {
-                        runCatching { java.time.Instant.parse(snapshot.preferences.value("balanceone-ultima-copia-confirmada")) }.getOrNull()
-                    }
-                    val now=java.time.Instant.now()
-                    if(lastBackup==null || lastBackup>now || java.time.Duration.between(lastBackup,now).toDays()>=30) {
-                        TextButton(onClick={exportOpen=true},enabled=!busy){Text("Guardar copia de seguridad")}
-                    }
+                        val alertPrefs=snapshot.data.optJSONObject("preferenciasAvisos")
+                        val days=alertPrefs?.optInt("dias",7)?.coerceIn(1,30) ?: 7
+                        val flags=alertPrefs?.optJSONObject("tipos")
+                        val marked=remember(snapshot){reminderMarks(snapshot)}
+                        val next=dues.firstOrNull { !it.recorded && it.key !in marked && flags?.optBoolean(it.type,true)!=false && it.date<=homeDate.plusDays(days.toLong()) }
+                        Surface(onClick={if(next==null && needsCopy) exportOpen=true else openOperation("homeAlerts")},enabled=!busy,shape=cardCorners(24),color=MaterialTheme.colorScheme.surface){
+                            Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                                Icon(Icons.Default.Notifications,null,Modifier.size(18.dp))
+                                Text(next?.let { it.name+" · "+it.date } ?: if(needsCopy)"Guarda tu copia de seguridad" else "Sin avisos pendientes",Modifier.weight(1f),style=MaterialTheme.typography.bodySmall)
+                                Icon(Icons.Default.KeyboardArrowRight,null,Modifier.size(16.dp))
+                            }
+                        }
                     }
                     if(operationDialog.isBlank() && operationError.isNotBlank()) Text(operationError,color=MaterialTheme.colorScheme.error)
                 }
                 if(mode=="clasico") item { NativePanel("Balance del mes"){
-                    Text(monthTotals?.let { homeMoney(it.income-it.expense) } ?: "—",style=MaterialTheme.typography.headlineLarge)
+                    Row(verticalAlignment=Alignment.CenterVertically){
+                        Text(monthTotals?.let { homeMoney(it.income-it.expense) } ?: "—",Modifier.weight(1f),style=MaterialTheme.typography.headlineLarge)
+                        IconButton(onClick={homePref("balanceone-modo-discreto-inicio",if(discreet)"0" else "1")},enabled=!busy){
+                            Icon(if(discreet) Icons.Default.VisibilityOff else Icons.Default.Visibility,if(discreet)"Mostrar importes" else "Ocultar importes")
+                        }
+                    }
                 } }
-                items(homeWidgets.filter { it.visible },key={ it.key }) { widget ->
+                items(homeWidgets.filter { widget->widget.visible && when(widget.key){
+                    "vehiculos"->snapshot.section("vehiculos").isNotEmpty()
+                    "deudas"->listOf("vehiculos","tarjetas","prestamos").any { group->snapshot.section(group).any {(it.value("saldo").toBigDecimalOrNull()?.signum() ?: 0)>0} }
+                    else->true
+                } },key={ it.key }) { widget ->
                     val collapsed=widget.key in folded
                     val toggle={
                         val next=if(collapsed) folded-widget.key else folded+widget.key
                         homePref(foldedKey,org.json.JSONArray(next.toList()).toString())
                     }
-                    if(mode!="nuevo" || collapsed) TextButton(onClick=toggle,enabled=!busy){
-                        Text((if(collapsed) "Mostrar " else "Plegar ")+widget.label)
+                    if(collapsed) TextButton(onClick=toggle,enabled=!busy){
+                        Text("Mostrar "+widget.label)
                     }
                     CompositionLocalProvider(LocalPanorama provides (mode=="nuevo")) {
                     Box(Modifier.fillMaxWidth()) {
                     if(!collapsed) when(widget.key) {
-                        "resumen" -> NativePanel("Ingresos y gastos") {
-                            Text("Ingresos · "+(monthTotals?.income?.let(homeMoney) ?: "—"))
-                            Text("Gastos y pagos · "+(monthTotals?.expense?.let(homeMoney) ?: "—"))
+                        "resumen" -> Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){
+                            listOf(Triple("Ingresos",monthTotals?.income,Color(0xFF16865B)),Triple("Gastos y pagos",monthTotals?.expense,Color(0xFFC65960))).forEach { (label,total,color)->
+                                Surface(Modifier.weight(1f),shape=cardCorners(28),color=MaterialTheme.colorScheme.surface){
+                                    Column(Modifier.padding(14.dp)){
+                                        Text(label,style=MaterialTheme.typography.labelMedium)
+                                        Text(total?.let(homeMoney) ?: "—",color=color,style=MaterialTheme.typography.titleLarge)
+                                    }
+                                }
+                            }
                         }
                         "cuentasTarjetas" -> HomeFunds(snapshot,homeDate,charges,homeMoney,busy,::homePref,welcomeStart)
                         "comparacion" -> HomeOutlook(snapshot,homeDate,expenses,charges,discreet,homeMoney,busy,::homePref)
-                        "categorias" -> HomeCategories(snapshot,expenses,homeMonth,homeDate,discreet,homeMoney){tab=10}
+                        "categorias" -> HomeCategories(snapshot,expenses,homeMonth,homeDate,discreet,homeMoney,tiles=true){tab=10}
                         "presupuestos" -> if(discreet) NativePanel("Presupuestos"){Text("••••")} else HomeSpending(snapshot,true,homeMoney,busy) { category ->
                             openOperation("budget",category?.let { JSONObject().put("categoria",it) })
                         }
@@ -433,7 +471,8 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         "tarjetas" -> HomeCreditCards(snapshot,homeMoney,arrange={openOperation("arrangeHomeCards")}){tab=3}
                         "metas" -> HomeSavingsGoals(snapshot,homeMoney,discreet){tab=6}
                         "pagos" -> {
-                            val upcoming=dues.filter { !it.recorded && it.key !in reminderMarks(snapshot) }
+                            val marks=reminderMarks(snapshot)
+                            val upcoming=dues.filter { !it.recorded && it.key !in marks }
                             val cards=snapshot.section("tarjetas")
                             val debt=runCatching { cards.sumOf { NativeFinance.cents(it.value("saldo"),true) } }.getOrNull()
                             val scheduled=charges.filter { it.category=="suscripcion" && it.active && YearMonth.from(it.date)==homeMonth }
@@ -469,7 +508,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                         if(due!=null) Text(if(due.recorded) "Cuota registrada" else "Vencimiento · "+due.date)
                                         val initial=vehicle.value("montoInicial").toDoubleOrNull()
                                         val debt=vehicle.value("saldo").toDoubleOrNull()
-                                        if(!discreet && initial!=null && initial>0 && debt!=null) LinearProgressIndicator(progress={ (1-debt/initial).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+                                        if(!discreet && initial!=null && initial>0 && debt!=null) BalanceProgress(progress={ (1-debt/initial).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
                                     }
                                 }
                             }
@@ -477,7 +516,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         }
                         else -> Unit
                     }
-                    if(mode=="nuevo" && !collapsed && (widget.key!="vehiculos" || snapshot.section("vehiculos").isNotEmpty())){
+                    if(!collapsed && (widget.key!="vehiculos" || snapshot.section("vehiculos").isNotEmpty())){
                         IconButton(onClick=toggle,enabled=!busy,modifier=Modifier.align(Alignment.TopEnd).size(32.dp)){
                             Icon(Icons.Default.KeyboardArrowUp,"Plegar "+widget.label,Modifier.size(16.dp))
                         }
@@ -521,7 +560,40 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                     else -> emptyList()
                 }
                 if (rows.isEmpty()) item { Text(if(tab==10 && (query.isNotBlank() || from.isNotBlank() || through.isNotBlank())) "Sin resultados para este filtro." else "Sin registros.") }
-                items(rows) { row ->
+                val gallery=tab==3 && snapshot.preferences.value("balanceone-diseno-credito")=="carrusel" && rows.isNotEmpty()
+                if(gallery)item {
+                    val display=snapshot.preferences.value("balanceone-tamano-credito").ifBlank {"grande"}
+                    if(display=="compacta" || display=="mediana"){
+                        val columns=if(display=="mediana")2 else 1
+                        rows.chunked(columns).forEach { batch->
+                            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                                batch.forEach {card->
+                                    Surface(onClick={galleryCard=card.value("id")},modifier=Modifier.weight(1f),shape=cardCorners(16),
+                                        color=if(galleryCard==card.value("id"))MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface){
+                                        Column(Modifier.padding(8.dp)){
+                                            if(display=="mediana") OfflineArtwork(card.value("imagenPersonalizada"),cardArt(card),card.value("nombre"),Modifier.fillMaxWidth().height(82.dp))
+                                            Text(card.value("nombre"),style=MaterialTheme.typography.titleSmall)
+                                            Text(amount(card,"saldo"),style=MaterialTheme.typography.bodySmall)
+                                        }
+                                    }
+                                }
+                                if(batch.size<columns)Spacer(Modifier.weight(1f))
+                            }
+                        }
+                    }else{
+                    val pager=androidx.compose.foundation.pager.rememberPagerState(initialPage=rows.indexOfFirst {it.value("id")==galleryCard}.coerceAtLeast(0),pageCount={rows.size})
+                    androidx.compose.foundation.pager.HorizontalPager(state=pager,modifier=Modifier.fillMaxWidth(),contentPadding=PaddingValues(horizontal=20.dp),pageSpacing=8.dp){index->
+                        val card=rows[index]
+                        Column {
+                            OfflineArtwork(card.value("imagenPersonalizada"),cardArt(card),card.value("nombre"),Modifier.fillMaxWidth().height(145.dp))
+                            Text(card.value("nombre"),style=MaterialTheme.typography.titleSmall)
+                        }
+                    }
+                    LaunchedEffect(pager.currentPage,rows){galleryCard=rows.getOrNull(pager.currentPage)?.value("id").orEmpty()}
+                    }
+                }
+                val visibleRows=if(gallery) listOf(rows.find {it.value("id")==galleryCard} ?: rows.first()) else rows
+                items(visibleRows) { row ->
                     NativePanel(row.optString("nombre").ifBlank { row.optString("fecha").ifBlank { "Registro" } }) {
                         val fields = when(tab) {
                             2 -> listOf("modelo" to "Modelo","anio" to "Año","pago" to "Pago mensual","saldo" to "Restante")
@@ -532,11 +604,15 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                         }
                         if(tab==2) {
                             TextButton(onClick={openOperation("vehicleDetail",row)}) {
-                                VehicleArt(row,Modifier.weight(1f).heightIn(max=168.dp))
-                                Text("Ver detalles")
+                                val model=snapshot.data.value("disenoVehiculos")
+                                when(model){
+                                    "compacto"->{VehicleArt(row,Modifier.size(78.dp,48.dp));Text("Ver detalles",Modifier.weight(1f))}
+                                    "nuevo"->Column(Modifier.fillMaxWidth()){VehicleArt(row,Modifier.fillMaxWidth().height(160.dp));Text("Ver detalles · "+row.value("banco"))}
+                                    else->{VehicleArt(row,Modifier.weight(1f).heightIn(max=168.dp));Text("Ver detalles")}
+                                }
                             }
                         }
-                        if(tab==3) OfflineArtwork(row.optString("imagenPersonalizada"),cardArt(row),row.optString("nombre"),Modifier.fillMaxWidth().heightIn(max=160.dp))
+                        if(tab==3 && !gallery) OfflineArtwork(row.optString("imagenPersonalizada"),cardArt(row),row.optString("nombre"),Modifier.fillMaxWidth().heightIn(max=160.dp))
                         if(tab==10 && !row.isNull("recibo") && row.optString("recibo").isNotBlank()) TextButton(onClick={openOperation("receipt",row)}) {Text("Ver recibo")}
                         if(tab==9) {
                             Text("Capital pendiente · "+amount(row,"saldo"))
@@ -551,7 +627,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                             else {
                                 Text("Ahorrado: " + format.format(BigDecimal.valueOf(goal.saved,2)))
                                 Text("Objetivo: " + format.format(BigDecimal.valueOf(goal.target,2)))
-                                LinearProgressIndicator(progress = {
+                                BalanceProgress(progress = {
                                     (goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat()
                                 }, modifier = Modifier.fillMaxWidth())
                                 Text("Faltan: " + format.format(BigDecimal.valueOf(goal.remaining,2)))
@@ -581,9 +657,9 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                                 TextButton(onClick={openOperation("cardGoal",row)},enabled=!busy){Text("Meta de pago")}
                                 val used=row.optString("saldo").toBigDecimalOrNull()
                                 val limit=row.optString("limite").toBigDecimalOrNull()
-                                if(used!=null && limit!=null && limit.signum()>0) {
+                                if(!masked && used!=null && limit!=null && limit.signum()>0) {
                                     val ratio=(used.toDouble()/limit.toDouble()).coerceIn(0.0,1.0).toFloat()
-                                    LinearProgressIndicator(progress={ratio},modifier=Modifier.fillMaxWidth())
+                                    BalanceProgress(progress={ratio},modifier=Modifier.fillMaxWidth())
                                     Text("Crédito disponible: "+format.format(limit.subtract(used)))
                                     Text("Utilización · "+java.math.BigDecimal.valueOf(100).multiply(used).divide(limit,1,java.math.RoundingMode.HALF_UP).toPlainString()+"%")
                                 }
@@ -637,7 +713,31 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 }
             }
             if (tab == 11) item { CalculatorPanel { format.format(it) } }
+            if(tab==12) item {
+                SettingsPage(snapshot,settingSection,{settingSection=it},busy,operationError,appearance,sections,
+                    {key,value->if(key=="disenoVehiculos")commitOperation { b->homeDataChange(b){it.put(key,value)} } else homePref(key,value)},
+                    {mode->if(snapshot==null)changeAppearance(mode) else homePref("amfinance-tema",mapOf("Sistema" to "auto","Claro" to "claro","Oscuro" to "oscuro").getValue(mode))},
+                    {action->when(action){
+                        "restore"->picker.launch(arrayOf("application/json","application/octet-stream","text/plain"))
+                        "export"->exportOpen=true
+                        "plainExport"->if(snapshot!=null && !busy) {
+                            plainExport=true
+                            encryptedExport=snapshot.root.toString()
+                            busy=true
+                            try{exportPicker.launch("Balance-One-Respaldo.json")}catch(_:Exception){busy=false;encryptedExport=null;error="No se pudo abrir el selector de archivos."}
+                        }
+                        "home"->tab=0
+                        "movement"->if(snapshot!=null && (snapshot.bank.isNotEmpty() || snapshot.section("tarjetas").isNotEmpty())){tab=0;editMovement()}else {operationError="Agrega una cuenta o tarjeta primero."}
+                        "assistant"->{tab=0;openOperation("homeAssistant")}
+                        else->openOperation(action)
+                    }; Unit},{input->if(snapshot!=null)try{
+                        val purchase=shortcutDraft(input,snapshot)
+                        editMovement();assistantDraft=purchase;operationError=""
+                    }catch(e:IllegalArgumentException){operationError=e.message ?: "Revisa la compra."}})
+                if(snapshot==null && !storedCopy) TextButton(onClick={startEmpty()},enabled=!busy){Text("Empezar sin datos")}
+            }
             if (tab == 4) {
+                item { Button(onClick={settingSection="";tab=12}){Icon(Icons.Default.Settings,null);Text("Ajustes")} }
                 if (snapshot!=null) item { OutlinedButton(onClick={openOperation("categories")},enabled=!busy){Text("Categorías personales")} }
                 if(snapshot!=null) item { NativePanel("Importes") {
                     Choice("Moneda",currency,mapOf("USD" to "Dólar (USD)","EUR" to "Euro (EUR)"),!busy) { value ->
@@ -651,7 +751,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 item { NativePanel("Apariencia") {
                     listOf("Sistema","Claro","Oscuro").forEach { mode ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(selected = appearance == mode,onClick = { changeAppearance(mode) })
+                            RadioButton(selected = appearance == mode,onClick = { if(snapshot==null) changeAppearance(mode) else homePref("amfinance-tema",mapOf("Sistema" to "auto","Claro" to "claro","Oscuro" to "oscuro").getValue(mode)) })
                             Text(mode)
                         }
                     }
@@ -696,6 +796,8 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }
             "homeAssistant" -> HomeAssistant(snapshot,homeDate,expenses,dues,discreet,homeMoney,
                 {destination->closeOperation();tab=destination},{prepared->closeOperation();editMovement();assistantDraft=prepared},::closeOperation)
+            "settingsAlerts" -> HomeReminderList(snapshot,dues,homeDate,false,busy,operationError,homeMoney,::closeOperation,::commitOperation,configure=true)
+            "settingsBankOrder" -> ArrangeHomeAccounts(snapshot,true,busy,operationError,::closeOperation,::homePref)
             "homeAlerts","homeUpcoming" -> HomeReminderList(snapshot,dues,homeDate,operationDialog=="homeUpcoming",busy,operationError,homeMoney,::closeOperation,::commitOperation)
             "arrangeHomeCards" -> ArrangeHomeAccounts(snapshot,true,busy,operationError,::closeOperation,::homePref,cards=true)
             "arrangeHomeAccounts" -> ArrangeHomeAccounts(snapshot,homeMode=="clasico",busy,operationError,::closeOperation,::homePref)
@@ -822,12 +924,13 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
             }) { Text("Abrir") } },
             dismissButton = { TextButton(enabled = !busy,onClick = { pending = null; password = "" }) { Text("Cancelar") } })
     }
+    }
 }
 
 @Composable
 private fun PanoramaTile(title:String,value:String,detail:String,modifier:Modifier,open:()->Unit){
     val dark=MaterialTheme.colorScheme.background.luminance()<.4f
-    Surface(onClick=open,modifier=modifier,shape=RoundedCornerShape(27.dp),
+    Surface(onClick=open,modifier=modifier,shape=cardCorners(27),
         color=if(dark) Color(0xFF20252E) else Color(0xFFF8FAFE),contentColor=MaterialTheme.colorScheme.onSurface) {
         Column(Modifier.padding(13.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){
             Text(title,Modifier.padding(end=12.dp),fontSize=13.sp,fontWeight=FontWeight.SemiBold,lineHeight=16.sp)
@@ -837,14 +940,22 @@ private fun PanoramaTile(title:String,value:String,detail:String,modifier:Modifi
     }
 }
 
-private val LocalPanorama=staticCompositionLocalOf { false }
+internal val LocalPanorama=staticCompositionLocalOf { false }
 
 @Composable
 internal fun NativePanel(title: String, content: @Composable ColumnScope.() -> Unit) {
     val panorama=LocalPanorama.current
     val dark=MaterialTheme.colorScheme.background.luminance()<.4f
     val surface=if(!panorama) MaterialTheme.colorScheme.surface else if(dark) Color(0xFF20252E) else Color(0xFFF8FAFE)
-    Card(shape=RoundedCornerShape(if(panorama) 27.dp else 26.dp),colors=CardDefaults.cardColors(containerColor=surface,contentColor=MaterialTheme.colorScheme.onSurface)) {
+    if(LocalLook.current.value("balanceone-listas")=="lineas"){
+        Column(Modifier.fillMaxWidth().padding(horizontal=10.dp,vertical=8.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
+            Text(title,Modifier.padding(end=20.dp),style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
+            content()
+            HorizontalDivider()
+        }
+        return
+    }
+    Card(shape=cardCorners(if(panorama) 27 else 26),colors=CardDefaults.cardColors(containerColor=surface,contentColor=MaterialTheme.colorScheme.onSurface)) {
         Column(Modifier.fillMaxWidth().padding(if(panorama) 13.dp else 18.dp),verticalArrangement=Arrangement.spacedBy(if(panorama) 5.dp else 8.dp)) {
             Text(title,Modifier.padding(end=if(panorama) 22.dp else 0.dp),style=if(panorama) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
             content()
@@ -895,10 +1006,11 @@ private fun HomeSavingsGoals(snapshot: OriginalBackup, money:(Long)->String, hid
             Text(money(goal.saved)+" de "+money(goal.target))
             if(!hidden){
                 val progress=(goal.saved.toDouble()/goal.target).coerceIn(0.0,1.0).toFloat()
-                LinearProgressIndicator(progress={progress},modifier=Modifier.fillMaxWidth())
+                BalanceProgress(progress={progress},modifier=Modifier.fillMaxWidth())
                 Text((progress*100).toInt().toString()+" % · "+if(goal.remaining==0L) "Meta alcanzada" else "Faltan "+money(goal.remaining))
             }
         }
         TextButton(onClick=open){Text("Ver metas")}
     }
 }
+

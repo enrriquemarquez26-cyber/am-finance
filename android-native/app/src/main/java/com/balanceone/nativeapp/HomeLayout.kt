@@ -71,7 +71,24 @@ internal fun HomeLayoutDialog(snapshot:OriginalBackup,busy:Boolean,error:String,
         changes=changes+(mode to list)
     }
     EntryDialog("Personalizar Inicio",busy,error,close,{save(mode,changes)}) {
-        Choice("Diseño",mode,mapOf("clasico" to "Clásico","nuevo" to "Panorama financiero"),!busy){mode=it}
+        Text("Diseño",style=MaterialTheme.typography.titleSmall)
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
+            listOf("clasico" to "Clásico","nuevo" to "Panorama financiero").forEach { (key,title)->
+                Surface(onClick={mode=key},enabled=!busy,modifier=Modifier.weight(1f),shape=cardCorners(18),
+                    border=androidx.compose.foundation.BorderStroke(if(mode==key) 2.dp else 1.dp,if(mode==key) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)){
+                    Column(Modifier.padding(10.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){
+                        val accent=MaterialTheme.colorScheme.primary
+                        if(key=="clasico") Surface(Modifier.fillMaxWidth().height(14.dp),shape=cardCorners(8),color=accent.copy(alpha=.24f)){} 
+                        Row(horizontalArrangement=Arrangement.spacedBy(3.dp)){
+                            listOf(0,1).forEach {i->Surface(Modifier.weight(1f).height(if(key=="nuevo") 22.dp else 9.dp),shape=cardCorners(6),
+                                color=if(key=="nuevo" && i==1) androidx.compose.ui.graphics.Color(0xFF6FADEB) else accent.copy(alpha=.36f)){}}
+                        }
+                        if(key=="nuevo")Surface(Modifier.fillMaxWidth().height(9.dp),shape=cardCorners(5),color=MaterialTheme.colorScheme.outlineVariant){}
+                        Text(title,style=MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
+        }
         rows.forEachIndexed { index,widget ->
             Column {
                 Row(verticalAlignment=Alignment.CenterVertically) {
@@ -114,3 +131,4 @@ internal fun HomeSpending(snapshot:OriginalBackup,budgets:Boolean,money:(Long)->
         }
     }
 }
+

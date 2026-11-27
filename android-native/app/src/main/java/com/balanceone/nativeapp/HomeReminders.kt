@@ -64,14 +64,14 @@ internal fun reminderMarks(b:OriginalBackup):Set<String> {
 
 @Composable
 internal fun HomeReminderList(b:OriginalBackup,dues:List<HomeDue>,today:LocalDate,all:Boolean,busy:Boolean,error:String,
-    money:(Long)->String,close:()->Unit,save:((OriginalBackup)->OriginalBackup)->Unit) {
+    money:(Long)->String,close:()->Unit,save:((OriginalBackup)->OriginalBackup)->Unit,configure:Boolean=false) {
     val prefs=b.data.optJSONObject("preferenciasAvisos")
     var days by remember { mutableIntStateOf(prefs?.optInt("dias",7)?.takeIf { it in listOf(1,3,5,7,10,15) } ?: 7) }
     val types=mapOf("tarjeta" to "Tarjetas","vehiculo" to "Vehículos","suscripcion" to "Suscripciones","prestamo" to "Préstamos")
     var enabled by remember { mutableStateOf(types.keys.filter { prefs?.optJSONObject("tipos")?.optBoolean(it,true)!=false }.toSet()) }
     val marks=reminderMarks(b)
     var showPaid by remember { mutableStateOf(false) }
-    var settings by remember { mutableStateOf(false) }
+    var settings by remember { mutableStateOf(configure) }
     var confirm by remember { mutableStateOf<HomeDue?>(null) }
     val visible=dues.filter { d->(all || (d.type in enabled && d.date<=today.plusDays(days.toLong()))) &&
         (showPaid || (!d.recorded && d.key !in marks)) }
@@ -106,3 +106,4 @@ internal fun HomeReminderList(b:OriginalBackup,dues:List<HomeDue>,today:LocalDat
             data.put("recordatoriosPagados",arr)
         } }},enabled=!busy){Text("Confirmar")}},dismissButton={TextButton(onClick={confirm=null}){Text("Cancelar")}}) }
 }
+

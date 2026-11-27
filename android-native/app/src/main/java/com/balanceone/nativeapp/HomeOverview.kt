@@ -71,6 +71,7 @@ internal fun homeCharges(b:OriginalBackup,from:LocalDate,to:LocalDate):List<Home
 @Composable
 private fun HomeMetric(title:String,income:Boolean,modifier:Modifier,progress:()->Float,
     value:String,selection:String,options:Map<String,String>,enabled:Boolean,detail:String="",select:(String)->Unit) {
+    val tilt=rememberHomeTilt(LocalLook.current.value("balanceone-inclinacion")!="off")
     val dark=MaterialTheme.colorScheme.background.luminance()<0.4f
     val base=if(dark) Color(0xFF22252C) else Color.White
     val end=if(income) { if(dark) Color(0xFF263952) else Color(0xFFDBEAFF) }
@@ -78,10 +79,10 @@ private fun HomeMetric(title:String,income:Boolean,modifier:Modifier,progress:()
     val accent=if(income) Color(0xFF559EF4) else Color(0xFFFF9B58)
     val ink=if(dark) Color(0xFFF2F5FB) else Color(0xFF142035)
     var menu by remember { mutableStateOf(false) }
-    Box(modifier.clip(RoundedCornerShape(27.dp)).background(Brush.linearGradient(listOf(base,end)))
+    Box(modifier.clip(cardCorners(27)).background(Brush.linearGradient(listOf(base,end)))
         .drawBehind {
             val phase=(progress()*2*Math.PI)
-            val shift=(kotlin.math.sin(phase)*0.08).toFloat()*size.width
+            val shift=((kotlin.math.sin(phase)*0.08).toFloat()+tilt.value*.08f)*size.width
             drawCircle(accent.copy(alpha=0.22f),size.width*0.47f,Offset(size.width+shift,size.height*1.08f))
             drawCircle(accent.copy(alpha=0.20f),size.width*0.38f,Offset(size.width*1.09f-shift,size.height*1.10f))
         }.clickable(enabled=enabled){menu=true}.padding(12.dp)) {
@@ -148,11 +149,14 @@ internal fun HomeOutlook(b:OriginalBackup,today:LocalDate,expenses:List<HomeExpe
     var details by rememberSaveable(selection) { mutableStateOf(false) }
     NativePanel("Panorama financiero") {
         var menu by remember { mutableStateOf(false) }
+        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
         Box {
             Surface(onClick={menu=true},enabled=!busy,shape=CircleShape,color=MaterialTheme.colorScheme.onSurface.copy(alpha=.08f)){
                 Text(homePeriods.getValue(selection)+" ⌄",Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)
             }
             DropdownMenu(menu,{menu=false}){homePeriods.forEach { (key,label)->DropdownMenuItem(text={Text(label)},onClick={menu=false;save("balanceone-panorama-gastos",key)}) }}
+        }
+        IconButton(onClick={save("balanceone-modo-discreto-inicio",if(hidden) "0" else "1")},enabled=!busy,modifier=Modifier.size(32.dp)){Icon(if(hidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,if(hidden) "Mostrar importes" else "Ocultar importes",Modifier.size(18.dp))}
         }
         Text(money(totals[days.indexOf(today)+1]),style=MaterialTheme.typography.headlineMedium)
         Text("Gastos del período")
@@ -236,3 +240,4 @@ internal fun HomeOutlook(b:OriginalBackup,today:LocalDate,expenses:List<HomeExpe
         }
     },confirmButton={TextButton(onClick={details=false}){Text("Cerrar")}})
 }
+

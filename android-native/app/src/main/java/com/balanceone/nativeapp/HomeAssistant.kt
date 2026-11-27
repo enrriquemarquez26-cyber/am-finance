@@ -105,7 +105,8 @@ private class Dictation(private val ready:(String)->Unit,private val stopped:(Bo
 internal fun HomeAssistant(b:OriginalBackup,today:LocalDate,expenses:List<HomeExpense>,dues:List<HomeDue>,
     hidden:Boolean,money:(Long)->String,open:(Int)->Unit,draft:(JSONObject)->Unit,close:()->Unit) {
     val context=LocalContext.current
-    val language=if(b.preferences.value("balanceone-idioma").startsWith("en")) Locale.US else Locale.forLanguageTag("es-US")
+    val mic=microphone(b)
+    val language=Locale.forLanguageTag(mic.optString("idioma",if(b.preferences.value("balanceone-idioma").startsWith("en")) "en-US" else "es-US"))
     var text by remember { mutableStateOf("") }
     var reply by remember { mutableStateOf("") }
     var previousCategory by remember { mutableStateOf<String?>(null) }
@@ -201,7 +202,7 @@ internal fun HomeAssistant(b:OriginalBackup,today:LocalDate,expenses:List<HomeEx
     AlertDialog(onDismissRequest=close,title={Text("Asistente de Balance One")},text={
         Column(Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)){
             OutlinedTextField(text,{text=it;reply=""},label={Text("Consulta o movimiento")},placeholder={Text("¿Cuánto gasté esta semana?")})
-            if(recognizer!=null) TextButton(onClick={
+            if(recognizer!=null && mic.optBoolean("activo",true)) TextButton(onClick={
                 if(listening) {recognizer.cancel();listening=false}
                 else if(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED) listen()
                 else permission.launch(Manifest.permission.RECORD_AUDIO)
@@ -222,3 +223,4 @@ internal fun HomeAssistant(b:OriginalBackup,today:LocalDate,expenses:List<HomeEx
     },confirmButton={TextButton(enabled=text.isNotBlank() && !listening,onClick={respond()}){Text("Continuar")}},
         dismissButton={TextButton(onClick=close){Text("Cerrar")}})
 }
+

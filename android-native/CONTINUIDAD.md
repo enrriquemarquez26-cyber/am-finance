@@ -132,3 +132,7 @@ Portados a Compose el carrusel de transacciones, los selectores de ingresos y cu
 ## 0.2.10 Beta · Acciones de Inicio
 
 Tocar la gráfica de Panorama selecciona el día y abre su gasto y el acumulado. Se puede cambiar la fecha o recorrer los días del período. Tocar una cuenta desde Inicio abre sus operaciones bancarias. El diseño clásico también permite editar o eliminar desde las opciones de cada cuenta con la confirmación existente. Las metas muestran lo que falta o si ya se alcanzaron. Pendiente: detalles visuales y gestos del diseño web. Sin pruebas ni compilación.
+
+## Android 0.2.12 Beta · Inicio y Ajustes
+
+Inicio clásico y Panorama comparten cabecera, avisos y gesto de nuevo movimiento. Panorama incluye cuentas desplazables y categorías del mes. Perfil y el menú de navegación dan acceso a Ajustes. La configuración usa los nombres de preferencias de la web para apariencia, diseños, barra, lectura, micrófono, avisos y privacidad. La importación de compras de Atajos requiere revisar el gasto y se guarda junto con su referencia. Se admiten copias JSON y cifradas. Pro muestra los precios previstos. Cambio de código sin compilación, instalación ni pruebas, a petición del propietario.

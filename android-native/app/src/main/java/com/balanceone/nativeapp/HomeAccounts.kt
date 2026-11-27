@@ -1,6 +1,9 @@
 package com.balanceone.nativeapp
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,7 +41,27 @@ internal fun HomeAccounts(b:OriginalBackup,classic:Boolean,hidden:Boolean,money:
             Text((if(rows.any { it.value("tipo")=="ahorro" }) "Disponible en estas cuentas" else "Disponible en cheques")+" · "+(total?.let(money) ?: "—"))
         }
         if(rows.isEmpty()) Text(if(all.isEmpty()) "Agrega tu primera cuenta bancaria." else "Elige las cuentas que quieres ver.")
-        rows.forEach { row->
+        if(!classic && rows.isNotEmpty()) BoxWithConstraints(Modifier.fillMaxWidth()){
+            val cardWidth=(maxWidth-8.dp)/2
+            LazyRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                items(rows){ row->
+                    val balance=runCatching {NativeFinance.bankBalance(row.value("saldo"))}.getOrNull()
+                    val target=runCatching {NativeFinance.cents(row.value("meta"))}.getOrNull()
+                    Surface(onClick={open(row)},enabled=!busy,modifier=Modifier.width(cardWidth),shape=RoundedCornerShape(24.dp),color=MaterialTheme.colorScheme.onSurface.copy(alpha=.07f)){
+                        Row(Modifier.padding(9.dp),horizontalArrangement=Arrangement.spacedBy(6.dp),verticalAlignment=Alignment.CenterVertically){
+                            if(!compact)OfflineArtwork("",bankArt(row),row.value("nombre"),Modifier.size(31.dp))
+                            Column {
+                                Text(row.value("nombre"),style=MaterialTheme.typography.labelSmall)
+                                Text(balance?.let(money)?:"—",style=MaterialTheme.typography.titleSmall)
+                                if(!hidden && row.value("tipo")=="ahorro" && target!=null && balance!=null)
+                                    BalanceProgress({(balance.toDouble()/target).coerceIn(0.0,1.0).toFloat()},Modifier.fillMaxWidth())
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if(classic) rows.forEach { row->
             val balance=runCatching { NativeFinance.bankBalance(row.value("saldo")) }.getOrNull()
             val target=runCatching { NativeFinance.cents(row.value("meta")) }.getOrNull()
             TextButton(onClick={open(row)},enabled=!busy) {
@@ -60,7 +83,7 @@ internal fun HomeAccounts(b:OriginalBackup,classic:Boolean,hidden:Boolean,money:
                 }
             }
             if(!hidden && row.value("tipo")=="ahorro" && target!=null && balance!=null) {
-                LinearProgressIndicator(progress={ (balance.toDouble()/target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
+                BalanceProgress(progress={ (balance.toDouble()/target).coerceIn(0.0,1.0).toFloat() },modifier=Modifier.fillMaxWidth())
                 Text("Meta · "+money(target))
             }
         }
@@ -94,3 +117,4 @@ internal fun ArrangeHomeAccounts(b:OriginalBackup,classic:Boolean,busy:Boolean,e
         }
     }
 }
+

@@ -54,7 +54,7 @@ private fun recent(b:OriginalBackup):List<Recent> {
 
 @Composable
 internal fun HomeCategories(b:OriginalBackup,expenses:List<HomeExpense>,month:YearMonth,until:LocalDate,
-    hidden:Boolean,money:(Long)->String,openHistory:()->Unit) {
+    hidden:Boolean,money:(Long)->String,tiles:Boolean=false,openHistory:()->Unit) {
     val groups=remember(expenses,month,until){expenses.filter { YearMonth.from(it.date)==month && it.date<=until }
         .groupBy { it.category }.entries.sortedWith(compareByDescending<Map.Entry<String,List<HomeExpense>>> { e->e.value.sumOf { it.cents } }.thenBy { it.key })}
     val total=groups.sumOf { it.value.sumOf { e->e.cents } }
@@ -63,7 +63,23 @@ internal fun HomeCategories(b:OriginalBackup,expenses:List<HomeExpense>,month:Ye
     var chosen by rememberSaveable { mutableStateOf("") }
     NativePanel("Categorías del mes") {
         if(groups.isEmpty()) Text("Sin gastos este mes.")
-        if(!hidden && total>0) {
+        if(tiles && groups.isNotEmpty()) {
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp)){
+                groups.take(4).forEachIndexed {i,(key,rows)->
+                    val cents=rows.sumOf {it.cents}
+                    Surface(onClick={chosen=key},enabled=!hidden,modifier=Modifier.weight(1f),shape=cardCorners(16),color=colors[i].copy(alpha=.09f)){
+                        Column(Modifier.padding(horizontal=4.dp,vertical=8.dp),horizontalAlignment=androidx.compose.ui.Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(3.dp)){
+                            val custom=NativeCategories.custom(b).firstOrNull {it.value("id")==key}
+                            if(custom!=null)CategorySymbol(custom.value("icono")) else Text((labels[key] ?: key).take(1).uppercase(),color=colors[i],style=MaterialTheme.typography.titleMedium)
+                            Text(labels[key] ?: key,style=MaterialTheme.typography.labelSmall,maxLines=2)
+                            Text(money(cents),style=MaterialTheme.typography.labelMedium)
+                            if(!hidden && total>0)BalanceProgress({cents.toFloat()/total},Modifier.fillMaxWidth(.78f))
+                        }
+                    }
+                }
+            }
+        }
+        if(!tiles && !hidden && total>0) {
             Row(horizontalArrangement=Arrangement.spacedBy(16.dp),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                 Canvas(Modifier.size(86.dp).padding(5.dp)) {
                     var start=-90f
@@ -76,7 +92,7 @@ internal fun HomeCategories(b:OriginalBackup,expenses:List<HomeExpense>,month:Ye
                 Text(money(total),style=MaterialTheme.typography.titleLarge)
             }
         }
-        groups.take(4).forEach { (key,rows)->
+        if(!tiles) groups.take(4).forEach { (key,rows)->
             val cents=rows.sumOf { it.cents }
             TextButton(onClick={chosen=key},enabled=!hidden){ Text((labels[key] ?: key)+" · "+money(cents)+(if(hidden) "" else " · "+(100.0*cents/total).toInt()+" %")) }
         }
@@ -175,3 +191,4 @@ private fun MonthComparison(b:OriginalBackup,left:YearMonth,right:YearMonth,mone
         if(detail) Text(money(old)+" → "+money(new),style=MaterialTheme.typography.labelSmall)
     }
 }
+
