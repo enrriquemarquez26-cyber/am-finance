@@ -326,20 +326,25 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
     var galleryCard by rememberSaveable {mutableStateOf("")}
     AppAppearance(snapshot?.preferences) {
     Scaffold(containerColor = MaterialTheme.colorScheme.background, bottomBar = {
-        Surface(shape = RoundedCornerShape(if(capsule) 40.dp else 24.dp), tonalElevation = if(capsule) 6.dp else 2.dp,
-            modifier = Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 3.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                navTabs.forEach { index ->
-                    val title=sections[index]
-                    IconButton(onClick = { tab = index }) {
-                        Icon(icons[index],contentDescription = title,tint = if (tab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+        BoxWithConstraints(Modifier.fillMaxWidth().navigationBarsPadding().padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
+            val buttonCount = navTabs.size + 1
+            val barWidth = maxOf(maxWidth * 0.52f, 32.dp * buttonCount + 8.dp).coerceAtMost(maxWidth)
+            val buttonWidth = (barWidth - 8.dp) / buttonCount
+            Surface(shape = RoundedCornerShape(if(capsule) 40.dp else 24.dp), tonalElevation = if(capsule) 6.dp else 2.dp,
+                modifier = Modifier.width(barWidth)) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                    navTabs.forEach { index ->
+                        val title=sections[index]
+                        IconButton(modifier = Modifier.width(buttonWidth), onClick = { tab = index }) {
+                            Icon(icons[index],contentDescription = title,tint = if (tab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
-                }
-                Box {
-                    IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreHoriz,contentDescription = "Más herramientas") }
-                    DropdownMenu(expanded = more,onDismissRequest = { more = false }) {
-                        sections.indices.filter {it !in navTabs}.forEach { index ->
-                            DropdownMenuItem(text = { Text(sections[index]) },onClick = { tab = index; more = false })
+                    Box {
+                        IconButton(modifier = Modifier.width(buttonWidth), onClick = { more = true }) { Icon(Icons.Default.MoreHoriz,contentDescription = "Más herramientas") }
+                        DropdownMenu(expanded = more,onDismissRequest = { more = false }) {
+                            sections.indices.filter {it !in navTabs}.forEach { index ->
+                                DropdownMenuItem(text = { Text(sections[index]) },onClick = { tab = index; more = false })
+                            }
                         }
                     }
                 }
@@ -408,7 +413,7 @@ internal fun MigrationApp(appearance: String, changeAppearance: (String) -> Unit
                 items(homeWidgets.filter { it.visible && (it.key!="vehiculos" || snapshot.section("vehiculos").isNotEmpty()) },key={it.key}) { widget ->
                     CompositionLocalProvider(LocalPanorama provides true) {
                     when(widget.key) {
-                        "cuentasTarjetas" -> HomeFunds(snapshot,homeDate,charges,homeMoney,busy,::homePref,welcomeStart)
+                        "cuentasTarjetas" -> HomeFunds(snapshot,homeDate,homeMoney,busy,::homePref,welcomeStart)
                         "comparacion" -> HomeOutlook(snapshot,homeDate,expenses,charges,discreet,homeMoney,busy,::homePref)
                         "categorias" -> HomeCategories(snapshot,expenses,homeMonth,homeDate,discreet,homeMoney,tiles=true){tab=10}
                         "cuentas" -> HomeAccounts(snapshot,false,discreet,homeMoney,busy,

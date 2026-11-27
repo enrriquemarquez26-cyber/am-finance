@@ -70,7 +70,7 @@ internal fun homeCharges(b:OriginalBackup,from:LocalDate,to:LocalDate):List<Home
 
 @Composable
 private fun HomeMetric(title:String,income:Boolean,modifier:Modifier,progress:()->Float,
-    value:String,selection:String,options:Map<String,String>,enabled:Boolean,detail:String="",select:(String)->Unit) {
+    value:String,selection:String,options:Map<String,String>,enabled:Boolean,select:(String)->Unit) {
     val tilt=rememberHomeTilt(LocalLook.current.value("balanceone-inclinacion")!="off")
     val dark=MaterialTheme.colorScheme.background.luminance()<0.4f
     val base=if(dark) Color(0xFF22252C) else Color.White
@@ -93,9 +93,8 @@ private fun HomeMetric(title:String,income:Boolean,modifier:Modifier,progress:()
                 }
                 Text(title,color=ink,fontSize=13.sp,lineHeight=15.sp,fontWeight=FontWeight.SemiBold)
             }
-            Text((options[selection] ?: selection)+" ⌄",color=ink.copy(alpha=.80f),fontSize=11.sp,lineHeight=13.sp)
             Text(value,color=ink,fontSize=23.sp,lineHeight=26.sp,fontWeight=FontWeight.Bold)
-            if(detail.isNotBlank()) Text(detail,color=ink.copy(alpha=.85f),fontSize=11.sp,lineHeight=14.sp)
+            Text((options[selection] ?: selection)+" ⌄",color=ink.copy(alpha=.80f),fontSize=11.sp,lineHeight=13.sp)
         }
         DropdownMenu(expanded=menu,onDismissRequest={menu=false}) {
             options.forEach { (key,label)->DropdownMenuItem(text={Text(label)},onClick={menu=false;select(key)}) }
@@ -104,7 +103,7 @@ private fun HomeMetric(title:String,income:Boolean,modifier:Modifier,progress:()
 }
 
 @Composable
-internal fun HomeFunds(b:OriginalBackup,today:LocalDate,charges:List<HomeCharge>,money:(Long)->String,
+internal fun HomeFunds(b:OriginalBackup,today:LocalDate,money:(Long)->String,
     busy:Boolean,save:(String,String)->Unit,welcomeStart:Long) {
     val elapsed=(android.os.SystemClock.elapsedRealtime()-welcomeStart).coerceIn(0L,15000L)
     val wave=remember(welcomeStart){androidx.compose.animation.core.Animatable(elapsed/15000f)}
@@ -114,15 +113,11 @@ internal fun HomeFunds(b:OriginalBackup,today:LocalDate,charges:List<HomeCharge>
     }
     val checking=b.preferences.value("balanceone-panorama-cuentas")=="cheques"
     val incomePeriod=currentPeriod(b,"ingresos")
-    val sunday=today.plusDays((7-today.dayOfWeek.value).toLong())
-    val accounts=b.bank.filter { !checking || it.value("tipo")!="ahorro" }.map { it.value("id") }.toSet()
-    val reserved=charges.filter { !it.paid && it.date in today..sunday && it.origin.isNotBlank() && it.origin in accounts && !it.origin.startsWith("credito:") }.sumOf { it.cents ?: 0L }
     val available=runCatching { NativeFinance.available(b,checking) }.getOrNull()
     val income=runCatching { NativeFinance.totals(b,NativeFinance.start(today,homePeriods.getValue(incomePeriod)),today).income }.getOrNull()
     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         HomeMetric("Dinero disponible",false,Modifier.weight(1f).fillMaxHeight(),{wave.value},available?.let(money) ?: "—",
-            if(checking) "cheques" else "ambas",mapOf("cheques" to "Solo cheques","ambas" to "Cheques y ahorros"),!busy,
-            "Tras pagos vinculados de esta semana · "+(available?.let { money(it-reserved) } ?: "—")){save("balanceone-panorama-cuentas",it)}
+            if(checking) "cheques" else "ambas",mapOf("cheques" to "Solo cheques","ambas" to "Cheques y ahorros"),!busy){save("balanceone-panorama-cuentas",it)}
         HomeMetric("Ingresos",true,Modifier.weight(1f).fillMaxHeight(),{wave.value},income?.let(money) ?: "—",
             incomePeriod,homePeriods,!busy){save("balanceone-panorama-ingresos",it)}
     }
