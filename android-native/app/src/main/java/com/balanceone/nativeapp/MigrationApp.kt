@@ -888,13 +888,13 @@ private fun PanoramaTile(title:String,value:String,detail:String,modifier:Modifi
 internal val LocalPanorama=staticCompositionLocalOf { false }
 
 @Composable
-internal fun NativePanel(title: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun NativePanel(title: String?, content: @Composable ColumnScope.() -> Unit) {
     val panorama=LocalPanorama.current
     val dark=MaterialTheme.colorScheme.background.luminance()<.4f
     val surface=if(!panorama) MaterialTheme.colorScheme.surface else if(dark) Color(0xFF20252E) else Color(0xFFF8FAFE)
     if(LocalLook.current.value("balanceone-listas")=="lineas"){
         Column(Modifier.fillMaxWidth().padding(horizontal=10.dp,vertical=8.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
-            Text(title,Modifier.padding(end=20.dp),style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
+            if (title != null) Text(title,Modifier.padding(end=20.dp),style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
             content()
             HorizontalDivider()
         }
@@ -902,7 +902,7 @@ internal fun NativePanel(title: String, content: @Composable ColumnScope.() -> U
     }
     Card(shape=cardCorners(if(panorama) 27 else 26),colors=CardDefaults.cardColors(containerColor=surface,contentColor=MaterialTheme.colorScheme.onSurface)) {
         Column(Modifier.fillMaxWidth().padding(if(panorama) 13.dp else 18.dp),verticalArrangement=Arrangement.spacedBy(if(panorama) 5.dp else 8.dp)) {
-            Text(title,Modifier.padding(end=if(panorama) 22.dp else 0.dp),style=if(panorama) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
+            if (title != null) Text(title,Modifier.padding(end=if(panorama) 22.dp else 0.dp),style=if(panorama) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
             content()
         }
     }

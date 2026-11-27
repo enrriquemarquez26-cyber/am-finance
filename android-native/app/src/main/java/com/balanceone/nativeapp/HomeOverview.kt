@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -141,16 +143,32 @@ internal fun HomeOutlook(b:OriginalBackup,today:LocalDate,expenses:List<HomeExpe
     }
     var dayIndex by rememberSaveable(selection,today.toString()) { mutableIntStateOf(days.indexOf(today)) }
     var details by rememberSaveable(selection) { mutableStateOf(false) }
-    NativePanel("Panorama financiero") {
+    NativePanel(null) {
         var menu by remember { mutableStateOf(false) }
-        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
-        Box {
-            Surface(onClick={menu=true},enabled=!busy,shape=CircleShape,color=MaterialTheme.colorScheme.onSurface.copy(alpha=.08f)){
-                Text(homePeriods.getValue(selection)+" ⌄",Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Panorama financiero", Modifier.weight(1f), style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold)
+            Box {
+                Surface(onClick = { menu = true }, enabled = !busy, shape = CircleShape,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = .08f)) {
+                    Text(homePeriods.getValue(selection) + " ⌄", Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        style = MaterialTheme.typography.labelMedium)
+                }
+                DropdownMenu(menu, { menu = false }) {
+                    homePeriods.forEach { (key, label) ->
+                        DropdownMenuItem(text = { Text(label) }, onClick = {
+                            menu = false
+                            save("balanceone-panorama-gastos", key)
+                        })
+                    }
+                }
             }
-            DropdownMenu(menu,{menu=false}){homePeriods.forEach { (key,label)->DropdownMenuItem(text={Text(label)},onClick={menu=false;save("balanceone-panorama-gastos",key)}) }}
-        }
-        IconButton(onClick={save("balanceone-modo-discreto-inicio",if(hidden) "0" else "1")},enabled=!busy,modifier=Modifier.size(32.dp)){Icon(if(hidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,if(hidden) "Mostrar importes" else "Ocultar importes",Modifier.size(18.dp))}
+            IconButton(onClick = { save("balanceone-modo-discreto-inicio", if (hidden) "0" else "1") },
+                enabled = !busy, modifier = Modifier.size(36.dp)) {
+                Icon(if (hidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    if (hidden) "Mostrar importes" else "Ocultar importes", Modifier.size(18.dp))
+            }
         }
         Text(money(totals[days.indexOf(today)+1]),style=MaterialTheme.typography.headlineMedium)
         Text("Gastos del período")
@@ -158,7 +176,13 @@ internal fun HomeOutlook(b:OriginalBackup,today:LocalDate,expenses:List<HomeExpe
             val actualColor=Color(0xFF168CE5)
             val projectionColor=Color(0xFFED7B22)
             val labelColor=MaterialTheme.colorScheme.onSurface.copy(alpha=.72f)
-            Canvas(Modifier.fillMaxWidth().height(106.dp).pointerInput(start,today) {
+            Canvas(Modifier.fillMaxWidth().height(96.dp).semantics {
+                onClick(label = "Consultar detalle diario") {
+                    dayIndex = days.indexOf(today)
+                    details = true
+                    true
+                }
+            }.pointerInput(start,today) {
                 detectTapGestures { point->
                     dayIndex=(((point.x-size.width*.14f)/(size.width*.84f).coerceAtLeast(1f))*days.size).roundToInt().minus(1).coerceIn(0,days.indexOf(today))
                     details=true
@@ -197,7 +221,6 @@ internal fun HomeOutlook(b:OriginalBackup,today:LocalDate,expenses:List<HomeExpe
                 }
             }
             Text(if(future.isEmpty()) "Gastos registrados" else "Línea continua · gastos registrados   /   Discontinua · cobros previstos",style=MaterialTheme.typography.labelSmall)
-            TextButton(onClick={dayIndex=days.indexOf(today);details=true}){Text("Ver gastos por día")}
             val monday=NativeFinance.start(today,"Semanal")
             val thisWeek=expenses.filter { it.date in monday..today }
             val lastWeek=expenses.filter { it.date in monday.minusWeeks(1)..today.minusWeeks(1) }
